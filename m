@@ -2,123 +2,164 @@ Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E368C282CA
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 10:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05D81C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 10:39:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 38BFD2190A
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 10:35:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9F892190A
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 10:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390180AbfBMKfM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 05:35:12 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:56051 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390178AbfBMKfL (ORCPT
+        id S2391472AbfBMKjA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Feb 2019 05:39:00 -0500
+Received: from relay12.mail.gandi.net ([217.70.178.232]:47697 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728093AbfBMKjA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 05:35:11 -0500
-Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1gtrsk-00043n-2R; Wed, 13 Feb 2019 11:35:10 +0100
-Message-ID: <1550054109.3937.1.camel@pengutronix.de>
-Subject: Re: [PATCH v4 1/4] gpu: ipu-v3: ipu-ic: Rename yuv2rgb encoding
- matrices
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Wed, 13 Feb 2019 05:39:00 -0500
+X-Greylist: delayed 4700 seconds by postgrey-1.27 at vger.kernel.org; Wed, 13 Feb 2019 05:38:58 EST
+Received: from aptenodytes (aaubervilliers-681-1-89-68.w90-88.abo.wanadoo.fr [90.88.30.68])
+        (Authenticated sender: paul.kocialkowski@bootlin.com)
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 20FF220000F;
+        Wed, 13 Feb 2019 10:38:56 +0000 (UTC)
+Message-ID: <7877d69965ca7ee4caa3a26e17137c535776e61e.camel@bootlin.com>
+Subject: Re: [PATCHv2 4/6] videodev2.h: add V4L2_CTRL_FLAG_REQUIRES_REQUESTS
+From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>,
         linux-media@vger.kernel.org
-Cc:     Tim Harvey <tharvey@gateworks.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX" 
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>
-Date:   Wed, 13 Feb 2019 11:35:09 +0100
-In-Reply-To: <7d4c5935-ffa1-2320-1632-136e1ce89350@gmail.com>
-References: <20190209014748.10427-1-slongerbeam@gmail.com>
-         <20190209014748.10427-2-slongerbeam@gmail.com>
-         <1549879117.7687.2.camel@pengutronix.de>
-         <0f987e19-e6e9-a56e-00ec-61e7e300a92e@gmail.com>
-         <1549966666.4800.3.camel@pengutronix.de>
-         <7d4c5935-ffa1-2320-1632-136e1ce89350@gmail.com>
+Cc:     Dafna Hirschfeld <dafna3@gmail.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Date:   Wed, 13 Feb 2019 11:38:56 +0100
+In-Reply-To: <e334fb92-31a2-28c0-02e4-a9ccac49ba03@xs4all.nl>
+References: <20190211101357.48754-1-hverkuil-cisco@xs4all.nl>
+         <20190211101357.48754-5-hverkuil-cisco@xs4all.nl>
+         <e334fb92-31a2-28c0-02e4-a9ccac49ba03@xs4all.nl>
+Organization: Bootlin
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.22.6-1+deb9u1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+User-Agent: Evolution 3.30.5 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, 2019-02-12 at 09:42 -0800, Steve Longerbeam wrote:
-[...]
-> > > But what about this "SAT_MODE" field in the IC task parameter memory?
-> > 
-> > That just controls the saturation. The result after the matrix
-> > multiplication is either saturated to [0..255] or to [16..235]/[16..240]
-> > when converting from the internal representation to the 8 bit output.
+Hi,
+
+On Mon, 2019-02-11 at 14:04 +0100, Hans Verkuil wrote:
+> On 2/11/19 11:13 AM, Hans Verkuil wrote:
+> > Indicate if a control can only be set through a request, as opposed
+> > to being set directly. This is necessary for stateless codecs where
+> > it makes no sense to set the state controls directly.
 > 
-> By saturation I think you mean clipped to those ranges?
-
-Yes, thanks. I didn't realize it sounds weird to use saturated this way.
-See: https://en.wikipedia.org/wiki/Saturation_arithmetic
-
-> > > According to the manual the hardware will automatically convert the
-> > > written coefficients to the correct limited ranges.
-> > 
-> > Where did you get that from? "The final calculation result is limited
-> > according to the SAT_MODE parameter and rounded to 8 bits." I see no
-> > mention of coefficients being modified.
+> Kwiboo on irc pointed out that this clashes with this line the in Initialization
+> section of the stateless decoder API:
 > 
-> Well, as is often the case with this manual, I was interpreting based on 
-> poorly written information. By "final calculation result is limited 
-> according to the SAT_MODE parameter" I interpreted that to mean the 
-> hardware enables scaling from full range to limited range. But I concede 
-> that it more likely means it clips the output to those ranges.
-
-Ok, with this manual I'm never sure that there aren't some conflicting
-statements somewhere else that I might have overlooked. Good to see that
-we are at least basing our interpretations on the same text.
-
-> > > I see there is a "sat" field defined in the struct but is not being
-> > > set in the tables.
-> > > 
-> > > So what should we do, define the full range coefficients, and make use
-> > > of SAT_MODE h/w feature, or scale/offset the coefficients ourselves and
-> > > not use SAT_MODE? I'm inclined to do the former.
-> > 
-> > SAT_MODE should be set for conversions to YUV limited range so that the
-> > coefficients can be rounded to the closest value.
+> "Call VIDIOC_S_EXT_CTRLS() to set all the controls (parsed headers, etc.) required
+>  by the OUTPUT format to enumerate the CAPTURE formats."
 > 
-> Well, we have already rounded the coefficients to the nearest int in the 
-> tables. Do you mean the final result (coeff * color component + offset) 
-> is rounded?
+> So for now ignore patches 4-6: I need to think about this some more.
+> 
+> My worry here is what happens when userspace is adding these controls to a
+> request and at the same time sets them directly. That may cause weird side-effects.
 
-The manual says so: "The final calculation result is limited according
-to the SAT_MODE parameter and rounded to 8 bits", but that's not what I
-meant. Still, I might have been mistaken.
+This seems to be a very legitimate concern, as nothing guarantees that
+the controls setup by v4l2_ctrl_request_setup won't be overridden
+before the driver uses them.
 
-I think due to the fact that the coefficients are multiplied by up to
-255 (max pixel value) and then effectively divided by 256 when
-converting to 8 bit, the only way to overflow limited range is if two
-coefficients are rounded away from zero in the calculation of a single
-component. This doesn't seem to happen in practice.
+One solution could be to mark the controls as "in use" when the request
+has new data for them, clear that in v4l2_ctrl_request_complete and
+return EBUSY when trying to set the control in between the two calls.
 
-A constructed example, conversion to YUV limited range with carefully
-chosen coefficients.
+This way, we ensure that any control set via a request will retain the
+value passed with the request, which is independent from the control
+itself (so we don't need special handling for stateless codec
+controls). It also allows setting the control outside of a request for
+enumerating formats.
 
-  Y = R * .1817 + G * .6153 + B * .0618 + 16;
+What do you think?
 
-Note that .1817 + .6153 + .0618 < 219/255.
-With rounded coefficients though:
+Cheers,
 
-  Y = (R * 47 + G * 158 + B * 16 + (64 << 6)) / 256 = 236.136
+Paul
 
-Now 47 + 158 + 16 > 219, and the result is out of range.
+> Regards,
+> 
+> 	Hans
+> 
+> > Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> > ---
+> >  .../media/uapi/v4l/vidioc-queryctrl.rst       |  4 ++++
+> >  .../media/videodev2.h.rst.exceptions          |  1 +
+> >  include/uapi/linux/videodev2.h                | 23 ++++++++++---------
+> >  3 files changed, 17 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> > index f824162d0ea9..b08c69cedb92 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> > @@ -539,6 +539,10 @@ See also the examples in :ref:`control`.
+> >  	``V4L2_CTRL_FLAG_GRABBED`` flag when buffers are allocated or
+> >  	streaming is in progress since most drivers do not support changing
+> >  	the format in that case.
+> > +    * - ``V4L2_CTRL_FLAG_REQUIRES_REQUESTS``
+> > +      - 0x0800
+> > +      - This control cannot be set directly, but only through a request
+> > +        (i.e. by setting ``which`` to ``V4L2_CTRL_WHICH_REQUEST_VAL``).
+> >  
+> >  
+> >  Return Value
+> > diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+> > index 64d348e67df9..0caa72014dba 100644
+> > --- a/Documentation/media/videodev2.h.rst.exceptions
+> > +++ b/Documentation/media/videodev2.h.rst.exceptions
+> > @@ -351,6 +351,7 @@ replace define V4L2_CTRL_FLAG_VOLATILE control-flags
+> >  replace define V4L2_CTRL_FLAG_HAS_PAYLOAD control-flags
+> >  replace define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE control-flags
+> >  replace define V4L2_CTRL_FLAG_MODIFY_LAYOUT control-flags
+> > +replace define V4L2_CTRL_FLAG_REQUIRES_REQUESTS control-flags
+> >  
+> >  replace define V4L2_CTRL_FLAG_NEXT_CTRL control
+> >  replace define V4L2_CTRL_FLAG_NEXT_COMPOUND control
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 7f035d44666e..a78bfdc1df97 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -1736,17 +1736,18 @@ struct v4l2_querymenu {
+> >  } __attribute__ ((packed));
+> >  
+> >  /*  Control flags  */
+> > -#define V4L2_CTRL_FLAG_DISABLED		0x0001
+> > -#define V4L2_CTRL_FLAG_GRABBED		0x0002
+> > -#define V4L2_CTRL_FLAG_READ_ONLY	0x0004
+> > -#define V4L2_CTRL_FLAG_UPDATE		0x0008
+> > -#define V4L2_CTRL_FLAG_INACTIVE		0x0010
+> > -#define V4L2_CTRL_FLAG_SLIDER		0x0020
+> > -#define V4L2_CTRL_FLAG_WRITE_ONLY	0x0040
+> > -#define V4L2_CTRL_FLAG_VOLATILE		0x0080
+> > -#define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x0100
+> > -#define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE	0x0200
+> > -#define V4L2_CTRL_FLAG_MODIFY_LAYOUT	0x0400
+> > +#define V4L2_CTRL_FLAG_DISABLED			0x0001
+> > +#define V4L2_CTRL_FLAG_GRABBED			0x0002
+> > +#define V4L2_CTRL_FLAG_READ_ONLY		0x0004
+> > +#define V4L2_CTRL_FLAG_UPDATE			0x0008
+> > +#define V4L2_CTRL_FLAG_INACTIVE			0x0010
+> > +#define V4L2_CTRL_FLAG_SLIDER			0x0020
+> > +#define V4L2_CTRL_FLAG_WRITE_ONLY		0x0040
+> > +#define V4L2_CTRL_FLAG_VOLATILE			0x0080
+> > +#define V4L2_CTRL_FLAG_HAS_PAYLOAD		0x0100
+> > +#define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE		0x0200
+> > +#define V4L2_CTRL_FLAG_MODIFY_LAYOUT		0x0400
+> > +#define V4L2_CTRL_FLAG_REQUIRES_REQUESTS	0x0800
+> >  
+> >  /*  Query flags, to be ORed with the control ID */
+> >  #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+> > 
+-- 
+Paul Kocialkowski, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
 
-regards
-Philipp
