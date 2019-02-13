@@ -2,214 +2,161 @@ Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2CEC282CA
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:30:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BB8C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:56:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E05E72075D
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:30:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A92F222C1
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:56:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wo+rn4+r"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390925AbfBMNaK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 08:30:10 -0500
-Received: from mga07.intel.com ([134.134.136.100]:2839 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729862AbfBMNaK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 08:30:10 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Feb 2019 05:29:39 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,365,1544515200"; 
-   d="scan'208";a="318662203"
-Received: from genxfsim-shark-bay-client-platform.iind.intel.com ([10.223.25.3])
-  by fmsmga006.fm.intel.com with ESMTP; 13 Feb 2019 05:29:34 -0800
-From:   Swati Sharma <swati2.sharma@intel.com>
-To:     dri-devel@lists.freedesktop.org
-Cc:     linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        narmstrong@baylibre.com, clinton.a.taylor@intel.com,
-        ayaka@soulik.info, ayan.halder@arm.com, maxime.ripard@bootlin.com,
-        daniel@fooishbar.org, juhapekka.heikkila@gmail.com,
-        maarten.lankhorst@linux.intel.com, stanislav.lisovskiy@intel.com,
-        daniel.vetter@ffwll.ch, ville.syrjala@linux.intel.com,
-        Swati Sharma <swati2.sharma@intel.com>,
-        Vidya Srinivas <vidya.srinivas@intel.com>
-Subject: [PATCH 6/6] drm/i915/icl: Enabling Y2xx and Y4xx (xx:10/12/16) formats for universal planes
-Date:   Wed, 13 Feb 2019 18:55:33 +0530
-Message-Id: <1550064333-6168-7-git-send-email-swati2.sharma@intel.com>
-X-Mailer: git-send-email 1.9.1
-In-Reply-To: <1550064333-6168-1-git-send-email-swati2.sharma@intel.com>
-References: <1550064333-6168-1-git-send-email-swati2.sharma@intel.com>
+        id S1732845AbfBMN4U (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Feb 2019 08:56:20 -0500
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:41619 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726277AbfBMN4U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Feb 2019 08:56:20 -0500
+Received: by mail-pl1-f195.google.com with SMTP id k15so1195963pls.8;
+        Wed, 13 Feb 2019 05:56:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=V2qFA0OcwjrK68risolzFdRV/D9+52UF5C3nMIQDVp4=;
+        b=Wo+rn4+rpbWNXMXw8f961P6oxr28SV0R3AE2+Iuvqh7fxEkblbcFpBrThrdGUZASMo
+         +obY5tWBT5FcDq1TCc2YALzjSj/RwS62oxijXHr27AMGgQQ5EAXv7KDXIR8qS+CriIzl
+         v+ii3rGwru5TZogwAVIdxKFZ3HcsQXSMp2qyjqUotAp7B0lv2662QZR8uNlKx7/r97Wt
+         Q1kF7Xrwhfuo0ODVWB5AEbZlo/SYZi2B7iswqgis9OVmaodYPCQ5gXnYca7KlKSYKhWN
+         qJ16mA6TwoJHT3BVnzle1LT/35tmCVTvOSmsrJwpZE+NSxRv6QEEiAd7//aDbrQIA0zS
+         /cfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=V2qFA0OcwjrK68risolzFdRV/D9+52UF5C3nMIQDVp4=;
+        b=JFaa37+XiYe9JPr0XfKQc6WYbIOCVkpCwXm7zuVN+cYFGNpKWC0FXEkzYAWXvP70zH
+         TCFQE6EUXJslOoFeC5aKpjPiLZusO+G3OnSGvrWH2f+4n20iaSknYqXY+65AlFbiIriB
+         4Sb9YyXXT1RGxK8QBAOT06/FHzQZ4I0zVPURxTo61sCaUJxOKhnpOuSjp4s3P0HPjN1F
+         EPtRCnQV1KLXV48iPnl96GAfyQn/J9Rhyka+Ohe5/73MO1Diq7o3K5dYsAHWDchcBv0f
+         u1BSBl1tBijpeGOSu+aXNFLWfmC+QmLEqCr9tb62OigW7sD/r8Mv35OcakN1GRN/uztj
+         MIQQ==
+X-Gm-Message-State: AHQUAuZKVOeEthb5q/kjmMlDvIPebsdCfzspheuG32yrRE89rOBmQ4As
+        YF3hQRAUP3yWyVXN5PknYLISHdc3
+X-Google-Smtp-Source: AHgI3IZ+SXZkfuwQeWGM2fq41k8bLY3tiDCzMWyTKTaAYfDA8NidP+PtWIWRFYBlC0duiJnXDlxZqA==
+X-Received: by 2002:a17:902:161:: with SMTP id 88mr683223plb.306.1550066178456;
+        Wed, 13 Feb 2019 05:56:18 -0800 (PST)
+Received: from jordon-HP-15-Notebook-PC ([49.207.48.54])
+        by smtp.gmail.com with ESMTPSA id y20sm26266582pfd.161.2019.02.13.05.56.16
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 13 Feb 2019 05:56:17 -0800 (PST)
+Date:   Wed, 13 Feb 2019 19:30:35 +0530
+From:   Souptick Joarder <jrdr.linux@gmail.com>
+To:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
+        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, jgross@suse.com
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: [PATCH v3 0/9] mm: Use vm_map_pages() and vm_map_pages_zero() API
+Message-ID: <20190213140035.GA21935@jordon-HP-15-Notebook-PC>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Signed-off-by: Swati Sharma <swati2.sharma@intel.com>
-Signed-off-by: Vidya Srinivas <vidya.srinivas@intel.com>
-Reviewed-by: Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>
-Reviewed-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
----
- drivers/gpu/drm/i915/intel_display.c | 30 ++++++++++++++++++
- drivers/gpu/drm/i915/intel_sprite.c  | 60 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 89 insertions(+), 1 deletion(-)
+Previouly drivers have their own way of mapping range of
+kernel pages/memory into user vma and this was done by
+invoking vm_insert_page() within a loop.
 
-diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
-index 77bc046..ffceaa7 100644
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -2683,6 +2683,18 @@ int skl_format_to_fourcc(int format, bool rgb_order, bool alpha)
- 		return DRM_FORMAT_P012;
- 	case PLANE_CTL_FORMAT_P016:
- 		return DRM_FORMAT_P016;
-+	case PLANE_CTL_FORMAT_Y210:
-+		return DRM_FORMAT_Y210;
-+	case PLANE_CTL_FORMAT_Y212:
-+		return DRM_FORMAT_Y212;
-+	case PLANE_CTL_FORMAT_Y216:
-+		return DRM_FORMAT_Y216;
-+	case PLANE_CTL_FORMAT_Y410:
-+		return DRM_FORMAT_Y410;
-+	case PLANE_CTL_FORMAT_Y412:
-+		return DRM_FORMAT_Y412;
-+	case PLANE_CTL_FORMAT_Y416:
-+		return DRM_FORMAT_Y416;
- 	default:
- 	case PLANE_CTL_FORMAT_XRGB_8888:
- 		if (rgb_order) {
-@@ -3613,6 +3625,18 @@ static u32 skl_plane_ctl_format(u32 pixel_format)
- 		return PLANE_CTL_FORMAT_P012;
- 	case DRM_FORMAT_P016:
- 		return PLANE_CTL_FORMAT_P016;
-+	case DRM_FORMAT_Y210:
-+		return PLANE_CTL_FORMAT_Y210;
-+	case DRM_FORMAT_Y212:
-+		return PLANE_CTL_FORMAT_Y212;
-+	case DRM_FORMAT_Y216:
-+		return PLANE_CTL_FORMAT_Y216;
-+	case DRM_FORMAT_Y410:
-+		return PLANE_CTL_FORMAT_Y410;
-+	case DRM_FORMAT_Y412:
-+		return PLANE_CTL_FORMAT_Y412;
-+	case DRM_FORMAT_Y416:
-+		return PLANE_CTL_FORMAT_Y416;
- 	default:
- 		MISSING_CASE(pixel_format);
- 	}
-@@ -5161,6 +5185,12 @@ static int skl_update_scaler_plane(struct intel_crtc_state *crtc_state,
- 	case DRM_FORMAT_P010:
- 	case DRM_FORMAT_P012:
- 	case DRM_FORMAT_P016:
-+	case DRM_FORMAT_Y210:
-+	case DRM_FORMAT_Y212:
-+	case DRM_FORMAT_Y216:
-+	case DRM_FORMAT_Y410:
-+	case DRM_FORMAT_Y412:
-+	case DRM_FORMAT_Y416:
- 		break;
- 	default:
- 		DRM_DEBUG_KMS("[PLANE:%d:%s] FB:%d unsupported scaling format 0x%x\n",
-diff --git a/drivers/gpu/drm/i915/intel_sprite.c b/drivers/gpu/drm/i915/intel_sprite.c
-index 0db3c5d..89d7bf7 100644
---- a/drivers/gpu/drm/i915/intel_sprite.c
-+++ b/drivers/gpu/drm/i915/intel_sprite.c
-@@ -1816,6 +1816,27 @@ int intel_sprite_set_colorkey_ioctl(struct drm_device *dev, void *data,
- 	DRM_FORMAT_VYUY,
- };
- 
-+static const uint32_t icl_plane_formats[] = {
-+	DRM_FORMAT_C8,
-+	DRM_FORMAT_RGB565,
-+	DRM_FORMAT_XRGB8888,
-+	DRM_FORMAT_XBGR8888,
-+	DRM_FORMAT_ARGB8888,
-+	DRM_FORMAT_ABGR8888,
-+	DRM_FORMAT_XRGB2101010,
-+	DRM_FORMAT_XBGR2101010,
-+	DRM_FORMAT_YUYV,
-+	DRM_FORMAT_YVYU,
-+	DRM_FORMAT_UYVY,
-+	DRM_FORMAT_VYUY,
-+	DRM_FORMAT_Y210,
-+	DRM_FORMAT_Y212,
-+	DRM_FORMAT_Y216,
-+	DRM_FORMAT_Y410,
-+	DRM_FORMAT_Y412,
-+	DRM_FORMAT_Y416,
-+};
-+
- static const u32 skl_planar_formats[] = {
- 	DRM_FORMAT_C8,
- 	DRM_FORMAT_RGB565,
-@@ -1851,6 +1872,31 @@ int intel_sprite_set_colorkey_ioctl(struct drm_device *dev, void *data,
- 	DRM_FORMAT_P016,
- };
- 
-+static const uint32_t icl_planar_formats[] = {
-+	DRM_FORMAT_C8,
-+	DRM_FORMAT_RGB565,
-+	DRM_FORMAT_XRGB8888,
-+	DRM_FORMAT_XBGR8888,
-+	DRM_FORMAT_ARGB8888,
-+	DRM_FORMAT_ABGR8888,
-+	DRM_FORMAT_XRGB2101010,
-+	DRM_FORMAT_XBGR2101010,
-+	DRM_FORMAT_YUYV,
-+	DRM_FORMAT_YVYU,
-+	DRM_FORMAT_UYVY,
-+	DRM_FORMAT_VYUY,
-+	DRM_FORMAT_NV12,
-+	DRM_FORMAT_P010,
-+	DRM_FORMAT_P012,
-+	DRM_FORMAT_P016,
-+	DRM_FORMAT_Y210,
-+	DRM_FORMAT_Y212,
-+	DRM_FORMAT_Y216,
-+	DRM_FORMAT_Y410,
-+	DRM_FORMAT_Y412,
-+	DRM_FORMAT_Y416,
-+};
-+
- static const u64 skl_plane_format_modifiers_noccs[] = {
- 	I915_FORMAT_MOD_Yf_TILED,
- 	I915_FORMAT_MOD_Y_TILED,
-@@ -1993,6 +2039,12 @@ static bool skl_plane_format_mod_supported(struct drm_plane *_plane,
- 	case DRM_FORMAT_P010:
- 	case DRM_FORMAT_P012:
- 	case DRM_FORMAT_P016:
-+	case DRM_FORMAT_Y210:
-+	case DRM_FORMAT_Y212:
-+	case DRM_FORMAT_Y216:
-+	case DRM_FORMAT_Y410:
-+	case DRM_FORMAT_Y412:
-+	case DRM_FORMAT_Y416:
- 		if (modifier == I915_FORMAT_MOD_Yf_TILED)
- 			return true;
- 		/* fall through */
-@@ -2133,13 +2185,19 @@ struct intel_plane *
- 		plane->update_slave = icl_update_slave;
- 
- 	if (skl_plane_has_planar(dev_priv, pipe, plane_id)) {
--		if (INTEL_GEN(dev_priv) >= 10 || IS_GEMINILAKE(dev_priv)) {
-+		if (INTEL_GEN(dev_priv) >= 11) {
-+			formats = icl_planar_formats;
-+			num_formats = ARRAY_SIZE(icl_planar_formats);
-+		} else if (INTEL_GEN(dev_priv) == 10 || IS_GEMINILAKE(dev_priv)) {
- 			formats = glk_planar_formats;
- 			num_formats = ARRAY_SIZE(glk_planar_formats);
- 		} else {
- 			formats = skl_planar_formats;
- 			num_formats = ARRAY_SIZE(skl_planar_formats);
- 		}
-+	} else if (INTEL_GEN(dev_priv) >= 11) {
-+		formats = icl_plane_formats;
-+		num_formats = ARRAY_SIZE(icl_plane_formats);
- 	} else {
- 		formats = skl_plane_formats;
- 		num_formats = ARRAY_SIZE(skl_plane_formats);
+As this pattern is common across different drivers, it can
+be generalized by creating new functions and use it across
+the drivers.
+
+vm_map_pages() is the API which could be used to map
+kernel memory/pages in drivers which has considered vm_pgoff.
+
+vm_map_pages_zero() is the API which could be used to map
+range of kernel memory/pages in drivers which has not considered
+vm_pgoff. vm_pgoff is passed default as 0 for those drivers.
+
+We _could_ then at a later "fix" these drivers which are using
+vm_map_pages_zero() to behave according to the normal vm_pgoff
+offsetting simply by removing the _zero suffix on the function
+name and if that causes regressions, it gives us an easy way to revert.
+
+Tested on Rockchip hardware and display is working fine, including talking
+to Lima via prime.
+
+v1 -> v2:
+        Few Reviewed-by.
+
+        Updated the change log in [8/9]
+
+        In [7/9], vm_pgoff is treated in V4L2 API as a 'cookie'
+        to select a buffer, not as a in-buffer offset by design
+        and it always want to mmap a whole buffer from its beginning.
+        Added additional changes after discussing with Marek and
+        vm_map_pages() could be used instead of vm_map_pages_zero().
+
+v2 -> v3:
+        Corrected the documentation as per review comment.
+
+        As suggested in v2, renaming the interfaces to -
+        *vm_insert_range() -> vm_map_pages()* and
+        *vm_insert_range_buggy() -> vm_map_pages_zero()*.
+        As the interface is renamed, modified the code accordingly,
+        updated the change logs and modified the subject lines to use the
+        new interfaces. There is no other change apart from renaming and
+        using the new interface.
+
+	Patch[1/9] & [4/9], Tested on Rockchip hardware.
+
+Souptick Joarder (9):
+  mm: Introduce new vm_map_pages() and vm_map_pages_zero() API
+  arm: mm: dma-mapping: Convert to use vm_map_pages()
+  drivers/firewire/core-iso.c: Convert to use vm_map_pages_zero()
+  drm/rockchip/rockchip_drm_gem.c: Convert to use vm_map_pages()
+  drm/xen/xen_drm_front_gem.c: Convert to use vm_map_pages()
+  iommu/dma-iommu.c: Convert to use vm_map_pages()
+  videobuf2/videobuf2-dma-sg.c: Convert to use vm_map_pages()
+  xen/gntdev.c: Convert to use vm_map_pages()
+  xen/privcmd-buf.c: Convert to use vm_map_pages_zero()
+
+ arch/arm/mm/dma-mapping.c                          | 22 ++----
+ drivers/firewire/core-iso.c                        | 15 +---
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c        | 17 +----
+ drivers/gpu/drm/xen/xen_drm_front_gem.c            | 18 ++---
+ drivers/iommu/dma-iommu.c                          | 12 +---
+ drivers/media/common/videobuf2/videobuf2-core.c    |  7 ++
+ .../media/common/videobuf2/videobuf2-dma-contig.c  |  6 --
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c  | 22 ++----
+ drivers/xen/gntdev.c                               | 16 ++---
+ drivers/xen/privcmd-buf.c                          |  8 +--
+ include/linux/mm.h                                 |  4 ++
+ mm/memory.c                                        | 81 ++++++++++++++++++++++
+ mm/nommu.c                                         | 14 ++++
+ 13 files changed, 136 insertions(+), 106 deletions(-)
+
 -- 
 1.9.1
 
