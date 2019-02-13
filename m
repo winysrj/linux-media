@@ -2,40 +2,46 @@ Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05D81C282C2
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 10:39:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBF33C282CA
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 11:04:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9F892190A
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 10:39:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B3C34222BA
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 11:04:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391472AbfBMKjA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 05:39:00 -0500
-Received: from relay12.mail.gandi.net ([217.70.178.232]:47697 "EHLO
-        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728093AbfBMKjA (ORCPT
+        id S1729210AbfBMLEx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Feb 2019 06:04:53 -0500
+Received: from relay10.mail.gandi.net ([217.70.178.230]:49553 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727894AbfBMLEx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 05:39:00 -0500
-X-Greylist: delayed 4700 seconds by postgrey-1.27 at vger.kernel.org; Wed, 13 Feb 2019 05:38:58 EST
+        Wed, 13 Feb 2019 06:04:53 -0500
 Received: from aptenodytes (aaubervilliers-681-1-89-68.w90-88.abo.wanadoo.fr [90.88.30.68])
         (Authenticated sender: paul.kocialkowski@bootlin.com)
-        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 20FF220000F;
-        Wed, 13 Feb 2019 10:38:56 +0000 (UTC)
-Message-ID: <7877d69965ca7ee4caa3a26e17137c535776e61e.camel@bootlin.com>
-Subject: Re: [PATCHv2 4/6] videodev2.h: add V4L2_CTRL_FLAG_REQUIRES_REQUESTS
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 84F17240011;
+        Wed, 13 Feb 2019 11:04:49 +0000 (UTC)
+Message-ID: <e19f0821a831c45829c2921ab091b7c6ed80c8f5.camel@bootlin.com>
+Subject: Re: [PATCH v3] media: docs-rst: Document m2m stateless video
+ decoder interface
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        linux-media@vger.kernel.org
-Cc:     Dafna Hirschfeld <dafna3@gmail.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Date:   Wed, 13 Feb 2019 11:38:56 +0100
-In-Reply-To: <e334fb92-31a2-28c0-02e4-a9ccac49ba03@xs4all.nl>
-References: <20190211101357.48754-1-hverkuil-cisco@xs4all.nl>
-         <20190211101357.48754-5-hverkuil-cisco@xs4all.nl>
-         <e334fb92-31a2-28c0-02e4-a9ccac49ba03@xs4all.nl>
+To:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>
+Date:   Wed, 13 Feb 2019 12:04:49 +0100
+In-Reply-To: <7caf9381-e920-f5fc-e8f9-a54ac2733add@xs4all.nl>
+References: <20190213055317.192029-1-acourbot@chromium.org>
+         <CAPBb6MUDK0s665wjSjvo3ZePtmFXFrs2WqpaywOSjnRxp08Ong@mail.gmail.com>
+         <b24e3e67-9fb3-3602-8a90-826f8c51eadf@xs4all.nl>
+         <3de0825971b91ea0b8fd349f4ecf8164de14254a.camel@bootlin.com>
+         <7caf9381-e920-f5fc-e8f9-a54ac2733add@xs4all.nl>
 Organization: Bootlin
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.5 
@@ -48,116 +54,98 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi,
 
-On Mon, 2019-02-11 at 14:04 +0100, Hans Verkuil wrote:
-> On 2/11/19 11:13 AM, Hans Verkuil wrote:
-> > Indicate if a control can only be set through a request, as opposed
-> > to being set directly. This is necessary for stateless codecs where
-> > it makes no sense to set the state controls directly.
+On Wed, 2019-02-13 at 10:57 +0100, Hans Verkuil wrote:
+> On 2/13/19 10:20 AM, Paul Kocialkowski wrote:
+> > Hi,
+> > 
+> > On Wed, 2019-02-13 at 09:59 +0100, Hans Verkuil wrote:
+> > > On 2/13/19 6:58 AM, Alexandre Courbot wrote:
+> > > > On Wed, Feb 13, 2019 at 2:53 PM Alexandre Courbot <acourbot@chromium.org> wrote:
+> > > > > [snip]
+> > > > > +Buffers used as reference frames can be queued back to the ``CAPTURE`` queue as
+> > > > > +soon as all the frames they are affecting have been queued to the ``OUTPUT``
+> > > > > +queue. The driver will refrain from using the reference buffer as a decoding
+> > > > > +target until all the frames depending on it are decoded.
+> > > > 
+> > > > Just want to highlight this part in order to make sure that this is
+> > > > indeed what we agreed on. The recent changes to vb2_find_timestamp()
+> > > > suggest this, but maybe I misunderstood the intent. It makes the
+> > > > kernel responsible for tracking referenced buffers and not using them
+> > > > until all the dependent frames are decoded, something the client could
+> > > > also do.
+> > > 
+> > > I don't think this is quite right. Once this patch https://patchwork.linuxtv.org/patch/54275/
+> > > is in the vb2 core will track when a buffer can no longer be used as a
+> > > reference buffer because the underlying memory might have disappeared.
+> > > 
+> > > The core does not check if it makes sense to use a buffer as a reference
+> > > frame, just that it is valid memory.
+> > > 
+> > > So the driver has to check that the timestamp refers to an existing
+> > > buffer, but userspace has to check that it queues everything in the
+> > > right order and that the reference buffer won't be overwritten
+> > > before the last output buffer using that reference buffer has been
+> > > decoded.
+> > > 
+> > > So I would say that the second sentence in your paragraph is wrong.
+> > > 
+> > > The first sentence isn't quite right either, but I am not really sure how
+> > > to phrase it. It is possible to queue a reference buffer even if
+> > > not all output buffers referring to it have been decoded, provided
+> > > that by the time the driver starts to use this buffer this actually
+> > > has happened.
+> > 
+> > Is there a way we can guarantee this? Looking at the rest of the spec,
+> > it says that capture buffers "are returned in decode order" but that
+> > doesn't imply that they are picked up in the order they are queued.
+> > 
+> > It seems quite troublesome for the core to check whether each queued
+> > capture buffer is used as a reference for one of the queued requests to
+> > decide whether to pick it up or not.
 > 
-> Kwiboo on irc pointed out that this clashes with this line the in Initialization
-> section of the stateless decoder API:
+> The core only checks that the timestamp points to a valid buffer.
 > 
-> "Call VIDIOC_S_EXT_CTRLS() to set all the controls (parsed headers, etc.) required
->  by the OUTPUT format to enumerate the CAPTURE formats."
+> It is not up to the core or the driver to do anything else. If userspace
+> gives a reference to a wrong buffer or one that is already overwritten,
+> then you just get bad decoded video, but nothing crashes.
+
+Yes, that makes sense. My concern was mainly about cases where the
+capture buffers could be consumed by the driver in a different order
+than they are queued by userspace (which could lead to the reference
+buffer being reused too early). But thinking about it twice, I don't
+see a reason why this could happen.
+
+> > > But this is an optimization and theoretically it can depend on the
+> > > driver behavior. It is always safe to only queue a reference frame
+> > > when all frames depending on it have been decoded. So I am leaning
+> > > towards not complicating matters and keeping your first sentence
+> > > as-is.
+> > 
+> > Yes, I believe it would be much simpler to require userspace to only
+> > queue capture buffers once they are no longer needed as references.
 > 
-> So for now ignore patches 4-6: I need to think about this some more.
+> I think that's what we should document, but in cases where you know
+> the hardware (i.e. an embedded system) it should be allowed to optimize
+> and have the application queue a capture buffer containing a reference
+> frame even if it is still in use by already queued output buffers.
 > 
-> My worry here is what happens when userspace is adding these controls to a
-> request and at the same time sets them directly. That may cause weird side-effects.
+> That way you can achieve optimal speed and memory usage.
+> 
+> I think this is a desirable feature.
 
-This seems to be a very legitimate concern, as nothing guarantees that
-the controls setup by v4l2_ctrl_request_setup won't be overridden
-before the driver uses them.
+Yes, definitely.
 
-One solution could be to mark the controls as "in use" when the request
-has new data for them, clear that in v4l2_ctrl_request_complete and
-return EBUSY when trying to set the control in between the two calls.
-
-This way, we ensure that any control set via a request will retain the
-value passed with the request, which is independent from the control
-itself (so we don't need special handling for stateless codec
-controls). It also allows setting the control outside of a request for
-enumerating formats.
-
-What do you think?
+> > This also means that the dmabuf fd can't be changed so we are
+> > guaranteed that memory will still be there.
+> 
+> This is easy enough to check for, so I rather have some checks in
+> the core for this than prohibiting optimizing the decoder memory
+> usage.
 
 Cheers,
 
 Paul
 
-> Regards,
-> 
-> 	Hans
-> 
-> > Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> > ---
-> >  .../media/uapi/v4l/vidioc-queryctrl.rst       |  4 ++++
-> >  .../media/videodev2.h.rst.exceptions          |  1 +
-> >  include/uapi/linux/videodev2.h                | 23 ++++++++++---------
-> >  3 files changed, 17 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> > index f824162d0ea9..b08c69cedb92 100644
-> > --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> > +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> > @@ -539,6 +539,10 @@ See also the examples in :ref:`control`.
-> >  	``V4L2_CTRL_FLAG_GRABBED`` flag when buffers are allocated or
-> >  	streaming is in progress since most drivers do not support changing
-> >  	the format in that case.
-> > +    * - ``V4L2_CTRL_FLAG_REQUIRES_REQUESTS``
-> > +      - 0x0800
-> > +      - This control cannot be set directly, but only through a request
-> > +        (i.e. by setting ``which`` to ``V4L2_CTRL_WHICH_REQUEST_VAL``).
-> >  
-> >  
-> >  Return Value
-> > diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-> > index 64d348e67df9..0caa72014dba 100644
-> > --- a/Documentation/media/videodev2.h.rst.exceptions
-> > +++ b/Documentation/media/videodev2.h.rst.exceptions
-> > @@ -351,6 +351,7 @@ replace define V4L2_CTRL_FLAG_VOLATILE control-flags
-> >  replace define V4L2_CTRL_FLAG_HAS_PAYLOAD control-flags
-> >  replace define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE control-flags
-> >  replace define V4L2_CTRL_FLAG_MODIFY_LAYOUT control-flags
-> > +replace define V4L2_CTRL_FLAG_REQUIRES_REQUESTS control-flags
-> >  
-> >  replace define V4L2_CTRL_FLAG_NEXT_CTRL control
-> >  replace define V4L2_CTRL_FLAG_NEXT_COMPOUND control
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 7f035d44666e..a78bfdc1df97 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -1736,17 +1736,18 @@ struct v4l2_querymenu {
-> >  } __attribute__ ((packed));
-> >  
-> >  /*  Control flags  */
-> > -#define V4L2_CTRL_FLAG_DISABLED		0x0001
-> > -#define V4L2_CTRL_FLAG_GRABBED		0x0002
-> > -#define V4L2_CTRL_FLAG_READ_ONLY	0x0004
-> > -#define V4L2_CTRL_FLAG_UPDATE		0x0008
-> > -#define V4L2_CTRL_FLAG_INACTIVE		0x0010
-> > -#define V4L2_CTRL_FLAG_SLIDER		0x0020
-> > -#define V4L2_CTRL_FLAG_WRITE_ONLY	0x0040
-> > -#define V4L2_CTRL_FLAG_VOLATILE		0x0080
-> > -#define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x0100
-> > -#define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE	0x0200
-> > -#define V4L2_CTRL_FLAG_MODIFY_LAYOUT	0x0400
-> > +#define V4L2_CTRL_FLAG_DISABLED			0x0001
-> > +#define V4L2_CTRL_FLAG_GRABBED			0x0002
-> > +#define V4L2_CTRL_FLAG_READ_ONLY		0x0004
-> > +#define V4L2_CTRL_FLAG_UPDATE			0x0008
-> > +#define V4L2_CTRL_FLAG_INACTIVE			0x0010
-> > +#define V4L2_CTRL_FLAG_SLIDER			0x0020
-> > +#define V4L2_CTRL_FLAG_WRITE_ONLY		0x0040
-> > +#define V4L2_CTRL_FLAG_VOLATILE			0x0080
-> > +#define V4L2_CTRL_FLAG_HAS_PAYLOAD		0x0100
-> > +#define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE		0x0200
-> > +#define V4L2_CTRL_FLAG_MODIFY_LAYOUT		0x0400
-> > +#define V4L2_CTRL_FLAG_REQUIRES_REQUESTS	0x0800
-> >  
-> >  /*  Query flags, to be ORed with the control ID */
-> >  #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
-> > 
 -- 
 Paul Kocialkowski, Bootlin
 Embedded Linux and kernel engineering
