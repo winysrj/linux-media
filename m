@@ -2,177 +2,241 @@ Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 755A2C282CA
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 17:54:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE341C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 17:57:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 542E020700
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 17:54:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9BBE2075C
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 17:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393393AbfBMRyD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 12:54:03 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:46545 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393391AbfBMRyD (ORCPT
+        id S1730963AbfBMR5T (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Feb 2019 12:57:19 -0500
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:46187 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728112AbfBMR5T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 12:54:03 -0500
-Received: from litschi.hi.pengutronix.de ([2001:67c:670:100:feaa:14ff:fe6a:8db5])
-        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <m.tretter@pengutronix.de>)
-        id 1gtyjQ-00021T-RH; Wed, 13 Feb 2019 18:54:00 +0100
-Date:   Wed, 13 Feb 2019 18:54:00 +0100
-From:   Michael Tretter <m.tretter@pengutronix.de>
-To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc:     kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
-        tfiga@chromium.org, dshah@xilinx.com
-Subject: Re: [PATCH v3 0/3] Add ZynqMP VCU/Allegro DVT H.264 encoder driver
-Message-ID: <20190213185400.51c20d80@litschi.hi.pengutronix.de>
-In-Reply-To: <20190213175124.3695-1-m.tretter@pengutronix.de>
-References: <20190213175124.3695-1-m.tretter@pengutronix.de>
-Organization: Pengutronix
-X-Mailer: Claws Mail 3.14.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+        Wed, 13 Feb 2019 12:57:19 -0500
+X-Originating-IP: 2.224.242.101
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 9296DC0006;
+        Wed, 13 Feb 2019 17:57:14 +0000 (UTC)
+Date:   Wed, 13 Feb 2019 18:57:33 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     Marco Felsch <m.felsch@pengutronix.de>
+Cc:     hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        graphics@pengutronix.de
+Subject: Re: [PATCH 1/3] media: dt-bindings: add bindings for Toshiba TC358746
+Message-ID: <20190213175648.l3x2zeych4qj7km7@uno.localdomain>
+References: <20181218141240.3056-1-m.felsch@pengutronix.de>
+ <20181218141240.3056-2-m.felsch@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:feaa:14ff:fe6a:8db5
-X-SA-Exim-Mail-From: m.tretter@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3oollfukbtvf3f2v"
+Content-Disposition: inline
+In-Reply-To: <20181218141240.3056-2-m.felsch@pengutronix.de>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, 13 Feb 2019 18:51:21 +0100, Michael Tretter wrote:
-> This is v3 of the series to add support for the Allegro DVT H.264 encoder
-> found in the EV family of the Xilinx ZynqMP platform.
-> 
-> The devicetree bindings now also include the clocks as documented in PG252
-> "H.264/H.265 Video Codec Unit v1.2" [0].
-> 
-> Most changes involve added or removed v4l2 callbacks that were mentioned in
-> the review comments to make the v4l2-compliance test suite happy.
 
-And here are the test results:
+--3oollfukbtvf3f2v
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-v4l2-compliance SHA: 9e375c965f200538817ab712330a86a123124394, 64 bits
+Hi Marco,
+    thanks for the patch.
 
-Compliance test for allegro device /dev/video4:
+I have some comments, which I hope might get the ball rolling...
 
-Driver Info:
-        Driver name      : allegro
-        Card type        : Allegro DVT Video Encoder
-        Bus info         : platform:a0009000.al5e
-        Driver version   : 5.0.0
-        Capabilities     : 0x84208000
-                Video Memory-to-Memory
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps      : 0x04208000
-                Video Memory-to-Memory
-                Streaming
-                Extended Pix Format
-        Detected Stateful Encoder
+On Tue, Dec 18, 2018 at 03:12:38PM +0100, Marco Felsch wrote:
+> Add corresponding dt-bindings for the Toshiba tc358746 device.
+>
+> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> ---
+>  .../bindings/media/i2c/toshiba,tc358746.txt   | 80 +++++++++++++++++++
+>  1 file changed, 80 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,t=
+c358746.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,tc358746=
+=2Etxt b/Documentation/devicetree/bindings/media/i2c/toshiba,tc358746.txt
+> new file mode 100644
+> index 000000000000..499733df744a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,tc358746.txt
+> @@ -0,0 +1,80 @@
+> +* Toshiba TC358746 Parallel to MIPI CSI2-TX or MIPI CSI2-RX to Parallel =
+Bridge
+> +
+> +The Toshiba TC358746 is a bridge that converts a Parallel-in stream to M=
+IPI CSI-2 TX
 
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
+nit:
+s/is a bridge that/is a bridge device that/
+or drop is a bridge completely?
 
-Allow for multiple opens:
-        test second /dev/video4 open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
+> +or a MIPI CSI-2 RX stream into a Parallel-out. It is programmable throug=
+h I2C.
 
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
+=46rom the thin public available datasheet, it seems to support SPI as
+programming interface, but only when doing Parallel->CSI-2. I would
+mention that.
 
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
+> +
+> +Required Properties:
+> +
+> +- compatible: should be "toshiba,tc358746"
+> +- reg: should be <0x0e>
 
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
+nit: s/should/shall
 
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
+> +- clocks: should contain a phandle link to the reference clock source
 
-Control ioctls:
-        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-        test VIDIOC_QUERYCTRL: OK
-        test VIDIOC_G/S_CTRL: OK
-        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-        Standard Controls: 8 Private Controls: 0
+just "phandle to the reference clock source" ?
 
-Format ioctls:
-        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-        test VIDIOC_G/S_PARM: OK (Not Supported)
-        test VIDIOC_G_FBUF: OK (Not Supported)
-        test VIDIOC_G_FMT: OK
-        test VIDIOC_TRY_FMT: OK
-        test VIDIOC_S_FMT: OK
-        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-        test Cropping: OK (Not Supported)
-        test Composing: OK (Not Supported)
-        test Scaling: OK
+> +- clock-names: the clock input is named "refclk".
 
-Codec ioctls:
-        test VIDIOC_(TRY_)ENCODER_CMD: OK
-        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+According to the clock bindings this is optional, and since you have
+a single clock I would drop it.
 
-Buffer ioctls:
-        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-        test VIDIOC_EXPBUF: OK
-        test Requests: OK (Not Supported)
+> +
+> +Optional Properties:
+> +
+> +- reset-gpios: gpio phandle GPIO connected to the reset pin
 
-Test input 0:
+would you drop one of the two "gpio" here. Like ": phandle to the GPIO
+connected to the reset input pin"
 
-Streaming ioctls:
-        test read/write: OK (Not Supported)
-        test blocking wait: OK
-        Video Capture: Captured 60 buffers                
-        test MMAP (no poll): OK
-        Video Capture: Captured 60 buffers                
-        test MMAP (select): OK
-        test USERPTR (no poll): OK (Not Supported)
-        test USERPTR (select): OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
+> +
+> +Parallel Endpoint:
 
-Total for allegro device /dev/video4: 50, Succeeded: 50, Failed: 0, Warnings: 0
+Here I got confused. The chip supports 2 inputs (parallel and CSI-2)
+and two outputs (parallel and CSI-2 again). You mention endpoints
+propery only here, but it seems from the example you want two ports,
+with one endpoint child-node each.
 
-> 
-> I also updated the firmware loading and device probing to properly handle
-> failures and correctly reset or stop the MCU.
-> 
-> Still on my list is a check against the documentation of the memory-to-memory
-> stateful video encoder interface. If there are fixes necessary, I will include
-> them in a v4.
-> 
-> I did not introduce a separate queue for internal buffers for encoded frames.
-> I am still considering this split, but I want to have tracing in place before
-> doing this. The changes will completely internal to the driver and can be done
-> later anyway.
-> 
-> Each patch also contains a more detailed changelog.
-> 
-> Michael
+Even if the driver does not support CSI-2->Parallel at the moment,
+bindings should be future-proof, so I would reserve the first two
+ports for the inputs, and the last two for the output, or, considering
+that the two input-output combinations are mutually exclusive, provide
+one "input" port with two optional endpoints, and one "output" port with
+two optional endpoints.
+
+In both cases only one input and one output at the time could be
+described in DT. Up to you, maybe others have different ideas as
+well...
+
+> +
+> +Required Properties:
+> +
+> +- reg: should be <0>
+> +- bus-width: the data bus width e.g. <8> for eight bit bus, or <16>
+> +	     for sixteen bit wide bus.
+
+The chip seems to support up to 24 bits of data bus width
+
+> +
+> +MIPI CSI-2 Endpoint:
+> +
+> +Required Properties:
+> +
+> +- reg: should be <1>
+> +- data-lanes: should be <1 2 3 4> for four-lane operation,
+> +	      or <1 2> for two-lane operation
+> +- clock-lanes: should be <0>
+
+Can this be changed? If the chip does not allow lane re-ordering you
+could drop this.
+
+> +- link-frequencies: List of allowed link frequencies in Hz. Each frequen=
+cy is
+> +		    expressed as a 64-bit big-endian integer. The frequency
+> +		    is half of the bps per lane due to DDR transmission.
+
+Does the chip supports a limited set of bus frequencies, or are this
+"hints" ? I admit this property actually puzzles me, so I might got it
+wrong..
+
+Thanks
+   j
+
+> +
+> +Optional Properties:
+> +
+> +- clock-noncontinuous: Presence of this boolean property decides whether=
+ the
+> +		       MIPI CSI-2 clock is continuous or non-continuous.
+> +
+> +For further information on the endpoint node properties, see
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +&i2c {
+> +	tc358746: tc358746@0e {
+> +		reg =3D <0x0e>;
+> +		compatible =3D "toshiba,tc358746";
+> +		pinctrl-names =3D "default";
+> +		clocks =3D <&clk_cam_ref>;
+> +		clock-names =3D "refclk";
+> +		reset-gpios =3D <&gpio3 2 GPIO_ACTIVE_LOW>;
+> +
+> +		#address-cells =3D <1>;
+> +		#size-cells =3D <0>;
+> +
+> +		port@0 {
+> +			reg =3D <0>;
+> +
+> +			tc358746_parallel_in: endpoint {
+> +				bus-width =3D <8>;
+> +				remote-endpoint =3D <&micron_parallel_out>;
+> +			};
+> +		};
+> +
+> +		port@1 {
+> +			reg =3D <1>;
+> +
+> +			tc358746_mipi2_out: endpoint {
+> +				remote-endpoint =3D <&mipi_csi2_in>;
+> +				data-lanes =3D <1 2>;
+> +				clock-lanes =3D <0>;
+> +				clock-noncontinuous;
+> +				link-frequencies =3D /bits/ 64 <216000000>;
+> +			};
+> +		};
+> +	};
+> +};
+> --
+> 2.19.1
+>
+
+--3oollfukbtvf3f2v
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlxkWo0ACgkQcjQGjxah
+VjyBshAAn69sZKIcuxVmBLm426ATkBswl82ihT8sbuoOZnHOMaI74lmhy4VcJIBn
+uWOY6WTmmg/1QI2LuuiOrIv5lo3A8s5tGdrNBOhDh6Nvh7e4OrK1FfmVe4SnQKn1
+d8h9RACxH5EG2cv7YWTzP3ceesbBarRovE2nHM0vDklAavIsvQ2cTgiBbMF97LaD
+sDYlkWz75QMaIyluRyPrSz6bf+Ytr5zMottogC/alfU20C7cpu/pHJR1rTmPE7Gp
+P++0/X0ODu01p5d2GtGFwbLfOdlgp/BiFtkieLHvej2W8Cb4OGYxU+AX4OLVpuP0
+liZ10viO70FxLXKpT8D30RtcZqnoSHQsdFpuCzh6aBbenp8nXAEOpL+3Ol5qnM9s
+slWmjfA0HAGuRq29RtlekhaoWW/oX/5v+7Zi+YEw++T+HMSwvh8jSjKayNp0wgjI
+xcHVpUd6+2pcSvn6VH7NhSOAj9SpYVnXd5OWGkHFMUaKqGkTU9oTA+FpA8oBjpCa
+jLJ4jVwuwi5rvwG4826iEj1Hk6uie+ocz68mJTCH+9sS5wQ6C+Psgbkgct6SznA9
+25LNJaDXjbdpPE+K4BS9AtalNog4cuIjvLeLbDT2kdj+DmtrPnWZFhCU54bEGhYd
+cHT/FFdoXXHY0MVfxgl01s7YLwDEUYrocwDkSzRvnWe7ONcKVgQ=
+=7Jx7
+-----END PGP SIGNATURE-----
+
+--3oollfukbtvf3f2v--
