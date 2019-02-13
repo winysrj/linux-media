@@ -2,47 +2,41 @@ Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36981C282C2
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 09:31:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0034C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 09:31:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E007821901
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 09:31:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9E5E21901
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 09:31:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726189AbfBMJbI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 04:31:08 -0500
-Received: from mslow2.mail.gandi.net ([217.70.178.242]:36908 "EHLO
+        id S1726209AbfBMJbN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Feb 2019 04:31:13 -0500
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:37060 "EHLO
         mslow2.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725818AbfBMJbH (ORCPT
+        with ESMTP id S1725818AbfBMJbN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 04:31:07 -0500
+        Wed, 13 Feb 2019 04:31:13 -0500
 Received: from relay12.mail.gandi.net (unknown [217.70.178.232])
-        by mslow2.mail.gandi.net (Postfix) with ESMTP id EEF753A2034
-        for <linux-media@vger.kernel.org>; Wed, 13 Feb 2019 10:20:39 +0100 (CET)
+        by mslow2.mail.gandi.net (Postfix) with ESMTP id 670363A7CC6
+        for <linux-media@vger.kernel.org>; Wed, 13 Feb 2019 10:22:41 +0100 (CET)
 Received: from aptenodytes (aaubervilliers-681-1-89-68.w90-88.abo.wanadoo.fr [90.88.30.68])
         (Authenticated sender: paul.kocialkowski@bootlin.com)
-        by relay12.mail.gandi.net (Postfix) with ESMTPSA id C6245200013;
-        Wed, 13 Feb 2019 09:20:35 +0000 (UTC)
-Message-ID: <3de0825971b91ea0b8fd349f4ecf8164de14254a.camel@bootlin.com>
-Subject: Re: [PATCH v3] media: docs-rst: Document m2m stateless video
- decoder interface
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id A4848200006;
+        Wed, 13 Feb 2019 09:22:39 +0000 (UTC)
+Message-ID: <bf52c276e12c095ceb832d5327efb13f25ca37c9.camel@bootlin.com>
+Subject: Re: [PATCHv2 2/3] vb2: keep track of timestamp status
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Alexandre Courbot <acourbot@chromium.org>,
+To:     hverkuil-cisco@xs4all.nl, linux-media@vger.kernel.org
+Cc:     Nicolas Dufresne <nicolas@ndufresne.ca>,
         Tomasz Figa <tfiga@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     LKML <linux-kernel@vger.kernel.org>
-Date:   Wed, 13 Feb 2019 10:20:35 +0100
-In-Reply-To: <b24e3e67-9fb3-3602-8a90-826f8c51eadf@xs4all.nl>
-References: <20190213055317.192029-1-acourbot@chromium.org>
-         <CAPBb6MUDK0s665wjSjvo3ZePtmFXFrs2WqpaywOSjnRxp08Ong@mail.gmail.com>
-         <b24e3e67-9fb3-3602-8a90-826f8c51eadf@xs4all.nl>
+        Alexandre Courbot <acourbot@chromium.org>
+Date:   Wed, 13 Feb 2019 10:22:39 +0100
+In-Reply-To: <20190204101134.56283-3-hverkuil-cisco@xs4all.nl>
+References: <20190204101134.56283-1-hverkuil-cisco@xs4all.nl>
+         <20190204101134.56283-3-hverkuil-cisco@xs4all.nl>
 Organization: Bootlin
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.5 
@@ -55,67 +49,107 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi,
 
-On Wed, 2019-02-13 at 09:59 +0100, Hans Verkuil wrote:
-> On 2/13/19 6:58 AM, Alexandre Courbot wrote:
-> > On Wed, Feb 13, 2019 at 2:53 PM Alexandre Courbot <acourbot@chromium.org> wrote:
-> > > [snip]
-> > > +Buffers used as reference frames can be queued back to the ``CAPTURE`` queue as
-> > > +soon as all the frames they are affecting have been queued to the ``OUTPUT``
-> > > +queue. The driver will refrain from using the reference buffer as a decoding
-> > > +target until all the frames depending on it are decoded.
-> > 
-> > Just want to highlight this part in order to make sure that this is
-> > indeed what we agreed on. The recent changes to vb2_find_timestamp()
-> > suggest this, but maybe I misunderstood the intent. It makes the
-> > kernel responsible for tracking referenced buffers and not using them
-> > until all the dependent frames are decoded, something the client could
-> > also do.
+On Mon, 2019-02-04 at 11:11 +0100, hverkuil-cisco@xs4all.nl wrote:
+> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > 
-> I don't think this is quite right. Once this patch https://patchwork.linuxtv.org/patch/54275/
-> is in the vb2 core will track when a buffer can no longer be used as a
-> reference buffer because the underlying memory might have disappeared.
+> If a stream is stopped, or if a USERPTR/DMABUF buffer is queued
+> backed by a different user address or dmabuf fd, then the timestamp
+> should be skipped by vb2_find_timestamp since the memory it refers
+> to is no longer valid.
 > 
-> The core does not check if it makes sense to use a buffer as a reference
-> frame, just that it is valid memory.
-> 
-> So the driver has to check that the timestamp refers to an existing
-> buffer, but userspace has to check that it queues everything in the
-> right order and that the reference buffer won't be overwritten
-> before the last output buffer using that reference buffer has been
-> decoded.
-> 
-> So I would say that the second sentence in your paragraph is wrong.
-> 
-> The first sentence isn't quite right either, but I am not really sure how
-> to phrase it. It is possible to queue a reference buffer even if
-> not all output buffers referring to it have been decoded, provided
-> that by the time the driver starts to use this buffer this actually
-> has happened.
+> So keep track of a 'copied_timestamp' state: it is set when the
+> timestamp is copied from an output to a capture buffer, and is
+> cleared when it is no longer valid.
 
-Is there a way we can guarantee this? Looking at the rest of the spec,
-it says that capture buffers "are returned in decode order" but that
-doesn't imply that they are picked up in the order they are queued.
-
-It seems quite troublesome for the core to check whether each queued
-capture buffer is used as a reference for one of the queued requests to
-decide whether to pick it up or not.
-
-> But this is an optimization and theoretically it can depend on the
-> driver behavior. It is always safe to only queue a reference frame
-> when all frames depending on it have been decoded. So I am leaning
-> towards not complicating matters and keeping your first sentence
-> as-is.
-
-Yes, I believe it would be much simpler to require userspace to only
-queue capture buffers once they are no longer needed as references.
-
-This also means that the dmabuf fd can't be changed so we are
-guaranteed that memory will still be there.
+Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
 Cheers,
 
 Paul
 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> ---
+>  drivers/media/common/videobuf2/videobuf2-core.c | 3 +++
+>  drivers/media/common/videobuf2/videobuf2-v4l2.c | 3 ++-
+>  drivers/media/v4l2-core/v4l2-mem2mem.c          | 1 +
+>  include/media/videobuf2-core.h                  | 3 +++
+>  4 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index 35cf36686e20..dc29bd01d6c5 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1041,6 +1041,7 @@ static int __prepare_userptr(struct vb2_buffer *vb)
+>  		if (vb->planes[plane].mem_priv) {
+>  			if (!reacquired) {
+>  				reacquired = true;
+> +				vb->copied_timestamp = 0;
+>  				call_void_vb_qop(vb, buf_cleanup, vb);
+>  			}
+>  			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
+> @@ -1165,6 +1166,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb)
+>  
+>  		if (!reacquired) {
+>  			reacquired = true;
+> +			vb->copied_timestamp = 0;
+>  			call_void_vb_qop(vb, buf_cleanup, vb);
+>  		}
+>  
+> @@ -1943,6 +1945,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  		if (vb->request)
+>  			media_request_put(vb->request);
+>  		vb->request = NULL;
+> +		vb->copied_timestamp = 0;
+>  	}
+>  }
+>  
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 3aeaea3af42a..55277370c313 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -604,7 +604,8 @@ int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
+>  	unsigned int i;
+>  
+>  	for (i = start_idx; i < q->num_buffers; i++)
+> -		if (q->bufs[i]->timestamp == timestamp)
+> +		if (q->bufs[i]->copied_timestamp &&
+> +		    q->bufs[i]->timestamp == timestamp)
+>  			return i;
+>  	return -1;
+>  }
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index 631f4e2aa942..64b19ee1c847 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -992,6 +992,7 @@ void v4l2_m2m_buf_copy_data(const struct vb2_v4l2_buffer *out_vb,
+>  	cap_vb->field = out_vb->field;
+>  	cap_vb->flags &= ~mask;
+>  	cap_vb->flags |= out_vb->flags & mask;
+> +	cap_vb->vb2_buf.copied_timestamp = 1;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_m2m_buf_copy_data);
+>  
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 2757d1902609..62488d901747 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -262,6 +262,8 @@ struct vb2_buffer {
+>  	 * prepared:		this buffer has been prepared, i.e. the
+>  	 *			buf_prepare op was called. It is cleared again
+>  	 *			after the 'buf_finish' op is called.
+> +	 * copied_timestamp:	the timestamp of this capture buffer was copied
+> +	 *			from an output buffer.
+>  	 * queued_entry:	entry on the queued buffers list, which holds
+>  	 *			all buffers queued from userspace
+>  	 * done_entry:		entry on the list that stores all buffers ready
+> @@ -271,6 +273,7 @@ struct vb2_buffer {
+>  	enum vb2_buffer_state	state;
+>  	unsigned int		synced:1;
+>  	unsigned int		prepared:1;
+> +	unsigned int		copied_timestamp:1;
+>  
+>  	struct vb2_plane	planes[VB2_MAX_PLANES];
+>  	struct list_head	queued_entry;
 -- 
 Paul Kocialkowski, Bootlin
 Embedded Linux and kernel engineering
