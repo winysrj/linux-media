@@ -1,103 +1,89 @@
-Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B14C282CE
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 23:50:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F06D2C282C4
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 03:03:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8CC3620869
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 23:50:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE4032190A
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 03:03:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=candragon.net header.i=@candragon.net header.b="pQXZS4yd";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="SfkFjcov"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730063AbfBLXt7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 18:49:59 -0500
-Received: from mxhk.zte.com.cn ([63.217.80.70]:54484 "EHLO mxhk.zte.com.cn"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728445AbfBLXt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 18:49:59 -0500
-Received: from mse01.zte.com.cn (unknown [10.30.3.20])
-        by Forcepoint Email with ESMTPS id 9DD0DDBCF2CD546476AA;
-        Wed, 13 Feb 2019 07:49:56 +0800 (CST)
-Received: from notes_smtp.zte.com.cn ([10.30.1.239])
-        by mse01.zte.com.cn with ESMTP id x1CNnpY5002336;
-        Wed, 13 Feb 2019 07:49:51 +0800 (GMT-8)
-        (envelope-from wen.yang99@zte.com.cn)
-Received: from fox-host8.localdomain ([10.74.120.8])
-          by szsmtp06.zte.com.cn (Lotus Domino Release 8.5.3FP6)
-          with ESMTP id 2019021307501023-25782424 ;
-          Wed, 13 Feb 2019 07:50:10 +0800 
-From:   Wen Yang <wen.yang99@zte.com.cn>
-To:     benjamin.gaignard@linaro.org
-Cc:     mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, xue.zhihong@zte.com.cn,
-        wang.yi59@zte.com.cn, Wen Yang <wen.yang99@zte.com.cn>,
-        "Hans Verkuil (hansverk)" <hansverk@cisco.com>,
-        Wen Yang <yellowriver2010@hotmail.com>
-Subject: [PATCH v2 4/4] media: platform: sti: fix possible object reference leak
-Date:   Wed, 13 Feb 2019 07:48:49 +0800
-Message-Id: <1550015329-42952-1-git-send-email-wen.yang99@zte.com.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-MIMETrack: Itemize by SMTP Server on SZSMTP06/server/zte_ltd(Release 8.5.3FP6|November
- 21, 2013) at 2019-02-13 07:50:10,
-        Serialize by Router on notes_smtp/zte_ltd(Release 9.0.1FP7|August  17, 2016) at
- 2019-02-13 07:49:44,
-        Serialize complete at 2019-02-13 07:49:44
-X-MAIL: mse01.zte.com.cn x1CNnpY5002336
+        id S2390408AbfBMDDd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 22:03:33 -0500
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:38013 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2390017AbfBMDDc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Feb 2019 22:03:32 -0500
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
+        by mailout.nyi.internal (Postfix) with ESMTP id E9B74221EE;
+        Tue, 12 Feb 2019 22:03:30 -0500 (EST)
+Received: from web2 ([10.202.2.212])
+  by compute6.internal (MEProxy); Tue, 12 Feb 2019 22:03:30 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=candragon.net;
+         h=message-id:from:to:cc:mime-version:content-transfer-encoding
+        :content-type:subject:date; s=fm1; bh=ekxEvDiCWM7HfNLYX07f3dFtvd
+        3MdBRPQeQNymBRjI8=; b=pQXZS4ydDVp+afdlgcZ3O6RNgyfkCTvBtxcYbb39KB
+        s+fi5qzTAexbTGd+0vtV19/n+anosUl2OmfqwhsmpyXcuMorpI7G3XP3m4oOlKRy
+        p7t3fkHhCmxPPqcVHxjDWwySRvb3cbEFPjrMsWAVzqMMeJ9PvlZZCamo/dO8SYml
+        +79AO4xY149SAaKycRPwOyG8uK2lRa3GpPClCNtAS2z46IW136SoiyqCtYzQfqSX
+        B3z6kCzCrAs5n9eIf/rXtDDyp/MvX1pA7d/8OTrqFzSfdQ4hBAjGy5goxjCdEOwv
+        oCgOInHmTFbvs+1p3LNNugKfK56QhjzqEShPypHBauvg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:message-id:mime-version:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=ekxEvD
+        iCWM7HfNLYX07f3dFtvd3MdBRPQeQNymBRjI8=; b=SfkFjcov/DnArgxd8i9sTr
+        +bfQmKMMkDCWMBWVKQddlxC03r3q3GcsqJdCljbtYqqW2LFzQmadw1Xyiq7bnWVr
+        HV9cur4COSLfKzln7SLlTGX/t2WKixJUTxcYotQZsP7VTIeKNRvVWe/UFtAOASZw
+        K+BMfVFM1wiw9RChD+cG7mnH1bzLBdpv33LSzQPD/WMBwZ1+FEcD7ayQ2Ys+pqeA
+        K7K0DEyMQXc1WgCX9zq1d3EQGaqPQejs40TkY2vWw0jZrHrDlDMD2TG8byE9Igv5
+        0zLvBluSvnh8kRVtEzRrMKp+gEQ3slPwokstYUZCLn+UXlBM21P9vQNIPuX0Ysew
+        ==
+X-ME-Sender: <xms:AoljXEdKnGLR1Ml92jW95fdKONS5uZMsgf2uvfUYPcGg8M75e92Gxw>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedtledruddtvddgheefucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfquhhtnecuuegrihhlohhuthemucef
+    tddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefkhffvggfgtg
+    foufffsehtjeertdertdejnecuhfhrohhmpeforghrkhcukghimhhmvghrmhgrnhcuoehm
+    rghrkhestggrnhgurhgrghhonhdrnhgvtheqnecuffhomhgrihhnpehkvghrnhgvlhdroh
+    hrghdprghrtghhlhhinhhugidrohhrghenucfrrghrrghmpehmrghilhhfrhhomhepmhgr
+    rhhksegtrghnughrrghgohhnrdhnvghtnecuvehluhhsthgvrhfuihiivgeptd
+X-ME-Proxy: <xmx:AoljXPiWbqXpWMwjIuNYUMokRL4ImZv5N5RQLeryrSjz1uPeocEmRg>
+    <xmx:AoljXERi1naAJ_yHgjstLa3588N8YmoHujC0kPqn6H8fpsJsezHXFA>
+    <xmx:AoljXE8_HsIUsdTkOYZSszsaO-i0O6NCOyLzAPQFio_1DUsp5CKpoA>
+    <xmx:AoljXDjW_RiX76JLeUNLcum1hJ_NAX-bFparMhhUN0HKRH7L009Hfg>
+Received: by mailuser.nyi.internal (Postfix, from userid 99)
+        id 2FE8A6230E; Tue, 12 Feb 2019 22:03:30 -0500 (EST)
+Message-Id: <1550027010.2460608.1656864112.3A25F771@webmail.messagingengine.com>
+From:   Mark Zimmerman <mark@candragon.net>
+To:     linux-media@vger.kernel.org
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+X-Mailer: MessagingEngine.com Webmail Interface - ajax-e97eb308
+Subject: Regression in 4.20 - still present in 5.0-rc6
+Date:   Tue, 12 Feb 2019 20:03:30 -0700
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The call to of_parse_phandle() returns a node pointer with refcount
-incremented thus it must be explicitly decremented here after the last
-usage.
-The of_find_device_by_node() takes a reference to the underlying device
-structure, we also should release that reference.
+Greetings:
 
-Hans Verkuil says:
-The cec driver should never take a reference of the hdmi device.
-It never accesses the HDMI device, it only needs the HDMI device pointer as
-a key in the notifier list.
-The real problem is that several CEC drivers take a reference of the HDMI
-device and never release it. So those drivers need to be fixed.
+This is to call your attention to a regression that showed up in kernel 4.20; the behavior is still present in 5.0-rc6.
 
-This patch fixes those two issues.
+Please look at https://bugzilla.kernel.org/show_bug.cgi?id=202565 for details.
 
-Fixes: fc4e009c6c98 ("[media] stih-cec: add CEC notifier support")
-Suggested-by: Hans Verkuil (hansverk) <hansverk@cisco.com>
-Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
-Cc: Hans Verkuil (hansverk) <hansverk@cisco.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Wen Yang <yellowriver2010@hotmail.com>
-Cc: linux-media@vger.kernel.org
----
-v2->v1: 
-- move of_node_put() to just after the 'hdmi_dev = of_find_device_by_node(np)'.
-- put_device() can be done before the cec = devm_kzalloc line.
+Also, the forum post https://bbs.archlinux.org/viewtopic.php?id=244097 has further discussion and references a RedHat bug that may be relevant.
 
- drivers/media/platform/sti/cec/stih-cec.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/platform/sti/cec/stih-cec.c b/drivers/media/platform/sti/cec/stih-cec.c
-index d34099f..721021f 100644
---- a/drivers/media/platform/sti/cec/stih-cec.c
-+++ b/drivers/media/platform/sti/cec/stih-cec.c
-@@ -317,9 +317,11 @@ static int stih_cec_probe(struct platform_device *pdev)
- 	}
- 
- 	hdmi_dev = of_find_device_by_node(np);
-+	of_node_put(np);
- 	if (!hdmi_dev)
- 		return -EPROBE_DEFER;
- 
-+	put_device(&hdmi_dev->dev);
- 	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
- 	if (!cec->notifier)
- 		return -ENOMEM;
--- 
-2.9.5
-
+Thank you for your time,
+-- Mark Zimmerman
