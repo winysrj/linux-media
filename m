@@ -2,134 +2,214 @@ Return-Path: <SRS0=jAfH=QV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6581DC43381
-	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 16:19:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E4F7C43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 16:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2AB0820823
-	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 16:19:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2CE7222DA
+	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 16:33:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="KvphQnwz"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="v6BnDbF9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388907AbfBNQTT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 14 Feb 2019 11:19:19 -0500
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:46878 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726045AbfBNQTS (ORCPT
+        id S2405459AbfBNQdJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Feb 2019 11:33:09 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46014 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2405161AbfBNQdJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Feb 2019 11:19:18 -0500
-Received: by mail-qk1-f194.google.com with SMTP id i5so3872752qkd.13
-        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2019 08:19:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:cc:date:in-reply-to:references
-         :user-agent:mime-version:content-transfer-encoding;
-        bh=AxuHCqH7c+QRUhY3Jid4ATKz6AXdTTJj/yE7k5txmuc=;
-        b=KvphQnwzQ6hxJrUOiBUpJSyK0dNjgTP5ITt7+sdjFElkm00lYkoWceeuKcdJjTpZZ6
-         1/96wcrGhRpkfWGESn8CfVoC9ZLMi6L4D5BanePYHCAKl7iMet2Dy9Gnq3aMsA0aM7t8
-         A6iq54ZISKz/i1xUERGRF3KHOhrNozVkFYIazH5vNRyb93vH6mmddKk/lNX/6ZMZXM9M
-         JKeyuMjUu8JLDUnkvNkFE0IrnTFCaL6gxOc8nG3yyMCXZ8aCfvyih/swfZeSlr05MbDR
-         LbLtv3/+MYHC4Mbhw6g1G//MzEqlEGGHVwXnjl8TgpznUO35E/Zsr5bGij7DqjBRwqYE
-         /Ujw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=AxuHCqH7c+QRUhY3Jid4ATKz6AXdTTJj/yE7k5txmuc=;
-        b=EmIKB5PpRTAqfRZ2ZHu8yWkHm3mZDn4eDqoKC/4cq9xAFIXSRsrb8ywXCOybOCh4cK
-         GxQ8HTYffStMGPsrgKEO2vqwSaZCcXv4UOJPIMqq1uC8kt802ujhnNf1WYlTi21Ibk6I
-         cZivwc8uRRkLJV6CtYY1fa/nO+JqlS9BZVZmmgoAitSMZ8p6kVkQN5W+tkNqI/2wESXr
-         X6H/XogidrFT2alKqLs4Fxwf6VWiwsiMOX+VZXEpJTYAcy0P3+iwq891yk4KyrLdzgiH
-         EGhw7a6X23FT5L1Iojk1ZgM9CI4v0US8r4BchYJKZXPlbhFYN7RZ7BUtaTDxK/Xon2o9
-         t5UQ==
-X-Gm-Message-State: AHQUAuY7D9zbtNJlckLreHEt9H78qwZPsPFY4VZU//YexqujL3PJOdJE
-        x5bkIzkngDOYeTKzdNpxUvzbwg==
-X-Google-Smtp-Source: AHgI3IYgb3YZOLuWe4trND68o2DvKWBNdl+FBr16n3rCZfLhyHzDVzrviq72ySINlIM1iNHWIb0p1Q==
-X-Received: by 2002:a37:8105:: with SMTP id c5mr3465494qkd.116.1550161157696;
-        Thu, 14 Feb 2019 08:19:17 -0800 (PST)
-Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id y11sm2520187qky.2.2019.02.14.08.19.15
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 14 Feb 2019 08:19:16 -0800 (PST)
-Message-ID: <69347bdc0065b395f44673fea19e2b798c90fbc3.camel@ndufresne.ca>
-Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
- codec API
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Tomasz Figa <tfiga@chromium.org>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Malathi Gottam <mgottam@codeaurora.org>
-Date:   Thu, 14 Feb 2019 11:19:15 -0500
-In-Reply-To: <CAAFQd5CR+_y-d_v4zk9eqWCSxze8gWWsCU0diyA=hOcMxNucJg@mail.gmail.com>
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
-         <20190117162008.25217-11-stanimir.varbanov@linaro.org>
-         <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
-         <28069a44-b188-6b89-2687-542fa762c00e@linaro.org>
-         <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
-         <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
-         <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
-         <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
-         <CAAFQd5DFfQRd1VoN7itVXnWGKW_WBKU-sm6vo5CdgjkzjEEkFg@mail.gmail.com>
-         <57419418d377f32d0e6978f4e4171c0da7357cbb.camel@ndufresne.ca>
-         <1548938556.4585.1.camel@pengutronix.de>
-         <CAAFQd5Aih7cWu-cfwBvNdwhHHYEaMF0SFebrYfdNXD9qKu8fxw@mail.gmail.com>
-         <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
-         <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
-         <f1e9dc99-4fcb-dee1-4279-ac0cf1d1fd6e@xs4all.nl>
-         <CAAFQd5B+bt3SV_WRw1=2agZk=Q+Enbkv=nXCrbXX=+MNpeSpCg@mail.gmail.com>
-         <cb8cda5d-e714-6019-4a76-3853ea49c4a6@xs4all.nl>
-         <CAAFQd5BZhhX6Cjj7GhbaY_G7ERksyKne6hxKFCuTJoOnamoQ=A@mail.gmail.com>
-         <CAAFQd5CR+_y-d_v4zk9eqWCSxze8gWWsCU0diyA=hOcMxNucJg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Thu, 14 Feb 2019 11:33:09 -0500
+Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 860142DF;
+        Thu, 14 Feb 2019 17:33:06 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1550161986;
+        bh=7gIgNoNwbunRWzieYoHsaY+/8TUK/5HMVORjtYXkTfA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=v6BnDbF9EsvhbUhHbG/p5NvC+e3ZU2CXIyRkSM5o8okGmryj21xf2loubMqlRkia2
+         BqQlPdF4AsSh1DFl1OyjhG05qdXNsdrlszljeuCmUilGQH0Zn38i5Qr2qMf+R8k0AI
+         n3g4xaQWOs0ofHYL9B+M/OwQ8XqprO/ZWd16wL+s=
+Date:   Thu, 14 Feb 2019 18:33:02 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH] media-ctl: add --bus-info
+Message-ID: <20190214163302.GL3682@pendragon.ideasonboard.com>
+References: <cee8c085-785f-f793-715d-c4c4d09a5f36@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <cee8c085-785f-f793-715d-c4c4d09a5f36@xs4all.nl>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le jeudi 14 février 2019 à 11:43 +0900, Tomasz Figa a écrit :
-> > > > No, I exactly meant the OUTPUT queue. The behavior of s5p-mfc in case
-> > > > of the format not being detected yet is to waits for any pending
-> > > > bitstream buffers to be processed by the decoder before returning an
-> > > > error.
-> > > > 
-> > > > See https://elixir.bootlin.com/linux/v5.0-rc5/source/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c#L329
-> > > 
-> > > It blocks?! That shouldn't happen. Totally against the spec.
-> > > 
-> > 
-> > Yeah and that's what this patch tries to implement in venus as well
-> > and is seemingly required for compatibility with gstreamer...
-> > 
+Hi Hans,
+
+Thank you for the patch.
+
+On Thu, Feb 14, 2019 at 04:43:17PM +0100, Hans Verkuil wrote:
+> Add a --bus-info option to media-ctl which opens the media device
+> that has this bus info string. That makes it possible to open a specific
+> media device without having to know the name of the media device.
 > 
-> Hans, Nicolas, any thoughts?
+> Similar functionality has been implemented for v4l2-ctl and v4l2-compliance,
+> and for the cec utilities.
+> 
+> This allows scripts that no longer need to care about the name of a device
+> node, instead they can find it based on a unique string.
+> 
+> Also extend the -d option to support -d0 as a shorthand for /dev/media0 to
+> make it consistent with the other utils.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> ---
+> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+> index 16367857..0430b8bc 100644
+> --- a/utils/media-ctl/options.c
+> +++ b/utils/media-ctl/options.c
+> @@ -19,13 +19,18 @@
+>   * along with this program. If not, see <http://www.gnu.org/licenses/>.
+>   */
+> 
+> +#include <ctype.h>
+> +#include <dirent.h>
+> +#include <fcntl.h>
+>  #include <getopt.h>
+>  #include <stdio.h>
+>  #include <stdlib.h>
+>  #include <string.h>
+> +#include <sys/ioctl.h>
+>  #include <unistd.h>
+>  #include <v4l2subdev.h>
+> 
+> +#include <linux/media.h>
+>  #include <linux/videodev2.h>
+> 
+>  #include "options.h"
+> @@ -42,7 +47,9 @@ static void usage(const char *argv0)
+>  	unsigned int i;
+> 
+>  	printf("%s [options]\n", argv0);
+> +	printf("-b, --bus-info name	Use the media device with bus info equal to name\n");
 
-Thinking about this, if CODA managed to make it work without this, and
-without the source change event, we should probably study more this
-code and propose to do this instead of blocking (which is the ugly but
-easy solution). I'm sure it was a bit of juggle to pass the information
-correctly from input to output, but that would bring "compatibility"
-with un-ported userspace. If we had a codec specific framework (making
-a wish here), we could handle that for the codec, a bit like the code
-that emulates CROP on top of G/S_SELECTION.
+When seeing --bus-info I initially thought it was meant to print bus
+information. I wonder if we could find a name a bit more straightforward
+to guess. Would it be an option to reuse the -d option, first trying to
+open the specified device node, and considering it as a bus-info string
+if the file doesn't exist ?
 
-Meanwhile, I'm trying to get some time allocated to implement the event
-in GStreamer, as this would be sufficient argument to say that newly
-introduce drivers don't need to care, you just need newer userspace.
-For Venus it's a bit difficult, since they have customers using
-GStreamer already, and it's quite common to run newer kernel with much
-older userspace (and expect the userspace to keep working).
+>  	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
+> +	printf("			If <dev> starts with a digit, then /dev/media<dev> is used.\n");
+>  	printf("-e, --entity name	Print the device name associated with the given entity\n");
+>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
+>  	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
+> @@ -121,6 +128,7 @@ static void usage(const char *argv0)
+>  #define OPT_GET_DV			260
+> 
+>  static struct option opts[] = {
+> +	{"bus-info", 1, 0, 'b'},
+>  	{"device", 1, 0, 'd'},
+>  	{"entity", 1, 0, 'e'},
+>  	{"set-format", 1, 0, 'f'},
+> @@ -161,6 +169,51 @@ static void list_known_mbus_formats(void)
+>  	}
+>  }
+> 
+> +static const char *find_bus_info(const char *bus_info)
+> +{
+> +	static char newdev[300];
+> +	struct dirent *ep;
+> +	DIR *dp;
+> +
+> +	dp = opendir("/dev");
+> +	if (dp == NULL)
+> +		return NULL;
+> +
+> +	while ((ep = readdir(dp))) {
+> +		const char *name = ep->d_name;
+> +
+> +		if (!memcmp(name, "media", 5) && isdigit(name[5])) {
+> +			struct media_device_info mdi;
+> +			int ret;
+> +			int fd;
+> +
+> +			snprintf(newdev, sizeof(newdev), "/dev/%s", name);
+> +			fd = open(newdev, O_RDWR);
 
-Nicolas
+You can use openat() instead of open() to avoid the snprintf.
 
+> +			if (fd < 0)
+> +				continue;
+> +			ret = ioctl(fd, MEDIA_IOC_DEVICE_INFO, &mdi);
+> +			close(fd);
+> +			if (!ret && !strcmp(bus_info, mdi.bus_info)) {
+> +				closedir(dp);
+> +				return newdev;
+> +			}
+> +		}
+> +	}
+> +	closedir(dp);
+> +	return NULL;
+
+Should we try to enumerate media devices using libudev, to support
+systems with custom udev rules ?
+
+> +}
+> +
+> +static const char *make_devname(const char *device)
+> +{
+> +	static char newdev[300];
+
+Seems a bit long for concatenating /dev/media and a 3 characters string.
+
+> +
+> +	if (device[0] >= '0' && device[0] <= '9' && strlen(device) <= 3) {
+
+	if (isdigit(device[0]) && strlen(device) <= 3)
+
+Shouldn't you however check that the whole string parses as a number ?
+
+> +		snprintf(newdev, sizeof(newdev), "/dev/media%s", device);
+> +		return newdev;
+> +	}
+> +	return device;
+> +}
+> +
+>  int parse_cmdline(int argc, char **argv)
+>  {
+>  	int opt;
+> @@ -171,11 +224,20 @@ int parse_cmdline(int argc, char **argv)
+>  	}
+> 
+>  	/* parse options */
+> -	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:",
+> +	while ((opt = getopt_long(argc, argv, "b:d:e:f:hil:prvV:",
+>  				  opts, NULL)) != -1) {
+>  		switch (opt) {
+> +		case 'b':
+> +			media_opts.devname = find_bus_info(optarg);
+> +			if (!media_opts.devname) {
+> +				fprintf(stderr, "Error: no media device with bus info '%s' found\n",
+> +					optarg);
+> +				return 1;
+> +			}
+> +			break;
+> +
+>  		case 'd':
+> -			media_opts.devname = optarg;
+> +			media_opts.devname = make_devname(optarg);
+>  			break;
+> 
+>  		case 'e':
+
+-- 
+Regards,
+
+Laurent Pinchart
