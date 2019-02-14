@@ -2,176 +2,132 @@ Return-Path: <SRS0=jAfH=QV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6824FC43381
-	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 15:43:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A683FC43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 15:44:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 40841218FF
-	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 15:43:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C218218FF
+	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 15:44:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1550159066;
+	bh=j0BBQFh8PsRbcnfmUNCZouKJF2VaagXrgdMC2tU9wBo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=G6t9I8nWDs0ThKRaaePUlRTgC9zncRDchWY40yJsGFMMbIoZoEJqeKo8lwdJ35RdE
+	 UCPG/tQqCmKTrbIn/uLAcFplvdRw6EwpxDVKgYwefmCL2dKzRaL1zO1uyyBnzJMpu8
+	 qSJzihwjmrKVakBK98x2EltRa0UJIwc6Qy10aRyU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407587AbfBNPnY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 14 Feb 2019 10:43:24 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59208 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2407585AbfBNPnX (ORCPT
+        id S2439181AbfBNPoZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Feb 2019 10:44:25 -0500
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:36994 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387758AbfBNPoY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Feb 2019 10:43:23 -0500
-Received: from [IPv6:2001:420:44c1:2579:bca2:3803:89c3:7ff1] ([IPv6:2001:420:44c1:2579:bca2:3803:89c3:7ff1])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id uJATgDcK34HFnuJAXgqbgp; Thu, 14 Feb 2019 16:43:22 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media-ctl: add --bus-info
-Message-ID: <cee8c085-785f-f793-715d-c4c4d09a5f36@xs4all.nl>
-Date:   Thu, 14 Feb 2019 16:43:17 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Thu, 14 Feb 2019 10:44:24 -0500
+Received: by mail-ot1-f65.google.com with SMTP id b3so11210900otp.4;
+        Thu, 14 Feb 2019 07:44:24 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=hHm600lKUGJ6q3Hj7gROm6nbiIQqf5d7bl54AyOhBUI=;
+        b=I3dS5jBsAY1X9UqVGr155fkmaOEbid8M+A7prhEBW5byUqCCaU3mygrlJTEaH+ix7D
+         D8UbqJJie+DeFW2gd0PprFRK5+AWaDUufsKgWJs2ktr5NzB8eYEXjVxvxp64kJsO+x3z
+         i6FTdujwRuCKVnNM+qhxGE5575/w7lLnLcGeM9thlYMyTzDfRAg0nteYXxR16u9lcv3C
+         Kuz8dwzvCeZYLfOJKYI6XHhK9PUW5itwYxtHm+9u07fyxvLIjBiLWBTdVnMMeZI5PZHh
+         IfYE5ZqhCoDLdfSpeExlcoKJINjmLFShvI/CSojWSinBlwmiMEIJA2zOYKhsBlDOSm0f
+         hkHw==
+X-Gm-Message-State: AHQUAubV6QrUMTfwp4v61m9DXFKKK8AD7hrvI7nKvXA02BJk73L40o7L
+        hCbLC830oTV2dxjq1gCxo3OXWDM=
+X-Google-Smtp-Source: AHgI3IYaN1s3j0lbT+jsiW0C0BCNo7dTehHxA/sEGbQWhDyDkIlayZ3Hu72urhQ/4i53Oo8DL0VIiQ==
+X-Received: by 2002:aca:fc09:: with SMTP id a9mr2615352oii.106.1550159063762;
+        Thu, 14 Feb 2019 07:44:23 -0800 (PST)
+Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id d18sm1076883oth.9.2019.02.14.07.44.22
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 14 Feb 2019 07:44:23 -0800 (PST)
+Date:   Thu, 14 Feb 2019 09:44:22 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Ken Sloat <KSloat@aampglobal.com>
+Cc:     "eugen.hristev@microchip.com" <eugen.hristev@microchip.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "nicolas.ferre@microchip.com" <nicolas.ferre@microchip.com>,
+        "alexandre.belloni@bootlin.com" <alexandre.belloni@bootlin.com>,
+        "ludovic.desroches@microchip.com" <ludovic.desroches@microchip.com>,
+        "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v3 2/2] media: atmel-isc: Update device tree binding
+ documentation
+Message-ID: <20190214154422.GA18167@bogus>
+References: <20190204141756.234563-1-ksloat@aampglobal.com>
+ <20190204141756.234563-2-ksloat@aampglobal.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfAhGmkidlqKc81FiuSWvYzh3tb7u/5fJ6wa8gpMzqdxlTZR+OFny/uODflUJXxYConjW+hFYc2qTzYhoGkR1LvB57VyY7m42NPExG09lzXo5r0CV6POu
- hHt5ogtsPHKK7pE3iz6KsHtsQouAQblo25dgDpfgEwfSixB6M+FtndqKd3w78W/lnh/RMZf50xa847s8R6FkqOVUnOAAXwSZP8aveiEC1hc5AXaqydCsllaH
- +PYJzFF96lxy+TVIabnV8AxMaTN8hSTPJfyrDAzMJ+26VuS5kSYqPRYQgwuisuFy79iu1S+mA1l9mlG8YtQKqrxNqcJktxMc9w8pdvIuZ0zyQqJ4nfu8Sest
- h+j8OrjHmxJ3eo0EoFPmRvMDqywwHA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190204141756.234563-2-ksloat@aampglobal.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add a --bus-info option to media-ctl which opens the media device
-that has this bus info string. That makes it possible to open a specific
-media device without having to know the name of the media device.
+On Mon, Feb 04, 2019 at 02:18:14PM +0000, Ken Sloat wrote:
+> From: Ken Sloat <ksloat@aampglobal.com>
 
-Similar functionality has been implemented for v4l2-ctl and v4l2-compliance,
-and for the cec utilities.
+Needs a better subject, not one that applies to any change. Update with 
+what?
 
-This allows scripts that no longer need to care about the name of a device
-node, instead they can find it based on a unique string.
+> Update device tree binding documentation specifying how to
+> enable BT656 with CRC decoding and specify properties for
+> default parallel bus type.
+> 
+> Signed-off-by: Ken Sloat <ksloat@aampglobal.com>
+> ---
+>  Changes in v2:
+>  -Use correct media "bus-type" dt property.
+> 
+>  Changes in v3:
+>  -Specify default bus type.
+>  -Document optional parallel bus flags.
+> 
+>  .../devicetree/bindings/media/atmel-isc.txt       | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
+> index bbe0e87c6188..db3749a3964f 100644
+> --- a/Documentation/devicetree/bindings/media/atmel-isc.txt
+> +++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+> @@ -21,6 +21,21 @@ Required properties for ISC:
+>  - pinctrl-names, pinctrl-0
+>  	Please refer to pinctrl-bindings.txt.
+>  
+> +Optional properties for ISC:
+> +- bus-type
+> +	When set to 6, Bt.656 decoding (embedded sync) with CRC decoding
+> +	is enabled. If omitted, then the default bus-type is parallel and
+> +	the additional properties to follow can be specified:
+> +- hsync-active
+> +	Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> +	If unspecified, this signal is set as active HIGH.
+> +- vsync-active
+> +	Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+> +	If unspecified, this signal is set as active HIGH.
+> +- pclk-sample
+> +	Sample data on rising (1) or falling (0) edge of the pixel clock
+> +	signal. If unspecified, data is sampled on the rising edge.
 
-Also extend the -d option to support -d0 as a shorthand for /dev/media0 to
-make it consistent with the other utils.
+These are all common properties, right? No need to redefine them. Just 
+reference the common doc. Maybe the default needs to be stated here if 
+different or not defined.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 16367857..0430b8bc 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -19,13 +19,18 @@
-  * along with this program. If not, see <http://www.gnu.org/licenses/>.
-  */
-
-+#include <ctype.h>
-+#include <dirent.h>
-+#include <fcntl.h>
- #include <getopt.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <sys/ioctl.h>
- #include <unistd.h>
- #include <v4l2subdev.h>
-
-+#include <linux/media.h>
- #include <linux/videodev2.h>
-
- #include "options.h"
-@@ -42,7 +47,9 @@ static void usage(const char *argv0)
- 	unsigned int i;
-
- 	printf("%s [options]\n", argv0);
-+	printf("-b, --bus-info name	Use the media device with bus info equal to name\n");
- 	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
-+	printf("			If <dev> starts with a digit, then /dev/media<dev> is used.\n");
- 	printf("-e, --entity name	Print the device name associated with the given entity\n");
- 	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
- 	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
-@@ -121,6 +128,7 @@ static void usage(const char *argv0)
- #define OPT_GET_DV			260
-
- static struct option opts[] = {
-+	{"bus-info", 1, 0, 'b'},
- 	{"device", 1, 0, 'd'},
- 	{"entity", 1, 0, 'e'},
- 	{"set-format", 1, 0, 'f'},
-@@ -161,6 +169,51 @@ static void list_known_mbus_formats(void)
- 	}
- }
-
-+static const char *find_bus_info(const char *bus_info)
-+{
-+	static char newdev[300];
-+	struct dirent *ep;
-+	DIR *dp;
-+
-+	dp = opendir("/dev");
-+	if (dp == NULL)
-+		return NULL;
-+
-+	while ((ep = readdir(dp))) {
-+		const char *name = ep->d_name;
-+
-+		if (!memcmp(name, "media", 5) && isdigit(name[5])) {
-+			struct media_device_info mdi;
-+			int ret;
-+			int fd;
-+
-+			snprintf(newdev, sizeof(newdev), "/dev/%s", name);
-+			fd = open(newdev, O_RDWR);
-+			if (fd < 0)
-+				continue;
-+			ret = ioctl(fd, MEDIA_IOC_DEVICE_INFO, &mdi);
-+			close(fd);
-+			if (!ret && !strcmp(bus_info, mdi.bus_info)) {
-+				closedir(dp);
-+				return newdev;
-+			}
-+		}
-+	}
-+	closedir(dp);
-+	return NULL;
-+}
-+
-+static const char *make_devname(const char *device)
-+{
-+	static char newdev[300];
-+
-+	if (device[0] >= '0' && device[0] <= '9' && strlen(device) <= 3) {
-+		snprintf(newdev, sizeof(newdev), "/dev/media%s", device);
-+		return newdev;
-+	}
-+	return device;
-+}
-+
- int parse_cmdline(int argc, char **argv)
- {
- 	int opt;
-@@ -171,11 +224,20 @@ int parse_cmdline(int argc, char **argv)
- 	}
-
- 	/* parse options */
--	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:",
-+	while ((opt = getopt_long(argc, argv, "b:d:e:f:hil:prvV:",
- 				  opts, NULL)) != -1) {
- 		switch (opt) {
-+		case 'b':
-+			media_opts.devname = find_bus_info(optarg);
-+			if (!media_opts.devname) {
-+				fprintf(stderr, "Error: no media device with bus info '%s' found\n",
-+					optarg);
-+				return 1;
-+			}
-+			break;
-+
- 		case 'd':
--			media_opts.devname = optarg;
-+			media_opts.devname = make_devname(optarg);
- 			break;
-
- 		case 'e':
+> +
+>  ISC supports a single port node with parallel bus. It should contain one
+>  'port' child node with child 'endpoint' node. Please refer to the bindings
+>  defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+> -- 
+> 2.17.1
+> 
