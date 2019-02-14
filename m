@@ -2,144 +2,110 @@ Return-Path: <SRS0=jAfH=QV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01B3BC4360F
-	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 04:35:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 313F9C43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 07:33:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CFD82222C9
-	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 04:35:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A9722229F
+	for <linux-media@archiver.kernel.org>; Thu, 14 Feb 2019 07:33:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388476AbfBNEfP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 23:35:15 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39551 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387666AbfBNEfP (ORCPT
+        id S2392512AbfBNHds (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Feb 2019 02:33:48 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:59276 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726955AbfBNHds (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 23:35:15 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:5928:7bd0:3f1:a142])
+        Thu, 14 Feb 2019 02:33:48 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id u8jwgHHCPLMwIu8jxgNnvP; Thu, 14 Feb 2019 05:35:13 +0100
-Message-ID: <2fc2aa731b3454cf2760023c01d04e95@smtp-cloud7.xs4all.net>
-Date:   Thu, 14 Feb 2019 05:35:12 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfK2IP6SRkBsUmE/nCAVMU3Ckl1OBhWr1RDzusA4Nm1pjmW9k8Iat+vqqk6TmHdZLYysyaS3WpxuG2g6asNd5Mr6viaqHkTcr2/NG/aehM197TV8fRzht
- lbRhbtiv1KuOM7bV4QlmYZNOIGEVuCBqda+fM09ah8+NJqkznTyUtohQDEomEVsA+bkykKqz6Do5bp5TbSMFX5p0XHOkQJCI7I7yd517HpQAzyG49zJM1qDf
+        id uBWWgIMxHLMwIuBWZgOLfO; Thu, 14 Feb 2019 08:33:45 +0100
+Subject: Re: [RESEND PATCH v4,1/3] media: dt-bindings: media: add
+ 'assigned-clocks' to vcodec examples
+To:     Yunfei Dong <yunfei.dong@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org,
+        Qianqian Yan <qianqian.yan@mediatek.com>
+References: <1550111093-7057-1-git-send-email-yunfei.dong@mediatek.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3f77d34a-a2a4-a2c1-a4e6-32669ff69357@xs4all.nl>
+Date:   Thu, 14 Feb 2019 08:33:32 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
+MIME-Version: 1.0
+In-Reply-To: <1550111093-7057-1-git-send-email-yunfei.dong@mediatek.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfBugUWMcmJhaAPPMSjla3U+JKeQ1EE/g/hB7syAzumF6XudhzAvX5uiNYtF9J+g5kf29qqmLLPeh6HBnrvaxXZZYmPAAexBFSRhKLEJxv72lpA6dywQg
+ 3VJYP/HEePYZhzT8yzUXUZZMTW7J5QHI3yIB/1SgA9FEnYxwZ/DeF9lPTlleZluGT0Sdz21Tb87akM55Iorw2qtYOFRCVya185Qvj11ULEQEcQKufGfbgslI
+ l9bdwhXDOToFFn1+hGD7TSFnA1L8b7zenmNBr7mFzgyESDiCyiy2OBbUlphxwiuYf5uJyXH5GbQTpqouF5lMjHqtHszrVENh/L/K+XFXqo+i5/zO0MnpVKMC
+ NvI9LXjhoT9WCsnzq3USVIxQpn4o5dPfbdL3CltMQAynZSwUWaIcbPp6ZLuhl0X7gfXUOud0s/jNgl0VeBQCaz1PxL651hnPlUkIqtdEMG0uDvn22rZkYxHf
+ AW96M5Uxtck2hrm/xgpY4PG4nOgB57mfcjUOVRn8857U7W2U3h3vjZB5L0cMqwLOcPnqc/1TColFrVGZlxVjLdu+W9AlE2XeL3MBIDX9vpruP/hbTskt5kse
+ kibisxZYa09XkAXmkZffF4vbTpKOXLpzlZePErCqKheVu8Ap0Lwr/ZVejTx6qaJQfKk=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Yunfei Dong,
 
-Results of the daily build of media_tree:
+Why is this series resent? Patches 1 and 3 have been merged in our
+media master tree already.
 
-date:			Thu Feb 14 05:00:09 CET 2019
-media-tree git hash:	6fd369dd1cb65a032f1ab9227033ecb7b759656d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	aa371c995ec2ad70323db00c47b3132002b060b7
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-virtme: ERRORS
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+	Hans
 
-Detailed results are available here:
+On 2/14/19 3:24 AM, Yunfei Dong wrote:
+> Fix MTK binding document for MT8173 dtsi changed in order
+> to use standard CCF interface.
+> MT8173 SoC from Mediatek.
+> 
+> Signed-off-by: Yunfei Dong <yunfei.dong@mediatek.com>
+> Signed-off-by: Qianqian Yan <qianqian.yan@mediatek.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> ---
+>  .../devicetree/bindings/media/mediatek-vcodec.txt  |   13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> index 2a615d8..b6b5dde 100644
+> --- a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> @@ -66,6 +66,15 @@ vcodec_dec: vcodec@16000000 {
+>                    "vencpll",
+>                    "venc_lt_sel",
+>                    "vdec_bus_clk_src";
+> +    assigned-clocks = <&topckgen CLK_TOP_VENC_LT_SEL>,
+> +                      <&topckgen CLK_TOP_CCI400_SEL>,
+> +                      <&topckgen CLK_TOP_VDEC_SEL>,
+> +                      <&apmixedsys CLK_APMIXED_VCODECPLL>,
+> +                      <&apmixedsys CLK_APMIXED_VENCPLL>;
+> +    assigned-clock-parents = <&topckgen CLK_TOP_VCODECPLL_370P5>,
+> +                             <&topckgen CLK_TOP_UNIVPLL_D2>,
+> +                             <&topckgen CLK_TOP_VCODECPLL>;
+> +    assigned-clock-rates = <0>, <0>, <0>, <1482000000>, <800000000>;
+>    };
+>  
+>    vcodec_enc: vcodec@18002000 {
+> @@ -105,4 +114,8 @@ vcodec_dec: vcodec@16000000 {
+>                    "venc_sel",
+>                    "venc_lt_sel_src",
+>                    "venc_lt_sel";
+> +    assigned-clocks = <&topckgen CLK_TOP_VENC_SEL>,
+> +                      <&topckgen CLK_TOP_VENC_LT_SEL>;
+> +    assigned-clock-parents = <&topckgen CLK_TOP_VENCPLL_D2>,
+> +                             <&topckgen CLK_TOP_UNIVPLL1_D2>;
+>    };
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
