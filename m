@@ -2,142 +2,122 @@ Return-Path: <SRS0=2oy6=QW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A42C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 16:14:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC49C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 16:24:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3A87D21924
-	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 16:14:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2EDC21924
+	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 16:24:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="C48leLF1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387927AbfBOQOh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Feb 2019 11:14:37 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57976 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727457AbfBOQOg (ORCPT
+        id S1726192AbfBOQYg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Feb 2019 11:24:36 -0500
+Received: from mail-qk1-f194.google.com ([209.85.222.194]:37738 "EHLO
+        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725939AbfBOQYf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Feb 2019 11:14:36 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id 4A24D2779F3
-Message-ID: <d50db9f4941d3c75bc7259c49843dc3270bb7e83.camel@collabora.com>
-Subject: Re: [PATCH 1/1] v4l: ioctl: Validate num_planes before using it
-From:   Ezequiel Garcia <ezequiel@collabora.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc:     Thierry Reding <treding@nvidia.com>
-Date:   Fri, 15 Feb 2019 13:14:29 -0300
-In-Reply-To: <0639565e-7b3c-5917-3475-dc83a676760f@xs4all.nl>
-References: <20190110124319.22230-1-sakari.ailus@linux.intel.com>
-         <672eb573c6da3c509b8e0bbc074fff0de58b326f.camel@collabora.com>
-         <0639565e-7b3c-5917-3475-dc83a676760f@xs4all.nl>
-Organization: Collabora
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.5-1 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 15 Feb 2019 11:24:35 -0500
+Received: by mail-qk1-f194.google.com with SMTP id m9so6019409qkl.4
+        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2019 08:24:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
+        h=message-id:subject:from:to:cc:date:in-reply-to:references
+         :user-agent:mime-version;
+        bh=U0QiU4gwFgxHIQfhySXiWx23tsEB4zn1oWk8GmNybnw=;
+        b=C48leLF17JcfoX4t7dFmDPr1xROc+8FVxND/1lKQfJf2IV9tf2MjzYzhLQgV9HVk9L
+         eNI744vkFj0rMQE/WNSSTyq/pDORXwv17n490X5ryy6coObK1u39OY6/GfsWPBtmh+e5
+         fEm3ssLFvB4Ln//DspB1h+EKU65DHcwwYM/zuf9EMIMkU0ORJiaZKsuLG6T16KxBubTJ
+         D0Kxvfbv9AlZiyMsInWF9O1N8YRs3TE1YEOG7pnQUmBCKvdly0TSIoWrSi/B7VgwAL8K
+         lkGyFecgo86EWlJ74tjJHgTo4aUhJn3Ks7CgttOUbrsNqnN2gmNBSpENpO0xZWyMiUZ6
+         GLRA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
+         :references:user-agent:mime-version;
+        bh=U0QiU4gwFgxHIQfhySXiWx23tsEB4zn1oWk8GmNybnw=;
+        b=Giw/C5auziPyzOxI4VNRpNcfqD7dUjtrMzeSuTsYrl7tutWtoKTK0GUg+A9ATQoNSs
+         YsGR4jF/Aw/cclFbyJAlSlLvjYvYyrvfPO+tskBvcVRZLSE6rTKD9uFzVp2U9N3yznwW
+         4lBQil1q7RGWahQEtPsmEqtAixcbqoRBEM03aVfJCs5AyCmpp1S0IGRGaFXOF04VS86H
+         ezC8HGrWVO0XdFkJKILRn4xeqFtfB7Yi6U365n+wF/3YErWWzb8qOqnnHYTjxq8944L7
+         2k/iDFY5t0vEEvrFBK/tu4H5U6XCIy5wcZGq1SE92pyvc+g8GPqOL3qD/ayAyEtm7mEg
+         F8fw==
+X-Gm-Message-State: AHQUAuYeGagpSEyuqZ3DuIVrIZDXTcgp+appovcyzY4wT7Pr5nSunp1K
+        Lg3MwNY2rZzVZHTzcLV4X2d/bg==
+X-Google-Smtp-Source: AHgI3IamrYiJMXSmIEhVu73Gh0piPtMHRjKGI4FSjDL84VyTPXwGaj0+KtH+mUIM/O46dxk3vvK5bg==
+X-Received: by 2002:a37:d4d7:: with SMTP id s84mr7939976qks.28.1550247874533;
+        Fri, 15 Feb 2019 08:24:34 -0800 (PST)
+Received: from tpx230-nicolas.collaboramtl (modemcable154.55-37-24.static.videotron.ca. [24.37.55.154])
+        by smtp.gmail.com with ESMTPSA id 41sm3194397qtm.71.2019.02.15.08.24.33
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 15 Feb 2019 08:24:33 -0800 (PST)
+Message-ID: <04f7cf49df32b39f88b14a84df4fa38b1c7d24f6.camel@ndufresne.ca>
+Subject: Re: [PATCH v7] media: imx: add mem2mem device
+From:   Nicolas Dufresne <nicolas@ndufresne.ca>
+To:     Philipp Zabel <p.zabel@pengutronix.de>,
+        Tim Harvey <tharvey@gateworks.com>
+Cc:     linux-media <linux-media@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sascha Hauer <kernel@pengutronix.de>
+Date:   Fri, 15 Feb 2019 11:24:32 -0500
+In-Reply-To: <1550229020.4531.12.camel@pengutronix.de>
+References: <20190117155032.3317-1-p.zabel@pengutronix.de>
+         <CAJ+vNU0HCBr2vz-D=Z8zC+JAmZ6bhsi7TCRhB827uPQj-8esDQ@mail.gmail.com>
+         <1550229020.4531.12.camel@pengutronix.de>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-N+hOTfpMds6iseULiofb"
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Fri, 2019-02-15 at 17:05 +0100, Hans Verkuil wrote:
-> On 2/15/19 4:52 PM, Ezequiel Garcia wrote:
-> > On Thu, 2019-01-10 at 14:43 +0200, Sakari Ailus wrote:
-> > > The for loop to reset the memory of the plane reserved fields runs over
-> > > num_planes provided by the user without validating it. Ensure num_planes
-> > > is no more than VIDEO_MAX_PLANES before the loop.
-> > > 
-> > > Fixes: 4e1e0eb0e074 ("media: v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields")
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > ---
-> > > Hi folks,
-> > > 
-> > > This patch goes on top of Thierry's patch "media: v4l2-ioctl: Clear only
-> > > per-plane reserved fields".
-> > > 
-> > >  drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++++++
-> > >  1 file changed, 8 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > > index 392f1228af7b5..9e68a608ac6d3 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > > @@ -1551,6 +1551,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
-> > >  		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
-> > >  			break;
-> > >  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> > > +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> > > +			break;
-> > >  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> > >  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
-> > >  		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
-> > > @@ -1581,6 +1583,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
-> > >  		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
-> > >  			break;
-> > >  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> > > +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> > > +			break;
-> > >  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> > >  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
-> > >  		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
-> > > @@ -1648,6 +1652,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
-> > >  		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
-> > >  			break;
-> > >  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> > > +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> > > +			break;
-> > >  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> > >  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
-> > >  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
-> > > @@ -1678,6 +1684,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
-> > >  		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
-> > >  			break;
-> > >  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> > > +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> > > +			break;
-> > >  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> > >  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
-> > >  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
-> > 
-> > I'm under the impression this commit is causing the following v4l2-compliance warning:
-> > 
-> > TRY_FMT cannot handle an invalid pixelformat.
-> > This may or may not be a problem. For more information see:
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-> > 
-> > This applies to try_fmt and s_fmt.
-> > 
-> > After checking the v4l2 spec, it seems we can only error on a bad type field [1]:
-> > 
-> > "Drivers should not return an error code unless the type field is invalid".
-> > 
-> > Perhaps we can clamp num_planes to VIDEO_MAX_PLANES, instead of erroring out?
-> 
-> Yes, that would be the right approach.
-> 
-> Ezequiel, can you clamp num_planes and test the patch? And post it if it fixes the
-> warning?
-> 
 
-I can try :-)
+--=-N+hOTfpMds6iseULiofb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> This really should have been caught by testing with e.g. vivid and v4l2-compliance.
-> 
+Le vendredi 15 f=C3=A9vrier 2019 =C3=A0 12:10 +0100, Philipp Zabel a =C3=A9=
+crit :
+> > I'm also not sure how to specify hflip/vflip... I don't think
+> > extra-controls parses 'hflip', 'vflip' as ipu_csc_scaler_s_ctrl gets
+> > called with V4L2_CID_HFLIP/V4L2_CID_VFLIP but ctrl->val is always 0.
+>=20
+> You can use v4l2-ctl -L to list the CID names, they are horizontal_flip
+> and vertical_flip, respectively. Again, the input and output formats
+> must be different because GStreamer doesn't know about the flipping yet:
+>=20
+> gst-launch-1.0 videotestsrc ! video/x-raw,width=3D320,height=3D240 ! v4l2=
+video10convert extra-controls=3Dcid,horizontal_flip=3D1 ! video/x-raw,width=
+=3D640,height=3D480 ! kmssink can-scale=3Dfalse
+>=20
+> We'd have to add actual properties for rotate/flip to v4l2convert,
+> instead of using theextra-controls workaround, probable something
+> similar to the video-direction property of the software videoflip
+> element.
 
-We need a CI!
+Note that we have a disable-passthrough property in master, a trivial
+patch to backport if you need it.
 
-> Regards,
-> 
-> 	Hans
-> 
-> > [1] https://www.kernel.org/doc/html/latest/media/uapi/v4l/vidioc-g-fmt.html
-> > 
-> > Regards,
-> > Eze
-> > 
+https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/commit/fe5236be87=
+71ea82c850ebebe19cf1064d112bf0
 
+--=-N+hOTfpMds6iseULiofb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCXGbnwAAKCRBxUwItrAao
+HE2wAJ4pStZkhO9u19LWzO5nNO9Tpn1cAwCfZO0GB6j76Q/v1M/tftlTKJfyKAs=
+=ymJC
+-----END PGP SIGNATURE-----
+
+--=-N+hOTfpMds6iseULiofb--
 
