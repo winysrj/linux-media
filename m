@@ -2,189 +2,149 @@ Return-Path: <SRS0=2oy6=QW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7549C4360F
-	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 09:47:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DAB6C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 11:10:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF737222F1
-	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 09:39:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3626C21B1A
+	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 11:10:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404858AbfBOJjS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Feb 2019 04:39:18 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:56039 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2391708AbfBOJjR (ORCPT
+        id S2394015AbfBOLKX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Feb 2019 06:10:23 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46229 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389957AbfBOLKX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Feb 2019 04:39:17 -0500
-Received: from [IPv6:2001:420:44c1:2579:bca2:3803:89c3:7ff1] ([IPv6:2001:420:44c1:2579:bca2:3803:89c3:7ff1])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id uZxfgI88I4HFnuZxjgsNHW; Fri, 15 Feb 2019 10:39:15 +0100
-Subject: Re: [PATCHv2] media-ctl: support a bus-info string as argument to -d
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <454f5a3f-e3a9-51b7-6932-5b2bacfa92ff@xs4all.nl>
- <20190215092201.GA3504@pendragon.ideasonboard.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e402352c-44d6-af06-b763-14bfa175fb00@xs4all.nl>
-Date:   Fri, 15 Feb 2019 10:39:11 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <20190215092201.GA3504@pendragon.ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfBKOiMjDpAk4daZicBcQt2Nt7/QpxyqklsGSFL0zCiik07JRDCWk0TyWSwuRyZtE2CSrlWokFewwm1gG6QOLyQ2U8xkcoPHCekfyojbVs2IlsvAIgQXk
- BmmIN0hYI5AOu7lCfcgBfa0eNOw4YLXbBIYQMupFZ/h2nbQGehhSffNyKKXWlrvWUl68UFVqb2VCHfnhpapH+Ww+1+Ry0mHAnZvFNLfXGCNvq8XwDMofYTRr
- jVtXaAum9ua9N+oIt/D+H6NS3Zf9QOZMaQBxaAdlIaG55W+mTv3uWNViTDnEjn1nHRl05yVQpmDcmwBBiODwz23Rz3rAw/DT664ovQ21o1vDyJzooYL0aQUg
- d8UqJYCfcHVjyae2VzCWRVmxHLuFPg==
+        Fri, 15 Feb 2019 06:10:23 -0500
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1gubNu-0003Ps-0l; Fri, 15 Feb 2019 12:10:22 +0100
+Message-ID: <1550229020.4531.12.camel@pengutronix.de>
+Subject: Re: [PATCH v7] media: imx: add mem2mem device
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Tim Harvey <tharvey@gateworks.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     linux-media <linux-media@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sascha Hauer <kernel@pengutronix.de>
+Date:   Fri, 15 Feb 2019 12:10:20 +0100
+In-Reply-To: <CAJ+vNU0HCBr2vz-D=Z8zC+JAmZ6bhsi7TCRhB827uPQj-8esDQ@mail.gmail.com>
+References: <20190117155032.3317-1-p.zabel@pengutronix.de>
+         <CAJ+vNU0HCBr2vz-D=Z8zC+JAmZ6bhsi7TCRhB827uPQj-8esDQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/15/19 10:22 AM, Laurent Pinchart wrote:
-> Hi Hans,
+Hi Tim,
+
+On Tue, 2019-02-12 at 11:01 -0800, Tim Harvey wrote:
+> On Thu, Jan 17, 2019 at 7:50 AM Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > 
+> > Add a single imx-media mem2mem video device that uses the IPU IC PP
+> > (image converter post processing) task for scaling and colorspace
+> > conversion.
+> > On i.MX6Q/DL SoCs with two IPUs currently only the first IPU is used.
+> > 
+> > The hardware only supports writing to destination buffers up to
+> > 1024x1024 pixels in a single pass, arbitrary sizes can be achieved
+> > by rendering multiple tiles per frame.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > [slongerbeam@gmail.com: use ipu_image_convert_adjust(), fix
+> >  device_run() error handling, add missing media-device header,
+> >  unregister and remove the mem2mem device in error paths in
+> >  imx_media_probe_complete() and in imx_media_remove()]
+> > Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> > ---
+> > Changes since v6 [1]:
+> >  - Change driver name in querycap to imx-media-csc-scaler
+> >  - Drop V4L2_SEL_TGT_COMPOSE_PADDED from vidioc_g_selection
+> >  - Simplify error handling in ipu_csc_scaler_init_controls
+> > 
+> > [1] https://patchwork.linuxtv.org/patch/53757/
+> > ---
 > 
-> Thank you for the patch.
+> Hi Philipp,
 > 
-> On Fri, Feb 15, 2019 at 09:10:24AM +0100, Hans Verkuil wrote:
->> If the device passed to the -d option is not found, then interpret it
->> as a bus-info string and try to open all media devices and see which one
->> reports a bus-info string equal to the -d argument.
->>
->> That makes it possible to open a specific media device without having to know
->> the name of the media device.
->>
->> Similar functionality has been implemented for v4l2-ctl and v4l2-compliance,
->> and for the cec utilities.
->>
->> This allows scripts that no longer need to care about the name of a device
->> node, instead they can find it based on a unique string.
->>
->> Also extend the -d option to support -d0 as a shorthand for /dev/media0 to
->> make it consistent with the other utils.
->>
->> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->> ---
->> Changes since v1:
->> - fold into the -d option instead of creating a separate option
->> ---
->> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
->> index 16367857..fb923775 100644
->> --- a/utils/media-ctl/options.c
->> +++ b/utils/media-ctl/options.c
->> @@ -19,13 +19,18 @@
->>   * along with this program. If not, see <http://www.gnu.org/licenses/>.
->>   */
->>
->> +#include <ctype.h>
->> +#include <dirent.h>
->> +#include <fcntl.h>
->>  #include <getopt.h>
->>  #include <stdio.h>
->>  #include <stdlib.h>
->>  #include <string.h>
->> +#include <sys/ioctl.h>
->>  #include <unistd.h>
->>  #include <v4l2subdev.h>
->>
->> +#include <linux/media.h>
->>  #include <linux/videodev2.h>
->>
->>  #include "options.h"
->> @@ -43,6 +48,9 @@ static void usage(const char *argv0)
->>
->>  	printf("%s [options]\n", argv0);
->>  	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
->> +	printf("			If <dev> starts with a digit, then /dev/media<dev> is used.\n");
->> +	printf("			If <dev> doesn't exist, then find a media device that\n");
->> +	printf("			reports a bus info string equal to <dev>.\n");
->>  	printf("-e, --entity name	Print the device name associated with the given entity\n");
->>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
->>  	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
->> @@ -161,6 +169,48 @@ static void list_known_mbus_formats(void)
->>  	}
->>  }
->>
->> +static const char *make_devname(const char *device)
->> +{
->> +	static char newdev[300];
+> Thanks for this driver - this is providing support that I need to
+> overcome direct CSI->IC limitations.
 > 
-> 300 is still a lot for such a short string.
+> Can you give me some examples on how your using this? I'm testing this
+> on top of linux-media and trying the following gstreamer pipelines
+> (gstreamer recent master) and running into trouble but it could very
+> likely be me doing something wrong in my pipelines:
 > 
->> +	struct dirent *ep;
->> +	DIR *dp;
->> +
->> +	if (!access(device, F_OK))
->> +		return device;
->> +
->> +	if (device[0] >= '0' && device[0] <= '9' && strlen(device) <= 3) {
->> +		snprintf(newdev, sizeof(newdev), "/dev/media%s", device);
->> +		return newdev;
+> # upscale
+> gst-launch-1.0 videotestsrc ! video/x-raw,width=320,height=240 !
+> v4l2convert output-io-mode=dmabuf-import !
+> video/x-raw,width=640,height=480 ! kmssink
 
-It's short for this,
+You can't have v4l2convert import dmabufs because videotestsrc doesn't
+produce any. I used:
 
->> +	}
->> +
->> +	dp = opendir("/dev");
->> +	if (dp == NULL)
->> +		return device;
->> +
->> +	while ((ep = readdir(dp))) {
->> +		const char *name = ep->d_name;
->> +
->> +		if (!memcmp(name, "media", 5) && isdigit(name[5])) {
->> +			struct media_device_info mdi;
->> +			int ret;
->> +			int fd;
->> +
->> +			snprintf(newdev, sizeof(newdev), "/dev/%s", name);
+gst-launch-1.0 videotestsrc ! video/x-raw,width=320,height=240 ! v4l2video10convert ! video/x-raw,width=640,height=480 ! kmssink
 
-but not for this. ep->d_name can be up to 255 chars.
+That should work, passing dmabufs between v4l2 and kms automatically.
 
-I can use snprintf, but then gcc complains that the string will be truncated.
+I usually use kmssink but waylandsink, glimagesink, or v4l2h264enc for
+testing though.
 
->> +			fd = open(newdev, O_RDWR);
-> 
-> Did openat() fail ?
+> # downscale
+> gst-launch-1.0 videotestsrc ! video/x-raw,width=640,height=480 !
+> v4l2convert output-io-mode=dmabuf-import !
+> video/x-raw,width=320,height=280 ! kmssink
 
-There is no point, if this is a media device matching the bus_info, then
-I need to return newdev anyway.
+Drop output-io-mode unless your source is capable of producing dmabufs.
+I think kmssink is trying to scale in this case, which imx-drm doesn't
+support. You may have to either keep aspect ratio, or give kmssink the
+can-scale=false parameter.
 
-> 
->> +			if (fd < 0)
->> +				continue;
->> +			ret = ioctl(fd, MEDIA_IOC_DEVICE_INFO, &mdi);
->> +			close(fd);
->> +			if (!ret && !strcmp(device, mdi.bus_info)) {
->> +				closedir(dp);
->> +				return newdev;
->> +			}
->> +		}
->> +	}
->> +	closedir(dp);
->> +	return device;
->> +}
->> +
->>  int parse_cmdline(int argc, char **argv)
->>  {
->>  	int opt;
->> @@ -175,7 +225,7 @@ int parse_cmdline(int argc, char **argv)
->>  				  opts, NULL)) != -1) {
->>  		switch (opt) {
->>  		case 'd':
->> -			media_opts.devname = optarg;
->> +			media_opts.devname = make_devname(optarg);
->>  			break;
->>
->>  		case 'e':
-> 
+> # downscale using videotstsrc defaults
+> gst-launch-1.0 videotestsrc ! v4l2convert output-io-mode=dmabuf-import
+> ! video/x-raw,width=100,height=200 ! kmssink
+> ^^^ works
 
-Regards,
+That will probably just negotiate 100x200 on the input side and bypass
+conversion altogether.
 
-	Hans
+> # rotation
+> gst-launch-1.0 videotestsrc ! v4l2convert output-io-mode=dmabuf-import
+> extra-controls=cid,rotate=90 ! kmssink
+
+This will likely negotiate the same format and dimensions on both sides
+and bypass conversion as well. GStreamer has no concept of the rotation
+as of yet. Try:
+
+gst-launch-1.0 videotestsrc ! video/x-raw,width=320,height=240 ! v4l2video10convert extra-controls=cid,rotate=90 ! video/x-raw,width=240,height=320 ! kmssink can-scale=false
+
+> I'm also not sure how to specify hflip/vflip... I don't think
+> extra-controls parses 'hflip', 'vflip' as ipu_csc_scaler_s_ctrl gets
+> called with V4L2_CID_HFLIP/V4L2_CID_VFLIP but ctrl->val is always 0.
+
+You can use v4l2-ctl -L to list the CID names, they are horizontal_flip
+and vertical_flip, respectively. Again, the input and output formats
+must be different because GStreamer doesn't know about the flipping yet:
+
+gst-launch-1.0 videotestsrc ! video/x-raw,width=320,height=240 ! v4l2video10convert extra-controls=cid,horizontal_flip=1 ! video/x-raw,width=640,height=480 ! kmssink can-scale=false
+
+We'd have to add actual properties for rotate/flip to v4l2convert,
+instead of using theextra-controls workaround, probable something
+similar to the video-direction property of the software videoflip
+element.
+
+regards
+Philipp
