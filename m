@@ -2,136 +2,137 @@ Return-Path: <SRS0=2oy6=QW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=FAKE_REPLY_C,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AC93C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 18:29:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06BC0C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 20:47:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 187F721920
-	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 18:29:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8C11222D7
+	for <linux-media@archiver.kernel.org>; Fri, 15 Feb 2019 20:47:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nkSL53m7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389685AbfBOS3o (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Feb 2019 13:29:44 -0500
-Received: from mga01.intel.com ([192.55.52.88]:54928 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388405AbfBOS3n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Feb 2019 13:29:43 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 15 Feb 2019 10:29:42 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,373,1544515200"; 
-   d="scan'208";a="124787412"
-Received: from iweiny-desk2.sc.intel.com ([10.3.52.157])
-  by fmsmga008.fm.intel.com with ESMTP; 15 Feb 2019 10:29:42 -0800
-Date:   Fri, 15 Feb 2019 10:29:36 -0800
-From:   Ira Weiny <ira.weiny@intel.com>
-To:     linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kvm-ppc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, kvm@vger.kernel.org,
-        linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
-        virtualization@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        devel@lists.orangefs.org, linux-mm@kvack.org,
-        ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: Re: [PATCH V2 0/7] Add FOLL_LONGTERM to GUP fast and use it
-Message-ID: <20190215182935.GC26988@iweiny-DESK2.sc.intel.com>
-Reply-To: 20190211201643.7599-1-ira.weiny@intel.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.11.1 (2018-12-01)
+        id S2390056AbfBOUrb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Feb 2019 15:47:31 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:46278 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727198AbfBOUra (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Feb 2019 15:47:30 -0500
+Received: by mail-wr1-f67.google.com with SMTP id i16so3446846wrs.13
+        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2019 12:47:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=kzyV3uWTg+zmCOLRQvO2qIJXn1S3kx+GS8OrXiXFcBE=;
+        b=nkSL53m7AUcNKVAyO2kycUIhDZY6aKXP25PR5so3UN1obZbUQHKDttN+kJprniu10f
+         +GRBSjgijgfsP+s060PHZJy8vYIw+E9mM1kw40PZAiAMILOifWgThgs6G3+hCmNIjGNl
+         RzeKEMY9d+Dmh9zUA+Zh14sT8y74JVgDb+T3oyoJ44actABY6+AgG8J7sOTZVG1IFUa0
+         kNaHVyRErsrVpnHvnYzDa31Eq+KumS/Is9onyimwGAXYxKjF/hdvXSBIF4/n+cV9Hmzh
+         7Z4/vY99VmYknGCjyKDxIWjGA0/ZjOGW8JgzRtFyXl7r9WHQEpZbPchgR2EHApwZ8HyC
+         ie+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=kzyV3uWTg+zmCOLRQvO2qIJXn1S3kx+GS8OrXiXFcBE=;
+        b=AfC1tYxyQvG0WBydMR7UR+MlQ1ierz58/kFm9ssq5xMmE18ZoJ3nG0g8T6bIhEeOtX
+         Yvka9PJYUPWc2vEEa3ucA/TgFSGh9qOArsUCz3tE0jgJ/VJmIXXWSuZCO5tSK1BrWd0u
+         KE5Wo8W73k34AMEx7i5lmMCBXacs64+RcJp4R3rHYhN8fwtUDRub6wiLFn9G74vtQseI
+         yqgEBmoFhNz/sesADxqr02M72aL813f/ZaN/gwWeEIQiblUVMECLUneFT5LTyWbnI4m6
+         2ihnTvc6nLfacEMXtMdCX5tYq9Z+I36GHISY42pR9Nd2puJZmplPxJIsgpJzlskbEznW
+         3Xfg==
+X-Gm-Message-State: AHQUAua+ouGqAtJvdQkoifUYxGTW2hKDw495onLaoK2TU2o+Hl9Hml4Q
+        V5JX+I/AnHZLohapWB8Q8DLkXcoG26U=
+X-Google-Smtp-Source: AHgI3IYWDSKIk4YjwHdaRjfMqfMXCOjd5U/NAFdmS1YJHTOPChH4hKpbd5Q8p6rZ6bCD299uIn+TPw==
+X-Received: by 2002:a5d:428b:: with SMTP id k11mr8568093wrq.17.1550263648265;
+        Fri, 15 Feb 2019 12:47:28 -0800 (PST)
+Received: from localhost.localdomain ([37.26.146.189])
+        by smtp.gmail.com with ESMTPSA id w26sm13054227wmc.2.2019.02.15.12.47.25
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 15 Feb 2019 12:47:27 -0800 (PST)
+From:   Dafna Hirschfeld <dafna3@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [PATCH] media: vicodec: Add a flag for I-frames in fwht header
+Date:   Fri, 15 Feb 2019 12:47:16 -0800
+Message-Id: <20190215204716.21821-1-dafna3@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-> NOTE: This series depends on my clean up patch to remove the write parameter
-> from gup_fast_permitted()[1]
-> 
-> HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
-> advantages.  These pages can be held for a significant time.  But
-> get_user_pages_fast() does not protect against mapping of FS DAX pages.
-> 
-> Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
-> retains the performance while also adding the FS DAX checks.  XDP has also
-> shown interest in using this functionality.[2]
-> 
-> In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
-> remove the specialized get_user_pages_longterm call.
-> 
-> [1] https://lkml.org/lkml/2019/2/11/237
-> [2] https://lkml.org/lkml/2019/2/11/1789
+Add a flag 'FWHT_FL_I_FRAME' that indicates that
+this is an I-frame. This requires incrementing
+to version 3
 
-Any comments on this series?  I've touched a lot of subsystems which I think
-require review.
+Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+---
+ drivers/media/platform/vicodec/codec-fwht.h      | 3 ++-
+ drivers/media/platform/vicodec/codec-v4l2-fwht.c | 2 +-
+ drivers/media/platform/vicodec/vicodec-core.c    | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-Thanks,
-Ira
+diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
+index 60d71d9dacb3..c410512d47c5 100644
+--- a/drivers/media/platform/vicodec/codec-fwht.h
++++ b/drivers/media/platform/vicodec/codec-fwht.h
+@@ -56,7 +56,7 @@
+ #define FWHT_MAGIC1 0x4f4f4f4f
+ #define FWHT_MAGIC2 0xffffffff
+ 
+-#define FWHT_VERSION 2
++#define FWHT_VERSION 3
+ 
+ /* Set if this is an interlaced format */
+ #define FWHT_FL_IS_INTERLACED		BIT(0)
+@@ -76,6 +76,7 @@
+ #define FWHT_FL_CHROMA_FULL_HEIGHT	BIT(7)
+ #define FWHT_FL_CHROMA_FULL_WIDTH	BIT(8)
+ #define FWHT_FL_ALPHA_IS_UNCOMPRESSED	BIT(9)
++#define FWHT_FL_I_FRAME			BIT(10)
+ 
+ /* A 4-values flag - the number of components - 1 */
+ #define FWHT_FL_COMPONENTS_NUM_MSK	GENMASK(18, 16)
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+index c15034849133..93be8acabdb4 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+@@ -265,7 +265,7 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 
+ 	flags = ntohl(state->header.flags);
+ 
+-	if (version == FWHT_VERSION) {
++	if (version >= 2) {
+ 		if ((flags & FWHT_FL_PIXENC_MSK) != info->pixenc)
+ 			return -EINVAL;
+ 		components_num = 1 + ((flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
+diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+index 9d739ea5542d..d7636fe9e174 100644
+--- a/drivers/media/platform/vicodec/vicodec-core.c
++++ b/drivers/media/platform/vicodec/vicodec-core.c
+@@ -339,7 +339,7 @@ info_from_header(const struct fwht_cframe_hdr *p_hdr)
+ 	unsigned int pixenc = 0;
+ 	unsigned int version = ntohl(p_hdr->version);
+ 
+-	if (version == FWHT_VERSION) {
++	if (version >= 2) {
+ 		components_num = 1 + ((flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
+ 				FWHT_FL_COMPONENTS_NUM_OFFSET);
+ 		pixenc = (flags & FWHT_FL_PIXENC_MSK);
+@@ -362,7 +362,7 @@ static bool is_header_valid(const struct fwht_cframe_hdr *p_hdr)
+ 	if (w < MIN_WIDTH || w > MAX_WIDTH || h < MIN_HEIGHT || h > MAX_HEIGHT)
+ 		return false;
+ 
+-	if (version == FWHT_VERSION) {
++	if (version >= 2) {
+ 		unsigned int components_num = 1 +
+ 			((flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
+ 			FWHT_FL_COMPONENTS_NUM_OFFSET);
+-- 
+2.17.1
 
-> 
-> Ira Weiny (7):
->   mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
->   mm/gup: Change write parameter to flags in fast walk
->   mm/gup: Change GUP fast to use flags rather than a write 'bool'
->   mm/gup: Add FOLL_LONGTERM capability to GUP fast
->   IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
->   IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
->   IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-> 
->  arch/mips/mm/gup.c                          |  11 +-
->  arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
->  arch/powerpc/kvm/e500_mmu.c                 |   2 +-
->  arch/powerpc/mm/mmu_context_iommu.c         |   4 +-
->  arch/s390/kvm/interrupt.c                   |   2 +-
->  arch/s390/mm/gup.c                          |  12 +-
->  arch/sh/mm/gup.c                            |  11 +-
->  arch/sparc/mm/gup.c                         |   9 +-
->  arch/x86/kvm/paging_tmpl.h                  |   2 +-
->  arch/x86/kvm/svm.c                          |   2 +-
->  drivers/fpga/dfl-afu-dma-region.c           |   2 +-
->  drivers/gpu/drm/via/via_dmablit.c           |   3 +-
->  drivers/infiniband/core/umem.c              |   5 +-
->  drivers/infiniband/hw/hfi1/user_pages.c     |   5 +-
->  drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
->  drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
->  drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
->  drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
->  drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
->  drivers/misc/genwqe/card_utils.c            |   2 +-
->  drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
->  drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
->  drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
->  drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
->  drivers/sbus/char/oradax.c                  |   2 +-
->  drivers/scsi/st.c                           |   3 +-
->  drivers/staging/gasket/gasket_page_table.c  |   4 +-
->  drivers/tee/tee_shm.c                       |   2 +-
->  drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
->  drivers/vfio/vfio_iommu_type1.c             |   3 +-
->  drivers/vhost/vhost.c                       |   2 +-
->  drivers/video/fbdev/pvr2fb.c                |   2 +-
->  drivers/virt/fsl_hypervisor.c               |   2 +-
->  drivers/xen/gntdev.c                        |   2 +-
->  fs/orangefs/orangefs-bufmap.c               |   2 +-
->  include/linux/mm.h                          |  17 +-
->  kernel/futex.c                              |   2 +-
->  lib/iov_iter.c                              |   7 +-
->  mm/gup.c                                    | 220 ++++++++++++--------
->  mm/gup_benchmark.c                          |   5 +-
->  mm/util.c                                   |   8 +-
->  net/ceph/pagevec.c                          |   2 +-
->  net/rds/info.c                              |   2 +-
->  net/rds/rdma.c                              |   3 +-
->  44 files changed, 232 insertions(+), 180 deletions(-)
-> 
-> -- 
-> 2.20.1
-> 
