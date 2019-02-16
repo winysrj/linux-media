@@ -2,101 +2,98 @@ Return-Path: <SRS0=NtRf=QX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73BBFC43381
-	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 09:38:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41336C43381
+	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 09:42:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 43E2A222D7
-	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 09:38:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 108B7222DD
+	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 09:42:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727837AbfBPJi0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 16 Feb 2019 04:38:26 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:3221 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726326AbfBPJi0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Feb 2019 04:38:26 -0500
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 634A913A0406324283DC;
-        Sat, 16 Feb 2019 17:38:23 +0800 (CST)
-Received: from [127.0.0.1] (10.177.31.96) by DGGEMS405-HUB.china.huawei.com
- (10.3.19.205) with Microsoft SMTP Server id 14.3.408.0; Sat, 16 Feb 2019
- 17:38:18 +0800
-Subject: Re: [PATCH -next] media: vimc: remove set but not used variable
- 'frame_size'
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Helen Koike <helen.koike@collabora.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20190216022438.32242-1-yuehaibing@huawei.com>
- <3f24847f-0557-5660-19de-1ef003f15524@xs4all.nl>
-CC:     <linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
-From:   YueHaibing <yuehaibing@huawei.com>
-Message-ID: <ae50788b-ba39-db3e-4d94-cc13ba09e6bb@huawei.com>
-Date:   Sat, 16 Feb 2019 17:38:17 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.2.0
+        id S1728258AbfBPJmp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 16 Feb 2019 04:42:45 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36668 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726326AbfBPJmp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Feb 2019 04:42:45 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id uwUYgeiZPLMwIuwUcgaFvT; Sat, 16 Feb 2019 10:42:43 +0100
+Subject: Re: v4l2 mem2mem compose support?
+To:     Tim Harvey <tharvey@gateworks.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Carlos Rafael Giani <dv@pseudoterminal.org>,
+        Discussion of the development of and with GStreamer 
+        <gstreamer-devel@lists.freedesktop.org>
+References: <CAJ+vNU2aA-RrQbHrVa7eV4nZjUsbA9z42Dm0iVeOuWbgO=PtfQ@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1417dde5-ecd5-354e-2ed1-9be4d26ce104@xs4all.nl>
+Date:   Sat, 16 Feb 2019 10:42:38 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <3f24847f-0557-5660-19de-1ef003f15524@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <CAJ+vNU2aA-RrQbHrVa7eV4nZjUsbA9z42Dm0iVeOuWbgO=PtfQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.177.31.96]
-X-CFilter-Loop: Reflected
+X-CMAE-Envelope: MS4wfP+sefcq6ZaNsyVjZ/O31TdPVdEx6tw06UoCrsTdkpKsiF3cjpca8aZ7GMzANhnzm6neir7eN8iTElAiSUHuPpoDVmy7U5xDlAk5i0x3pKkpjfWMHWfV
+ gfUneLz/zqxbWBUZTvXt4fXNqSXUUmS1oWZVCg/U00p7P6qEschFqGXUtwvQp129CJNV9JCq8fwQ1knQ/Hbz4iJsUPf7UJJxJ0+UhJtW6fFjTpkar0eNpPhR
+ LoUQhrlqlJNzQK+CyWTKzg8VD312zp+HFFhJxkWHR7UpmVRIjPWFNTDFY6T4FM+ec5eeuYE7whok+ZpXfdLcy7dPysSsiD49m+cv/m9cdQkFeyfmyHqfRB7L
+ l/jK9oZSHrJrtzJ3r0d8Q80oXdQnRsq2L8Y3pCG/eRbSyHqelWxMM4tIn2EcE7bjbxmQZWrfhlt6M2LmO2f9oz8WsoDI3g==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On 2/16/19 1:16 AM, Tim Harvey wrote:
+> Greetings,
+> 
+> What is needed to be able to take advantage of hardware video
+> composing capabilities and make them available in something like
+> GStreamer?
 
-On 2019/2/16 17:25, Hans Verkuil wrote:
-> On 2/16/19 3:24 AM, YueHaibing wrote:
->> Fixes gcc '-Wunused-but-set-variable' warning:
->>
->> drivers/media/platform/vimc/vimc-sensor.c: In function 'vimc_sen_process_frame':
->> drivers/media/platform/vimc/vimc-sensor.c:208:15: warning:
->>  variable 'frame_size' set but not used [-Wunused-but-set-variable]
->>
->> It's never used since introduction.
-> 
-> A patch for this is already pending in a pull request.
+Are you talking about what is needed in a driver or what is needed in
+gstreamer? Or both?
 
-Thank you for info.
+In any case, the driver needs to support the V4L2 selection API, specifically
+the compose target rectangle for the video capture.
+
+Regards,
+
+	Hans
 
 > 
-> Regards,
+> Philipp's mem2mem driver [1] exposes the IMX IC and GStreamer's
+> v4l2convert element uses this nicely for hardware accelerated
+> scaling/csc/flip/rotate but what I'm looking for is something that
+> extends that concept and allows for composing frames from multiple
+> video capture devices into a single memory buffer which could then be
+> encoded as a single stream.
 > 
-> 	Hans
+> This was made possible by Carlo's gstreamer-imx [2] GStreamer plugins
+> paired with the Freescale kernel that had some non-mainlined API's to
+> the IMX IPU and GPU. We have used this to take for example 8x analog
+> capture inputs, compose them into a single frame then H264 encode and
+> stream it. The gstreamer-imx elements used fairly compatible
+> properties as the GstCompositorPad element to provide a destination
+> rect within the compose output buffer as well as rotation/flip, alpha
+> blending and the ability to specify background fill.
 > 
->>
->> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
->> ---
->>  drivers/media/platform/vimc/vimc-sensor.c | 7 -------
->>  1 file changed, 7 deletions(-)
->>
->> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
->> index 93961a1e694f..59195f262623 100644
->> --- a/drivers/media/platform/vimc/vimc-sensor.c
->> +++ b/drivers/media/platform/vimc/vimc-sensor.c
->> @@ -204,13 +204,6 @@ static void *vimc_sen_process_frame(struct vimc_ent_device *ved,
->>  {
->>  	struct vimc_sen_device *vsen = container_of(ved, struct vimc_sen_device,
->>  						    ved);
->> -	const struct vimc_pix_map *vpix;
->> -	unsigned int frame_size;
->> -
->> -	/* Calculate the frame size */
->> -	vpix = vimc_pix_map_by_code(vsen->mbus_format.code);
->> -	frame_size = vsen->mbus_format.width * vpix->bpp *
->> -		     vsen->mbus_format.height;
->>  
->>  	tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
->>  	return vsen->frame;
->>
->>
->>
+> Is it possible that some of this capability might be available today
+> with the opengl GStreamer elements?
 > 
+> Best Regards,
 > 
-> .
+> Tim
+> 
+> [1] https://patchwork.kernel.org/patch/10768463/
+> [2] https://github.com/Freescale/gstreamer-imx
 > 
 
