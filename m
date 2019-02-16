@@ -2,145 +2,91 @@ Return-Path: <SRS0=NtRf=QX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63205C43381
-	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 04:45:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5704C43381
+	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 09:25:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 327E6222A1
-	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 04:45:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78BDD222DD
+	for <linux-media@archiver.kernel.org>; Sat, 16 Feb 2019 09:25:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394511AbfBPEpI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Feb 2019 23:45:08 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55367 "EHLO
+        id S1731754AbfBPJZo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 16 Feb 2019 04:25:44 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:52951 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729703AbfBPEpI (ORCPT
+        by vger.kernel.org with ESMTP id S1728307AbfBPJZo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Feb 2019 23:45:08 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:512a:27ad:f0dd:d8db])
+        Sat, 16 Feb 2019 04:25:44 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id urqbgcALOLMwIurqcgZSSU; Sat, 16 Feb 2019 05:45:06 +0100
-Message-ID: <4227498bb90fa8be8856379f97ae46b4@smtp-cloud7.xs4all.net>
-Date:   Sat, 16 Feb 2019 05:45:05 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfDbhB2Id2hT/Ly95PWTk6HPJfchEc24UPydDuvm9UF+KnrkFjxkhgBdLeHqa+PkVt0Bg0kLx6y9MbOLEroUOa0E2aICTrZBvqszCGE6KFWnAXYkJ/nK5
- ZpVXdtvwUFaaRzyN/QAVHMtblVnMvwxtJO55SSF6csXNGgWDcy0TdrP1LbmiEv3vrhiRuNkuxctah6nXaGExD8qSUZ6PfMBrhvJfejHuKV+UkLEHcA8QHS+Q
+        id uwE6geTTdLMwIuwEAgaD7q; Sat, 16 Feb 2019 10:25:42 +0100
+Subject: Re: [PATCH -next] media: vimc: remove set but not used variable
+ 'frame_size'
+To:     YueHaibing <yuehaibing@huawei.com>,
+        Helen Koike <helen.koike@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <20190216022438.32242-1-yuehaibing@huawei.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3f24847f-0557-5660-19de-1ef003f15524@xs4all.nl>
+Date:   Sat, 16 Feb 2019 10:25:38 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
+MIME-Version: 1.0
+In-Reply-To: <20190216022438.32242-1-yuehaibing@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfExf8fQ/8OjIu50o+r0tltSEomYCfGUlW5Qj0chBOu7xfLGUjFcxj+wpenCBjvn3K6z+p/0wHczV408RDSubz0wqnmYyVkjlhzFIUyo2pSS5y6f1GUnF
+ hyD8O13PO5hDRFrbCxUiOX9tdCQWWhkALZKVWabgOcy1BPUX24II7qIil5Us0Abvubsi4dLqTZUviKLyQSRY6a1+vnM2kDorUPshQUPqITs8yyqPWYjCj0jW
+ 4d3F8h0aiEisg5oTDcq4irQiZRwIlM7wYicWDgS7i1GOhn3Rrbt08CnRTIxel/S2KnvxCvmDcB8DmUCXR2MmwLwKGvYoAARrAnJP6OArIMs=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2/16/19 3:24 AM, YueHaibing wrote:
+> Fixes gcc '-Wunused-but-set-variable' warning:
+> 
+> drivers/media/platform/vimc/vimc-sensor.c: In function 'vimc_sen_process_frame':
+> drivers/media/platform/vimc/vimc-sensor.c:208:15: warning:
+>  variable 'frame_size' set but not used [-Wunused-but-set-variable]
+> 
+> It's never used since introduction.
 
-Results of the daily build of media_tree:
+A patch for this is already pending in a pull request.
 
-date:			Sat Feb 16 05:00:11 CET 2019
-media-tree git hash:	6fd369dd1cb65a032f1ab9227033ecb7b759656d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	2e4f399e3d5d367d00d06e4c53b24feb744bed65
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK
-virtme: Final Summary: 1947, Succeeded: 1947, Failed: 0, Warnings: 15
-sparse: WARNINGS
-smatch: ERRORS
+	Hans
 
-Detailed results are available here:
+> 
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>  drivers/media/platform/vimc/vimc-sensor.c | 7 -------
+>  1 file changed, 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+> index 93961a1e694f..59195f262623 100644
+> --- a/drivers/media/platform/vimc/vimc-sensor.c
+> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+> @@ -204,13 +204,6 @@ static void *vimc_sen_process_frame(struct vimc_ent_device *ved,
+>  {
+>  	struct vimc_sen_device *vsen = container_of(ved, struct vimc_sen_device,
+>  						    ved);
+> -	const struct vimc_pix_map *vpix;
+> -	unsigned int frame_size;
+> -
+> -	/* Calculate the frame size */
+> -	vpix = vimc_pix_map_by_code(vsen->mbus_format.code);
+> -	frame_size = vsen->mbus_format.width * vpix->bpp *
+> -		     vsen->mbus_format.height;
+>  
+>  	tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
+>  	return vsen->frame;
+> 
+> 
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
