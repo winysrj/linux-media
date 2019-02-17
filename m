@@ -2,156 +2,205 @@ Return-Path: <SRS0=7VZ/=QY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85C4EC43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 15:18:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95433C10F06
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 18:41:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 532DE21A4A
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 15:18:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lel7eo2s"
+	by mail.kernel.org (Postfix) with ESMTP id 6618721872
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 18:41:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728008AbfBQPSF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Feb 2019 10:18:05 -0500
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:36050 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726638AbfBQPSF (ORCPT
+        id S1725806AbfBQSlT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 13:41:19 -0500
+Received: from relay10.mail.gandi.net ([217.70.178.230]:58577 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725554AbfBQSlT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Feb 2019 10:18:05 -0500
-Received: by mail-pl1-f195.google.com with SMTP id g9so7461797plo.3
-        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2019 07:18:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=TpJo/qaFhJ+02X/anyjnqKv4lS+kdfeKxuEF/bI43AI=;
-        b=lel7eo2shPonbRR4m896AkmTkZHrj2Bv6EofszKgly8/c1sQ+wNFEvrdbsYdgVPmkj
-         XxB5puZAd2K8uKEmlmiJ+U8bYceeYLE3mWKbyTK4zw3PQRdND+mmuXOrvdoquywTcTPh
-         ihSPfpjWzQ6jXs4MoWJJYQ+/2fp7vseLkOrKFByzycrKJSugr1URrHjMBA5WV+Xx2sCo
-         WXT7YIA3lj9uwzSn1CbB1uytk9s4F1TOp8rL8RR5k8/2lV/pR04/Ci/0n6E7SjJN4Zuf
-         Kf3aORZvOrg7kFRUCNSUdJPEmaZHrNGsG7ErgAOBvh8P56H/OeErlLFvkIfRsXnQkCRx
-         LenA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=TpJo/qaFhJ+02X/anyjnqKv4lS+kdfeKxuEF/bI43AI=;
-        b=l6aKDU7S+grnicsSzr/OYO0eR+eVMCtWt1RVnvX0r1WIFkBILLrAlFVX3g7+wumZWy
-         vX7nO3YxJtO716EDfvIXoClILc6hYIqKFyt+jvJv2+5BaIVcpF5cDSVSqPXZxxILoHRD
-         Whlt8U0jQvMD5CeSjHnNs6pGvV+WvKUaPCmjOHyrXsG1orVs8Pb1oUJXYIdogv1ZRk1Q
-         R0E06/zofs9hWJysYxMgi3Hm3QePN6hG4WTu+RUeuagL1ped+4qQRjSYPQzlDwF/BLc0
-         7op3iMJIJLDYvsTV3lMk4o6TwCHU2Vuwwy8EcUW0Z5xw6VLzCA3T7pmQr5fO+49laKRC
-         vX6A==
-X-Gm-Message-State: AHQUAuYKQx6T6o3Ex9JFO9tUMdaY6dc+20Y1k71tsbgcAxynimSA7du1
-        +SurRwl5FbU5yYA8S64zPSTbfrQIcGE=
-X-Google-Smtp-Source: AHgI3IbltobAVDaRik5t8OKMKjiAq7gbbEz3YejxtETTriL9gECCLyfJW2Lcmh4IfhK1/Ex7FERMUg==
-X-Received: by 2002:a17:902:9683:: with SMTP id n3mr20814234plp.333.1550416684694;
-        Sun, 17 Feb 2019 07:18:04 -0800 (PST)
-Received: from mita-MS-7A45.lan ([240f:34:212d:1:bd2b:5443:c6c4:9b4])
-        by smtp.gmail.com with ESMTPSA id w10sm11831457pgr.42.2019.02.17.07.18.02
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Sun, 17 Feb 2019 07:18:03 -0800 (PST)
-From:   Akinobu Mita <akinobu.mita@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
-        Eugen Hristev <eugen.hristev@microchip.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH] media: ov7740: fix runtime pm initialization
-Date:   Mon, 18 Feb 2019 00:17:47 +0900
-Message-Id: <1550416667-9372-1-git-send-email-akinobu.mita@gmail.com>
-X-Mailer: git-send-email 2.7.4
+        Sun, 17 Feb 2019 13:41:19 -0500
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 93A1D240002;
+        Sun, 17 Feb 2019 18:41:15 +0000 (UTC)
+Date:   Sun, 17 Feb 2019 19:41:40 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-csi2: Allow configuring of video standard
+Message-ID: <20190217184140.3duyiwjpgsswcgbx@uno.localdomain>
+References: <20190216225758.7699-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tk34rrgkiernvn2l"
+Content-Disposition: inline
+In-Reply-To: <20190216225758.7699-1-niklas.soderlund+renesas@ragnatech.se>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The runtime PM of this device is enabled after v4l2_ctrl_handler_setup(),
-and this makes this device's runtime PM usage count a negative value.
 
-The ov7740_set_ctrl() tries to do something only if the device's runtime
-PM usage counter is nonzero.
+--tk34rrgkiernvn2l
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-ov7740_set_ctrl()
-{
-	if (!pm_runtime_get_if_in_use(&client->dev))
-		return 0;
+Hi Niklas,
+    where is this patch supposed to be applied on?
 
-	<do something>;
+I tried master, media master, renesas-drivers and your rcar-csi2 and
+v4l2/mux branches, but it fails on all of them :(
 
-	pm_runtime_put(&client->dev);
+What am I doing wrong?
 
-	return ret;
-}
+On Sat, Feb 16, 2019 at 11:57:58PM +0100, Niklas S=C3=B6derlund wrote:
+> Allow the hardware to to do proper field detection for interlaced field
+> formats by implementing s_std() and g_std(). Depending on which video
+> standard is selected the driver needs to setup the hardware to correctly
+> identify fields.
+>
+> Later versions of the datasheet have also been updated to make it clear
+> that FLD register should be set to 0 when dealing with none interlaced
+> field formats.
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 33 +++++++++++++++++++--
+>  1 file changed, 30 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/=
+platform/rcar-vin/rcar-csi2.c
+> index f3099f3e536d808a..664d3784be2b9db9 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -361,6 +361,7 @@ struct rcar_csi2 {
+>  	struct v4l2_subdev *remote;
+>
+>  	struct v4l2_mbus_framefmt mf;
+> +	v4l2_std_id std;
+>
+>  	struct mutex lock;
+>  	int stream_count;
+> @@ -389,6 +390,22 @@ static void rcsi2_write(struct rcar_csi2 *priv, unsi=
+gned int reg, u32 data)
+>  	iowrite32(data, priv->base + reg);
+>  }
+>
+> +static int rcsi2_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+> +{
+> +	struct rcar_csi2 *priv =3D sd_to_csi2(sd);
+> +
+> +	priv->std =3D std;
+> +	return 0;
 
-However, the ov7740_set_ctrl() is called by v4l2_ctrl_handler_setup()
-while the runtime PM of this device is not yet enabled.  In this case,
-the pm_runtime_get_if_in_use() returns -EINVAL (!= 0).
+Nit: (almost) all other functions in the file have an empty line
+before return...
 
-Therefore we can't bail out of this function and the usage count is
-decreased by pm_runtime_put() without increment.
+> +}
+> +
+> +static int rcsi2_g_std(struct v4l2_subdev *sd, v4l2_std_id *std)
+> +{
+> +	struct rcar_csi2 *priv =3D sd_to_csi2(sd);
+> +
+> +	*std =3D priv->std;
 
-This fixes this problem by enabling the runtime PM of this device before
-v4l2_ctrl_handler_setup() so that the ov7740_set_ctrl() is always called
-when the runtime PM is enabled.
+Should priv->std be initialized or STD_UNKNOWN is fine?
 
-Cc: Eugen Hristev <eugen.hristev@microchip.com>
-Cc: Wenyou Yang <wenyou.yang@microchip.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-I don't have the ov7740 device, but I saw the same problem with the
-mt9m001 device when I was adding the runtime PM support for it.
+> +	return 0;
+> +}
+> +
+>  static void rcsi2_standby_mode(struct rcar_csi2 *priv, int on)
+>  {
+>  	if (!on) {
+> @@ -475,7 +492,7 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, un=
+signed int bpp)
+>  static int rcsi2_start_receiver(struct rcar_csi2 *priv)
+>  {
+>  	const struct rcar_csi2_format *format;
+> -	u32 phycnt, vcdt =3D 0, vcdt2 =3D 0;
+> +	u32 phycnt, vcdt =3D 0, vcdt2 =3D 0, fld =3D 0;
+>  	unsigned int i;
+>  	int mbps, ret;
+>
+> @@ -507,6 +524,15 @@ static int rcsi2_start_receiver(struct rcar_csi2 *pr=
+iv)
+>  			vcdt2 |=3D vcdt_part << ((i % 2) * 16);
+>  	}
+>
+> +	if (priv->mf.field !=3D V4L2_FIELD_NONE) {
 
-Eugen Hristev reported the problem with ov7740.
+I cannot tell where rcsi2_start_receiver() is called, as I don't have
+it in my local version, but I suppose it has been break out from
+rcsi2_start() has they set the same register. So this is called at
+s_stream() time and priv->mf at set_format() time, right?
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg144540.html
+> +		fld =3D  FLD_FLD_EN4 | FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN;
+> +
+> +		if (priv->std & V4L2_STD_525_60)
+> +			fld |=3D FLD_FLD_NUM(2);
+> +		else
+> +			fld |=3D FLD_FLD_NUM(1);
 
-I suspect that it is related to this runtime PM problem.
+I haven't been able to find an explanation on why the field detection
+depends on this specific video standard... I guess it is defined in some
+standard I'm ignorant of, so I assume this is correct :)
 
-There seems to be the same problem in other devices.  I would like to see
-if this patch actually fix the ov7740's problem and then propagate other
-devices.
+Thanks
+   j
 
- drivers/media/i2c/ov7740.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+> +	}
+> +
+>  	phycnt =3D PHYCNT_ENABLECLK;
+>  	phycnt |=3D (1 << priv->lanes) - 1;
+>
+> @@ -519,8 +545,7 @@ static int rcsi2_start_receiver(struct rcar_csi2 *pri=
+v)
+>  	rcsi2_write(priv, PHTC_REG, 0);
+>
+>  	/* Configure */
+> -	rcsi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
+> -		    FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
+> +	rcsi2_write(priv, FLD_REG, fld);
+>  	rcsi2_write(priv, VCDT_REG, vcdt);
+>  	if (vcdt2)
+>  		rcsi2_write(priv, VCDT2_REG, vcdt2);
+> @@ -662,6 +687,8 @@ static int rcsi2_get_pad_format(struct v4l2_subdev *s=
+d,
+>  }
+>
+>  static const struct v4l2_subdev_video_ops rcar_csi2_video_ops =3D {
+> +	.s_std =3D rcsi2_s_std,
+> +	.g_std =3D rcsi2_g_std,
+>  	.s_stream =3D rcsi2_s_stream,
+>  };
+>
+> --
+> 2.20.1
+>
 
-diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
-index 177688a..8835b83 100644
---- a/drivers/media/i2c/ov7740.c
-+++ b/drivers/media/i2c/ov7740.c
-@@ -1101,6 +1101,9 @@ static int ov7740_probe(struct i2c_client *client,
- 	if (ret)
- 		return ret;
- 
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+
- 	ret = ov7740_detect(ov7740);
- 	if (ret)
- 		goto error_detect;
-@@ -1123,8 +1126,6 @@ static int ov7740_probe(struct i2c_client *client,
- 	if (ret)
- 		goto error_async_register;
- 
--	pm_runtime_set_active(&client->dev);
--	pm_runtime_enable(&client->dev);
- 	pm_runtime_idle(&client->dev);
- 
- 	return 0;
-@@ -1134,6 +1135,8 @@ static int ov7740_probe(struct i2c_client *client,
- error_init_controls:
- 	ov7740_free_controls(ov7740);
- error_detect:
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
- 	ov7740_set_power(ov7740, 0);
- 	media_entity_cleanup(&ov7740->subdev.entity);
- 
--- 
-2.7.4
+--tk34rrgkiernvn2l
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlxpquQACgkQcjQGjxah
+VjySoQ//WJPwOxAVbRqqvDJdqfGpHJySwQ8JGjrMfT/L4q5BY97fYim9TROC5ZOM
+TASorLowLR3NxhH/QeEPs05nI2ZWyG5k3iRv9jKv1T29tSsaHzPdVJPDsSek/jsg
+Gv2dnvAcah3nAEBL3yuRyUfWg6nkKjufRueuj204mnd5SNWP71aEtyxTl7xPYcx6
+UawGvYbJDSjcaoWRhETDry7SL90APa0W1+VLznK5KlAT/vMx8PDe97CPu3LmIppm
+H5Ke+jzVlv4Lpn0XJv1VMWTLV3a31iFeC8kqIiOzxylJ+QTpYNP4D3ISqMSoi2Lj
+zZVTsaZgA1p60iiIfKHHf54c2mNopINKoy8Omgu848UO9A/464vheW2PrYLhQ9+u
+2MCQm5UE42Ta1eu502Ii/FKKTB2KhhCUQ2esDyKLMaL97EX8OT2rgHxVCxTno9y0
+qtYfrbjgK1XZZ9jkIvoLyqawuR4OTMK5MQ7Bhp+QRhM/kT+2nSIbOnDLCI6FJcfV
+KeAcKMbyVl6mutUzIZ71qdcxbZJgoqtYm01FUHljQLmmV6UM4WtV4qeADxZeL4EL
+yPLQdaEX3WDWi4oTz3KlWIC4YKWYLYTs5NbhTYkTy+H0b2DEvrku0pEBbd3A5W/u
+fWMk7SiY2eDccjm/+9h0R7Vz0H8uF0rOmtAB5bSoQN8TVc5Oqt0=
+=Q9Wr
+-----END PGP SIGNATURE-----
+
+--tk34rrgkiernvn2l--
