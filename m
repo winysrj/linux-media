@@ -4,41 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 405FBC43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:20:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97AB6C43381
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:27:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AB3D21872
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:20:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A98E2186A
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:27:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="WmXSvunN"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="jMfoexPW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726169AbfBQUU6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Feb 2019 15:20:58 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59006 "EHLO
+        id S1726075AbfBQU10 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 15:27:26 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59024 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726144AbfBQUU6 (ORCPT
+        with ESMTP id S1726012AbfBQU10 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Feb 2019 15:20:58 -0500
+        Sun, 17 Feb 2019 15:27:26 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 07B5B49;
-        Sun, 17 Feb 2019 21:20:55 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id CF16849;
+        Sun, 17 Feb 2019 21:27:23 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1550434856;
-        bh=+yi1oFY+n3kX9Msq0rI1PxrLQyaDQvVdKO0qVy+Oo0U=;
+        s=mail; t=1550435244;
+        bh=+odjCKWiRN1qW3MJkxM57FZde04skkTcYIFvNK2iBMc=;
         h=Reply-To:Subject:To:References:From:Date:In-Reply-To:From;
-        b=WmXSvunNxF6w37W3k4J+Q2hSTcnrRbXlVD4fx3s2PWZQLi2ZKGje2TvMJ/VfzS7iQ
-         5FElpPsvAQSqT5AE/TksXTx/W+A+aQ/BCmi8vq2iSn1HhGbML5QwSq7jxdiDZHN5Lx
-         lkgYPH/MgiVPAJwTm6OQ7uHzkuy7OqmzDDgKLVVQ=
+        b=jMfoexPWNEPmin+U/00WJyR3NXYJuYTZRef4UX74TW0WwbcTUWUM/m4YJhRXKYCuh
+         NfkqXZzPcCjnklR5Zb0+3oZM0OPaYagV/N9ibffXTgys7SRsYq41dIjlwS0qBpl7uO
+         9zncpI+pC/ZSJY976sEJoXpYvTUvVjIGXycJFKnU=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 3/7] media: vsp1: Replace leftover occurrence of
- fragment with body
+Subject: Re: [PATCH v4 4/7] media: vsp1: Fix addresses of display-related
+ registers for VSP-DL
 To:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
 References: <20190217024852.23328-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190217024852.23328-4-laurent.pinchart+renesas@ideasonboard.com>
+ <20190217024852.23328-5-laurent.pinchart+renesas@ideasonboard.com>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -85,14 +84,14 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <5f2885f8-7d45-1447-02ba-608fc7933169@ideasonboard.com>
-Date:   Sun, 17 Feb 2019 20:20:53 +0000
+Message-ID: <c6d6e56f-0d68-9a76-18cf-2f35764505d5@ideasonboard.com>
+Date:   Sun, 17 Feb 2019 20:27:20 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190217024852.23328-4-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20190217024852.23328-5-laurent.pinchart+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -102,37 +101,82 @@ X-Mailing-List: linux-media@vger.kernel.org
 Hi Laurent,
 
 On 17/02/2019 02:48, Laurent Pinchart wrote:
-> Display list fragments have been renamed to bodies. Replace one last
-> occurrence of the word fragment in the documentation.
+> The VSP-DL instances have two LIFs, and thus two copies of the
+> VI6_DISP_IRQ_ENB, VI6_DISP_IRQ_STA and VI6_WPF_WRBCK_CTRL registers. Fix
+> the corresponding macros accordingly.
 > 
 
-Interesting, this must have been a change that was written before the
-fragments were renamed, but got in /after/ they were removed or something.
+Seep. This could have ended badly if someone used both LIF's :)
+ (which I'm sure happens)
+
 
 > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Regardless, it looks correct to fix this up.
 
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
+
 > ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/media/platform/vsp1/vsp1_drm.c  | 4 ++--
+>  drivers/media/platform/vsp1/vsp1_regs.h | 6 +++---
+>  drivers/media/platform/vsp1/vsp1_wpf.c  | 2 +-
+>  3 files changed, 6 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-> index 26289adaf658..64af449791b0 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -699,8 +699,8 @@ struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
->   * which bodies are added.
->   *
->   * Adding a body to a display list passes ownership of the body to the list. The
-> - * caller retains its reference to the fragment when adding it to the display
-> - * list, but is not allowed to add new entries to the body.
-> + * caller retains its reference to the body when adding it to the display list,
-> + * but is not allowed to add new entries to the body.
->   *
->   * The reference must be explicitly released by a call to vsp1_dl_body_put()
->   * when the body isn't needed anymore.
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 8d86f618ec77..048190fd3a2d 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -700,8 +700,8 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	drm_pipe->du_private = cfg->callback_data;
+>  
+>  	/* Disable the display interrupts. */
+> -	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
+> -	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+> +	vsp1_write(vsp1, VI6_DISP_IRQ_STA(pipe_index), 0);
+> +	vsp1_write(vsp1, VI6_DISP_IRQ_ENB(pipe_index), 0);
+>  
+>  	/* Configure all entities in the pipeline. */
+>  	vsp1_du_pipeline_configure(pipe);
+> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+> index f6e4157095cc..1bb1d39c60d9 100644
+> --- a/drivers/media/platform/vsp1/vsp1_regs.h
+> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
+> @@ -39,12 +39,12 @@
+>  #define VI6_WFP_IRQ_STA_DFE		(1 << 1)
+>  #define VI6_WFP_IRQ_STA_FRE		(1 << 0)
+>  
+> -#define VI6_DISP_IRQ_ENB		0x0078
+> +#define VI6_DISP_IRQ_ENB(n)		(0x0078 + (n) * 60)
+>  #define VI6_DISP_IRQ_ENB_DSTE		(1 << 8)
+>  #define VI6_DISP_IRQ_ENB_MAEE		(1 << 5)
+>  #define VI6_DISP_IRQ_ENB_LNEE(n)	(1 << (n))
+>  
+> -#define VI6_DISP_IRQ_STA		0x007c
+> +#define VI6_DISP_IRQ_STA(n)		(0x007c + (n) * 60)
+>  #define VI6_DISP_IRQ_STA_DST		(1 << 8)
+>  #define VI6_DISP_IRQ_STA_MAE		(1 << 5)
+>  #define VI6_DISP_IRQ_STA_LNE(n)		(1 << (n))
+> @@ -307,7 +307,7 @@
+>  #define VI6_WPF_DSTM_ADDR_C0		0x1028
+>  #define VI6_WPF_DSTM_ADDR_C1		0x102c
+>  
+> -#define VI6_WPF_WRBCK_CTRL		0x1034
+> +#define VI6_WPF_WRBCK_CTRL(n)		(0x1034 + (n) * 0x100)
+>  #define VI6_WPF_WRBCK_CTRL_WBMD		(1 << 0)
+>  
+>  /* -----------------------------------------------------------------------------
+> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+> index a07c5944b598..18c49e3a7875 100644
+> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+> @@ -291,7 +291,7 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
+>  	vsp1_dl_body_write(dlb, VI6_DPR_WPF_FPORCH(wpf->entity.index),
+>  			   VI6_DPR_WPF_FPORCH_FP_WPFN);
+>  
+> -	vsp1_dl_body_write(dlb, VI6_WPF_WRBCK_CTRL, 0);
+> +	vsp1_dl_body_write(dlb, VI6_WPF_WRBCK_CTRL(wpf->entity.index), 0);
+>  
+>  	/*
+>  	 * Sources. If the pipeline has a single input and BRx is not used,
 > 
 
 -- 
