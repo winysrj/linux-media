@@ -2,98 +2,89 @@ Return-Path: <SRS0=7VZ/=QY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A9FC43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 08:47:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E5F9C43381
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 13:42:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D00E2192D
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 08:47:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4844B21A4A
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 13:42:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cogentembedded-com.20150623.gappssmtp.com header.i=@cogentembedded-com.20150623.gappssmtp.com header.b="HE9hNzGH"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gkdPFW8e"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725804AbfBQIre (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Feb 2019 03:47:34 -0500
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:45076 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725768AbfBQIre (ORCPT
+        id S1726875AbfBQNmU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 08:42:20 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:40874 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726583AbfBQNmU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Feb 2019 03:47:34 -0500
-Received: by mail-lf1-f66.google.com with SMTP id h10so9876819lfc.12
-        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2019 00:47:32 -0800 (PST)
+        Sun, 17 Feb 2019 08:42:20 -0500
+Received: by mail-wm1-f68.google.com with SMTP id t15so6190869wmi.5
+        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2019 05:42:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cogentembedded-com.20150623.gappssmtp.com; s=20150623;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=ccdJx38X5P33p/STh5SsDn/S5gMGrDHiRtsyYfh/v64=;
-        b=HE9hNzGHDUG3BOXYtegT4hFr1UjURJYfw1QZG0SToFp1s4UxsqBzqlJ7yc26P9l9J/
-         zPwl4DzCqBIwxvHQKfDAbawvYQU2q0Vel0rOEMRR61Ib7yTWhZ8OH8+0Qlyd8XjK18kR
-         hY+P2Tk412C5/uWkTD0Wgid58YGtyCrom5z43XtKjimoMXg2EXMBHqLChqgDsUq0pQuE
-         1vCgZSFtSY9cXpiOibTIWkBaiV4MoP5uMO339su9vox+oy8Tw3Csv0CAvJENQp7kEY2F
-         S1Lr+urvXeA9MzqGgGGETeMyd+9+AljvPemFuVr/Fo1KepSJ71NNei0Sxy/0AO9G3Js7
-         eh+Q==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=2RVrTSLiVs3E2HR73ymR811ze1wdLic1AY3c2TN3UZg=;
+        b=gkdPFW8ejc4Pqe8Xf2s1tWJFP+dZJsdlkvCMnkQAZMLJfsUhyILGzQC7Jhm3Jdxpcy
+         Cgn1YOAwkz3vCys+vF2Tvdc3/45dGh0WA42XIDedoh4mtJG0NRMRuvpLJgYlN+bOd4fW
+         4o58yuVjemE5w4R1F4Q5snzIruG6N5cwQaVY5tnYSd/P/hSM2pCh/pm7wGbQngMnQ11i
+         E6Xy+jFnElyhizAW9jkmFecQRAHYH+JisLSsZoOM0KAwQqnmv34PS2wBwwpggVJzxx8N
+         IGNBZ6JhqfvN88A3Gh7OGafzR8hs0GPd01XeWEgejUazswwUO4egBktII1QG1LKV1i6s
+         yWgA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=ccdJx38X5P33p/STh5SsDn/S5gMGrDHiRtsyYfh/v64=;
-        b=FA0gshI5Ack3HdW/F4mR5sqXskE5jINt49rnjDe3wUup1hG6PG+dhF8hGAn2xby5wf
-         tBLGk2RjpXVFq+g5XKOYu2zEQZcUKCb2ThfnYcCIC8fuqLC6X8w4LzvQLHgTxr5zAMRN
-         eIwb4pslaQEvs6r7BvXHPweCq4wEzBtVSziuuUoSZR8gQ3sOXXL2o3J+jIjPLR6P65VX
-         3Wd5/8q5SzVHGHIdgxQs6VElz315yXog227Nf3Zrqf5z7a93ztg0qN5uzoIZkrJhdFbf
-         XrMLDtSeQISj2BUteJFevNFWRkMPP7gj0dQQdTFRdrCf86+0Kivkubsbzn2l37d8WbaQ
-         eVjQ==
-X-Gm-Message-State: AHQUAuamKOJL93fFHjojXhCFbKRHka1lQTDiIAFUU5oDfBnAlGcyfSTT
-        PFd6kV95OcSUctgqDuS2N0ZFPw==
-X-Google-Smtp-Source: AHgI3IYqY+JH1GKQxWiVYvfUPTQMmAy7QeS4Aqfqiz3ejQidOkL2uY0RXgVfU5mIpOCm/12FCWjyNQ==
-X-Received: by 2002:a19:87:: with SMTP id 129mr10269479lfa.101.1550393251691;
-        Sun, 17 Feb 2019 00:47:31 -0800 (PST)
-Received: from [192.168.0.199] ([31.173.84.113])
-        by smtp.gmail.com with ESMTPSA id m24sm2138726lje.13.2019.02.17.00.47.30
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=2RVrTSLiVs3E2HR73ymR811ze1wdLic1AY3c2TN3UZg=;
+        b=HNgcW0B9KoHNphGcdYLk7k6foAsuS9E7YA6xtD93KsjXMxaNjCScLgmsHD3m7XQoQA
+         M02imSywN47kmJuZAMSzhs8yRtt9ZRANgNjX3UWFEWwt1T2Rg14VVcK1ZCtL/QRy+/LY
+         uq7v4L6IlnssPKYvlYeo+zdIbcmQIqMz9tRgjgjRTBg071KGfENaL7X0KEuaf1DI5wvt
+         MEHISMbRUk6NCm4zkUzTr7RMwk0BdsNJj3cEHR7sqlPBd4iGyKUVPC2UONkjlHfc8rhE
+         D6NqFAcre99q+ImBOqsyRaoc2HzQR0apKn9Z1rxUJ62gTvFVO3KCo652h5Y9TVUuiC0X
+         q7LQ==
+X-Gm-Message-State: AHQUAuaXTFTmp28zYK+8Z0CqpShKsDOgrisu4+UiwdeOY6fcfPNb/P1p
+        BIP+E2M0pedi8kjD74Z4WOuOZPde9C8=
+X-Google-Smtp-Source: AHgI3IYuyTLmM/962/pGGCK0Y0Zl+8CpI+EKlYIFoJ+FzINi22PVf0+YmSo2I1Dm3vjJmAF00JlEsw==
+X-Received: by 2002:a1c:6c0c:: with SMTP id h12mr7133363wmc.35.1550410938641;
+        Sun, 17 Feb 2019 05:42:18 -0800 (PST)
+Received: from localhost.localdomain ([87.71.54.246])
+        by smtp.gmail.com with ESMTPSA id o5sm39200711wrh.34.2019.02.17.05.42.17
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 17 Feb 2019 00:47:30 -0800 (PST)
-Subject: Re: [PATCH] rcar-csi2: Allow configuring of video standard
-To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc:     linux-renesas-soc@vger.kernel.org
-References: <20190216225758.7699-1-niklas.soderlund+renesas@ragnatech.se>
-From:   Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <1a2b46e2-8d24-393d-4e7b-0b9cab777aa7@cogentembedded.com>
-Date:   Sun, 17 Feb 2019 11:47:28 +0300
-User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.0
-MIME-Version: 1.0
-In-Reply-To: <20190216225758.7699-1-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Sun, 17 Feb 2019 05:42:18 -0800 (PST)
+From:   Dafna Hirschfeld <dafna3@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [v4l-utils PATCH v2 0/4] Add fwht stateless decoder
+Date:   Sun, 17 Feb 2019 05:42:05 -0800
+Message-Id: <20190217134209.84066-1-dafna3@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello!
+Changes from v1:
 
-On 17.02.2019 1:57, Niklas Söderlund wrote:
+- patches 1,2 did not change
 
-> Allow the hardware to to do proper field detection for interlaced field
-> formats by implementing s_std() and g_std(). Depending on which video
-> standard is selected the driver needs to setup the hardware to correctly
-> identify fields.
-> 
-> Later versions of the datasheet have also been updated to make it clear
-> that FLD register should be set to 0 when dealing with none interlaced
+- patches 3,4 changed, main change was removing the header
+from the compressed frame buffer.
 
-    Non-interlaced, perhaps?
+Dafna Hirschfeld (4):
+  v4l2-ctl: move stateful m2m decode code to a separate function
+  (c)v4l-helpers.h: Add support for the request api
+  v4l2-ctl: Add functions and variables to support fwht stateless
+    decoder
+  v4l2-ctl: Add implementation for the stateless fwht decoder.
 
-> field formats.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-[...]
+ utils/common/cv4l-helpers.h           |   5 +
+ utils/common/v4l-helpers.h            |  22 ++
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 449 +++++++++++++++++++++++---
+ 3 files changed, 429 insertions(+), 47 deletions(-)
 
-MBR, Sergei
+-- 
+2.17.1
+
