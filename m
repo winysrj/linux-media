@@ -2,144 +2,98 @@ Return-Path: <SRS0=7VZ/=QY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7003FC43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 04:46:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A9FC43381
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 08:47:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D9EF2196F
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 04:46:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D00E2192D
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 08:47:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=cogentembedded-com.20150623.gappssmtp.com header.i=@cogentembedded-com.20150623.gappssmtp.com header.b="HE9hNzGH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727160AbfBQEqm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 16 Feb 2019 23:46:42 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:32940 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725832AbfBQEqm (ORCPT
+        id S1725804AbfBQIre (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 03:47:34 -0500
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:45076 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725768AbfBQIre (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Feb 2019 23:46:42 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:2436:e975:bf49:3208])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id vELfg94qVI8AWvELgg7vJz; Sun, 17 Feb 2019 05:46:40 +0100
-Message-ID: <746def493bc065bfa9e73536c1c85c5f@smtp-cloud9.xs4all.net>
-Date:   Sun, 17 Feb 2019 05:46:39 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfMsBv/O+jg8Ur8gDuPVrI3UyikSjsvzHHmE67Hao54iJ4dHIXydiRM1Hs97/M8H8h5Mzt5saZEJ+zek69gEQbdZZKnR41xI36Zr6efkrWG7/jgHfkP9/
- BchiVmjTysIg2EJ5X1jcHR/9UVSRWIu2W2ws+WGBedTRi4Rsxjg9DLI6tlsaOnH2tyaquMMMYSb66DBerFuJCUnEV30xMW5tf5oJ0ZWZEDVHkpZUYUKa8019
+        Sun, 17 Feb 2019 03:47:34 -0500
+Received: by mail-lf1-f66.google.com with SMTP id h10so9876819lfc.12
+        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2019 00:47:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cogentembedded-com.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=ccdJx38X5P33p/STh5SsDn/S5gMGrDHiRtsyYfh/v64=;
+        b=HE9hNzGHDUG3BOXYtegT4hFr1UjURJYfw1QZG0SToFp1s4UxsqBzqlJ7yc26P9l9J/
+         zPwl4DzCqBIwxvHQKfDAbawvYQU2q0Vel0rOEMRR61Ib7yTWhZ8OH8+0Qlyd8XjK18kR
+         hY+P2Tk412C5/uWkTD0Wgid58YGtyCrom5z43XtKjimoMXg2EXMBHqLChqgDsUq0pQuE
+         1vCgZSFtSY9cXpiOibTIWkBaiV4MoP5uMO339su9vox+oy8Tw3Csv0CAvJENQp7kEY2F
+         S1Lr+urvXeA9MzqGgGGETeMyd+9+AljvPemFuVr/Fo1KepSJ71NNei0Sxy/0AO9G3Js7
+         eh+Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=ccdJx38X5P33p/STh5SsDn/S5gMGrDHiRtsyYfh/v64=;
+        b=FA0gshI5Ack3HdW/F4mR5sqXskE5jINt49rnjDe3wUup1hG6PG+dhF8hGAn2xby5wf
+         tBLGk2RjpXVFq+g5XKOYu2zEQZcUKCb2ThfnYcCIC8fuqLC6X8w4LzvQLHgTxr5zAMRN
+         eIwb4pslaQEvs6r7BvXHPweCq4wEzBtVSziuuUoSZR8gQ3sOXXL2o3J+jIjPLR6P65VX
+         3Wd5/8q5SzVHGHIdgxQs6VElz315yXog227Nf3Zrqf5z7a93ztg0qN5uzoIZkrJhdFbf
+         XrMLDtSeQISj2BUteJFevNFWRkMPP7gj0dQQdTFRdrCf86+0Kivkubsbzn2l37d8WbaQ
+         eVjQ==
+X-Gm-Message-State: AHQUAuamKOJL93fFHjojXhCFbKRHka1lQTDiIAFUU5oDfBnAlGcyfSTT
+        PFd6kV95OcSUctgqDuS2N0ZFPw==
+X-Google-Smtp-Source: AHgI3IYqY+JH1GKQxWiVYvfUPTQMmAy7QeS4Aqfqiz3ejQidOkL2uY0RXgVfU5mIpOCm/12FCWjyNQ==
+X-Received: by 2002:a19:87:: with SMTP id 129mr10269479lfa.101.1550393251691;
+        Sun, 17 Feb 2019 00:47:31 -0800 (PST)
+Received: from [192.168.0.199] ([31.173.84.113])
+        by smtp.gmail.com with ESMTPSA id m24sm2138726lje.13.2019.02.17.00.47.30
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 17 Feb 2019 00:47:30 -0800 (PST)
+Subject: Re: [PATCH] rcar-csi2: Allow configuring of video standard
+To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc:     linux-renesas-soc@vger.kernel.org
+References: <20190216225758.7699-1-niklas.soderlund+renesas@ragnatech.se>
+From:   Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <1a2b46e2-8d24-393d-4e7b-0b9cab777aa7@cogentembedded.com>
+Date:   Sun, 17 Feb 2019 11:47:28 +0300
+User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.0
+MIME-Version: 1.0
+In-Reply-To: <20190216225758.7699-1-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello!
 
-Results of the daily build of media_tree:
+On 17.02.2019 1:57, Niklas Söderlund wrote:
 
-date:			Sun Feb 17 05:00:10 CET 2019
-media-tree git hash:	6fd369dd1cb65a032f1ab9227033ecb7b759656d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	45e2d14fe0d76110229804416ff73d8f6519f4d2
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+> Allow the hardware to to do proper field detection for interlaced field
+> formats by implementing s_std() and g_std(). Depending on which video
+> standard is selected the driver needs to setup the hardware to correctly
+> identify fields.
+> 
+> Later versions of the datasheet have also been updated to make it clear
+> that FLD register should be set to 0 when dealing with none interlaced
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1947, Succeeded: 1947, Failed: 0, Warnings: 17
-sparse: WARNINGS
-smatch: ERRORS
+    Non-interlaced, perhaps?
 
-Detailed results are available here:
+> field formats.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+[...]
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+MBR, Sergei
