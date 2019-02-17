@@ -6,66 +6,63 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80565C43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 14:12:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E871AC43381
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 14:38:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 504C721917
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 14:12:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C15FE218AC
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 14:38:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726995AbfBQOMq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Feb 2019 09:12:46 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35836 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725795AbfBQOMq (ORCPT
+        id S1726895AbfBQOiZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 09:38:25 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54763 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725795AbfBQOiY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Feb 2019 09:12:46 -0500
+        Sun, 17 Feb 2019 09:38:24 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id vNBRgUWWQ4HFnvNBUgx1U0; Sun, 17 Feb 2019 15:12:44 +0100
+        id vNaFgUcYp4HFnvNaIgx3uF; Sun, 17 Feb 2019 15:38:23 +0100
 To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Helen Koike <helen.koike@collabora.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vivid: two unregistration fixes
-Message-ID: <f017af06-4810-9307-4de3-e32b3185bfa6@xs4all.nl>
-Date:   Sun, 17 Feb 2019 15:12:41 +0100
+Subject: [PATCH] vimc: fix memory leak
+Message-ID: <0b7d6f2b-379c-a4fd-4a16-3ae7545f42c1@xs4all.nl>
+Date:   Sun, 17 Feb 2019 15:38:19 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfGddqE37B8OqkVfXTotirie4NVMuihMFZueleHyK7kOY0j1ZuKmFfbVmCEOaqGnRXoxXM9P+uC2vMoEsfQG7mtPKJggPCVEAsrHYW/7hZBqp85vElhfx
- f4sw4NIXW63wgkAuru6BzZYyl1t5Jnzwsjf70/wRtx27ZPtsvpRgSYe1FnFltqhzztdP0i6lOIRoYw==
+X-CMAE-Envelope: MS4wfBgqNWo6bcxz8nMUvRgpEZIEEgItUpnSsLzgne1sd2f3Ah9Ow/N2a3hRNJ2kKrBAPy9+95kYm10R1/5orLB4fl7chIzpgTLzIKx9uQkZlSa/N9FlXPpP
+ EcQL/GcvKohwx+GYaQ3tf9i7kR9BGbjuAJoMdPIlDOy62qXeATzJUVOoI8j6qQYN7BsroaoesOnjQuQSyhOpuF3Ipc/hWpcBAJzak9jbyAFD72p4UQJO6nF1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-When the media device registration fails, don't call media_device_unregister
-since the device was never actually registered.
-
-When removing the module also call media_device_cleanup() to avoid a memory leak.
+media_device_cleanup() wasn't called, which caused a small
+memory leak.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 29e7b14fa704..342e0e6c103b 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1478,9 +1478,6 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 	return 0;
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index c2fdf3ea67ed..0fbb7914098f 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -220,6 +220,7 @@ static int vimc_comp_bind(struct device *master)
 
- unreg_dev:
--#ifdef CONFIG_MEDIA_CONTROLLER
--	media_device_unregister(&dev->mdev);
--#endif
- 	video_unregister_device(&dev->radio_tx_dev);
- 	video_unregister_device(&dev->radio_rx_dev);
- 	video_unregister_device(&dev->sdr_cap_dev);
-@@ -1553,6 +1550,7 @@ static int vivid_remove(struct platform_device *pdev)
+ err_mdev_unregister:
+ 	media_device_unregister(&vimc->mdev);
++	media_device_cleanup(&vimc->mdev);
+ err_comp_unbind_all:
+ 	component_unbind_all(master, NULL);
+ err_v4l2_unregister:
+@@ -236,6 +237,7 @@ static void vimc_comp_unbind(struct device *master)
+ 	dev_dbg(master, "unbind");
 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 		media_device_unregister(&dev->mdev);
-+		media_device_cleanup(&dev->mdev);
- #endif
-
- 		if (dev->has_vid_cap) {
+ 	media_device_unregister(&vimc->mdev);
++	media_device_cleanup(&vimc->mdev);
+ 	component_unbind_all(master, NULL);
+ 	v4l2_device_unregister(&vimc->v4l2_dev);
+ }
