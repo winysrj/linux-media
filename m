@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4158CC43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:35:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 651E4C43381
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:38:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0051E2173C
-	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:35:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2353C2173C
+	for <linux-media@archiver.kernel.org>; Sun, 17 Feb 2019 20:38:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="A84Zjthe"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="DzGIBl0a"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726059AbfBQUfb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Feb 2019 15:35:31 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59054 "EHLO
+        id S1726349AbfBQUis (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 15:38:48 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59082 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726012AbfBQUfb (ORCPT
+        with ESMTP id S1725916AbfBQUir (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Feb 2019 15:35:31 -0500
+        Sun, 17 Feb 2019 15:38:47 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id E482D49;
-        Sun, 17 Feb 2019 21:35:27 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 82FDC49;
+        Sun, 17 Feb 2019 21:38:45 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1550435728;
-        bh=cyIMm5muhRYPbpfgXFM/OiXGCFiDQUeU2FzEgDi4IIA=;
+        s=mail; t=1550435925;
+        bh=GnKiVrBVFMrnJzV1zy/HEoGeRA9SuKGACFx6yPWzCjg=;
         h=Reply-To:Subject:To:References:From:Date:In-Reply-To:From;
-        b=A84ZjtheH/jm+845/dpMpBLNGEnXUF6v4X4QnAKfGDNXmoa9AmfIQjT9DL8zxZduq
-         EPy027EGzuGSznMg+nUvDJG4ojvZ43EBN0GEdVA2pFJdeySrO4Dk07c9Hf9QDe0GaI
-         cdZqdj0JvjZg28dTF7/VoX6178O+vkYgj9TA9iEI=
+        b=DzGIBl0akOqoh+PkGbOBNJG7IwQDj24gUGl+HHZMgtsP5vXZ4fJuWNCbvKnZ5YPH7
+         AdKegAZarAR4P4lQpOMNPt+pboCUANiy03lybh9UCrVnjzwOpKzUn/Sf18SUdVbFac
+         1cjVMw3q+egM+Mvsa/o5B1Ip57WbgZC55wHWa3kw=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 5/7] media: vsp1: Refactor vsp1_video_complete_buffer()
- for later reuse
+Subject: Re: [PATCH v4 6/7] media: vsp1: Replace the display list internal
+ flag with a flags field
 To:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
 References: <20190217024852.23328-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190217024852.23328-6-laurent.pinchart+renesas@ideasonboard.com>
+ <20190217024852.23328-7-laurent.pinchart+renesas@ideasonboard.com>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -84,136 +84,174 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <7b388ea1-fc35-01b9-64a4-7710068cb5e1@ideasonboard.com>
-Date:   Sun, 17 Feb 2019 20:35:25 +0000
+Message-ID: <17749313-a4bc-fa85-3434-2b1848e943db@ideasonboard.com>
+Date:   Sun, 17 Feb 2019 20:38:43 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190217024852.23328-6-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20190217024852.23328-7-laurent.pinchart+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Laurent
+Hi Laurent,
 
 On 17/02/2019 02:48, Laurent Pinchart wrote:
-> The vsp1_video_complete_buffer() function completes the current buffer
-> and returns a pointer to the next buffer. Split the code that completes
-> the buffer to a separate function for later reuse, and rename
-> vsp1_video_complete_buffer() to vsp1_video_complete_next_buffer().
+> To prepare for addition of more flags to the display list, replace the
+> 'internal' flag field by a bitmask 'flags' field.
 > 
 > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-This looks good to me - except perhaps the documentation /might/ need
-some refresh. With or without updates there, the code changes look good
-to me:
 
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
 > ---
->  drivers/media/platform/vsp1/vsp1_video.c | 35 ++++++++++++++----------
->  1 file changed, 20 insertions(+), 15 deletions(-)
+>  drivers/media/platform/vsp1/vsp1_dl.c    | 31 +++++++++++++-----------
+>  drivers/media/platform/vsp1/vsp1_dl.h    |  2 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c   |  6 ++++-
+>  drivers/media/platform/vsp1/vsp1_video.c |  2 +-
+>  4 files changed, 24 insertions(+), 17 deletions(-)
 > 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+> index 64af449791b0..886b3a69d329 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -178,7 +178,7 @@ struct vsp1_dl_cmd_pool {
+>   * @post_cmd: post command to be issued through extended dl header
+>   * @has_chain: if true, indicates that there's a partition chain
+>   * @chain: entry in the display list partition chain
+> - * @internal: whether the display list is used for internal purpose
+> + * @flags: display list flags, a combination of VSP1_DL_FRAME_END_*
+>   */
+>  struct vsp1_dl_list {
+>  	struct list_head list;
+> @@ -197,7 +197,7 @@ struct vsp1_dl_list {
+>  	bool has_chain;
+>  	struct list_head chain;
+>  
+> -	bool internal;
+> +	unsigned int flags;
+>  };
+>  
+>  /**
+> @@ -861,13 +861,15 @@ static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
+>  	 *
+>  	 * If a display list is already pending we simply drop it as the new
+>  	 * display list is assumed to contain a more recent configuration. It is
+> -	 * an error if the already pending list has the internal flag set, as
+> -	 * there is then a process waiting for that list to complete. This
+> -	 * shouldn't happen as the waiting process should perform proper
+> -	 * locking, but warn just in case.
+> +	 * an error if the already pending list has the
+> +	 * VSP1_DL_FRAME_END_INTERNAL flag set, as there is then a process
+> +	 * waiting for that list to complete. This shouldn't happen as the
+> +	 * waiting process should perform proper locking, but warn just in
+> +	 * case.
+>  	 */
+>  	if (vsp1_dl_list_hw_update_pending(dlm)) {
+> -		WARN_ON(dlm->pending && dlm->pending->internal);
+> +		WARN_ON(dlm->pending &&
+> +			(dlm->pending->flags & VSP1_DL_FRAME_END_INTERNAL));
+>  		__vsp1_dl_list_put(dlm->pending);
+>  		dlm->pending = dl;
+>  		return;
+> @@ -897,7 +899,7 @@ static void vsp1_dl_list_commit_singleshot(struct vsp1_dl_list *dl)
+>  	dlm->active = dl;
+>  }
+>  
+> -void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
+> +void vsp1_dl_list_commit(struct vsp1_dl_list *dl, unsigned int dl_flags)
+>  {
+>  	struct vsp1_dl_manager *dlm = dl->dlm;
+>  	struct vsp1_dl_list *dl_next;
+> @@ -912,7 +914,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
+>  		vsp1_dl_list_fill_header(dl_next, last);
+>  	}
+>  
+> -	dl->internal = internal;
+> +	dl->flags = dl_flags & ~VSP1_DL_FRAME_END_COMPLETED;
+>  
+>  	spin_lock_irqsave(&dlm->lock, flags);
+>  
+> @@ -941,9 +943,10 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
+>   * set in single-shot mode as display list processing is then not continuous and
+>   * races never occur.
+>   *
+> - * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the previous display list
+> - * has completed and had been queued with the internal notification flag.
+> - * Internal notification is only supported for continuous mode.
+> + * The following flags are only supported for continuous mode.
+> + *
+> + * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the display list that just
+> + * became active had been queued with the internal notification flag.
+>   */
+>  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  {
+> @@ -986,9 +989,9 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  	 * frame end interrupt. The display list thus becomes active.
+>  	 */
+>  	if (dlm->queued) {
+> -		if (dlm->queued->internal)
+> +		if (dlm->queued->flags & VSP1_DL_FRAME_END_INTERNAL)
+>  			flags |= VSP1_DL_FRAME_END_INTERNAL;
+> -		dlm->queued->internal = false;
+> +		dlm->queued->flags &= ~VSP1_DL_FRAME_END_INTERNAL;
+>  
+>  		__vsp1_dl_list_put(dlm->active);
+>  		dlm->active = dlm->queued;
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+> index 125750dc8b5c..e0fdb145e6ed 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> @@ -61,7 +61,7 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+>  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+>  struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl);
+>  struct vsp1_dl_ext_cmd *vsp1_dl_get_pre_cmd(struct vsp1_dl_list *dl);
+> -void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal);
+> +void vsp1_dl_list_commit(struct vsp1_dl_list *dl, unsigned int dl_flags);
+>  
+>  struct vsp1_dl_body_pool *
+>  vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 048190fd3a2d..9d20ef5cd5f8 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -537,6 +537,10 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+>  	struct vsp1_entity *next;
+>  	struct vsp1_dl_list *dl;
+>  	struct vsp1_dl_body *dlb;
+> +	unsigned int dl_flags = 0;
+> +
+> +	if (drm_pipe->force_brx_release)
+> +		dl_flags |= VSP1_DL_FRAME_END_INTERNAL;
+>  
+>  	dl = vsp1_dl_list_get(pipe->output->dlm);
+>  	dlb = vsp1_dl_list_get_body0(dl);
+> @@ -559,7 +563,7 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+>  		vsp1_entity_configure_partition(entity, pipe, dl, dlb);
+>  	}
+>  
+> -	vsp1_dl_list_commit(dl, drm_pipe->force_brx_release);
+> +	vsp1_dl_list_commit(dl, dl_flags);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
 > diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-> index 328d686189be..cfbab16c4820 100644
+> index cfbab16c4820..8feaa8d89fe8 100644
 > --- a/drivers/media/platform/vsp1/vsp1_video.c
 > +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -300,8 +300,22 @@ static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
->   * Pipeline Management
->   */
+> @@ -426,7 +426,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+>  	}
 >  
-> +static void vsp1_video_complete_buffer(struct vsp1_video *video,
-> +				       struct vsp1_vb2_buffer *buffer)
-> +{
-> +	struct vsp1_pipeline *pipe = video->rwpf->entity.pipe;
-> +	unsigned int i;
-> +
-> +	buffer->buf.sequence = pipe->sequence;
-> +	buffer->buf.vb2_buf.timestamp = ktime_get_ns();
-> +	for (i = 0; i < buffer->buf.vb2_buf.num_planes; ++i)
-> +		vb2_set_plane_payload(&buffer->buf.vb2_buf, i,
-> +				      vb2_plane_size(&buffer->buf.vb2_buf, i));
-> +	vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_DONE);
-> +}
-> +
->  /*
-> - * vsp1_video_complete_buffer - Complete the current buffer
-> + * vsp1_video_complete_next_buffer - Complete the current buffer
-
-Should the brief be updated?
-It looks quite odd to call the function "complete next buffer" but with
-a brief saying "complete the current buffer".
-
-Technically it's still correct, but it's more like
-"Complete the current buffer and return the next buffer"
-or such.
-
-
->   * @video: the video node
->   *
->   * This function completes the current buffer by filling its sequence number,
-
-Is this still accurate enough to keep the text as is ?
-
-
-
-> @@ -310,13 +324,11 @@ static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
->   * Return the next queued buffer or NULL if the queue is empty.
->   */
->  static struct vsp1_vb2_buffer *
-> -vsp1_video_complete_buffer(struct vsp1_video *video)
-> +vsp1_video_complete_next_buffer(struct vsp1_video *video)
->  {
-> -	struct vsp1_pipeline *pipe = video->rwpf->entity.pipe;
-> -	struct vsp1_vb2_buffer *next = NULL;
-> +	struct vsp1_vb2_buffer *next;
->  	struct vsp1_vb2_buffer *done;
->  	unsigned long flags;
-> -	unsigned int i;
+>  	/* Complete, and commit the head display list. */
+> -	vsp1_dl_list_commit(dl, false);
+> +	vsp1_dl_list_commit(dl, 0);
+>  	pipe->configured = true;
 >  
->  	spin_lock_irqsave(&video->irqlock, flags);
->  
-> @@ -327,21 +339,14 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
->  
->  	done = list_first_entry(&video->irqqueue,
->  				struct vsp1_vb2_buffer, queue);
-> -
->  	list_del(&done->queue);
->  
-> -	if (!list_empty(&video->irqqueue))
-> -		next = list_first_entry(&video->irqqueue,
-> +	next = list_first_entry_or_null(&video->irqqueue,
-
-That's a nice way to save a line.
-
-
->  					struct vsp1_vb2_buffer, queue);
->  
->  	spin_unlock_irqrestore(&video->irqlock, flags);
->  
-> -	done->buf.sequence = pipe->sequence;
-> -	done->buf.vb2_buf.timestamp = ktime_get_ns();
-> -	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
-> -		vb2_set_plane_payload(&done->buf.vb2_buf, i,
-> -				      vb2_plane_size(&done->buf.vb2_buf, i));
-> -	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
-> +	vsp1_video_complete_buffer(video, done);
->  
->  	return next;
->  }
-> @@ -352,7 +357,7 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
->  	struct vsp1_video *video = rwpf->video;
->  	struct vsp1_vb2_buffer *buf;
->  
-> -	buf = vsp1_video_complete_buffer(video);
-> +	buf = vsp1_video_complete_next_buffer(video);
->  	if (buf == NULL)
->  		return;
->  
+>  	vsp1_pipeline_run(pipe);
 > 
 
 -- 
