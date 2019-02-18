@@ -2,325 +2,147 @@ Return-Path: <SRS0=xMd0=QZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B89CDC43381
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 01:44:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE3CC43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 04:45:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B349218AD
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 01:44:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4274D218DE
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 04:45:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="HjOVtcz0"
+	dkim=pass (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="P7PzVX51"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728179AbfBRBoA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Feb 2019 20:44:00 -0500
-Received: from mail-lj1-f196.google.com ([209.85.208.196]:33821 "EHLO
-        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726281AbfBRBn7 (ORCPT
+        id S1727242AbfBREpy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Feb 2019 23:45:54 -0500
+Received: from condef-05.nifty.com ([202.248.20.70]:45930 "EHLO
+        condef-05.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727024AbfBREpy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Feb 2019 20:43:59 -0500
-Received: by mail-lj1-f196.google.com with SMTP id l5so9496870lje.1
-        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2019 17:43:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
-        h=from:date:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to
-         :user-agent;
-        bh=YZJoplqrlNuozjljc/2kkOx246y5WC6ILUQHMWpM11s=;
-        b=HjOVtcz0OuVYn3zpD6GjLUTR5zQx9CD9AMAeOUAhLWodKUF5p48Ova0f23TGb8omSd
-         /GsxQPZaY+7bpzc2JO/yLf0hF36j7se1yQTTt/UmymjrVVkrYEt1j1mplwnhMdm7UH4u
-         WYxKzi9+8TY8xeUCZkJK82pR+AW2fIITfGZ1Bwb1F+uYSY/WYpoQx1WAY1LkAEw+WoGN
-         bIpShRWuWvir+8IfajoqtJQUWxffryZu163uG8lfnuIC28mgVGTcZpFo1a7g3dRuFKil
-         T05bwj8W77oLitCZM5awlc63gj9hnzLil09/DAwqBPvL6X8+e/akieucJvXfdf0TulkF
-         ln5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:date:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to:user-agent;
-        bh=YZJoplqrlNuozjljc/2kkOx246y5WC6ILUQHMWpM11s=;
-        b=VSgDuFCGBp8cWklT9ujjRk+Z5N59sIi4ZYxeUb2WOJRLI6ZVlkSdXweQoxM/r6m95F
-         AevSxkpav0pHa1Zsi2d6+kl3+MyMfzf2BvXvZMOoHR8zV7vG5pB5O0WX+tsyi87DEgDa
-         fPehek33TaLiRQ8QSCSSI8otN+9aXgzOq51cMECm4Bi+IA24bjWyC4aKc5A9ZiM0mIm0
-         RRmSf/u0uMLUZNwiNRRlbbwvUUFjuuIb7E6KFqyNrwqhXQcCskydow3drO8HfYA7q3Z3
-         STUDjkuQbhD47mWH1OflHs0IRPb1WFgoyhyukK8NhaV/IlLtjDxjWBaDeCKkzmJwXzS+
-         wD+Q==
-X-Gm-Message-State: AHQUAubehlYmPc7ouQI8JY1M/A4rUKUcKkbwMyf+RPJ/LjAZfbCnHkwO
-        nxt6ZzKjj9IM9q5erw89XGIofQ==
-X-Google-Smtp-Source: AHgI3IbM4lycvBp3oKgZtYmG8uMBd0fRet3ssrMB2EadR0MI5OblfeE/9alG09zAA7mhq4Q199Jdyw==
-X-Received: by 2002:a2e:9448:: with SMTP id o8-v6mr8549518ljh.164.1550454236812;
-        Sun, 17 Feb 2019 17:43:56 -0800 (PST)
-Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
-        by smtp.gmail.com with ESMTPSA id h7-v6sm3354402ljc.45.2019.02.17.17.43.55
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Sun, 17 Feb 2019 17:43:55 -0800 (PST)
-From:   "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-X-Google-Original-From: Niklas =?iso-8859-1?Q?S=F6derlund?= <niklas.soderlund+renesas@ragnatech.se>
-Date:   Mon, 18 Feb 2019 02:43:55 +0100
-To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] rcar-vin: Fix lockdep warning at stream on
-Message-ID: <20190218014355.GF31263@bigcity.dyn.berto.se>
-References: <20190213220754.14664-1-niklas.soderlund+renesas@ragnatech.se>
- <5a6c4b25-7639-b4b9-bcc8-0da9374e6697@ideasonboard.com>
+        Sun, 17 Feb 2019 23:45:54 -0500
+Received: from conssluserg-06.nifty.com ([10.126.8.85])by condef-05.nifty.com with ESMTP id x1I4gDnm027747
+        for <linux-media@vger.kernel.org>; Mon, 18 Feb 2019 13:42:13 +0900
+Received: from mail-ua1-f51.google.com (mail-ua1-f51.google.com [209.85.222.51]) (authenticated)
+        by conssluserg-06.nifty.com with ESMTP id x1I4frEc004906;
+        Mon, 18 Feb 2019 13:41:54 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-06.nifty.com x1I4frEc004906
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1550464914;
+        bh=ztgmX9sUlu2nCI1xh+b3f1xiPfCJOBT6fDt3BnwveqQ=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=P7PzVX51KZrab9ZW5oqrIT8J9Ju9pNbYmQPWl8I6DAq46mu+FA3czUDWoB7WdsK/u
+         X79Ht0QijuBBSrGktArNitimGyuQajVsVVRuJ0R0KuRAy/Oe/8nA0Qa6Rgj/4nc4hF
+         VP+5O4peyXNM6rnOwkbzcIWbXY5HKC8KVk97dABHZJgxqDD58FaAzrCXWLKwhElRuq
+         r/pc89JXEpH6G2yYVcQiN4lM0Wdy+26umFJ0Quc0WI5A+3ABJIiwAHwRi4BaGRlPDF
+         Dsz4qgRGrI7WpF2vdIjugdj22qHEUNvtvd5AZtVKuCD7+mCJReMkNaAspioJUkyt9j
+         KbTanO5DajEOw==
+X-Nifty-SrcIP: [209.85.222.51]
+Received: by mail-ua1-f51.google.com with SMTP id q17so5419174uam.0;
+        Sun, 17 Feb 2019 20:41:54 -0800 (PST)
+X-Gm-Message-State: AHQUAubQheTv9JHmjvZC0Pt/O4Mo8LF/r+S5eOaTTulfRV+cfMqfAwsW
+        Kj665Xc7IJFSz3HpKea+nO7xh+avnnekDOy5U0Q=
+X-Google-Smtp-Source: AHgI3IbyDkHjiQeJ0+9MBKEkpsesEfJvKrQFdgUzRewMFLa/BtvuEl7ZmkGxg3+pBwxrNuanj1WRJZbecRcwpSL6DI8=
+X-Received: by 2002:ab0:c07:: with SMTP id a7mr12558uak.55.1550464913003; Sun,
+ 17 Feb 2019 20:41:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5a6c4b25-7639-b4b9-bcc8-0da9374e6697@ideasonboard.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <1548399259-17750-1-git-send-email-yamada.masahiro@socionext.com>
+In-Reply-To: <1548399259-17750-1-git-send-email-yamada.masahiro@socionext.com>
+From:   Masahiro Yamada <yamada.masahiro@socionext.com>
+Date:   Mon, 18 Feb 2019 13:41:17 +0900
+X-Gmail-Original-Message-ID: <CAK7LNATPU9DJaOMP=8oOMjeGSuAqWSTh2rSesvvfhjXx4HfxRg@mail.gmail.com>
+Message-ID: <CAK7LNATPU9DJaOMP=8oOMjeGSuAqWSTh2rSesvvfhjXx4HfxRg@mail.gmail.com>
+Subject: Re: [PATCH 0/3] media: clean-up header search paths and add
+ $(srctree)/ prefix
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc:     Sakari Ailus <sakari.ailus@iki.fi>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Akihiro Tsukada <tskd08@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Abylay Ospan <aospan@netup.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sergey Kozlov <serjk@netup.ru>, Mike Isely <isely@pobox.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Kieran,
+Hi Mauro,
 
-On 2019-02-17 22:27:27 +0000, Kieran Bingham wrote:
-> Hi Niklas,
-> 
-> On 13/02/2019 22:07, Niklas Söderlund wrote:
-> > Changes to v4l2-fwnode in commit [1] triggered a lockdep warning in
-> > rcar-vin. The first attempt to solve this warning in the rcar-vin driver
-> > was incomplete and only pushed the warning to happen at at stream on
-> > time instead of at probe time.
-> > 
-> > This change reverts the incomplete fix and properly fix the warning by
-> > removing the need to hold the rcar-vin specific group lock when calling
-> > v4l2_async_notifier_parse_fwnode_endpoints_by_port(). And instead takes
-> > it in the callback where it's really needed.
-> > 
-> 
-> It might have been more readable to provide the revert and the fix
-> separately, as it's hard to know which parts of this are the revert, and
-> which are 'new', but don't worry about that as it is fortuanately a
-> fairly clear separation below..
+On Fri, Jan 25, 2019 at 4:00 PM Masahiro Yamada
+<yamada.masahiro@socionext.com> wrote:
+>
+> My main motivation is to get rid of crappy header search path manipulation
+> from Kbuild core.
+>
+> Before that, I want to do as many treewide cleanups as possible.
+>
+> If you are interested in the big picture of this work,
+> the full patch set is available at:
+> git://git.kernel.org/pub/scm/linux/kernel/git/masahiroy/linux-kbuild.git build-test
 
-I agree it would have been clearer to have it as two patches, I wanted 
-to make backporting as easy as possible so I kept it in the same patch, 
-I'm happy to split it into two if you think it's better.
 
-> 
-> 
-> > 1. commit eae2aed1eab9bf08 ("media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev")
-> > 
-> > Fixes: 6458afc8c49148f0 ("media: rcar-vin: remove unneeded locking in async callbacks")
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> 
-> Only a couple of minorish comments below.
-> 
-> With those fixed:
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> 
-> 
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-core.c | 43 +++++++++++++++------
-> >  1 file changed, 32 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> > index 594d804340047511..abbb5820223965e3 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> > @@ -546,7 +546,9 @@ static void rvin_parallel_notify_unbind(struct v4l2_async_notifier *notifier,
-> >  
-> >  	vin_dbg(vin, "unbind parallel subdev %s\n", subdev->name);
-> >  
-> > +	mutex_lock(&vin->lock);
-> >  	rvin_parallel_subdevice_detach(vin);
-> > +	mutex_unlock(&vin->lock);
-> >  }
-> >  
-> >  static int rvin_parallel_notify_bound(struct v4l2_async_notifier *notifier,
-> > @@ -556,7 +558,9 @@ static int rvin_parallel_notify_bound(struct v4l2_async_notifier *notifier,
-> >  	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
-> >  	int ret;
-> >  
-> > +	mutex_lock(&vin->lock);
-> >  	ret = rvin_parallel_subdevice_attach(vin, subdev);
-> > +	mutex_unlock(&vin->lock);
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > @@ -664,6 +668,7 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
-> >  	}
-> >  
-> >  	/* Create all media device links between VINs and CSI-2's. */
-> > +	mutex_lock(&vin->group->lock);
-> >  	for (route = vin->info->routes; route->mask; route++) {
-> >  		struct media_pad *source_pad, *sink_pad;
-> >  		struct media_entity *source, *sink;
-> > @@ -699,6 +704,7 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
-> >  			break;
-> >  		}
-> >  	}
-> > +	mutex_unlock(&vin->group->lock);
-> >  
-> >  	return ret;
-> >  }
-> > @@ -714,6 +720,8 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
-> >  		if (vin->group->vin[i])
-> >  			rvin_v4l2_unregister(vin->group->vin[i]);
-> >  
-> > +	mutex_lock(&vin->group->lock);
-> > +
-> >  	for (i = 0; i < RVIN_CSI_MAX; i++) {
-> >  		if (vin->group->csi[i].fwnode != asd->match.fwnode)
-> >  			continue;
-> > @@ -721,6 +729,8 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
-> >  		vin_dbg(vin, "Unbind CSI-2 %s from slot %u\n", subdev->name, i);
-> >  		break;
-> >  	}
-> > +
-> > +	mutex_unlock(&vin->group->lock);
-> >  }
-> >  
-> >  static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
-> > @@ -730,6 +740,8 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
-> >  	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
-> >  	unsigned int i;
-> >  
-> > +	mutex_lock(&vin->group->lock);
-> > +
-> >  	for (i = 0; i < RVIN_CSI_MAX; i++) {
-> >  		if (vin->group->csi[i].fwnode != asd->match.fwnode)
-> >  			continue;
-> > @@ -738,6 +750,8 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
-> >  		break;
-> >  	}
-> >  
-> > +	mutex_unlock(&vin->group->lock);
-> > +
-> >  	return 0;
-> >  }
-> 
-> So if I'm not mistaken, everything above this is the 'revert' and the
-> below is the 'fix'
+Could you take a look at this series, please?
 
-Correct :-)
 
-> 
-> 
-> 
-> 
-> >  
-> > @@ -752,6 +766,7 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
-> >  				     struct v4l2_async_subdev *asd)
-> >  {
-> >  	struct rvin_dev *vin = dev_get_drvdata(dev);
-> > +	int ret = 0;
-> >  
-> >  	if (vep->base.port != 1 || vep->base.id >= RVIN_CSI_MAX)
-> >  		return -EINVAL;
-> > @@ -762,38 +777,48 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
-> >  		return -ENOTCONN;
-> >  	}
-> >  
-> > +	mutex_lock(&vin->group->lock);
-> > +
-> >  	if (vin->group->csi[vep->base.id].fwnode) {
-> >  		vin_dbg(vin, "OF device %pOF already handled\n",
-> >  			to_of_node(asd->match.fwnode));
-> > -		return -ENOTCONN;
-> > +		ret = -ENOTCONN;
-> > +		goto out;
-> >  	}
-> >  
-> >  	vin->group->csi[vep->base.id].fwnode = asd->match.fwnode;
-> >  
-> >  	vin_dbg(vin, "Add group OF device %pOF to slot %u\n",
-> >  		to_of_node(asd->match.fwnode), vep->base.id);
-> > +out:
-> > +	mutex_unlock(&vin->group->lock);
-> 
-> I think you could unlock before you print the debug... But perhaps
-> that's not a critical path.
-
-It could be done, but then the error path would be more complex. I'm 
-open to change this at your leisure.
-
-> 
-> 
-> 
-> >  
-> > -	return 0;
-> > +	return ret;
-> >  }
-> >  
-> >  static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
-> >  {
-> > -	unsigned int count = 0;
-> > +	unsigned int count = 0, vin_mask = 0;
-> 
-> Shouldn't vin_mask have it's own line?
-
-It could, I'm trying to keep the style of the rest of the file. I'm open 
-to change this.
-
-> 
-> >  	unsigned int i;
-> >  	int ret;
-> >  
-> >  	mutex_lock(&vin->group->lock);
-> >  
-> >  	/* If not all VIN's are registered don't register the notifier. */
-> > -	for (i = 0; i < RCAR_VIN_NUM; i++)
-> > -		if (vin->group->vin[i])
-> > +	for (i = 0; i < RCAR_VIN_NUM; i++) {
-> > +		if (vin->group->vin[i]) {
-> >  			count++;
-> > +			vin_mask |= BIT(i);
-> > +		}
-> > +	}
-> >  
-> >  	if (vin->group->count != count) {
-> >  		mutex_unlock(&vin->group->lock);
-> >  		return 0;
-> >  	}
-> >  
-> > +	mutex_unlock(&vin->group->lock);
-> > +
-> >  	v4l2_async_notifier_init(&vin->group->notifier);
-> >  
-> >  	/*
-> > @@ -802,21 +827,17 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
-> >  	 * will only be registered once with the group notifier.
-> >  	 */
-> >  	for (i = 0; i < RCAR_VIN_NUM; i++) {
-> > -		if (!vin->group->vin[i])
-> > +		if (!(vin_mask & BIT(i)))
-> >  			continue;
-> >  
-> >  		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> >  				vin->group->vin[i]->dev, &vin->group->notifier,
-> >  				sizeof(struct v4l2_async_subdev), 1,
-> >  				rvin_mc_parse_of_endpoint);
-> > -		if (ret) {
-> > -			mutex_unlock(&vin->group->lock);
-> > +		if (ret)
-> >  			return ret;
-> > -		}
-> >  	}
-> >  
-> > -	mutex_unlock(&vin->group->lock);
-> > -
-> >  	if (list_empty(&vin->group->notifier.asd_list))
-> >  		return 0;
-> >  
-> > 
-> 
-> 
-> -- 
-> Regards
+>
+>
+>
+> Masahiro Yamada (3):
+>   media: coda: remove -I$(src) header search path
+>   media: remove unneeded header search paths
+>   media: prefix header search paths with $(srctree)/
+>
+>  drivers/media/common/b2c2/Makefile            | 4 ++--
+>  drivers/media/dvb-frontends/cxd2880/Makefile  | 2 --
+>  drivers/media/i2c/smiapp/Makefile             | 2 +-
+>  drivers/media/mmc/siano/Makefile              | 3 +--
+>  drivers/media/pci/b2c2/Makefile               | 2 +-
+>  drivers/media/pci/bt8xx/Makefile              | 5 ++---
+>  drivers/media/pci/cx18/Makefile               | 4 ++--
+>  drivers/media/pci/cx23885/Makefile            | 4 ++--
+>  drivers/media/pci/cx88/Makefile               | 4 ++--
+>  drivers/media/pci/ddbridge/Makefile           | 4 ++--
+>  drivers/media/pci/dm1105/Makefile             | 2 +-
+>  drivers/media/pci/mantis/Makefile             | 2 +-
+>  drivers/media/pci/netup_unidvb/Makefile       | 2 +-
+>  drivers/media/pci/ngene/Makefile              | 4 ++--
+>  drivers/media/pci/pluto2/Makefile             | 2 +-
+>  drivers/media/pci/pt1/Makefile                | 4 ++--
+>  drivers/media/pci/pt3/Makefile                | 4 ++--
+>  drivers/media/pci/smipcie/Makefile            | 5 ++---
+>  drivers/media/pci/ttpci/Makefile              | 4 ++--
+>  drivers/media/platform/coda/Makefile          | 2 --
+>  drivers/media/platform/coda/coda-h264.c       | 3 ++-
+>  drivers/media/platform/coda/trace.h           | 2 +-
+>  drivers/media/platform/sti/c8sectpfe/Makefile | 5 ++---
+>  drivers/media/radio/Makefile                  | 2 --
+>  drivers/media/spi/Makefile                    | 4 +---
+>  drivers/media/usb/as102/Makefile              | 2 +-
+>  drivers/media/usb/au0828/Makefile             | 4 ++--
+>  drivers/media/usb/b2c2/Makefile               | 2 +-
+>  drivers/media/usb/cx231xx/Makefile            | 5 ++---
+>  drivers/media/usb/em28xx/Makefile             | 4 ++--
+>  drivers/media/usb/go7007/Makefile             | 2 +-
+>  drivers/media/usb/pvrusb2/Makefile            | 4 ++--
+>  drivers/media/usb/siano/Makefile              | 2 +-
+>  drivers/media/usb/tm6000/Makefile             | 4 ++--
+>  drivers/media/usb/ttusb-budget/Makefile       | 2 +-
+>  drivers/media/usb/usbvision/Makefile          | 2 --
+>  36 files changed, 50 insertions(+), 64 deletions(-)
+>
 > --
-> Kieran
+> 2.7.4
+>
+
 
 -- 
-Regards,
-Niklas Söderlund
+Best Regards
+Masahiro Yamada
