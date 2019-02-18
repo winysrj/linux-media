@@ -3,153 +3,106 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A897C10F01
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:15:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2B93C43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:25:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D93752173C
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:15:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8F1B21736
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:25:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729882AbfBRKPx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 05:15:53 -0500
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:51226 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727004AbfBRKPx (ORCPT
+        id S1729317AbfBRKZv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 05:25:51 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:39024 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729296AbfBRKZv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 05:15:53 -0500
-X-Halon-ID: 25c44020-3366-11e9-b5ae-0050569116f7
-Authorized-sender: niklas@soderlund.pp.se
-Received: from bismarck.berto.se (unknown [89.233.230.99])
-        by bin-vsp-out-03.atm.binero.net (Halon) with ESMTPA
-        id 25c44020-3366-11e9-b5ae-0050569116f7;
-        Mon, 18 Feb 2019 11:15:48 +0100 (CET)
-From:   =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc:     linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] rcar-csi2: restart CSI-2 link if error is detected
-Date:   Mon, 18 Feb 2019 11:15:41 +0100
-Message-Id: <20190218101541.15819-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 18 Feb 2019 05:25:51 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: ezequiel)
+        with ESMTPSA id 35B38268AF6
+From:   Ezequiel Garcia <ezequiel@collabora.com>
+To:     linux-media@vger.kernel.org
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] media: v4l: ioctl: Sanitize num_planes before using it
+Date:   Mon, 18 Feb 2019 07:25:42 -0300
+Message-Id: <20190218102542.21776-1-ezequiel@collabora.com>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Restart the CSI-2 link if the CSI-2 receiver detects an error during
-reception. The driver did nothing when a link error happened and the
-data flow simply stopped without the user knowing why.
+The linked commit changed s_fmt/try_fmt to fail if num_planes is bogus.
+This, however, is against the spec, which mandates drivers
+to return a proper num_planes value, without an error.
 
-Change the driver to try and recover from errors by restarting the link
-and informing the user that something is not right. For obvious reasons
-it's not possible to recover from all errors (video source disconnected
-for example) but in such cases the user is at least informed of the
-error and the same behavior of the stopped data flow is retained.
+Replace the num_planes check and instead clamp it to a sane value,
+so we still make sure we don't overflow the planes array by accident.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Fixes: 9048b2e15b11c5 ("media: v4l: ioctl: Validate num_planes before using it")
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/platform/rcar-vin/rcar-csi2.c | 52 ++++++++++++++++++++-
- 1 file changed, 51 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index f90b380478775015..0506fe4106d5c012 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -84,6 +84,9 @@ struct rcar_csi2;
- 
- /* Interrupt Enable */
- #define INTEN_REG			0x30
-+#define INTEN_INT_AFIFO_OF		BIT(27)
-+#define INTEN_INT_ERRSOTHS		BIT(4)
-+#define INTEN_INT_ERRSOTSYNCHS		BIT(3)
- 
- /* Interrupt Source Mask */
- #define INTCLOSE_REG			0x34
-@@ -540,6 +543,10 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
- 	if (mbps < 0)
- 		return mbps;
- 
-+	/* Enable interrupts. */
-+	rcsi2_write(priv, INTEN_REG, INTEN_INT_AFIFO_OF | INTEN_INT_ERRSOTHS
-+		    | INTEN_INT_ERRSOTSYNCHS);
-+
- 	/* Init */
- 	rcsi2_write(priv, TREF_REG, TREF_TREF);
- 	rcsi2_write(priv, PHTC_REG, 0);
-@@ -702,6 +709,43 @@ static const struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
- 	.pad	= &rcar_csi2_pad_ops,
- };
- 
-+static irqreturn_t rcsi2_irq(int irq, void *data)
-+{
-+	struct rcar_csi2 *priv = data;
-+	u32 status, err_status;
-+
-+	status = rcsi2_read(priv, INTSTATE_REG);
-+	err_status = rcsi2_read(priv, INTERRSTATE_REG);
-+
-+	if (!status)
-+		return IRQ_HANDLED;
-+
-+	rcsi2_write(priv, INTSTATE_REG, status);
-+
-+	if (!err_status)
-+		return IRQ_HANDLED;
-+
-+	rcsi2_write(priv, INTERRSTATE_REG, err_status);
-+
-+	dev_err(priv->dev, "Transfer error, restarting CSI-2 receiver\n");
-+
-+	return IRQ_WAKE_THREAD;
-+}
-+
-+static irqreturn_t rcsi2_irq_thread(int irq, void *data)
-+{
-+	struct rcar_csi2 *priv = data;
-+
-+	mutex_lock(&priv->lock);
-+	rcsi2_stop(priv);
-+	usleep_range(1000, 2000);
-+	if (rcsi2_start(priv))
-+		dev_err(priv->dev, "Failed to restart CSI-2 receiver\n");
-+	mutex_unlock(&priv->lock);
-+
-+	return IRQ_HANDLED;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Async handling and registration of subdevices and links.
-  */
-@@ -982,7 +1026,7 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
- 				 struct platform_device *pdev)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 90aad465f9ed..206b7348797e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1017,6 +1017,12 @@ static void v4l_sanitize_format(struct v4l2_format *fmt)
  {
- 	struct resource *res;
--	int irq;
-+	int irq, ret;
+ 	unsigned int offset;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	priv->base = devm_ioremap_resource(&pdev->dev, res);
-@@ -993,6 +1037,12 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
- 	if (irq < 0)
- 		return irq;
- 
-+	ret = devm_request_threaded_irq(&pdev->dev, irq, rcsi2_irq,
-+					rcsi2_irq_thread, IRQF_SHARED,
-+					KBUILD_MODNAME, priv);
-+	if (ret)
-+		return ret;
++	/* Make sure num_planes is not bogus */
++	if (fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ||
++	    fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		fmt->fmt.pix_mp.num_planes = min_t(u32, fmt->fmt.pix_mp.num_planes,
++					       VIDEO_MAX_PLANES);
 +
- 	priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
- 	if (IS_ERR(priv->rstc))
- 		return PTR_ERR(priv->rstc);
+ 	/*
+ 	 * The v4l2_pix_format structure has been extended with fields that were
+ 	 * not previously required to be set to zero by applications. The priv
+@@ -1553,8 +1559,6 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+-			break;
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+ 			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
+ 					  bytesperline);
+@@ -1586,8 +1590,6 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+-			break;
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+ 			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
+ 					  bytesperline);
+@@ -1656,8 +1658,6 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+-			break;
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+ 			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
+ 					  bytesperline);
+@@ -1689,8 +1689,6 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+-			break;
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+ 			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
+ 					  bytesperline);
 -- 
 2.20.1
 
