@@ -2,100 +2,167 @@ Return-Path: <SRS0=xMd0=QZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36CB4C4360F
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 09:07:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2336C43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 09:20:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F85F2177E
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 09:07:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B91F92184E
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 09:20:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729239AbfBRJHR convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 04:07:17 -0500
-Received: from mail-ua1-f67.google.com ([209.85.222.67]:41454 "EHLO
-        mail-ua1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727423AbfBRJHQ (ORCPT
+        id S1728705AbfBRJUr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 04:20:47 -0500
+Received: from relay12.mail.gandi.net ([217.70.178.232]:39709 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728592AbfBRJUq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 04:07:16 -0500
-Received: by mail-ua1-f67.google.com with SMTP id z24so5554264ual.8;
-        Mon, 18 Feb 2019 01:07:16 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=B6S0H04HTAomNezrtT8nJl7aWmSqM3cscv4l462UHHM=;
-        b=f5Sfp0PnC0FF/UGt3IfUpJBBpgEbCzd3dBYlitm4zhmWkHH7i64BqZsDqbRsCyzy5F
-         HnUinnl+QX0dUSdw/1RHtkj4wsso3vhvOvTzMS9cHkOwvd45UAwsIDiTVvTrh9bDNaMm
-         nKdyc+alMClBz//1avRBqdkKHWTYpu7XlyR6tobQ23l/oc1Y/+mmSPYIhMZqhOR6gh0D
-         TgEx1pv9EyBp+1Bs08P1/NS8xce6GWsImBJNxj8b2BiGdM8nQ0zdIJugXPjXC6ioXaFH
-         EkJU11IncTX1nVjzz8/zGPdLhLAWslhaQPxuc167h2xgvJLUleMt95gT5Zo7vpfjoDhf
-         f4og==
-X-Gm-Message-State: AHQUAubgzzCPvZtAmdfmMi5pcv5Vv2SDJMsQi7QLkQIYkJ9vffLCRhnb
-        7BlVWYlkyQBMvxqfS56oTeoRQWbgVyMdXgSWTX7+R35K
-X-Google-Smtp-Source: AHgI3IabRubpJALmQyGM7UfgbF8BOLM7nSzlJA4iGqQOC3bNjTolr8DXGKcPhsI3NVK2kv2HqI5j+/6lxuhVpQ2kBog=
-X-Received: by 2002:a9f:30dc:: with SMTP id k28mr4229312uab.75.1550480835848;
- Mon, 18 Feb 2019 01:07:15 -0800 (PST)
+        Mon, 18 Feb 2019 04:20:46 -0500
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 8A153200012;
+        Mon, 18 Feb 2019 09:20:42 +0000 (UTC)
+Date:   Mon, 18 Feb 2019 10:21:07 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 09/30] media: entity: Swap pads if route is checked
+ from source to sink
+Message-ID: <20190218092107.omddljghnv3l2ss6@uno.localdomain>
+References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181101233144.31507-10-niklas.soderlund+renesas@ragnatech.se>
+ <20190115225743.GH28397@pendragon.ideasonboard.com>
+ <20190122151506.fnlfvwtoq7qunz45@paasikivi.fi.intel.com>
+ <20190122152030.GB11461@pendragon.ideasonboard.com>
 MIME-Version: 1.0
-References: <20190216225638.7159-1-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20190216225638.7159-1-niklas.soderlund+renesas@ragnatech.se>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 18 Feb 2019 10:07:04 +0100
-Message-ID: <CAMuHMdUcGeffyxgZ2eBU2A=t-8c2Mo2eqvr-czSMRJy13AyYJA@mail.gmail.com>
-Subject: Re: [PATCH] rcar-csi2: Use standby mode instead of resetting
-To:     =?UTF-8?Q?Niklas_S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="cynd3sxjjzirrrlt"
+Content-Disposition: inline
+In-Reply-To: <20190122152030.GB11461@pendragon.ideasonboard.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
 
-On Sun, Feb 17, 2019 at 8:54 AM Niklas Söderlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Later versions of the datasheet updates the reset procedure to more
-> closely resemble the standby mode. Update the driver to enter and exit
-> the standby mode instead of resetting the hardware before and after
-> streaming is started and stopped.
+--cynd3sxjjzirrrlt
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Laurent, Sakari,
+
+On Tue, Jan 22, 2019 at 05:20:30PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 >
-> While at it break out the full start and stop procedures from
-> rcsi2_s_stream() into the existing helper functions.
+> On Tue, Jan 22, 2019 at 05:15:06PM +0200, Sakari Ailus wrote:
+> > On Wed, Jan 16, 2019 at 12:57:43AM +0200, Laurent Pinchart wrote:
+> > >>
+> > >> This way the pads are always passed to the has_route() op sink pad f=
+irst.
+> > >> Makes sense.
+> > >
+> > > Is there anything in the API that mandates one pad to be a sink and t=
+he
+> > > other pad to the a source ? I had designed the operation to allow
+> > > sink-sink and source-source connections to be checked too.
+> >
+> > Do you have a use case in mind for sink--sink or source--source routes?=
+ The
+> > routes are about flows of data, so I'd presume only source--sink or
+> > sink--source routes are meaningful.
+> >
+> > If you did, then the driver would have to handle that by itself. This s=
+till
+> > simplifies the implementation for drivers that do not.
 >
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Thanks for your patch!
-
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-
-> @@ -936,6 +947,10 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
->         if (irq < 0)
->                 return irq;
+> I don't have use cases for such routes, but we use the has_route
+> operation when traversing pipelines, and at that point we need to get
+> all the internally connected pads. In another patch in this series you
+> implement a helper function that handles this, but its implementation
+> isn't complete. I explained in my review of that patch that I fear a
+> correct generic implementation would become quite complex, while the
+> complexity should be easy to handle on the driver side as the code can
+> then be specialized for the case at hand.
 >
-> +       priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
-> +       if (IS_ERR(priv->rstc))
-> +               return PTR_ERR(priv->rstc);
-> +
->         return 0;
 
-Does the driver Kconfig option need "select RESET_CONTROLLER"?
-If the option is not enabled, devm_reset_control_get() will return -ENOTSUPP.
+As a compromise, in v3 I'm thinking of maintaining support for the
+most common case of two sources connected to the same sink, as
+Sakari's patch does, but let more complex cases be handled by the
+driver implementation of has_route().
 
-Gr{oetje,eeting}s,
+Ack?
 
-                        Geert
+> > > If your goal is to simplify the implementation of the .has_route()
+> > > operation in drivers, I would instead sort pad0 and pad1 by value.
+> >
+> > That'd be another option to make the order deterministic for the driver.
+> > I'm fine with that as well.
+> >
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+In v3 I have taken both suggestions in: try the "sink then source" order
+first, then order by index in case the pads are of the same time. This
+needs to be documented in has_route() operation definition though.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Would that be fine with you?
+
+Thanks
+   j
+
+> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnate=
+ch.se>
+> > >> ---
+> > >>  drivers/media/media-entity.c | 4 ++++
+> > >>  1 file changed, 4 insertions(+)
+> > >>
+> > >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-enti=
+ty.c
+> > >> index 3c0e7425c8983b45..33f00e35ccd92c6f 100644
+> > >> --- a/drivers/media/media-entity.c
+> > >> +++ b/drivers/media/media-entity.c
+> > >> @@ -249,6 +249,10 @@ bool media_entity_has_route(struct media_entity=
+ *entity, unsigned int pad0,
+> > >>  	if (!entity->ops || !entity->ops->has_route)
+> > >>  		return true;
+> > >>
+> > >> +	if (entity->pads[pad0].flags & MEDIA_PAD_FL_SOURCE
+> > >> +	    && entity->pads[pad1].flags & MEDIA_PAD_FL_SINK)
+> > >> +		swap(pad0, pad1);
+> > >> +
+> > >>  	return entity->ops->has_route(entity, pad0, pad1);
+> > >>  }
+> > >>  EXPORT_SYMBOL_GPL(media_entity_has_route);
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+
+--cynd3sxjjzirrrlt
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlxqeQMACgkQcjQGjxah
+VjwDGg//dOq5CHZ07nr8XM7CsSi03rBsnh08Ihfd6tIgMF8E0xgdEOxqEIFHnHDf
+i54ApZBQ5PC03iNU57AT/s2atMwfhKQLPKiPIwdVRJaRwXogb3XCzn80swdLY/qy
+6ATTOqyWtklyVFGM5fsXiK/68PvTsj8xh17GryvFbFL60OfwT3QMIABC/2iw1BbL
+q57jYT3anQAhxkfdM9hHfk0l5ZSiH+iEx+HpTIEUbj0fBhg5xFErdWaXVXRP+r2H
+UNvt7TrIXibVJ7Z7rs0/mI7bivULXzrK4H0x5ehuRtHfy/aaIb1cT2nN2V9TGu9t
+pdqe/tUvDEDAiOrTkr8lN96JxTzxJO3JlfQtVTZW/J2AawFGNyGrqJkE1qv4hD+w
+CA+SjQk8o8NWfEHvLQjQhY5uuS5uZ/ooFeMPz/HkRSNCAde8T7xt1+d5/japhoo9
+t2mdUjN0xVHKG6XNxxmjv44B34aQbQe/lMxrtIFv2udXIICP+V8oZv6HeNTCNFbT
+jo8it82DrsxRpInbjXTBFaTWXaD2EBFPQnUt+d1hIB3u/8CIMb11sZ1jw8eA3ngQ
+I9F8fxHMgMkcBsTSzEVOXp6VEuj4Ld/DCVraCkFmqR3vXQGi/NVk2RKU+VEYAd4y
+t6PNtgSWNxNz8duLUBXScpYWTGuQXvoQeYWOXmx8vP0MP0Al/G8=
+=sEFy
+-----END PGP SIGNATURE-----
+
+--cynd3sxjjzirrrlt--
