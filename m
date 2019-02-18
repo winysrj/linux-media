@@ -2,84 +2,146 @@ Return-Path: <SRS0=xMd0=QZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E61F1C43381
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 15:53:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94316C43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 16:08:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE20920C01
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 15:53:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6635C20836
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 16:08:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387796AbfBRPxP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 10:53:15 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60734 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726535AbfBRPxO (ORCPT
+        id S1731142AbfBRQIL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 11:08:11 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44685 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730490AbfBRQIK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 10:53:14 -0500
+        Mon, 18 Feb 2019 11:08:10 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id vlEDgbsOm4HFnvlEGg0Rb0; Mon, 18 Feb 2019 16:53:13 +0100
-Subject: Re: [PATCH v2] media: vim2m: fix build breakage due to a merge
- conflict
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Kees Cook <keescook@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Anton Leontiev <scileont@gmail.com>
-References: <c450df23a26ea90c58791fba2092ef48c6f32d2b.1550505119.git.mchehab+samsung@kernel.org>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <a4dfcbaf-87b4-0d14-b7c9-9bb99d3b9cbb@xs4all.nl>
-Date:   Mon, 18 Feb 2019 16:53:09 +0100
+        id vlSfgbyQi4HFnvlSig0V4d; Mon, 18 Feb 2019 17:08:08 +0100
+Subject: Re: [PATCH 0/2] Media Controller "taint" fixes
+To:     Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org,
+        mchehab@kernel.org
+References: <1547515448-15258-1-git-send-email-brad@nextdimension.cc>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5e18a556-17fa-de72-a915-45a5f1bea018@xs4all.nl>
+Date:   Mon, 18 Feb 2019 17:08:04 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <c450df23a26ea90c58791fba2092ef48c6f32d2b.1550505119.git.mchehab+samsung@kernel.org>
+In-Reply-To: <1547515448-15258-1-git-send-email-brad@nextdimension.cc>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfK2vQGtyAzqqguPUuz2TFYGt0jh+doIDXdzH4Ti1UKqXIsTEgqx/s25aapU4JJn1LhhLXoywvnq0TevUAwkjG+6nqPqx2xlWNHTOmRwNtyxb8+fSJosE
- HrqQjj4jzJySnED3ExphmDd7M/JdeB3dSxBQuB7RjyB/QWNBjB1ocOX9X0QUQKnSdk3wboDyz4z9Yx87CUBTXZ+E/hLxI9AUQI+rR0kNnFvyiQs51tlBiNIq
- uYXG0FVu5+3w/nAe6IlIT4mhjEDZ26nyufu84UlaUPabJlyGArI4hEUU7EFwRu9znO5D1Lml3X3C+Mw8CDVuiE6WjgN2HLDP31hn9SodVCKWModJP7x/Q9uS
- NLYdBqQfH7JSVRf2bGZQNroeq5QE3kInQyD4eSFLnXq/fc9dioA=
+X-CMAE-Envelope: MS4wfH1az4aS02TRKZWGqRZx+adwSt7DLcGYxlK1MG+ktIEHwlWhfJ4r6QmW+TokaCrMK+cbeLkptNXHqb+uIRPivI0rcLhBW1CY2yezGjv+Hmxn1Pw533Yj
+ bXpzRon+2WcZ62GPsr9i02f8TRw56vOgH8nmxeGuNeUc1dupt5cbkAghPMQ5x+Hwsy4mxOgUnoldt9f7xTgT3eReJdV8teBXxmUdglJsjn/ViqEEFV0c9R8x
+ Nig6fiI7k4RL5v8+ykiTcw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/18/19 4:52 PM, Mauro Carvalho Chehab wrote:
-> A merge conflict rised when merging from -rc7. Fix it.
-> 
-> In this specific case, we don't need the if anymore, as the
-> work_run was moved to its rightful place (struct vim2m_ctx).
-> 
-> Fixes: b3e64e5b0778 ("media: vim2m: use per-file handler work queue")
-> Fixes: 240809ef6630 ("media: vim2m: only cancel work if it is for right context")
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Hi Brad,
 
-Reviewed-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-
-> ---
->  drivers/media/platform/vim2m.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+On 1/15/19 2:24 AM, Brad Love wrote:
+> Hauppauge USBLive2 was reported broken. A change in media controller
+> logic appears to be the culprit.
 > 
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index 04250adf58e0..a27d3052bb62 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -905,8 +905,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
->  	struct vb2_v4l2_buffer *vbuf;
->  	unsigned long flags;
->  
-> -	if (v4l2_m2m_get_curr_priv(dev->m2m_dev) == ctx)
-> -		cancel_delayed_work_sync(&dev->work_run);
-> +	cancel_delayed_work_sync(&ctx->work_run);
->  
->  	for (;;) {
->  		if (V4L2_TYPE_IS_OUTPUT(q->type))
+> Fixes: 9d6d20e652 ("v4l2-mc: switch it to use the new approach to setup pipelines")
+> 
+> Without "taint" set for signal type, devices
+> with analog capture fail during probe:
+> 
+> [    5.821715] cx231xx 3-2:1.1: v4l2 driver version 0.0.3
+> [    5.955721] cx231xx 3-2:1.1: Registered video device video0 [v4l2]
+> [    5.955797] cx231xx 3-2:1.1: Registered VBI device vbi0
+> [    5.955802] cx231xx 3-2:1.1: video EndPoint Addr 0x84, Alternate settings: 5
+> [    5.955805] cx231xx 3-2:1.1: VBI EndPoint Addr 0x85, Alternate settings: 2
+> [    5.955807] cx231xx 3-2:1.1: sliced CC EndPoint Addr 0x86, Alternate settings: 2
+> [    5.955834] cx231xx 3-2:1.1: V4L2 device vbi0 deregistered
+> [    5.955889] cx231xx 3-2:1.1: V4L2 device video0 deregistered
+> [    5.959131] cx231xx: probe of 3-2:1.1 failed with error -22
+> [    5.959190] usbcore: registered new interface driver cx231xx
+> 
+> 
+> This series sets the taint as follows:
+> - source pads from the bridge to PAD_SIGNAL_ANALOG
+> - sink pads on the decoder to PAD_SIGNAL_ANALOG
+> - source pads on the decoder to PAD_SIGNAL_DV
+
+Mauro asked me to look at this, but it is still failing for me:
+
+[ 2046.476092] usb usb3: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 5.00
+[ 2046.476098] usb usb3: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[ 2046.476102] usb usb3: Product: xHCI Host Controller
+[ 2046.476107] usb usb3: Manufacturer: Linux 5.0.0-rc1-zen xhci-hcd
+[ 2046.476111] usb usb3: SerialNumber: 0000:39:00.0
+[ 2046.476677] hub 3-0:1.0: USB hub found
+[ 2046.476898] hub 3-0:1.0: 2 ports detected
+[ 2046.478160] xhci_hcd 0000:39:00.0: xHCI Host Controller
+[ 2046.478677] xhci_hcd 0000:39:00.0: new USB bus registered, assigned bus number 4
+[ 2046.478690] xhci_hcd 0000:39:00.0: Host supports USB 3.1 Enhanced SuperSpeed
+[ 2046.478838] usb usb4: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 5.00
+[ 2046.478843] usb usb4: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[ 2046.478847] usb usb4: Product: xHCI Host Controller
+[ 2046.478851] usb usb4: Manufacturer: Linux 5.0.0-rc1-zen xhci-hcd
+[ 2046.478855] usb usb4: SerialNumber: 0000:39:00.0
+[ 2046.479180] hub 4-0:1.0: USB hub found
+[ 2046.479206] hub 4-0:1.0: 2 ports detected
+[ 2046.802013] usb 3-2: new high-speed USB device number 2 using xhci_hcd
+[ 2046.934170] usb 3-2: New USB device found, idVendor=2040, idProduct=c200, bcdDevice=40.01
+[ 2046.934188] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 2046.934197] usb 3-2: Product: Hauppauge Device
+[ 2046.934206] usb 3-2: Manufacturer: Hauppauge
+[ 2046.934214] usb 3-2: SerialNumber: 0013567005
+[ 2046.942224] cx231xx 3-2:1.1: New device Hauppauge Hauppauge Device @ 480 Mbps (2040:c200) with 6 interfaces
+[ 2046.942626] cx231xx 3-2:1.1: can't change interface 3 alt no. to 3: Max. Pkt size = 0
+[ 2046.942631] cx231xx 3-2:1.1: Identified as Hauppauge USB Live 2 (card=9)
+[ 2046.944251] i2c i2c-10: Added multiplexed i2c bus 12
+[ 2046.944382] i2c i2c-10: Added multiplexed i2c bus 13
+[ 2047.054566] cx25840 9-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0-0)
+[ 2049.997665] cx25840 9-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
+[ 2050.091897] cx231xx 3-2:1.1: v4l2 driver version 0.0.3
+[ 2050.307929] cx231xx 3-2:1.1: Registered video device video0 [v4l2]
+[ 2050.308349] cx231xx 3-2:1.1: Registered VBI device vbi0
+[ 2050.314083] cx231xx 3-2:1.1: audio EndPoint Addr 0x83, Alternate settings: 3
+[ 2050.314131] cx231xx 3-2:1.1: video EndPoint Addr 0x84, Alternate settings: 5
+[ 2050.314135] cx231xx 3-2:1.1: VBI EndPoint Addr 0x85, Alternate settings: 2
+[ 2050.314138] cx231xx 3-2:1.1: sliced CC EndPoint Addr 0x86, Alternate settings: 2
+[ 2050.314148] usb 3-2: couldn't get decoder output pad for V4L I/O
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[ 2050.314151] cx231xx 3-2:1.1: V4L2 device vbi0 deregistered
+[ 2050.314449] cx231xx 3-2:1.1: V4L2 device video0 deregistered
+[ 2050.316448] cx231xx: probe of 3-2:1.1 failed with error -22
+
+Can you take another look?
+
+See also:
+
+https://lore.kernel.org/linux-media/1550027010.2460608.1656864112.3A25F771@webmail.messagingengine.com/
+
+And also:
+
+https://patchwork.kernel.org/patch/10763655/
+
+I'm really confused what the status is and what has and hasn't been tested/reviewed.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> 
+> Brad Love (2):
+>   cx231xx-video: Set media controller taint for analog outputs
+>   cx25840-core: Set media controller taint for pads
+> 
+>  drivers/media/i2c/cx25840/cx25840-core.c  | 6 ++++++
+>  drivers/media/usb/cx231xx/cx231xx-video.c | 1 +
+>  2 files changed, 7 insertions(+)
 > 
 
