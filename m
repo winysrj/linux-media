@@ -2,375 +2,108 @@ Return-Path: <SRS0=xMd0=QZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 511F8C10F01
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:45:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F439C43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:52:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14DE32175B
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:45:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E0212176F
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:52:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="W+t3Io4p"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fpond.eu header.i=@fpond.eu header.b="PHsjkO6F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729852AbfBRKpQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 05:45:16 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40058 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728258AbfBRKpP (ORCPT
+        id S1730258AbfBRKwr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 05:52:47 -0500
+Received: from mo4-p00-ob.smtp.rzone.de ([85.215.255.22]:32873 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728258AbfBRKwq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 05:45:15 -0500
-Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 82E5B49;
-        Mon, 18 Feb 2019 11:45:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1550486712;
-        bh=8VQx71YfdgQPal3C8KUW4oEPPNXkpVJ9F5JmhA+UuBA=;
-        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=W+t3Io4p/Xtg8bByxkk442oEqpYO0mGsKm4xXeAhUYy8jX0K95ETa4aqXvXoqyRDz
-         l4sluRlm4DxJlujKx7kPDwAG3/NxleaskvIcTW97lDUq/CbE1lb1PnaTX96qgbw8Zt
-         iZEapYTXzClMCdU3alQpJEr2BTfO/wWQxancnHVI=
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH] rcar-vin: Fix lockdep warning at stream on
-To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20190213220754.14664-1-niklas.soderlund+renesas@ragnatech.se>
- <5a6c4b25-7639-b4b9-bcc8-0da9374e6697@ideasonboard.com>
- <20190218014355.GF31263@bigcity.dyn.berto.se>
-From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
-Openpgp: preference=signencrypt
-Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
- mQINBFYE/WYBEACs1PwjMD9rgCu1hlIiUA1AXR4rv2v+BCLUq//vrX5S5bjzxKAryRf0uHat
- V/zwz6hiDrZuHUACDB7X8OaQcwhLaVlq6byfoBr25+hbZG7G3+5EUl9cQ7dQEdvNj6V6y/SC
- rRanWfelwQThCHckbobWiQJfK9n7rYNcPMq9B8e9F020LFH7Kj6YmO95ewJGgLm+idg1Kb3C
- potzWkXc1xmPzcQ1fvQMOfMwdS+4SNw4rY9f07Xb2K99rjMwZVDgESKIzhsDB5GY465sCsiQ
- cSAZRxqE49RTBq2+EQsbrQpIc8XiffAB8qexh5/QPzCmR4kJgCGeHIXBtgRj+nIkCJPZvZtf
- Kr2EAbc6tgg6DkAEHJb+1okosV09+0+TXywYvtEop/WUOWQ+zo+Y/OBd+8Ptgt1pDRyOBzL8
- RXa8ZqRf0Mwg75D+dKntZeJHzPRJyrlfQokngAAs4PaFt6UfS+ypMAF37T6CeDArQC41V3ko
- lPn1yMsVD0p+6i3DPvA/GPIksDC4owjnzVX9kM8Zc5Cx+XoAN0w5Eqo4t6qEVbuettxx55gq
- 8K8FieAjgjMSxngo/HST8TpFeqI5nVeq0/lqtBRQKumuIqDg+Bkr4L1V/PSB6XgQcOdhtd36
- Oe9X9dXB8YSNt7VjOcO7BTmFn/Z8r92mSAfHXpb07YJWJosQOQARAQABtDBLaWVyYW4gQmlu
- Z2hhbSA8a2llcmFuLmJpbmdoYW1AaWRlYXNvbmJvYXJkLmNvbT6JAkAEEwEKACoCGwMFCwkI
- BwIGFQgJCgsCBBYCAwECHgECF4ACGQEFAlnDk/gFCQeA/YsACgkQoR5GchCkYf3X5w/9EaZ7
- cnUcT6dxjxrcmmMnfFPoQA1iQXr/MXQJBjFWfxRUWYzjvUJb2D/FpA8FY7y+vksoJP7pWDL7
- QTbksdwzagUEk7CU45iLWL/CZ/knYhj1I/+5LSLFmvZ/5Gf5xn2ZCsmg7C0MdW/GbJ8IjWA8
- /LKJSEYH8tefoiG6+9xSNp1p0Gesu3vhje/GdGX4wDsfAxx1rIYDYVoX4bDM+uBUQh7sQox/
- R1bS0AaVJzPNcjeC14MS226mQRUaUPc9250aj44WmDfcg44/kMsoLFEmQo2II9aOlxUDJ+x1
- xohGbh9mgBoVawMO3RMBihcEjo/8ytW6v7xSF+xP4Oc+HOn7qebAkxhSWcRxQVaQYw3S9iZz
- 2iA09AXAkbvPKuMSXi4uau5daXStfBnmOfalG0j+9Y6hOFjz5j0XzaoF6Pln0jisDtWltYhP
- X9LjFVhhLkTzPZB/xOeWGmsG4gv2V2ExbU3uAmb7t1VSD9+IO3Km4FtnYOKBWlxwEd8qOFpS
- jEqMXURKOiJvnw3OXe9MqG19XdeENA1KyhK5rqjpwdvPGfSn2V+SlsdJA0DFsobUScD9qXQw
- OvhapHe3XboK2+Rd7L+g/9Ud7ZKLQHAsMBXOVJbufA1AT+IaOt0ugMcFkAR5UbBg5+dZUYJj
- 1QbPQcGmM3wfvuaWV5+SlJ+WeKIb8ta5Ag0EVgT9ZgEQAM4o5G/kmruIQJ3K9SYzmPishRHV
- DcUcvoakyXSX2mIoccmo9BHtD9MxIt+QmxOpYFNFM7YofX4lG0ld8H7FqoNVLd/+a0yru5Cx
- adeZBe3qr1eLns10Q90LuMo7/6zJhCW2w+HE7xgmCHejAwuNe3+7yt4QmwlSGUqdxl8cgtS1
- PlEK93xXDsgsJj/bw1EfSVdAUqhx8UQ3aVFxNug5OpoX9FdWJLKROUrfNeBE16RLrNrq2ROc
- iSFETpVjyC/oZtzRFnwD9Or7EFMi76/xrWzk+/b15RJ9WrpXGMrttHUUcYZEOoiC2lEXMSAF
- SSSj4vHbKDJ0vKQdEFtdgB1roqzxdIOg4rlHz5qwOTynueiBpaZI3PHDudZSMR5Fk6QjFooE
- XTw3sSl/km/lvUFiv9CYyHOLdygWohvDuMkV/Jpdkfq8XwFSjOle+vT/4VqERnYFDIGBxaRx
- koBLfNDiiuR3lD8tnJ4A1F88K6ojOUs+jndKsOaQpDZV6iNFv8IaNIklTPvPkZsmNDhJMRHH
- Iu60S7BpzNeQeT4yyY4dX9lC2JL/LOEpw8DGf5BNOP1KgjCvyp1/KcFxDAo89IeqljaRsCdP
- 7WCIECWYem6pLwaw6IAL7oX+tEqIMPph/G/jwZcdS6Hkyt/esHPuHNwX4guqTbVEuRqbDzDI
- 2DJO5FbxABEBAAGJAiUEGAEKAA8CGwwFAlnDlGsFCQeA/gIACgkQoR5GchCkYf1yYRAAq+Yo
- nbf9DGdK1kTAm2RTFg+w9oOp2Xjqfhds2PAhFFvrHQg1XfQR/UF/SjeUmaOmLSczM0s6XMeO
- VcE77UFtJ/+hLo4PRFKm5X1Pcar6g5m4xGqa+Xfzi9tRkwC29KMCoQOag1BhHChgqYaUH3yo
- UzaPwT/fY75iVI+yD0ih/e6j8qYvP8pvGwMQfrmN9YB0zB39YzCSdaUaNrWGD3iCBxg6lwSO
- LKeRhxxfiXCIYEf3vwOsP3YMx2JkD5doseXmWBGW1U0T/oJF+DVfKB6mv5UfsTzpVhJRgee7
- 4jkjqFq4qsUGxcvF2xtRkfHFpZDbRgRlVmiWkqDkT4qMA+4q1y/dWwshSKi/uwVZNycuLsz+
- +OD8xPNCsMTqeUkAKfbD8xW4LCay3r/dD2ckoxRxtMD9eOAyu5wYzo/ydIPTh1QEj9SYyvp8
- O0g6CpxEwyHUQtF5oh15O018z3ZLztFJKR3RD42VKVsrnNDKnoY0f4U0z7eJv2NeF8xHMuiU
- RCIzqxX1GVYaNkKTnb/Qja8hnYnkUzY1Lc+OtwiGmXTwYsPZjjAaDX35J/RSKAoy5wGo/YFA
- JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
- sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
-Organization: Ideas on Board
-Message-ID: <1531409b-b048-b488-ecd3-c59725855fe6@ideasonboard.com>
-Date:   Mon, 18 Feb 2019 10:45:09 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Mon, 18 Feb 2019 05:52:46 -0500
+X-Greylist: delayed 368 seconds by postgrey-1.27 at vger.kernel.org; Mon, 18 Feb 2019 05:52:45 EST
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1550487164;
+        s=strato-dkim-0002; d=fpond.eu;
+        h=Subject:References:In-Reply-To:Message-ID:Cc:To:From:Date:
+        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
+        bh=Dq/VKDUukO6GsLyB7ZEVdcBrDDl1AHkFMWbGQuwqA2M=;
+        b=PHsjkO6F5YhjmPlcV3iMlMJvDrwrCtuu903zFkkop9PyYdtVAu9broLoU9eDD/C3tj
+        f4YeVJtVv3xopfZDimGjWxyrLZJ2SwBml7mLLiSmULIJZkALPO578fFEdgsBOyB1ginO
+        oRplFHRXe19BYo0ZPsb4flosU7tcn/kRn3vK7AHYzYC8VaArg7netHumjjEOAOeVYlr3
+        MIJGDymvNyp8nX8+t/3LPwq+JFFWrUXiAP+px+bqTgt/woABeyE7qiTkAZYhTH9jxhVv
+        eHRAo+YXNHJzJBrkOtPxt32BVngso3vPzE4bIkNrOMLywFkJqL+p6RDMUyz58ad5p/fE
+        Qvbg==
+X-RZG-AUTH: ":OWANVUa4dPFUgKR/3dpvnYP0Np73amq+g13rqGzmt2bYDnKIKaws6YXTsc4="
+X-RZG-CLASS-ID: mo00
+Received: from oxapp01-03.back.ox.d0m.de
+        by smtp-ox.front (RZmta 44.9 AUTH)
+        with ESMTPSA id V028b8v1IAeVPsB
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+        (Client did not present a certificate);
+        Mon, 18 Feb 2019 11:40:31 +0100 (CET)
+Date:   Mon, 18 Feb 2019 11:40:30 +0100 (CET)
+From:   Ulrich Hecht <uli@fpond.eu>
+To:     =?UTF-8?Q?Niklas_S=C3=B6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc:     linux-renesas-soc@vger.kernel.org
+Message-ID: <1139737677.514003.1550486431036@webmail.strato.com>
+In-Reply-To: <20190218100313.14529-2-niklas.soderlund+renesas@ragnatech.se>
+References: <20190218100313.14529-1-niklas.soderlund+renesas@ragnatech.se>
+ <20190218100313.14529-2-niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH 1/3] rcar-csi2: Update V3M and E3 start procedure
 MIME-Version: 1.0
-In-Reply-To: <20190218014355.GF31263@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Priority: 3
+Importance: Medium
+X-Mailer: Open-Xchange Mailer v7.8.4-Rev50
+X-Originating-IP: 188.192.207.28
+X-Originating-Client: open-xchange-appsuite
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
 
-On 18/02/2019 01:43, Niklas Söderlund wrote:
-> Hi Kieran,
-> 
-> On 2019-02-17 22:27:27 +0000, Kieran Bingham wrote:
->> Hi Niklas,
->>
->> On 13/02/2019 22:07, Niklas Söderlund wrote:
->>> Changes to v4l2-fwnode in commit [1] triggered a lockdep warning in
->>> rcar-vin. The first attempt to solve this warning in the rcar-vin driver
->>> was incomplete and only pushed the warning to happen at at stream on
->>> time instead of at probe time.
->>>
->>> This change reverts the incomplete fix and properly fix the warning by
->>> removing the need to hold the rcar-vin specific group lock when calling
->>> v4l2_async_notifier_parse_fwnode_endpoints_by_port(). And instead takes
->>> it in the callback where it's really needed.
->>>
->>
->> It might have been more readable to provide the revert and the fix
->> separately, as it's hard to know which parts of this are the revert, and
->> which are 'new', but don't worry about that as it is fortuanately a
->> fairly clear separation below..
-> 
-> I agree it would have been clearer to have it as two patches, I wanted 
-> to make backporting as easy as possible so I kept it in the same patch, 
-> I'm happy to split it into two if you think it's better.
+> On February 18, 2019 at 11:03 AM Niklas S=C3=B6derlund <niklas.soderlund+=
+renesas@ragnatech.se> wrote:
+>=20
+>=20
+> The latest datasheet (rev 1.50) updates the start procedure for V3M and
+> E3. Update the driver to match these changes.
+>=20
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/=
+platform/rcar-vin/rcar-csi2.c
+> index 664d3784be2b9db9..fbbe86a7a0fe14ab 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -940,11 +940,11 @@ static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2 =
+*priv, unsigned int mbps)
+>  static int rcsi2_confirm_start_v3m_e3(struct rcar_csi2 *priv)
+>  {
+>  =09static const struct phtw_value step1[] =3D {
+> -=09=09{ .data =3D 0xed, .code =3D 0x34 },
+> -=09=09{ .data =3D 0xed, .code =3D 0x44 },
+> -=09=09{ .data =3D 0xed, .code =3D 0x54 },
+> -=09=09{ .data =3D 0xed, .code =3D 0x84 },
+> -=09=09{ .data =3D 0xed, .code =3D 0x94 },
+> +=09=09{ .data =3D 0xee, .code =3D 0x34 },
+> +=09=09{ .data =3D 0xee, .code =3D 0x44 },
+> +=09=09{ .data =3D 0xee, .code =3D 0x54 },
+> +=09=09{ .data =3D 0xee, .code =3D 0x84 },
+> +=09=09{ .data =3D 0xee, .code =3D 0x94 },
+>  =09=09{ /* sentinel */ },
+>  =09};
 
-Easing backport and stable is certainly a good enough reason for me.
+Reviewed-by: Ulrich Hecht <uli+renesas@fpond.eu>
 
-Keep it as is.
-
-
-> 
->>
->>
->>> 1. commit eae2aed1eab9bf08 ("media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev")
->>>
->>> Fixes: 6458afc8c49148f0 ("media: rcar-vin: remove unneeded locking in async callbacks")
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>
->>
->> Only a couple of minorish comments below.
->>
->> With those fixed:
->>
-
-You've answered my queries - so you get to keep this:
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-
->>
->>
->>
->>> ---
->>>  drivers/media/platform/rcar-vin/rcar-core.c | 43 +++++++++++++++------
->>>  1 file changed, 32 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
->>> index 594d804340047511..abbb5820223965e3 100644
->>> --- a/drivers/media/platform/rcar-vin/rcar-core.c
->>> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
->>> @@ -546,7 +546,9 @@ static void rvin_parallel_notify_unbind(struct v4l2_async_notifier *notifier,
->>>  
->>>  	vin_dbg(vin, "unbind parallel subdev %s\n", subdev->name);
->>>  
->>> +	mutex_lock(&vin->lock);
->>>  	rvin_parallel_subdevice_detach(vin);
->>> +	mutex_unlock(&vin->lock);
->>>  }
->>>  
->>>  static int rvin_parallel_notify_bound(struct v4l2_async_notifier *notifier,
->>> @@ -556,7 +558,9 @@ static int rvin_parallel_notify_bound(struct v4l2_async_notifier *notifier,
->>>  	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
->>>  	int ret;
->>>  
->>> +	mutex_lock(&vin->lock);
->>>  	ret = rvin_parallel_subdevice_attach(vin, subdev);
->>> +	mutex_unlock(&vin->lock);
->>>  	if (ret)
->>>  		return ret;
->>>  
->>> @@ -664,6 +668,7 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
->>>  	}
->>>  
->>>  	/* Create all media device links between VINs and CSI-2's. */
->>> +	mutex_lock(&vin->group->lock);
->>>  	for (route = vin->info->routes; route->mask; route++) {
->>>  		struct media_pad *source_pad, *sink_pad;
->>>  		struct media_entity *source, *sink;
->>> @@ -699,6 +704,7 @@ static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
->>>  			break;
->>>  		}
->>>  	}
->>> +	mutex_unlock(&vin->group->lock);
->>>  
->>>  	return ret;
->>>  }
->>> @@ -714,6 +720,8 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
->>>  		if (vin->group->vin[i])
->>>  			rvin_v4l2_unregister(vin->group->vin[i]);
->>>  
->>> +	mutex_lock(&vin->group->lock);
->>> +
->>>  	for (i = 0; i < RVIN_CSI_MAX; i++) {
->>>  		if (vin->group->csi[i].fwnode != asd->match.fwnode)
->>>  			continue;
->>> @@ -721,6 +729,8 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
->>>  		vin_dbg(vin, "Unbind CSI-2 %s from slot %u\n", subdev->name, i);
->>>  		break;
->>>  	}
->>> +
->>> +	mutex_unlock(&vin->group->lock);
->>>  }
->>>  
->>>  static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
->>> @@ -730,6 +740,8 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
->>>  	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
->>>  	unsigned int i;
->>>  
->>> +	mutex_lock(&vin->group->lock);
->>> +
->>>  	for (i = 0; i < RVIN_CSI_MAX; i++) {
->>>  		if (vin->group->csi[i].fwnode != asd->match.fwnode)
->>>  			continue;
->>> @@ -738,6 +750,8 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
->>>  		break;
->>>  	}
->>>  
->>> +	mutex_unlock(&vin->group->lock);
->>> +
->>>  	return 0;
->>>  }
->>
->> So if I'm not mistaken, everything above this is the 'revert' and the
->> below is the 'fix'
-> 
-> Correct :-)
-> 
->>
->>
->>
->>
->>>  
->>> @@ -752,6 +766,7 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
->>>  				     struct v4l2_async_subdev *asd)
->>>  {
->>>  	struct rvin_dev *vin = dev_get_drvdata(dev);
->>> +	int ret = 0;
->>>  
->>>  	if (vep->base.port != 1 || vep->base.id >= RVIN_CSI_MAX)
->>>  		return -EINVAL;
->>> @@ -762,38 +777,48 @@ static int rvin_mc_parse_of_endpoint(struct device *dev,
->>>  		return -ENOTCONN;
->>>  	}
->>>  
->>> +	mutex_lock(&vin->group->lock);
->>> +
->>>  	if (vin->group->csi[vep->base.id].fwnode) {
->>>  		vin_dbg(vin, "OF device %pOF already handled\n",
->>>  			to_of_node(asd->match.fwnode));
->>> -		return -ENOTCONN;
->>> +		ret = -ENOTCONN;
->>> +		goto out;
->>>  	}
->>>  
->>>  	vin->group->csi[vep->base.id].fwnode = asd->match.fwnode;
->>>  
->>>  	vin_dbg(vin, "Add group OF device %pOF to slot %u\n",
->>>  		to_of_node(asd->match.fwnode), vep->base.id);
->>> +out:
->>> +	mutex_unlock(&vin->group->lock);
->>
->> I think you could unlock before you print the debug... But perhaps
->> that's not a critical path.
-> 
-> It could be done, but then the error path would be more complex. I'm 
-> open to change this at your leisure.
-
-Ah good point-  I had missed that. Keep it simple then.
-
-
->>>  
->>> -	return 0;
->>> +	return ret;
->>>  }
->>>  
->>>  static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
->>>  {
->>> -	unsigned int count = 0;
->>> +	unsigned int count = 0, vin_mask = 0;
->>
->> Shouldn't vin_mask have it's own line?
-> 
-> It could, I'm trying to keep the style of the rest of the file. I'm open 
-> to change this.
-
-
-coding-style.rst states:
-
-"Don’t put multiple assignments on a single line either. Kernel coding
-style is super simple. Avoid tricky expressions."
-
-But that's open to some interpretation on declarations and if you've
-already set a precedent in your driver it would need the whole file
-updating - so lets not do that here.
-
-It's your driver - so that part is your choice really :)
-
-
->>
->>>  	unsigned int i;
->>>  	int ret;
->>>  
->>>  	mutex_lock(&vin->group->lock);
->>>  
->>>  	/* If not all VIN's are registered don't register the notifier. */
->>> -	for (i = 0; i < RCAR_VIN_NUM; i++)
->>> -		if (vin->group->vin[i])
->>> +	for (i = 0; i < RCAR_VIN_NUM; i++) {
->>> +		if (vin->group->vin[i]) {
->>>  			count++;
->>> +			vin_mask |= BIT(i);
->>> +		}
->>> +	}
->>>  
->>>  	if (vin->group->count != count) {
->>>  		mutex_unlock(&vin->group->lock);
->>>  		return 0;
->>>  	}
->>>  
->>> +	mutex_unlock(&vin->group->lock);
->>> +
->>>  	v4l2_async_notifier_init(&vin->group->notifier);
->>>  
->>>  	/*
->>> @@ -802,21 +827,17 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
->>>  	 * will only be registered once with the group notifier.
->>>  	 */
->>>  	for (i = 0; i < RCAR_VIN_NUM; i++) {
->>> -		if (!vin->group->vin[i])
->>> +		if (!(vin_mask & BIT(i)))
->>>  			continue;
->>>  
->>>  		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
->>>  				vin->group->vin[i]->dev, &vin->group->notifier,
->>>  				sizeof(struct v4l2_async_subdev), 1,
->>>  				rvin_mc_parse_of_endpoint);
->>> -		if (ret) {
->>> -			mutex_unlock(&vin->group->lock);
->>> +		if (ret)
->>>  			return ret;
->>> -		}
->>>  	}
->>>  
->>> -	mutex_unlock(&vin->group->lock);
->>> -
->>>  	if (list_empty(&vin->group->notifier.asd_list))
->>>  		return 0;
->>>  
->>>
->>
->>
->> -- 
->> Regards
->> --
->> Kieran
-> 
-
--- 
-Regards
---
-Kieran
+CU
+Uli
