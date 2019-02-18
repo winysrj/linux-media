@@ -2,74 +2,108 @@ Return-Path: <SRS0=xMd0=QZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-11.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
 	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BED7C43381
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 17:04:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C77C10F01
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 17:23:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 09DC120C01
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 17:04:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CF17217D9
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 17:23:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1550510599;
+	bh=OyQDA5NrtdUhFCdzDQIInGlvQ441/PahjDBAPm+luAI=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=z74kWfEIEt84KCGpp5Dx1VSSnBFQ8T+GtPkSYH7RhCCe6eVT8OEypdsGyr4xKnx7u
+	 P08/8QEur+p69Gdmc44QCvyS5H4WxLmmsx6kNNaVlzKgIcfFGqJWRnWVwjje3KWla0
+	 L6BPF9fReLuzd7FT1wxEsCoLxTgrWct7XmKaIOp0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732628AbfBRREI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 12:04:08 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:54866 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731720AbfBRREI (ORCPT
+        id S2391184AbfBRRW7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 12:22:59 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:46076 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391167AbfBRRW6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 12:04:08 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id vmKpgcHdC4HFnvmKsg0ego; Mon, 18 Feb 2019 18:04:06 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v5.1] Various fixes
-Message-ID: <5db97ea4-c423-2f86-d4ba-c58e04dfe180@xs4all.nl>
-Date:   Mon, 18 Feb 2019 18:04:03 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Mon, 18 Feb 2019 12:22:58 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
+        Content-Type:MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:
+        From:Date:Sender:Reply-To:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=2+ajaRb3OSfNq3Z7Jf+0SIZMG/9OHrTYChljbPphj6Y=; b=qS0oEPROpdtd30j4wt/sWt5JJ
+        JIVyqpXqJuYhPkSKPrEeNnqDwKnSKGkfKI3NGRLRmY0aM+qoqWOFziQ4h0akMFFQEVxqGUTesJ13v
+        Pv7mOoascFQElvfKuowCL80LRlxqodIk7PErJ2VSSBmI7ltncfTn7/n9kqReTPZv9f92l/BOyZvKz
+        KlE3jbB1/xJdhRKvE+ANa1PS6mASvptBGoSD5MKGmXO/4yrJMdLB0UNsJTvKuRFH+IyOjJhszUBRh
+        bMlPYmwhx/SkzAKgxMsR1jc5poZAxMMR4bQlnAReFR9pyYwUG3lwRgLgJhv7cCpH0pEeLkCHm9L2f
+        ZU1pVlPOA==;
+Received: from 177.96.194.24.dynamic.adsl.gvt.net.br ([177.96.194.24] helo=coco.lan)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gvmd5-0006Sf-9b; Mon, 18 Feb 2019 17:22:55 +0000
+Date:   Mon, 18 Feb 2019 14:22:52 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Sean Young <sean@mess.org>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v5.1] RC fixes
+Message-ID: <20190218142244.0021a263@coco.lan>
+In-Reply-To: <20190208221521.77vwne4szl4f4qp3@gofer.mess.org>
+References: <20190208221521.77vwne4szl4f4qp3@gofer.mess.org>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfGyuDUcJq+6n8AAdI3NpRK91XElg9fjwAwRbGe/Z5FUAbm/bK8xei9uwUop9xyWrRNqL9jZlwVuPvoweXa/mP1/hYSNnhp9jl2UvkXznYhQmOYwfRXyq
- 0UyX3qYjf/E3K9tOW44/57oEyrFZSH262bQ2UiAO/fbBbtWMnaw3J3Tn5vIjJPbTk5YqhlaD3TtXdA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The following changes since commit 16597c2744f79aaf5f9ec0107be477639985bf44:
+Em Fri, 8 Feb 2019 22:15:22 +0000
+Sean Young <sean@mess.org> escreveu:
 
-  media: i2c: adv748x: Remove PAGE_WAIT (2019-02-18 11:25:30 -0500)
+> Hi Mauro,
+> 
+> Here are the last RC fixes for 5.1.
+> 
+> Thanks,
+> 
+> Sean
+> 
+> The following changes since commit 6fd369dd1cb65a032f1ab9227033ecb7b759656d:
+> 
+>   media: vimc: fill in bus_info in media_device_info (2019-02-07 12:38:59 -0500)
+> 
+> are available in the Git repository at:
+> 
+>   git://linuxtv.org/syoung/media_tree.git for-v5.1b
+> 
+> for you to fetch changes up to a82c3d00eaee0b18d3fe8e62bdde7e349d72ec97:
+> 
+>   media: smipcie: add universal ir capability (2019-02-08 21:56:54 +0000)
+> 
+> ----------------------------------------------------------------
+> Matthias Reichl (1):
+>       media: rc: ir-rc6-decoder: enable toggle bit for Zotac remotes
+> 
+> Patrick Lerda (2):
+>       media: rc: rcmm decoder and encoder
 
-are available in the Git repository at:
+It is now producing a lot documentation warnings:
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1r2
+$ make SPHINXOPTS="-j5" DOCBOOKS="" SPHINXDIRS=media SPHINX_CONF="conf.py" htmldocs
+Documentation/output/lirc.h.rst:6: WARNING: undefined label: rc-proto-rcmm12 (if the link has no caption the label must precede a section header)      
+Documentation/output/lirc.h.rst:6: WARNING: undefined label: rc-proto-rcmm24 (if the link has no caption the label must precede a section header)
+Documentation/output/lirc.h.rst:6: WARNING: undefined label: rc-proto-rcmm32 (if the link has no caption the label must precede a section header)
+Documentation/output/lirc.h.rst:6: WARNING: undefined label: rc-proto-rcmm12 (if the link has no caption the label must precede a section header)
+Documentation/output/lirc.h.rst:6: WARNING: undefined label: rc-proto-rcmm24 (if the link has no caption the label must precede a section header)
+Documentation/output/lirc.h.rst:6: WARNING: undefined label: rc-proto-rcmm32 (if the link has no caption the label must precede a section header)
 
-for you to fetch changes up to 69bcb353abb07b1ad061f70ef9ba738e84488350:
+Please fix.
 
-  media: cx25840: mark pad sig_types to fix cx231xx init (2019-02-18 18:01:30 +0100)
+Regards,
+Mauro
 
-----------------------------------------------------------------
-Tag branch
 
-----------------------------------------------------------------
-Cody P Schafer (1):
-      media: cx25840: mark pad sig_types to fix cx231xx init
-
-Colin Ian King (1):
-      wl128x: fix spelling mistake: "Swtich" -> "Switch"
-
-Hans Verkuil (2):
-      vivid: two unregistration fixes
-      vimc: fix memory leak
-
- drivers/media/i2c/cx25840/cx25840-core.c  | 3 ++-
- drivers/media/i2c/cx25840/cx25840-core.h  | 1 -
- drivers/media/platform/vimc/vimc-core.c   | 2 ++
- drivers/media/platform/vivid/vivid-core.c | 4 +---
- drivers/media/radio/wl128x/fmdrv_common.c | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+Thanks,
+Mauro
