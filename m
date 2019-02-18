@@ -2,122 +2,95 @@ Return-Path: <SRS0=xMd0=QZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A036C43381
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 15:14:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23113C43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 15:34:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1285B217D9
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 15:14:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E44EA217F9
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 15:34:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1550504052;
+	bh=sAIjFJ6os8DaLQNb9gqLtkRCe0GNPXnMLZ94DVdZ458=;
+	h=From:Cc:Subject:Date:To:List-ID:From;
+	b=n0LZe62cHd+2UQnjK1gnRIz3QugGmNES3QecGbO6s3thvLS0uTEQXnoQLk2Oj1vFw
+	 DfuobJkXE7cPVuPLjpqPwLZKbkBzhsl3rCFpWgTq2UAsqt0ybA0HFxE5YWIWP93rjN
+	 bTEQEY7HbnapCKKW9f55PmfWlR4xUflshj/wOy6I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730163AbfBRPOp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 10:14:45 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:57858 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726302AbfBRPOp (ORCPT
+        id S1731083AbfBRPeL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 10:34:11 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:42890 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730658AbfBRPeK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 10:14:45 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id vkcxgbcW54HFnvkd0g0IHq; Mon, 18 Feb 2019 16:14:42 +0100
-Subject: Re: [PATCH] media: v4l: ioctl: Sanitize num_planes before using it
-To:     Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com
-References: <20190218102542.21776-1-ezequiel@collabora.com>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <e67041df-07de-c7ea-5848-6cb4db6734f8@xs4all.nl>
-Date:   Mon, 18 Feb 2019 16:14:39 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Mon, 18 Feb 2019 10:34:10 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=SyYbQSNpFioo7BEuIkF3mexft6xBdu7zg3vxy3SHCU0=; b=RhvL3/i1PE6pJoWYNY25a6Wv2
+        hpFA7ik26KpIwkpEpb3cHrCf+ikUpT8C1oYlidcJjaz9JmDWMpRzYVPwO7jIDpV72eQZMgLZxFqfi
+        2oSA1TDF7URMW954d8et50Sk9k1IgaD3KJthjQo8UbrRFSurrm3SWFb0+5cSNKUX3nOyZWPE5ZX3b
+        opzwmNTby6VrAsUUxsAuLO6MAAExwqOQgNihnlGtHXlAn2TZqFu9xDGSfyQrC+vQ9DkabPeXxDec8
+        SF0BK+HQgZJIeMnqLLYSmdeWODlEFu5sJiwHXgswzUizkXGsdeqcfZ+6DmXRUBzS1n6U4DqgKGxkM
+        rQbwlq+Fw==;
+Received: from 177.96.194.24.dynamic.adsl.gvt.net.br ([177.96.194.24] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gvkvq-0000WS-JA; Mon, 18 Feb 2019 15:34:10 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.91)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1gvkvn-00019j-1G; Mon, 18 Feb 2019 10:34:07 -0500
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kees Cook <keescook@chromium.org>,
+        Anton Leontiev <scileont@gmail.com>
+Subject: [PATCH] media: vim2m: fix build breakage due to a merge conflict
+Date:   Mon, 18 Feb 2019 10:34:06 -0500
+Message-Id: <c81314716b420ffcbd34f156af86a8f7d77368e1.1550504042.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20190218102542.21776-1-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfO0m1MAliWecKQLKmCzyHjCnEudA9U+69waNn8hrmqTQ95SfiXY2X7DE/iyvk6JZ6agbOSGMEuctluUOXLEnb4TFAiyyD/biGNcOCPN7iH6op14pI5G3
- fFAtN67l/SVkhotK6kYWgDqxc8Z5AIRGq0u5L48cA0ICtlrDIgDfF3VYS/0oyxIR0amCTXBMGmS8l8fWfehH41J+Dd4QITXBd9agfW/GeEYmrrLt2GgQvgWx
- d7kf85Of1tp6/X4qDUJNXnIVFdDIwQZToN8wwHRRoj9y4bU0Ki5OWattPg42lOin
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/18/19 11:25 AM, Ezequiel Garcia wrote:
-> The linked commit changed s_fmt/try_fmt to fail if num_planes is bogus.
-> This, however, is against the spec, which mandates drivers
-> to return a proper num_planes value, without an error.
-> 
-> Replace the num_planes check and instead clamp it to a sane value,
-> so we still make sure we don't overflow the planes array by accident.
-> 
-> Fixes: 9048b2e15b11c5 ("media: v4l: ioctl: Validate num_planes before using it")
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+A merge conflict rised when merging from -rc7. Fix it.
 
-Reviewed-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/platform/vim2m.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks!
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 14 ++++++--------
->  1 file changed, 6 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 90aad465f9ed..206b7348797e 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1017,6 +1017,12 @@ static void v4l_sanitize_format(struct v4l2_format *fmt)
->  {
->  	unsigned int offset;
->  
-> +	/* Make sure num_planes is not bogus */
-> +	if (fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ||
-> +	    fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> +		fmt->fmt.pix_mp.num_planes = min_t(u32, fmt->fmt.pix_mp.num_planes,
-> +					       VIDEO_MAX_PLANES);
-> +
->  	/*
->  	 * The v4l2_pix_format structure has been extended with fields that were
->  	 * not previously required to be set to zero by applications. The priv
-> @@ -1553,8 +1559,6 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> -		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> -			break;
->  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
->  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
->  					  bytesperline);
-> @@ -1586,8 +1590,6 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> -		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> -			break;
->  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
->  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
->  					  bytesperline);
-> @@ -1656,8 +1658,6 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> -		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> -			break;
->  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
->  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
->  					  bytesperline);
-> @@ -1689,8 +1689,6 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> -		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
-> -			break;
->  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
->  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i],
->  					  bytesperline);
-> 
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 04250adf58e0..3e4cda2db0bf 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -902,11 +902,12 @@ static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
+ static void vim2m_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
++	struct vim2m_dev *dev = ctx->dev;
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
+ 
+ 	if (v4l2_m2m_get_curr_priv(dev->m2m_dev) == ctx)
+-		cancel_delayed_work_sync(&dev->work_run);
++		cancel_delayed_work_sync(&ctx->work_run);
+ 
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+-- 
+2.20.1
 
