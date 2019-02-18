@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2935C4360F
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7B2C10F01
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:05:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CEA022146F
-	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:05:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 142EA2146F
+	for <linux-media@archiver.kernel.org>; Mon, 18 Feb 2019 10:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729370AbfBRKFj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 05:05:39 -0500
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:19016 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729166AbfBRKFi (ORCPT
+        id S1729426AbfBRKFl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Feb 2019 05:05:41 -0500
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:28198 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729166AbfBRKFl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 05:05:38 -0500
-X-Halon-ID: bb2ea70b-3364-11e9-b5ae-0050569116f7
+        Mon, 18 Feb 2019 05:05:41 -0500
+X-Halon-ID: bc8a8d3d-3364-11e9-b5ae-0050569116f7
 Authorized-sender: niklas@soderlund.pp.se
 Received: from bismarck.berto.se (unknown [89.233.230.99])
         by bin-vsp-out-03.atm.binero.net (Halon) with ESMTPA
-        id bb2ea70b-3364-11e9-b5ae-0050569116f7;
-        Mon, 18 Feb 2019 11:05:35 +0100 (CET)
+        id bc8a8d3d-3364-11e9-b5ae-0050569116f7;
+        Mon, 18 Feb 2019 11:05:37 +0100 (CET)
 From:   =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
 To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -32,9 +32,9 @@ To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 Cc:     linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 2/3] rcar-csi2: Update start procedure for H3 ES2
-Date:   Mon, 18 Feb 2019 11:03:12 +0100
-Message-Id: <20190218100313.14529-3-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 3/3] rcar-csi2: Move setting of Field Detection Control Register
+Date:   Mon, 18 Feb 2019 11:03:13 +0100
+Message-Id: <20190218100313.14529-4-niklas.soderlund+renesas@ragnatech.se>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190218100313.14529-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20190218100313.14529-1-niklas.soderlund+renesas@ragnatech.se>
@@ -46,90 +46,33 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Latest information from hardware engineers reveals that H3 ES2 and ES3
-of behaves differently when working with link speeds bellow 250 Mpbs.
-Add a SoC match for H3 ES2.* and use the correct startup sequence.
+Latest datasheet (rev 1.50) clarifies that the FLD register should be
+set after LINKCNT.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/rcar-vin/rcar-csi2.c | 39 ++++++++++++++++++---
- 1 file changed, 35 insertions(+), 4 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-csi2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index fbbe86a7a0fe14ab..50486301c21b4bae 100644
+index 50486301c21b4bae..f90b380478775015 100644
 --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
 +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -932,6 +932,25 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
- 	return rcsi2_phtw_write_array(priv, step2);
- }
+@@ -545,7 +545,6 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
+ 	rcsi2_write(priv, PHTC_REG, 0);
  
-+static int rcsi2_init_phtw_h3es2(struct rcar_csi2 *priv, unsigned int mbps)
-+{
-+	static const struct phtw_value step1[] = {
-+		{ .data = 0xcc, .code = 0xe2 },
-+		{ .data = 0x01, .code = 0xe3 },
-+		{ .data = 0x11, .code = 0xe4 },
-+		{ .data = 0x01, .code = 0xe5 },
-+		{ .data = 0x10, .code = 0x04 },
-+		{ .data = 0x38, .code = 0x08 },
-+		{ .data = 0x01, .code = 0x00 },
-+		{ .data = 0x4b, .code = 0xac },
-+		{ .data = 0x03, .code = 0x00 },
-+		{ .data = 0x80, .code = 0x07 },
-+		{ /* sentinel */ },
-+	};
-+
-+	return rcsi2_phtw_write_array(priv, step1);
-+}
-+
- static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2 *priv, unsigned int mbps)
- {
- 	return rcsi2_phtw_write_mbps(priv, mbps, phtw_mbps_v3m_e3, 0x44);
-@@ -994,6 +1013,14 @@ static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
- 	.num_channels = 4,
- };
- 
-+static const struct rcar_csi2_info rcar_csi2_info_r8a7795es2 = {
-+	.init_phtw = rcsi2_init_phtw_h3es2,
-+	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
-+	.csi0clkfreqrange = 0x20,
-+	.num_channels = 4,
-+	.clear_ulps = true,
-+};
-+
- static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
- 	.hsfreqrange = hsfreqrange_m3w_h3es1,
- 	.num_channels = 4,
-@@ -1059,11 +1086,15 @@ static const struct of_device_id rcar_csi2_of_table[] = {
- };
- MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
- 
--static const struct soc_device_attribute r8a7795es1[] = {
-+static const struct soc_device_attribute r8a7795[] = {
- 	{
- 		.soc_id = "r8a7795", .revision = "ES1.*",
- 		.data = &rcar_csi2_info_r8a7795es1,
- 	},
-+	{
-+		.soc_id = "r8a7795", .revision = "ES2.*",
-+		.data = &rcar_csi2_info_r8a7795es2,
-+	},
- 	{ /* sentinel */ },
- };
- 
-@@ -1081,10 +1112,10 @@ static int rcsi2_probe(struct platform_device *pdev)
- 	priv->info = of_device_get_match_data(&pdev->dev);
- 
- 	/*
--	 * r8a7795 ES1.x behaves differently than the ES2.0+ but doesn't
--	 * have it's own compatible string.
-+	 * The different ES versions of r8a7795 (H3) behaves differently but
-+	 * shares the same compatible string.
- 	 */
--	attr = soc_device_match(r8a7795es1);
-+	attr = soc_device_match(r8a7795);
- 	if (attr)
- 		priv->info = attr->data;
+ 	/* Configure */
+-	rcsi2_write(priv, FLD_REG, fld);
+ 	rcsi2_write(priv, VCDT_REG, vcdt);
+ 	if (vcdt2)
+ 		rcsi2_write(priv, VCDT2_REG, vcdt2);
+@@ -576,6 +575,7 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
+ 	rcsi2_write(priv, PHYCNT_REG, phycnt);
+ 	rcsi2_write(priv, LINKCNT_REG, LINKCNT_MONITOR_EN |
+ 		    LINKCNT_REG_MONI_PACT_EN | LINKCNT_ICLK_NONSTOP);
++	rcsi2_write(priv, FLD_REG, fld);
+ 	rcsi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ);
+ 	rcsi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ | PHYCNT_RSTZ);
  
 -- 
 2.20.1
