@@ -4,65 +4,67 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_IN_DEF_DKIM_WL
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 662EDC43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 18:41:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C416AC43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 19:02:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3422921738
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 18:41:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83F1021773
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 19:02:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="R8M0N5lj"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="S7Uq0Ju9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbfBSSlx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Feb 2019 13:41:53 -0500
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:37100 "EHLO
+        id S1727126AbfBSTCD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Feb 2019 14:02:03 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:34290 "EHLO
         mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725885AbfBSSlx (ORCPT
+        with ESMTP id S1726110AbfBSTCD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Feb 2019 13:41:53 -0500
-Received: by mail-pg1-f193.google.com with SMTP id q206so10537914pgq.4
-        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2019 10:41:52 -0800 (PST)
+        Tue, 19 Feb 2019 14:02:03 -0500
+Received: by mail-pg1-f193.google.com with SMTP id i130so10572315pgd.1
+        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2019 11:02:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=9s69XlhG+rRUIrkn6yxaGUkhCuvBhy94WZ4hm4ODnMw=;
-        b=R8M0N5ljrUrduztIOfzNDe0GzE6DUxoJ3taB6rypmsfHTLmG5tK+IpRZPUq6b1+yvJ
-         zylQBL8LnaYzsaX30zoAzz3oxogj+4ogVB8oe+fYkndJS4z1giI+9Y40qO6PJFVuoqX+
-         xu+oNl2ZkV/r9pYzWOpfepVW2WBg1AINKEL5E6CEMom007Z30IB8kXb1+MFIwKN8xX2g
-         Fm3k5qqm87KmGblenCfuZM9nM9Jdx3pihLyMKzWPb33O0qD9Q8mDdwSxR6PN41oOwxXI
-         AxcpgM03kym/PUlDem2VSwgrwCHB8Rw07xsQc14atpaZj9A4ceVkY+etkRfm+ZvoeL4+
-         Tg7Q==
+        bh=gtsKzGZqZcEeqCtrlGrKFSS3Xlk4GR0b9j+cV2Z6OlM=;
+        b=S7Uq0Ju9LGIVvcWpuHguWFswOzlT1EJlhWdUHNB3rZVHqNVE8CNd4u2+v6cx/5XMtk
+         dKoIk/LTUylF49758DJaO7zJGwCWZsEJgmBxpavyc2zCWMckA8rNThJ+/qg+Gc/BD6v3
+         BH42RgVnZ402ngYOm7a0RyUEq6+hr1jbhcAMQrFYKCIHLzJnX5orblSKiXVoMchRlPD0
+         mfoUjorp3lOLsyG/68vnjkRWJzpnkKthXVzo5qoKdOOwtG1Idjf16ufMivedjKep05Gq
+         lzeLHXSWCQzwzaqp52fzTGrQ7oPCM65L2qPW1CKzljNHfNLKTNVxK5co44pHM3VQzYCn
+         fRyg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=9s69XlhG+rRUIrkn6yxaGUkhCuvBhy94WZ4hm4ODnMw=;
-        b=nSp2DRYfvxq1VYjQ9Ij1DTcTNASBgbJ2iNbVmpmOcl827Bs0xHGC30jUAQFI2sZ7De
-         2AzL+UuzNewtNZVW/4O3UcfwnMvlv44WGkUVs9u7KWLeXZBCVBPa0NWbBJsii4U48nLl
-         LpcA9d0ob95RikrFubRV1612Ebb6YPiJYWvQ4ukTMDTXkQSqR9E9oFXoPnYeHlSow/ip
-         Xk/U59yt7BrTnjDJjC00GfTeEEcy2DWUVZL54Ml/CsjVjFNeqXxQJ+OGq3UT0Ut7T3qL
-         v0sxA8TwIPmri5ipDAAVEplx08H9sZP+1NNVeDfK22eOEtXlkbQYO7STSkQcBNYIn/Za
-         qf0w==
-X-Gm-Message-State: AHQUAubxL/fp/RzOoIfRqFUnGt2jNK4jvzvJr4dCsk6qup0s1NNFl7dY
-        uFJrQx7V2MN6aUVhhGhMorJKMsg41wQcLs7ZPdfMJg==
-X-Google-Smtp-Source: AHgI3Ib5rMiouOq5fatIVAbVX7DtWdoUPhO1ZfJIiBUm1lwEw7GjTKuYJ+06U6AxqQBlrF9bDZeXuYZb8PYkjEV+8jU=
-X-Received: by 2002:a63:fe58:: with SMTP id x24mr25325202pgj.255.1550601712051;
- Tue, 19 Feb 2019 10:41:52 -0800 (PST)
+        bh=gtsKzGZqZcEeqCtrlGrKFSS3Xlk4GR0b9j+cV2Z6OlM=;
+        b=sO0oar5AX5WwG24qzSK1TjkD/V/d1c2dI0YXpRnyyGevi/oQyPGFWFzn8ZVgFv534+
+         7qOZPbIwV01FGQAzeOEgq8kJq5yGaWGzhoj21oH3ca1VGlxUvwcYiHel6Rww1Zwet2Rg
+         NmJsDGV/w0xxJLqdDGwikrfy6YFAHTXzf54esgilfkEIjq6+xHypzdVKGgeftnZAVLSw
+         IWWHqaauSp9a4ICiYCKkI8bW03XzmglCN1vc3IX+9HsPlSjbZR1C9BTUc6+x614b9YXL
+         UwrFVdSmcnYz0hIAW7dscmuVovkJzSREFmQhHWMnCgvDs1xEX5zgaNo+2Z2xK1uHOHID
+         yGDw==
+X-Gm-Message-State: AHQUAuafoPWUulFZtq+AHT2Mf/COeLVUbRD23yEF0nSGTvNdeYX1qna7
+        QlMTWV8GWIwv1MkJosnTlYFri6mwSJVJzak4jIjJ6w==
+X-Google-Smtp-Source: AHgI3Iaw9XKzZ6dSlNBhxHpitiL5p+wxw8gzwI1SHLaZWKil29RltCemISNvIm3D0lTzkmBFh28EGjEl24VOOZG872k=
+X-Received: by 2002:aa7:8249:: with SMTP id e9mr30849734pfn.93.1550602922228;
+ Tue, 19 Feb 2019 11:02:02 -0800 (PST)
 MIME-Version: 1.0
-References: <20190219170209.4180739-1-arnd@arndb.de>
-In-Reply-To: <20190219170209.4180739-1-arnd@arndb.de>
+References: <20190219170209.4180739-1-arnd@arndb.de> <20190219170209.4180739-2-arnd@arndb.de>
+In-Reply-To: <20190219170209.4180739-2-arnd@arndb.de>
 From:   Nick Desaulniers <ndesaulniers@google.com>
-Date:   Tue, 19 Feb 2019 10:41:40 -0800
-Message-ID: <CAKwvOdn0hF0s7-O2X98TSgO0C685ktZPTXRQ7CeR5vKHVZktPQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: saa7146: avoid high stack usage with clang
+Date:   Tue, 19 Feb 2019 11:01:51 -0800
+Message-ID: <CAKwvOdm2fr6Xh9Tezexq4RGinkJy6P0_L6jQOMoZfArbgmaKJQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] media: vicodec: avoic clang frame size warning
 To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Mark Brown <broonie@kernel.org>,
         Nathan Chancellor <natechancellor@gmail.com>,
+        Dafna Hirschfeld <dafna3@gmail.com>,
+        Tom aan de Wiel <tom.aandewiel@gmail.com>,
         linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
@@ -72,72 +74,94 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 On Tue, Feb 19, 2019 at 9:02 AM Arnd Bergmann <arnd@arndb.de> wrote:
 >
-> Two saa7146/hexium files contain a construct that causes a warning
-> when built with clang:
+> Clang-9 makes some different inlining decisions compared to gcc, which
+> leads to a warning about a possible stack overflow problem when building
+> with CONFIG_KASAN, including when setting asan-stack=0, which avoids
+> most other frame overflow warnings:
 >
-> drivers/media/pci/saa7146/hexium_orion.c:210:12: error: stack frame size of 2272 bytes in function 'hexium_probe'
->       [-Werror,-Wframe-larger-than=]
-> static int hexium_probe(struct saa7146_dev *dev)
->            ^
-> drivers/media/pci/saa7146/hexium_gemini.c:257:12: error: stack frame size of 2304 bytes in function 'hexium_attach'
->       [-Werror,-Wframe-larger-than=]
-> static int hexium_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_data *info)
->            ^
+> drivers/media/platform/vicodec/codec-fwht.c:673:12: error: stack frame size of 2224 bytes in function 'encode_plane'
 >
-> This one happens regardless of KASAN, and the problem is that a
-> constructor to initalize a dynamically allocated structure leads
-> to a copy of that structure on the stack, whereas gcc initializes
-> it in place.
->
-> Link: https://bugs.llvm.org/show_bug.cgi?id=40776
+> Manually adding noinline_for_stack annotations in those functions
 
-oof, great bug report by the way!  Thanks for the fix.
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Thanks for the fix! In general, for -Wstack-frame-larger-than=
+warnings, is it possible that these sets of stack frames are already
+too large if entered?  Sure, inlining was a little aggressive, causing
+more stack space use than maybe otherwise necessary at runtime, but
+isn't it also possible that "no inlining" a stack frame can still be a
+problem should the stack frame be entered?  Doesn't the kernel have a
+way of estimating the stack depth for any given frame?  I guess I was
+always curious if the best fix for these kind of warnings was to
+non-stack allocate (kmalloc) certain locally allocated structs, or
+no-inline the function.  Surely there's cases where no-inlining is
+safe, but I was curious if it's still maybe dangerous to enter the
+problematic child most stack frame?
 
+> called by encode_plane() or decode_plane() that require a significant
+> amount of kernel stack makes this impossible to happen with any
+> compiler.
+>
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/media/pci/saa7146/hexium_gemini.c | 4 +---
->  drivers/media/pci/saa7146/hexium_orion.c  | 4 +---
->  2 files changed, 2 insertions(+), 6 deletions(-)
+>  drivers/media/platform/vicodec/codec-fwht.c | 18 ++++++++++--------
+>  1 file changed, 10 insertions(+), 8 deletions(-)
 >
-> diff --git a/drivers/media/pci/saa7146/hexium_gemini.c b/drivers/media/pci/saa7146/hexium_gemini.c
-> index 5817d9cde4d0..f7ce0e1770bf 100644
-> --- a/drivers/media/pci/saa7146/hexium_gemini.c
-> +++ b/drivers/media/pci/saa7146/hexium_gemini.c
-> @@ -270,9 +270,7 @@ static int hexium_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_d
->         /* enable i2c-port pins */
->         saa7146_write(dev, MC1, (MASK_08 | MASK_24 | MASK_10 | MASK_26));
+> diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+> index d1d6085da9f1..135d56bcc2c5 100644
+> --- a/drivers/media/platform/vicodec/codec-fwht.c
+> +++ b/drivers/media/platform/vicodec/codec-fwht.c
+> @@ -47,7 +47,7 @@ static const uint8_t zigzag[64] = {
+>  };
 >
-> -       hexium->i2c_adapter = (struct i2c_adapter) {
-> -               .name = "hexium gemini",
-> -       };
-> +       strscpy(hexium->i2c_adapter.name, "hexium gemini", sizeof(hexium->i2c_adapter.name));
->         saa7146_i2c_adapter_prepare(dev, &hexium->i2c_adapter, SAA7146_I2C_BUS_BIT_RATE_480);
->         if (i2c_add_adapter(&hexium->i2c_adapter) < 0) {
->                 DEB_S("cannot register i2c-device. skipping.\n");
-> diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
-> index 0a05176c18ab..b9f4a09c744d 100644
-> --- a/drivers/media/pci/saa7146/hexium_orion.c
-> +++ b/drivers/media/pci/saa7146/hexium_orion.c
-> @@ -231,9 +231,7 @@ static int hexium_probe(struct saa7146_dev *dev)
->         saa7146_write(dev, DD1_STREAM_B, 0x00000000);
->         saa7146_write(dev, MC2, (MASK_09 | MASK_25 | MASK_10 | MASK_26));
 >
-> -       hexium->i2c_adapter = (struct i2c_adapter) {
-> -               .name = "hexium orion",
-> -       };
-> +       strscpy(hexium->i2c_adapter.name, "hexium orion", sizeof(hexium->i2c_adapter.name));
-
-Note that "sparse" designated initialization zero initializes unnnamed members:
-https://godbolt.org/z/LkSpJp
-This transform you've done is safe because hexium was zero initialized
-via kzalloc, and struct hexium contains a struct i2c_adapter (as
-opposed to  a pointer to a struct i2c_adapter).  The same is true for
-both translation units you've touched. LGTM
-
->         saa7146_i2c_adapter_prepare(dev, &hexium->i2c_adapter, SAA7146_I2C_BUS_BIT_RATE_480);
->         if (i2c_add_adapter(&hexium->i2c_adapter) < 0) {
->                 DEB_S("cannot register i2c-device. skipping.\n");
+> -static int rlc(const s16 *in, __be16 *output, int blocktype)
+> +static int noinline_for_stack rlc(const s16 *in, __be16 *output, int blocktype)
+>  {
+>         s16 block[8 * 8];
+>         s16 *wp = block;
+> @@ -106,8 +106,8 @@ static int rlc(const s16 *in, __be16 *output, int blocktype)
+>   * This function will worst-case increase rlc_in by 65*2 bytes:
+>   * one s16 value for the header and 8 * 8 coefficients of type s16.
+>   */
+> -static u16 derlc(const __be16 **rlc_in, s16 *dwht_out,
+> -                const __be16 *end_of_input)
+> +static noinline_for_stack u16
+> +derlc(const __be16 **rlc_in, s16 *dwht_out, const __be16 *end_of_input)
+>  {
+>         /* header */
+>         const __be16 *input = *rlc_in;
+> @@ -373,7 +373,8 @@ static void fwht(const u8 *block, s16 *output_block, unsigned int stride,
+>   * Furthermore values can be negative... This is just a version that
+>   * works with 16 signed data
+>   */
+> -static void fwht16(const s16 *block, s16 *output_block, int stride, int intra)
+> +static void noinline_for_stack
+> +fwht16(const s16 *block, s16 *output_block, int stride, int intra)
+>  {
+>         /* we'll need more than 8 bits for the transformed coefficients */
+>         s32 workspace1[8], workspace2[8];
+> @@ -456,7 +457,8 @@ static void fwht16(const s16 *block, s16 *output_block, int stride, int intra)
+>         }
+>  }
+>
+> -static void ifwht(const s16 *block, s16 *output_block, int intra)
+> +static noinline_for_stack void
+> +ifwht(const s16 *block, s16 *output_block, int intra)
+>  {
+>         /*
+>          * we'll need more than 8 bits for the transformed coefficients
+> @@ -604,9 +606,9 @@ static int var_inter(const s16 *old, const s16 *new)
+>         return ret;
+>  }
+>
+> -static int decide_blocktype(const u8 *cur, const u8 *reference,
+> -                           s16 *deltablock, unsigned int stride,
+> -                           unsigned int input_step)
+> +static noinline_for_stack int
+> +decide_blocktype(const u8 *cur, const u8 *reference, s16 *deltablock,
+> +                unsigned int stride, unsigned int input_step)
+>  {
+>         s16 tmp[64];
+>         s16 old[64];
 > --
 > 2.20.0
 >
