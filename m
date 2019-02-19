@@ -2,95 +2,147 @@ Return-Path: <SRS0=RQn6=Q2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B83FC43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 19:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35F69C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 19:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 017522147C
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 19:14:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00F9621738
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 19:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726305AbfBSTO1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Feb 2019 14:14:27 -0500
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:45560 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725827AbfBSTO1 (ORCPT
+        id S1726089AbfBST4d (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Feb 2019 14:56:33 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38475 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725807AbfBST4d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Feb 2019 14:14:27 -0500
-Received: by mail-qt1-f194.google.com with SMTP id d18so14409182qtg.12;
-        Tue, 19 Feb 2019 11:14:26 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/210U5IkjRO1hXJC1CGNnrH8MlJ9MxI+N5HDmjpk2xI=;
-        b=cAm6bPBw5IaG6fbfn2qEs+wmQPIuRt9/TjbiY8zw+gseaLmgt1pYesBDA2x5iovreR
-         AYaEMrwlroY6GhCp8gIZe1kEneKTUTdgfJ2zqZDUu7lvnSuSAmNeVArMkwnhwry2DLd7
-         jrg065PT8KhF2qYSRtAyn8N9V9lL6Te8aPIt5T39R4j2Kap2JHYqflAIlWEf+O88ncPZ
-         4Fgm6h2aFL1SYWyelAHwDSHgO19zrH5nIe4ZGCHZLdnS5ZyLD4SLAjbjJfXfPUKT9/jt
-         4NmJts1MT7tbFADYYXOnAj/tXPZ0k7hulYFQa1x+TJuoaykE7Gb4/T8whXqfUtvlIM7V
-         V77g==
-X-Gm-Message-State: AHQUAuaf6b9DKVtPr1rdCXbvHQs/bDLLvYzu2zGTGcpLw4VhCCxDgYBT
-        ofwpWIZMe+mBZAYK/6I3QCvnpQFNcInyl2VhXBI=
-X-Google-Smtp-Source: AHgI3IZ/ij3A9bvRQq+XFi1w+mSJN16HGEFAD5RJeqi5kI3k5IkSMjuNPac34/znEITNhLytgjdp9m+wnpFmdWgdz6U=
-X-Received: by 2002:ac8:33f1:: with SMTP id d46mr23480568qtb.319.1550603665558;
- Tue, 19 Feb 2019 11:14:25 -0800 (PST)
-MIME-Version: 1.0
-References: <20190219170209.4180739-1-arnd@arndb.de> <20190219170209.4180739-2-arnd@arndb.de>
- <CAKwvOdm2fr6Xh9Tezexq4RGinkJy6P0_L6jQOMoZfArbgmaKJQ@mail.gmail.com>
-In-Reply-To: <CAKwvOdm2fr6Xh9Tezexq4RGinkJy6P0_L6jQOMoZfArbgmaKJQ@mail.gmail.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Tue, 19 Feb 2019 20:14:08 +0100
-Message-ID: <CAK8P3a0C6V0e8Z0uFSwrQ9V0pHqHWKwsHaQ5pVXDEpun5SVh3w@mail.gmail.com>
+        Tue, 19 Feb 2019 14:56:33 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id wBVBgleFzLMwIwBVEgqtzT; Tue, 19 Feb 2019 20:56:31 +0100
 Subject: Re: [PATCH 2/3] media: vicodec: avoic clang frame size warning
-To:     Nick Desaulniers <ndesaulniers@google.com>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+To:     Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     Nick Desaulniers <ndesaulniers@google.com>,
         Mark Brown <broonie@kernel.org>,
         Nathan Chancellor <natechancellor@gmail.com>,
         Dafna Hirschfeld <dafna3@gmail.com>,
         Tom aan de Wiel <tom.aandewiel@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20190219170209.4180739-1-arnd@arndb.de>
+ <20190219170209.4180739-2-arnd@arndb.de>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <eaf45207-2741-2e0d-4ae4-aabb36e4417d@xs4all.nl>
+Date:   Tue, 19 Feb 2019 20:56:25 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
+MIME-Version: 1.0
+In-Reply-To: <20190219170209.4180739-2-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfB8XEDPigTwbqan9jvvIRl53y+bOjIGampXSDthERoMDOuK1YH07MaVhxIMTMHjxVCI8rbf2HPXJ0+/ODoWfj43k7km5czVmyt2y/EMb3x5MCzo4TQGT
+ X3xeViJ3fSFseZONrwqy+e0epVG6AsYXlJ9/qArzlXIBXQ5S9QFnq9cbTYRSNdfBm6fe0RmhA/jyAx8W6HQGG0sJmg3mh/Zf1zwmWLN2/lNHW1Vs7FqCwUaK
+ pNHAgfCEopUzP9Dxcs6+VGQBAxZfyQgQQEMkqaNtXCJQ+bXaRWexV5CRzIJnwu15OgiXz7d4dQ6pKSfADPB4sqIo7i1dRH25C2+TJLSKAaz9IByOCWjIDCpU
+ Q9L2kdwCgM4a8lLpDFyIVcCT6Y6fyImK+Cx9aPyR6Nh2pJuTK9kzjDzxZuTWWDSQPk9d7iSsbkC7ygQOgVOKLKJsFL9DXh/+NxM7cwtAQU78dq1H7jLCHKnO
+ uGdG48Fj+eBRjjVP
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Feb 19, 2019 at 8:02 PM Nick Desaulniers
-<ndesaulniers@google.com> wrote:
-> On Tue, Feb 19, 2019 at 9:02 AM Arnd Bergmann <arnd@arndb.de> wrote:
-> >
-> > Clang-9 makes some different inlining decisions compared to gcc, which
-> > leads to a warning about a possible stack overflow problem when building
-> > with CONFIG_KASAN, including when setting asan-stack=0, which avoids
-> > most other frame overflow warnings:
-> >
-> > drivers/media/platform/vicodec/codec-fwht.c:673:12: error: stack frame size of 2224 bytes in function 'encode_plane'
-> >
-> > Manually adding noinline_for_stack annotations in those functions
->
-> Thanks for the fix! In general, for -Wstack-frame-larger-than=
-> warnings, is it possible that these sets of stack frames are already
-> too large if entered?  Sure, inlining was a little aggressive, causing
-> more stack space use than maybe otherwise necessary at runtime, but
-> isn't it also possible that "no inlining" a stack frame can still be a
-> problem should the stack frame be entered?  Doesn't the kernel have a
-> way of estimating the stack depth for any given frame?  I guess I was
-> always curious if the best fix for these kind of warnings was to
-> non-stack allocate (kmalloc) certain locally allocated structs, or
-> no-inline the function.  Surely there's cases where no-inlining is
-> safe, but I was curious if it's still maybe dangerous to enter the
-> problematic child most stack frame?
+On 2/19/19 6:01 PM, Arnd Bergmann wrote:
+> Clang-9 makes some different inlining decisions compared to gcc, which
+> leads to a warning about a possible stack overflow problem when building
+> with CONFIG_KASAN, including when setting asan-stack=0, which avoids
+> most other frame overflow warnings:
+> 
+> drivers/media/platform/vicodec/codec-fwht.c:673:12: error: stack frame size of 2224 bytes in function 'encode_plane'
+> 
+> Manually adding noinline_for_stack annotations in those functions
+> called by encode_plane() or decode_plane() that require a significant
+> amount of kernel stack makes this impossible to happen with any
+> compiler.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/platform/vicodec/codec-fwht.c | 18 ++++++++++--------
+>  1 file changed, 10 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+> index d1d6085da9f1..135d56bcc2c5 100644
+> --- a/drivers/media/platform/vicodec/codec-fwht.c
+> +++ b/drivers/media/platform/vicodec/codec-fwht.c
+> @@ -47,7 +47,7 @@ static const uint8_t zigzag[64] = {
+>  };
+>  
+>  
+> -static int rlc(const s16 *in, __be16 *output, int blocktype)
+> +static int noinline_for_stack rlc(const s16 *in, __be16 *output, int blocktype)
+>  {
+>  	s16 block[8 * 8];
+>  	s16 *wp = block;
+> @@ -106,8 +106,8 @@ static int rlc(const s16 *in, __be16 *output, int blocktype)
+>   * This function will worst-case increase rlc_in by 65*2 bytes:
+>   * one s16 value for the header and 8 * 8 coefficients of type s16.
+>   */
+> -static u16 derlc(const __be16 **rlc_in, s16 *dwht_out,
+> -		 const __be16 *end_of_input)
+> +static noinline_for_stack u16
+> +derlc(const __be16 **rlc_in, s16 *dwht_out, const __be16 *end_of_input)
+>  {
+>  	/* header */
+>  	const __be16 *input = *rlc_in;
+> @@ -373,7 +373,8 @@ static void fwht(const u8 *block, s16 *output_block, unsigned int stride,
+>   * Furthermore values can be negative... This is just a version that
+>   * works with 16 signed data
+>   */
+> -static void fwht16(const s16 *block, s16 *output_block, int stride, int intra)
+> +static void noinline_for_stack
+> +fwht16(const s16 *block, s16 *output_block, int stride, int intra)
+>  {
+>  	/* we'll need more than 8 bits for the transformed coefficients */
+>  	s32 workspace1[8], workspace2[8];
+> @@ -456,7 +457,8 @@ static void fwht16(const s16 *block, s16 *output_block, int stride, int intra)
+>  	}
+>  }
+>  
+> -static void ifwht(const s16 *block, s16 *output_block, int intra)
+> +static noinline_for_stack void
+> +ifwht(const s16 *block, s16 *output_block, int intra)
+>  {
 
-What I think is happening here is that llvm fails to combine the
-stack allocations for the inlined functions in certain conditions,
-while gcc can reuse it here. We had similar issues in gcc
-a few years ago, and they got fixed there, but I have not looked
-at this one in more detail. My guess is that it's related to
-the bug I mentioned in patch 3.
+Please add it for fwht as well. It makes no sense to have it for fwht16, ifwht
+but not the fwht function.
 
-      Arnd
+Got to say this is all very magic...
+
+I think it would be good to perhaps have a comment at the start of the source
+that explains why noinline_for_stack is added to selected functions.
+
+Patches 1 & 3 are fine, BTW.
+
+Regards,
+
+	Hans
+
+>  	/*
+>  	 * we'll need more than 8 bits for the transformed coefficients
+> @@ -604,9 +606,9 @@ static int var_inter(const s16 *old, const s16 *new)
+>  	return ret;
+>  }
+>  
+> -static int decide_blocktype(const u8 *cur, const u8 *reference,
+> -			    s16 *deltablock, unsigned int stride,
+> -			    unsigned int input_step)
+> +static noinline_for_stack int
+> +decide_blocktype(const u8 *cur, const u8 *reference, s16 *deltablock,
+> +		 unsigned int stride, unsigned int input_step)
+>  {
+>  	s16 tmp[64];
+>  	s16 old[64];
+> 
+
