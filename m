@@ -6,179 +6,131 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06ABDC43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 10:00:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C28DCC43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 10:02:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C65C92146F
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 10:00:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96F032146F
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 10:02:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728314AbfBSKAc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Feb 2019 05:00:32 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49918 "EHLO
+        id S1726800AbfBSKCw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Feb 2019 05:02:52 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36466 "EHLO
         lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728160AbfBSKAc (ORCPT
+        by vger.kernel.org with ESMTP id S1726565AbfBSKCw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Feb 2019 05:00:32 -0500
+        Tue, 19 Feb 2019 05:02:52 -0500
 Received: from [IPv6:2001:420:44c1:2579:b8fa:fb10:b19b:d205] ([IPv6:2001:420:44c1:2579:b8fa:fb10:b19b:d205])
         by smtp-cloud9.xs4all.net with ESMTPA
-        id w2CQgYYM3I8AWw2CUgF4sY; Tue, 19 Feb 2019 11:00:30 +0100
-Subject: Re: [PATCH v2 06/10] media: vicodec: Introducing stateless fwht defs
- and structs
+        id w2EhgYa0EI8AWw2EkgF5cM; Tue, 19 Feb 2019 11:02:50 +0100
+Subject: Re: [PATCH v2 08/10] media: vicodec: call v4l2_m2m_buf_copy_metadata
+ also upon error
 To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
 Cc:     helen.koike@collabora.com
 References: <20190215130509.86290-1-dafna3@gmail.com>
- <20190215130509.86290-7-dafna3@gmail.com>
+ <20190215130509.86290-9-dafna3@gmail.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3fabd472-a699-11be-2bf9-aa1e4d609433@xs4all.nl>
-Date:   Tue, 19 Feb 2019 11:00:26 +0100
+Message-ID: <3c69f645-1284-f495-39cd-01086e9aea19@xs4all.nl>
+Date:   Tue, 19 Feb 2019 11:02:47 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190215130509.86290-7-dafna3@gmail.com>
+In-Reply-To: <20190215130509.86290-9-dafna3@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfOLJdLYiTnKiAo0sRmNSmKPgrZ/HtEhrAREY2DHcRoobt6WRYquoBC0NPnc9UvQPH70+T7tJec+uDs3Tf6pjf/kLhh1d1uLa0mX2QjhLZfqKNcZA7gHN
- LPC7ThOcIyyazEs0GxP6GeaVoDFYOsxF9s6vuVvApyXvLHnFxvrx97PLIvhd2/Ek7+snKrWVPCb7nj1xpBHG81rliUV9jbzsozGnsMOvs5RDOCjIEQtrzrkZ
- 5Pw0UtZkVhIwDAXoN2GRj2/Xl1civziWdW9QlFlZHSakcDFuByuu1iJ+d57P7IOq/fPY8RqFJQU8hQiXO7gGCqNH8sW/rZaIuJBdA+N9vuUGN36Tbu7KyfHK
- IXoeU/Ls
+X-CMAE-Envelope: MS4wfNVhVlIRAgt1oRzbDfxSjlcU7vfYnoyatLLmEb7vn2G8FtTNMY3Hmfq8+Dqd2yL2EK3R3AA5YWJIKx9KUfEoknZ1dyzCWoq/Lv+4EonYqU8JPLOuBMvJ
+ BdU7jYkBQS3EHYhVJ4Suv8nnmP2rqteIWg9qP3ib4UtwNblYOYiKAocun+LTHJzVoDSXRfV7kps9gRUp1agpSlhG58th9AqvFdz/HIXfXrYFB3eciSaaPlYF
+ OBG+j/dEkp0FVJy1poH7Al7JW+xQLcc3fXd86VdniS223tDQtiHvkb1BJ6jpOQiSOWE6AM+MukhBeDjfzq5v8ug37RsrEli5Ji6hvQRclJEraWAivFJD9E6J
+ u+jgNz92
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 On 2/15/19 2:05 PM, Dafna Hirschfeld wrote:
-> Add structs and definitions needed to implement stateless
-> decoder for fwht.
-> 
-> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
-> ---
->  drivers/media/platform/vicodec/vicodec-core.c | 12 ++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c          |  6 ++++++
->  include/uapi/linux/v4l2-controls.h            | 13 +++++++++++++
->  include/uapi/linux/videodev2.h                |  1 +
->  4 files changed, 32 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-> index 5e5bbc99a8bb..79b69faf3983 100644
-> --- a/drivers/media/platform/vicodec/vicodec-core.c
-> +++ b/drivers/media/platform/vicodec/vicodec-core.c
-> @@ -64,6 +64,10 @@ static const struct v4l2_fwht_pixfmt_info pixfmt_fwht = {
->  	V4L2_PIX_FMT_FWHT, 0, 3, 1, 1, 1, 1, 1, 0, 1
->  };
->  
-> +static const struct v4l2_fwht_pixfmt_info pixfmt_stateless_fwht = {
-> +	V4L2_PIX_FMT_FWHT_STATELESS, 0, 3, 1, 1, 1, 1, 1, 0, 1
-> +};
-> +
->  static void vicodec_dev_release(struct device *dev)
->  {
->  }
-> @@ -1480,6 +1484,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->  #define VICODEC_CID_CUSTOM_BASE		(V4L2_CID_MPEG_BASE | 0xf000)
->  #define VICODEC_CID_I_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 0)
->  #define VICODEC_CID_P_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 1)
-> +#define VICODEC_CID_STATELESS_FWHT	(VICODEC_CID_CUSTOM_BASE + 2)
->  
->  static int vicodec_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> @@ -1526,6 +1531,13 @@ static const struct v4l2_ctrl_config vicodec_ctrl_p_frame = {
->  	.step = 1,
->  };
->  
-> +static const struct v4l2_ctrl_config vicodec_ctrl_stateless_state = {
-> +	.id		= VICODEC_CID_STATELESS_FWHT,
-> +	.elem_size	= sizeof(struct v4l2_ctrl_fwht_params),
-> +	.name		= "FWHT-Stateless State Params",
-> +	.type		= V4L2_CTRL_TYPE_FWHT_PARAMS,
-> +};
-> +
->  /*
->   * File operations
->   */
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index ff75f84011f8..5f2382f3a1a2 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1671,6 +1671,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
->  		return 0;
->  
-> +	case V4L2_CTRL_TYPE_FWHT_PARAMS:
-> +		return 0;
-> +
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -2251,6 +2254,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
->  		elem_size = sizeof(struct v4l2_ctrl_mpeg2_quantization);
->  		break;
-> +	case V4L2_CTRL_TYPE_FWHT_PARAMS:
-> +		elem_size = sizeof(struct v4l2_ctrl_fwht_params);
-> +		break;
->  	default:
->  		if (type < V4L2_CTRL_COMPOUND_TYPES)
->  			elem_size = sizeof(s32);
+> call v4l2_m2m_buf_copy_metadata also if decoding/encoding
+> ends with status VB2_BUF_STATE_ERROR.
 
-You also need to fill in the name for this control and fill in the type.
+Is this a bug fix? Why is this needed?
 
-Just search for V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS and everywhere there
-is a 'case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS' you also need to add a
-case for VICODEC_CID_STATELESS_FWHT.
+The commit log can use a bit more work :-)
 
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 06479f2fb3ae..0358a3b22391 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -52,6 +52,7 @@
->  
->  #include <linux/types.h>
->  
-> +#define V4L2_CTRL_TYPE_FWHT_PARAMS 0x0105
->  /* Control classes */
->  #define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls */
->  #define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls */
-> @@ -1096,4 +1097,16 @@ enum v4l2_detect_md_mode {
->  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->  
-> +struct v4l2_ctrl_fwht_params {
-> +	__u64 backward_ref_ts;
-> +	__u32 width;
-> +	__u32 height;
-> +	__u32 flags;
-> +	__u32 colorspace;
-> +	__u32 xfer_func;
-> +	__u32 ycbcr_enc;
-> +	__u32 quantization;
-> +	__u32 comp_frame_size;
-> +};
-> +
-
-Hmm, let's do this the same as the cedrus driver does: don't add this to
-the public header, instead create an include/media/fwht-ctrls.h header
-where the fwht state control and type is defined.
-
-Eventually this will move to the public v4l2-controls.h header, but
-stateless codec support is still 'staging quality' and it is a little
-bit too soon to make it all public.
-
->  #endif
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index a78bfdc1df97..6a692114e989 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -665,6 +665,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
->  #define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC aka H.265 */
->  #define V4L2_PIX_FMT_FWHT     v4l2_fourcc('F', 'W', 'H', 'T') /* Fast Walsh Hadamard Transform (vicodec) */
-> +#define V4L2_PIX_FMT_FWHT_STATELESS     v4l2_fourcc('S', 'F', 'W', 'H') /* Stateless FWHT (vicodec) */
->  
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-> 
+Also, I don't think this has anything to do with the stateless codec,
+so I would move this before patch 6 in the patch series.
 
 Regards,
 
 	Hans
+
+> 
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  drivers/media/platform/vicodec/vicodec-core.c | 17 +++++++++--------
+>  1 file changed, 9 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+> index e4139f6b0348..031aaf83839c 100644
+> --- a/drivers/media/platform/vicodec/vicodec-core.c
+> +++ b/drivers/media/platform/vicodec/vicodec-core.c
+> @@ -165,12 +165,10 @@ static int device_process(struct vicodec_ctx *ctx,
+>  			  struct vb2_v4l2_buffer *dst_vb)
+>  {
+>  	struct vicodec_dev *dev = ctx->dev;
+> -	struct vicodec_q_data *q_dst;
+>  	struct v4l2_fwht_state *state = &ctx->state;
+>  	u8 *p_src, *p_dst;
+>  	int ret;
+>  
+> -	q_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+>  	if (ctx->is_enc)
+>  		p_src = vb2_plane_vaddr(&src_vb->vb2_buf, 0);
+>  	else
+> @@ -192,8 +190,10 @@ static int device_process(struct vicodec_ctx *ctx,
+>  			return ret;
+>  		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, ret);
+>  	} else {
+> +		struct vicodec_q_data *q_dst;
+>  		unsigned int comp_frame_size = ntohl(ctx->state.header.size);
+>  
+> +		q_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+>  		if (comp_frame_size > ctx->comp_max_size)
+>  			return -EINVAL;
+>  		state->info = q_dst->info;
+> @@ -204,11 +204,6 @@ static int device_process(struct vicodec_ctx *ctx,
+>  
+>  		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, q_dst->sizeimage);
+>  	}
+> -
+> -	dst_vb->sequence = q_dst->sequence++;
+> -	dst_vb->flags &= ~V4L2_BUF_FLAG_LAST;
+> -	v4l2_m2m_buf_copy_metadata(src_vb, dst_vb, !ctx->is_enc);
+> -
+>  	return 0;
+>  }
+>  
+> @@ -282,16 +277,22 @@ static void device_run(void *priv)
+>  	struct vicodec_ctx *ctx = priv;
+>  	struct vicodec_dev *dev = ctx->dev;
+>  	struct vb2_v4l2_buffer *src_buf, *dst_buf;
+> -	struct vicodec_q_data *q_src;
+> +	struct vicodec_q_data *q_src, *q_dst;
+>  	u32 state;
+>  
+>  	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+>  	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+>  	q_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+> +	q_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+>  
+>  	state = VB2_BUF_STATE_DONE;
+>  	if (device_process(ctx, src_buf, dst_buf))
+>  		state = VB2_BUF_STATE_ERROR;
+> +	else
+> +		dst_buf->sequence = q_dst->sequence++;
+> +	dst_buf->flags &= ~V4L2_BUF_FLAG_LAST;
+> +	v4l2_m2m_buf_copy_metadata(src_buf, dst_buf, !ctx->is_enc);
+> +
+>  	ctx->last_dst_buf = dst_buf;
+>  
+>  	spin_lock(ctx->lock);
+> 
+
