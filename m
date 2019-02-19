@@ -2,96 +2,88 @@ Return-Path: <SRS0=RQn6=Q2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7E81C43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 16:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED347C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 16:56:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E041217D9
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 16:29:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OeRg3YVU"
+	by mail.kernel.org (Postfix) with ESMTP id C7269217D9
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 16:56:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729016AbfBSQ3F (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Feb 2019 11:29:05 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:36449 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726388AbfBSQ3F (ORCPT
+        id S1728086AbfBSQ4D (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Feb 2019 11:56:03 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:45621 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726321AbfBSQ4D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Feb 2019 11:29:05 -0500
-Received: by mail-ed1-f67.google.com with SMTP id g9so6753673eds.3;
-        Tue, 19 Feb 2019 08:29:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=eTIyXcANNF9vHPfm+eipaAYN5nRj6Ks336GiU+ADjVI=;
-        b=OeRg3YVUxJ7IzgY9z/DIA7Dy5M8ZWx/YTqEmmWKt3eVtwvFJmjOCQ3P2UzT58CBcZN
-         Hh5cahHgILLf7yQeTCRs0SDDcqGKX5cf+cOW7UXJgDjuCKVwYdH+Kaggy1ZWzP9XzsMl
-         ACcyg9nYf/0PZlRUWtC2DQQs+rDpwYpvCejH764GGWfInox0sfeN2q3MSjS0L3EaNZEy
-         xrf7hgKE75AYjvu8V0elwo8vqcEhbKeadgfp9UCKIMRxZaXfqsHizmUeVCyl/NrdFCmG
-         pCXe5v4ktg9sPzOf0nrH9S1jVuEs5DhE8uksijG6pTvNEzSt9MRsUOk+wKbFAxVGO/Dl
-         +uiw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=eTIyXcANNF9vHPfm+eipaAYN5nRj6Ks336GiU+ADjVI=;
-        b=BAWzeEFSyGxfLqDmv/dqHvyG/KU8lfZApgOgonltdB+kHEjOcdxfSBP3Xx70EPwJHQ
-         vTB3+c3flpcrvvrKCXPVFJgnno9/9O0txUVgLlbOLe/8KNsf7+BawWTEmaxOpZMsi817
-         IPkyiwP0AYGezkMP3Qo7Ygrz3Kae2VfUqfk9A4ycX+LNk7oTglg7zy10yWA7v/Hk5k4M
-         b5SqzqoekR3TqZU7dRUejCvr2ys7fFAxbT9zioV7Nz+jsZ88BPy2WLou3d1wjM7cN/TW
-         m43uY/IB25o0pXTAzCEY15ubVeGMAzMUCUkCVvtSFe6AQ2MXezew1rSBVUsKs6zXBzzF
-         HuUw==
-X-Gm-Message-State: AHQUAuZgnWqw7UHWuer9i0Azf6bNtw5FJeu+F59rGg7hgdcgryyGpDvC
-        EmX+qCJvBitlBGB0d6BNhIohFUCG1RpSLsV+qdq6xVpi
-X-Google-Smtp-Source: AHgI3IYOZRjfpkz3EsLDWUp7uicPN2zhoQ0WQy7Hc/jxy/V4J6Lkh3s31x4MUoG2yfxIzm5JKoDsE8Lu2p8HQI7hQzE=
-X-Received: by 2002:a50:9b50:: with SMTP id a16mr23011268edj.135.1550593743766;
- Tue, 19 Feb 2019 08:29:03 -0800 (PST)
-MIME-Version: 1.0
-References: <f235ba60b2b7e5fba09d3c6b0d5dbbd8a86ea9b9.1550518128.git.mchehab+samsung@kernel.org>
- <8ad3211c5c6c6835997237af02df71eeb2c78c17.1550518128.git.mchehab+samsung@kernel.org>
-In-Reply-To: <8ad3211c5c6c6835997237af02df71eeb2c78c17.1550518128.git.mchehab+samsung@kernel.org>
-From:   "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date:   Tue, 19 Feb 2019 16:28:36 +0000
-Message-ID: <CA+V-a8vCQ3grhE9xeen0vfs9O4LFR2t9fK+OcjkyOet9x=5FsA@mail.gmail.com>
-Subject: Re: [PATCH 12/14] media: include: fix several typos
+        Tue, 19 Feb 2019 11:56:03 -0500
+Received: from ptx.hi.pengutronix.de ([2001:67c:670:100:1d::c0])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <pza@pengutronix.de>)
+        id 1gw8gb-0007yY-Pf; Tue, 19 Feb 2019 17:56:01 +0100
+Received: from pza by ptx.hi.pengutronix.de with local (Exim 4.89)
+        (envelope-from <pza@pengutronix.de>)
+        id 1gw8gb-0005yq-FX; Tue, 19 Feb 2019 17:56:01 +0100
+Date:   Tue, 19 Feb 2019 17:56:01 +0100
+From:   Philipp Zabel <pza@pengutronix.de>
 To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        LAK <linux-arm-kernel@lists.infradead.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Todor Tomov <todor.too@gmail.com>
+Subject: Re: [PATCH 13/14] media: Documentation: fix several typos
+Message-ID: <20190219165601.vvp32zeonokci7qw@pengutronix.de>
+References: <f235ba60b2b7e5fba09d3c6b0d5dbbd8a86ea9b9.1550518128.git.mchehab+samsung@kernel.org>
+ <33336ded047b1ea1c491fa3055dbe274f7c427fa.1550518128.git.mchehab+samsung@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <33336ded047b1ea1c491fa3055dbe274f7c427fa.1550518128.git.mchehab+samsung@kernel.org>
+X-Sent-From: Pengutronix Hildesheim
+X-URL:  http://www.pengutronix.de/
+X-IRC:  #ptxdist @freenode
+X-Accept-Language: de,en
+X-Accept-Content-Type: text/plain
+X-Uptime: 17:54:25 up 8 days,  1:20, 58 users,  load average: 0.15, 0.16, 0.16
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c0
+X-SA-Exim-Mail-From: pza@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mauro,
+On Mon, Feb 18, 2019 at 02:29:07PM -0500, Mauro Carvalho Chehab wrote:
+[...]
+> diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
+> index 9314af00d067..1d7eb8c7bd5c 100644
+> --- a/Documentation/media/v4l-drivers/imx.rst
+> +++ b/Documentation/media/v4l-drivers/imx.rst
+> @@ -29,7 +29,7 @@ de-interlacing by interweaving even and odd lines during transfer
+>  (without motion compensation which requires the VDIC).
+>  
+>  The CSI is the backend capture unit that interfaces directly with
+> -camera sensors over Parallel, BT.656/1120, and MIPI CSI-2 busses.
+> +camera sensors over Parallel, BT.656/1120, and MIPI CSI-2 buses.
+>  
+>  The IC handles color-space conversion, resizing (downscaling and
+>  upscaling), horizontal flip, and 90/270 degree rotation operations.
+> @@ -207,7 +207,7 @@ The CSI supports cropping the incoming raw sensor frames. This is
+>  implemented in the ipuX_csiY entities at the sink pad, using the
+>  crop selection subdev API.
+>  
+> -The CSI also supports fixed divide-by-two downscaling indepently in
+> +The CSI also supports fixed divide-by-two downscaling independently in
+>  width and height. This is implemented in the ipuX_csiY entities at
+>  the sink pad, using the compose selection subdev API.
 
-On Mon, Feb 18, 2019 at 7:29 PM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
->
-> Use codespell to fix lots of typos over frontends.
->
-> Manually verified to avoid false-positives.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  include/media/davinci/dm355_ccdc.h         | 4 ++--
->  include/media/davinci/dm644x_ccdc.h        | 2 +-
-For the above,
+Thank you, for imx
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Reviewed-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Regards,
-Prabhakar
+regards
+Philipp
