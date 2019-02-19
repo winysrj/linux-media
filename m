@@ -2,108 +2,198 @@ Return-Path: <SRS0=RQn6=Q2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E80AC43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 11:59:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0770C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 13:05:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC1C7208E4
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 11:59:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A41CE217D7
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 13:05:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CAjGqtRy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728268AbfBSL7F (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Feb 2019 06:59:05 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60457 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725767AbfBSL7E (ORCPT
+        id S1728160AbfBSNF4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Feb 2019 08:05:56 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:38439 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727883AbfBSNFz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Feb 2019 06:59:04 -0500
-Received: from [IPv6:2001:420:44c1:2579:b8fa:fb10:b19b:d205] ([IPv6:2001:420:44c1:2579:b8fa:fb10:b19b:d205])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id w439ghOj84HFnw43Cg2qsv; Tue, 19 Feb 2019 12:59:02 +0100
-Subject: Re: [BUG] Regression caused by "media: gspca: convert to vb2"
-To:     =?UTF-8?B?TWF0dGkgSMOkbcOkbMOkaW5lbg==?= <ccr@tnsp.org>,
-        linux-media@vger.kernel.org
-References: <alpine.DEB.2.20.1902190711130.21189@tnsp.org>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2e3e8d88-5d7d-c6d6-9fb7-7b5670ed44ef@xs4all.nl>
-Date:   Tue, 19 Feb 2019 12:58:59 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Tue, 19 Feb 2019 08:05:55 -0500
+Received: by mail-wm1-f66.google.com with SMTP id v26so2730956wmh.3
+        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2019 05:05:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=/zPaoCavRyRUDDxrlSA+6Yq/3wEp2NA8meeh07bvZuM=;
+        b=CAjGqtRymYbPL45a2osa5hRDMAkMd4+VmqPha+kg6ok3FCb8GeeX6sTEG6FxhJdbvU
+         WrI8PkMl7IpBmV/sqxX/GDlCkrrqJAZ7PvfJ71L2qBsb+aBOYbBsLCNCqNG5GniOfXqQ
+         Noqu4TD2sMo++TMmiCFQuFr8zesNUVvS7XR+KaOsMubqN+0cSKA21WoRZ2Y1iliu4+kp
+         t/Dp5Z4ae5r5W8QC7DgeDgaFWd09YSJWSSBFB0JFlJPauBfuAjBVIzAcPQDy/3AH5wSb
+         sYWQHWlF0Iv8dmAnAQZaiG/EhU9U9nKNK0A8+ElsZRun7hnoZIEbMx4J4qVcmuMx3IPL
+         OkCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=/zPaoCavRyRUDDxrlSA+6Yq/3wEp2NA8meeh07bvZuM=;
+        b=kx7pJk59XBeir5VVxa+9DaZiBT4EN+ZfZMnUnqX8ZsJsJ8HeCASe8PxXHLpDPj6WeD
+         /TdwaWolcIk3P3sDgJCBvMsikhRtSefMFVP/o5rt+Dmt/NqhUGChNftwvrdy75Xx/nED
+         /lxLYB0NmyyyF6O4hQDayrJQpuzhqX/k3T9IaFycJ/Uqd+71gUME9AA82xCPIwGybFwl
+         DeSL61AyP36SbMjFIxcnsUx32XqLCZkVDfW70WVy9ZIOwK8qSXx+YRBXPWEzPFPRqbFu
+         XK6Nbo0XPsdjMZOY+zNPiHKA02UYq4tMx9UdBIFNExiQa5+D7ltxIEvs6lxCiQti9tBP
+         FdHw==
+X-Gm-Message-State: AHQUAubzrBa3IN8tV9UJaTKd4BZxRZ2butpspvacenRngX2WsmyeaIss
+        RPngTg/F+9ViN60fCiNQiGsmgLgYHl8sTA1RpOw=
+X-Google-Smtp-Source: AHgI3IYVSWEND/223DoSJl4tE5uWiT+ZkVrOh5DKI95pJVqo+RVCBSqi1sfVEd7gmFYT7ybg6tC+iLCEKLBUEJVDjOY=
+X-Received: by 2002:a7b:cc93:: with SMTP id p19mr2859510wma.113.1550581552892;
+ Tue, 19 Feb 2019 05:05:52 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1902190711130.21189@tnsp.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfNolZZcYHg5GbspSj6olCOhIAxN6y/cj4sowwotnFa0JFS6RyhVY6xllOb11BIY1cu5RYxvpnm+h+2RZ86WgC0S3SON1GZZzaMstfSFjXG3o1H7pNz9l
- yz8EfULHI+mB48TQsbEjQFIDd1CE80Z1FFhXH1i++6JxbCJMX/MjmAvKMwPO/J34d3q/cq/rJY0zSKHKKsilLYRKr56FKId8gKALEiKoaQZzoIEa7559d9ri
- 6o/W50n2YbNpjY51wj/1xQ1Bs2lVKIiqFKph3sk343qZsU0PD9cSwMY/C3Rf0CaewscJtoSdnt+wBY5q6Bv1oQ==
+References: <CAJ+vNU2aA-RrQbHrVa7eV4nZjUsbA9z42Dm0iVeOuWbgO=PtfQ@mail.gmail.com>
+ <1417dde5-ecd5-354e-2ed1-9be4d26ce104@xs4all.nl> <5cbdf827-cc3c-4b22-a7ed-31c44419b7b9@xs4all.nl>
+ <CAKQmDh-9NG50r2WsJYief4QKpW_sVcWs3oK0RSz+9MGKbPamxQ@mail.gmail.com>
+ <70182eba-dd35-9ac3-b762-9a49ee017be9@xs4all.nl> <CAKQmDh8H+qA2+69tDDbBiyh8_7EXjznbdh-pR8-zi0QzxOMHWw@mail.gmail.com>
+In-Reply-To: <CAKQmDh8H+qA2+69tDDbBiyh8_7EXjznbdh-pR8-zi0QzxOMHWw@mail.gmail.com>
+From:   Jean-Michel Hautbois <jhautbois@gmail.com>
+Date:   Tue, 19 Feb 2019 14:05:40 +0100
+Message-ID: <CAL8zT=gb6JN6mCm5N0-gpU3aHG+-EsqKuji=QxS7o2u4CpxocA@mail.gmail.com>
+Subject: Re: v4l2 mem2mem compose support?
+To:     Discussion of the development of and with GStreamer 
+        <gstreamer-devel@lists.freedesktop.org>
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Carlos Rafael Giani <dv@pseudoterminal.org>,
+        Tim Harvey <tharvey@gateworks.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Jean-Michel Hautbois <jhautbois@gmail.com>,
+        =?UTF-8?Q?S=C3=A9bastien_Matz?= <sebastien.matz@veo-labs.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Matti,
+Hi Tim, Nicolas, all,
 
-On 2/19/19 6:30 AM, Matti Hämäläinen wrote:
-> 
-> Hello!
-> 
-> Last week while testing some webcams that use gspca-based v4l2 drivers, I 
-> noticed that the driver was spewing some errors in klog whenever the 
-> program using them issued VIDIOC_STREAMOFF ioctl. This seems to be a
-> regression caused by commit 1f5965c4dfd7665f2914a1f1095dcc6020656b04
-> "media: gspca: convert to vb2" in the mainline kernel.
-> 
-> The errors were as follows (with gspca_main debug=3):
-> [ 2497.147902] gspca_zc3xx 3-9.3.2:1.0: isoc 32 pkts size 768 = bsize:24576
-> [ 2498.194657] gspca_zc3xx 3-9.3.2:1.0: probe 2wr ov vga 0x0000
-> [ 2499.602538] gspca_zc3xx 3-9.3.2:1.0: found int in endpoint: 0x82, buffer_len=8, interval=10
-> [ 2501.785244] gspca_zc3xx 3-9.3.2:1.0: kill transfer
-> [ 2501.787218] gspca_zc3xx 3-9.3.2:1.0: urb status: -2
-> [ 2501.787223] gspca_main: usb_submit_urb() ret -1
-> [ 2501.789217] gspca_zc3xx 3-9.3.2:1.0: urb status: -2
-> [ 2501.789222] gspca_main: usb_submit_urb() ret -1
-> [ 2501.791218] gspca_zc3xx 3-9.3.2:1.0: urb status: -2
-> [ 2501.791223] gspca_main: usb_submit_urb() ret -1
-> [ 2501.791226] gspca_zc3xx 3-9.3.2:1.0: releasing urbs
-> [ 2501.795919] gspca_zc3xx 3-9.3.2:1.0: found int in endpoint: 0x82, buffer_len=8, interval=10
-> [ 2501.870710] gspca_zc3xx 3-9.3.2:1.0: stream off OK
-> 
-> Additionally I noticed that on another PC I could trigger a complete 
-> hard system lockup simply by unplugging the USB camera when a video 
-> capture was ongoing AND while running under Xorg. (For some reason
-> without Xorg there was no hang.)
-> 
-> Also, on the same system another gspca camera (again with this commit) 
-> results in following errors on "clean" disconnect, e.g. plug on/off and no 
-> capture running:
-> 
-> [ 8492.613643] STV06xx 4-2:1.0: URB error -84, resubmitting
-> [ 8492.661638] STV06xx 4-2:1.0: URB error -84, resubmitting
-> [ 8492.709638] STV06xx 4-2:1.0: URB error -84, resubmitting
-> [ 8492.755542] usb 4-2: USB disconnect, device number 3
-> 
-> 
-> While I am no kernel dev, I believe that the changes to the mutex locking 
-> in the aforementioned commit are probably causing some race conditions.
-> 
-> What I think is happening in the first case (urb status errors) is that 
-> when userspace program does ioctl(fd, VIDIOC_STREAMOFF, V4L2_BUF_TYPE_VIDEO_CAPTURE),
-> the kernel goes to gspca_stream_off() and through that to destroy_urbs().
-> 
-> Meanwhile fill_frame() can get called from isoc_irq(), which then results
-> in the failures that spew "urb status: -2" to klog, goto resubmit ->
-> "usb_submit_urb() ret -1"
-> 
-> Sorry if I've forgotten to provide some relevant information,
-> feel free to ask if something is required.
-> 
+Le sam. 16 f=C3=A9vr. 2019 =C3=A0 22:14, Nicolas Dufresne <nicolas@ndufresn=
+e.ca> a =C3=A9crit :
+>
+> Le sam. 16 f=C3=A9vr. 2019 =C3=A0 13:40, Hans Verkuil <hverkuil@xs4all.nl=
+> a =C3=A9crit :
+> >
+> > On 2/16/19 4:42 PM, Nicolas Dufresne wrote:
+> > > Le sam. 16 f=C3=A9vr. 2019 =C3=A0 04:48, Hans Verkuil <hverkuil@xs4al=
+l.nl> a =C3=A9crit :
+> > >>
+> > >> On 2/16/19 10:42 AM, Hans Verkuil wrote:
+> > >>> On 2/16/19 1:16 AM, Tim Harvey wrote:
+> > >>>> Greetings,
+> > >>>>
+> > >>>> What is needed to be able to take advantage of hardware video
+> > >>>> composing capabilities and make them available in something like
+> > >>>> GStreamer?
+> > >>>
+> > >>> Are you talking about what is needed in a driver or what is needed =
+in
+> > >>> gstreamer? Or both?
+> > >>>
+> > >>> In any case, the driver needs to support the V4L2 selection API, sp=
+ecifically
+> > >>> the compose target rectangle for the video capture.
+> > >>
+> > >> I forgot to mention that the driver should allow the compose rectang=
+le to
+> > >> be anywhere within the bounding rectangle as set by S_FMT(CAPTURE).
+> > >>
+> > >> In addition, this also means that the DMA has to be able to do scatt=
+er-gather,
+> > >> which I believe is not the case for the imx m2m hardware.
+> > >
+> > > I believe the 2D blitter can take an arbitrary source rectangle and
+> > > compose it to an arbitrary destination rectangle (a lot of these will
+> > > in fact use Q16 coordinate, allowing for subpixel rectangle, somethin=
+g
+> > > that V4L2 does not support).
+> >
+> > Not entirely true. I think this can be done through the selection API,
+> > although it would require some updating of the spec and perhaps the
+> > introduction of a field or flag. The original VIDIOC_CROPCAP and VIDIOC=
+_CROP
+> > ioctls actually could do this since with analog video (e.g. S-Video) yo=
+u
+> > did not really have the concept of a 'pixel'. It's an analog waveform a=
+fter
+> > all. In principle the selection API works in the same way, even though =
+the
+> > documentation always assumes that the selection rectangles map directly=
+ on
+> > the digitized pixels. I'm not sure if there are still drivers that repo=
+rt
+> > different crop bounds in CROPCAP compared to actual number of digitized=
+ pixels.
+> > The bttv driver is most likely to do that, but I haven't checked.
+> >
+> > Doing so made it very hard to understand, though.
+> >
+> >  I don't think this driver exist in any
+> > > form upstream on IMX side. The Rockchip dev tried to get one in
+> > > recently, but the discussion didn't go so well with  the rejection of
+> > > the proposed porter duff controls was probably devoting, as picking
+> > > the right blending algorithm is the basic of such driver.
+> >
+> > I tried to find the reason why the Porter Duff control was dropped in v=
+8
+> > of the rockchip RGA patch series back in 2017.
+> >
+> > I can't find any discussion about it on the mailinglist, so perhaps it
+> > was discussed on irc.
+> >
+> > Do you remember why it was removed?
+>
+> I'll try and retrace what happened, it was not a nack, and I realize
+> that "rejection" wasn't the right word, but if I remember, the focus
+> in the review went fully around this and the fact that it was doing
+> blending which such API, while the original intention with the driver
+> was to have CSC, so removing this was basically a way forward.
+>
+> >
+> > >
+> > > I believe a better approach for upstreaming such driver would be to
+> > > write an M2M spec specific to that type of m2m drivers. That spec
+> > > would cover scalers and rotators, since unlike the IPUv3 (which I
+> > > believe you are referring too) a lot of the CSC and Scaler are
+> > > blitters.
+> >
+> > No, I was referring to the imx m2m driver that Phillip is working on.
+>
+> I'll need  to check what driver Veolab was using, but if it's the
+> same, then maybe it only do source-over operations using SELECTION as
+> you described. If I remember their use case, they where doing simple
+> source-over blending of two video feeds.
+>
+> Could it be this ?
+> https://gitlab.com/veo-labs/linux/tree/veobox/drivers/staging/media/imx6/=
+m2m
+> Is it an ancester of Philipp's driver ?
 
-Which kernel version are you using?
+That's right. It is quite an old kernel, and I am confident it never
+has been updated.
+But the compositor based on this element is working fine.
+I am not Veo-Labs anymore, but Sebastien in cc is, so if you want to
+take the source code of the gstreamer elements created for the
+occasion and give it a try, don't hesitate to get him in copy :).
 
-I got other, similar reports as well and I plan to look at it next week.
+This plugin should be upstreamable and as Nicolas said, it is not
+i.MX6 related, but v4l2 m2m related. So it should be working with
+every m2m element which has the SELECTION ops supported.
+And it was tested with the basic v4l2m2m driver on a x86 laptop just
+to validate the concept before getting it on an i.MX6.
 
-Regards,
-
-	Hans
+Good luck !
+JM
