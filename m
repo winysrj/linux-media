@@ -5,140 +5,92 @@ X-Spam-Level:
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E09AEC43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 04:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 303B3C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 05:35:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B834F217D9
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 04:58:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03BD1217D7
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 05:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726420AbfBSE6W (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Feb 2019 23:58:22 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54527 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725730AbfBSE6W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Feb 2019 23:58:22 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:64f3:95e7:8afb:8534])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id vxU3gVpm7I8AWvxU4gEBnb; Tue, 19 Feb 2019 05:58:20 +0100
-Message-ID: <e29bcbba84742cbdbe10782382493e7e@smtp-cloud9.xs4all.net>
-Date:   Tue, 19 Feb 2019 05:58:19 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+        id S1725767AbfBSFfQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Feb 2019 00:35:16 -0500
+Received: from tnsp.org ([94.237.36.134]:35852 "EHLO pet8032.tnsp.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725730AbfBSFfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Feb 2019 00:35:16 -0500
+X-Greylist: delayed 307 seconds by postgrey-1.27 at vger.kernel.org; Tue, 19 Feb 2019 00:35:15 EST
+Received: by pet8032.tnsp.org (Postfix, from userid 1000)
+        id 7C6A819690B; Tue, 19 Feb 2019 07:30:07 +0200 (EET)
+Received: from localhost (localhost [127.0.0.1])
+        by pet8032.tnsp.org (Postfix) with ESMTP id 0DCFE19690A;
+        Tue, 19 Feb 2019 07:30:07 +0200 (EET)
+Date:   Tue, 19 Feb 2019 07:30:07 +0200 (EET)
+From:   =?ISO-8859-15?Q?Matti_H=E4m=E4l=E4inen?= <ccr@tnsp.org>
 To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfIIYhHOMnDiGwuWoCXyJGGM0k2WEvuEKB/F/8UoLrVA6VfUCw3NtYT042dwaXRbEa+Kv7EjtvrXmWq6NctN2ZFG2JPK4MmprdF3uFWyOqbXMrgZKqAAm
- +agdgjd/jeZeogZfC45Xkds0bAKfd2h/NoaaYqlICWdVpiBBwmW76dGBjvnD4RWhu9RDn2gQk5p0U7givR4THQDNhpc2x1svOzw1l71VHuEdiInMPBbc8Tfh
+cc:     hverkuil@xs4all.nl
+Subject: [BUG] Regression caused by "media: gspca: convert to vb2"
+Message-ID: <alpine.DEB.2.20.1902190711130.21189@tnsp.org>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+Hello!
 
-date:			Tue Feb 19 05:00:11 CET 2019
-media-tree git hash:	b3c786566d8f3f69b9f4144c2707db74158caf9a
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	647e6bcbe891e98b2df528246ae6f6d181209d03
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Last week while testing some webcams that use gspca-based v4l2 drivers, I 
+noticed that the driver was spewing some errors in klog whenever the 
+program using them issued VIDIOC_STREAMOFF ioctl. This seems to be a
+regression caused by commit 1f5965c4dfd7665f2914a1f1095dcc6020656b04
+"media: gspca: convert to vb2" in the mainline kernel.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: ERRORS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: ERRORS
-Check COMPILE_TEST: WARNINGS: SOC_CAMERA_MT9T031 SOC_CAMERA SOC_CAMERA_MT9M111 SOC_CAMERA_MT9V022 SOC_CAMERA_OV5642 SOC_CAMERA_OV9740 SOC_CAMERA_IMX074 SOC_CAMERA_MT9T031
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1862, Succeeded: 1862, Failed: 0, Warnings: 13
-sparse: ERRORS
-smatch: ERRORS
+The errors were as follows (with gspca_main debug=3):
+[ 2497.147902] gspca_zc3xx 3-9.3.2:1.0: isoc 32 pkts size 768 = bsize:24576
+[ 2498.194657] gspca_zc3xx 3-9.3.2:1.0: probe 2wr ov vga 0x0000
+[ 2499.602538] gspca_zc3xx 3-9.3.2:1.0: found int in endpoint: 0x82, buffer_len=8, interval=10
+[ 2501.785244] gspca_zc3xx 3-9.3.2:1.0: kill transfer
+[ 2501.787218] gspca_zc3xx 3-9.3.2:1.0: urb status: -2
+[ 2501.787223] gspca_main: usb_submit_urb() ret -1
+[ 2501.789217] gspca_zc3xx 3-9.3.2:1.0: urb status: -2
+[ 2501.789222] gspca_main: usb_submit_urb() ret -1
+[ 2501.791218] gspca_zc3xx 3-9.3.2:1.0: urb status: -2
+[ 2501.791223] gspca_main: usb_submit_urb() ret -1
+[ 2501.791226] gspca_zc3xx 3-9.3.2:1.0: releasing urbs
+[ 2501.795919] gspca_zc3xx 3-9.3.2:1.0: found int in endpoint: 0x82, buffer_len=8, interval=10
+[ 2501.870710] gspca_zc3xx 3-9.3.2:1.0: stream off OK
 
-Detailed results are available here:
+Additionally I noticed that on another PC I could trigger a complete 
+hard system lockup simply by unplugging the USB camera when a video 
+capture was ongoing AND while running under Xorg. (For some reason
+without Xorg there was no hang.)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Also, on the same system another gspca camera (again with this commit) 
+results in following errors on "clean" disconnect, e.g. plug on/off and no 
+capture running:
 
-Full logs are available here:
+[ 8492.613643] STV06xx 4-2:1.0: URB error -84, resubmitting
+[ 8492.661638] STV06xx 4-2:1.0: URB error -84, resubmitting
+[ 8492.709638] STV06xx 4-2:1.0: URB error -84, resubmitting
+[ 8492.755542] usb 4-2: USB disconnect, device number 3
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
+While I am no kernel dev, I believe that the changes to the mutex locking 
+in the aforementioned commit are probably causing some race conditions.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+What I think is happening in the first case (urb status errors) is that 
+when userspace program does ioctl(fd, VIDIOC_STREAMOFF, V4L2_BUF_TYPE_VIDEO_CAPTURE),
+the kernel goes to gspca_stream_off() and through that to destroy_urbs().
+
+Meanwhile fill_frame() can get called from isoc_irq(), which then results
+in the failures that spew "urb status: -2" to klog, goto resubmit ->
+"usb_submit_urb() ret -1"
+
+Sorry if I've forgotten to provide some relevant information,
+feel free to ask if something is required.
+
+-- 
+] ccr/TNSP ^ pWp  ::  ccr@tnsp.org  ::  https://tnsp.org/~ccr/
+] https://tnsp.org/hg/ -- https://www.openhub.net/accounts/ccr
+] PGP key: 7BED 62DE 898D D1A4 FC4A  F392 B705 E735 307B AAE3
