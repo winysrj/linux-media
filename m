@@ -6,75 +6,73 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B3D0C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B95BBC10F00
 	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 09:58:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DCB062146F
-	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 09:58:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93BFF2146F
+	for <linux-media@archiver.kernel.org>; Tue, 19 Feb 2019 09:58:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726763AbfBSJ6N (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1726977AbfBSJ6N (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Tue, 19 Feb 2019 04:58:13 -0500
-Received: from gofer.mess.org ([88.97.38.141]:50257 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:58401 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726385AbfBSJ6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1726289AbfBSJ6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Tue, 19 Feb 2019 04:58:13 -0500
 Received: by gofer.mess.org (Postfix, from userid 1000)
-        id 8822460366; Tue, 19 Feb 2019 09:58:11 +0000 (GMT)
+        id BF6F260370; Tue, 19 Feb 2019 09:58:11 +0000 (GMT)
 From:   Sean Young <sean@mess.org>
 To:     linux-media@vger.kernel.org
-Subject: [PATCH v4l-utils 1/2] ir-ctl/keytable: add see also to reference to man pages
-Date:   Tue, 19 Feb 2019 09:58:10 +0000
-Message-Id: <20190219095811.31946-1-sean@mess.org>
+Subject: [PATCH v4l-utils 2/2] rc-mm protocol support
+Date:   Tue, 19 Feb 2019 09:58:11 +0000
+Message-Id: <20190219095811.31946-2-sean@mess.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190219095811.31946-1-sean@mess.org>
+References: <20190219095811.31946-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add hint to how you can start to figure out what protocol a remote
-uses.
-
 Signed-off-by: Sean Young <sean@mess.org>
 ---
- utils/ir-ctl/ir-ctl.1.in        | 3 +++
- utils/keytable/ir-keytable.1.in | 9 +++++++++
- 2 files changed, 12 insertions(+)
+ utils/common/ir-encode.c  | 3 +++
+ utils/keytable/keytable.c | 2 ++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/utils/ir-ctl/ir-ctl.1.in b/utils/ir-ctl/ir-ctl.1.in
-index 226bf606..f6192dab 100644
---- a/utils/ir-ctl/ir-ctl.1.in
-+++ b/utils/ir-ctl/ir-ctl.1.in
-@@ -233,3 +233,6 @@ License GPLv2: GNU GPL version 2 <http://gnu.org/licenses/gpl.html>.
- .br
- This is free software: you are free to change and redistribute it.
- There is NO WARRANTY, to the extent permitted by law.
-+.SH SEE ALSO
-+To display decoded IR, or set IR decoding options, use
-+ir\-keytable(1).
-diff --git a/utils/keytable/ir-keytable.1.in b/utils/keytable/ir-keytable.1.in
-index c8ff722e..e7fd7760 100644
---- a/utils/keytable/ir-keytable.1.in
-+++ b/utils/keytable/ir-keytable.1.in
-@@ -118,6 +118,13 @@ To read the current keytable, on the second remote controller:
- To enable NEC protocol and load a BPF protocol, with a parameter for the BPF protocol:
- .br
- 	\fBir\-keytable \-p nec,pulse_distance \-e pulse_header=9000
-+.PP
-+If you do not know what protocol a remote uses, it can be helpful to first
-+try with all kernel decoders enabled. The decoded protocol and scancodes
-+will be displayed in the output:
-+.br
-+	\fBir\-keytable \-c \-p all \-t\fR
-+
- .SH BUGS
- Report bugs to \fBLinux Media Mailing List <linux-media@vger.kernel.org>\fR
- .SH COPYRIGHT
-@@ -127,3 +134,5 @@ License GPLv2: GNU GPL version 2 <http://gnu.org/licenses/gpl.html>.
- .br
- This is free software: you are free to change and redistribute it.
- There is NO WARRANTY, to the extent permitted by law.
-+.SH SEE ALSO
-+To transmit IR or receive raw IR, use ir\-ctl(1).
+diff --git a/utils/common/ir-encode.c b/utils/common/ir-encode.c
+index ccc75032..4bd1b694 100644
+--- a/utils/common/ir-encode.c
++++ b/utils/common/ir-encode.c
+@@ -372,6 +372,9 @@ static const struct {
+ 	[RC_PROTO_XMP] = { "xmp" },
+ 	[RC_PROTO_CEC] = { "cec" },
+ 	[RC_PROTO_IMON] = { "imon", 0x7fffffff },
++	[RC_PROTO_RCMM12] = { "rc-mm-12", 0x0fff },
++	[RC_PROTO_RCMM24] = { "rc-mm-24", 0xffffff },
++	[RC_PROTO_RCMM32] = { "rc-mm-32", 0xffffffff },
+ };
+ 
+ static bool str_like(const char *a, const char *b)
+diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
+index 0aceb015..0726e5fd 100644
+--- a/utils/keytable/keytable.c
++++ b/utils/keytable/keytable.c
+@@ -127,6 +127,7 @@ enum sysfs_protocols {
+ 	SYSFS_XMP		= (1 << 12),
+ 	SYSFS_CEC		= (1 << 13),
+ 	SYSFS_IMON		= (1 << 14),
++	SYSFS_RCMM		= (1 << 15),
+ 	SYSFS_INVALID		= 0,
+ };
+ 
+@@ -161,6 +162,7 @@ const struct protocol_map_entry protocol_map[] = {
+ 	{ "xmp",	"/xmp_decoder",	SYSFS_XMP	},
+ 	{ "cec",	NULL,		SYSFS_CEC	},
+ 	{ "imon",	NULL,		SYSFS_IMON	},
++	{ "rc-mm",	NULL,		SYSFS_RCMM	},
+ 	{ NULL,		NULL,		SYSFS_INVALID	},
+ };
+ 
 -- 
 2.20.1
 
