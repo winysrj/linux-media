@@ -2,180 +2,201 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1478CC43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 11:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACAE3C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 12:21:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CFC94206B7
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 11:26:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fEFX/Izq"
+	by mail.kernel.org (Postfix) with ESMTP id 7E0B72147A
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 12:21:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727352AbfBTL0s (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 06:26:48 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:39269 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726347AbfBTL0s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 06:26:48 -0500
-Received: by mail-wr1-f67.google.com with SMTP id l5so24444098wrw.6;
-        Wed, 20 Feb 2019 03:26:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=references:user-agent:from:to:cc:subject:in-reply-to:date
-         :message-id:mime-version;
-        bh=ewMAyHFgxegsNn8WJ7dm4gQ67b4uTuabOcJHl6cUDf4=;
-        b=fEFX/IzqwgPCi82p9xBdYypdx4rDrslSD8YTyWemO/fovVk8dYU3g+P/DTiV/GSWld
-         cWjj1FhbFh8OylfXH5PrHIIWlsrokZxtdUA+oBz0LxLfGST2n/46Jb1UqlOMzjNVi+aJ
-         DngOERlP9ufeiSEuz9mBxJn4d8RL/CXktxJY0czbnu7xobjFG+MzXz5HId+U+HqVpk9v
-         Sk96+jyzyDh5JLMQw1PLtdObzmMQJsxRWIorMlrG5hUTIFN45KF2tFExl6zAnFwGMnkE
-         jpsVk8Db1YQk4BH7QdYD4lpjafV7s/QxdFtfpSzM1jPlifh3KQvA7Yigmcm6lwqkYjOx
-         Djhw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:references:user-agent:from:to:cc:subject
-         :in-reply-to:date:message-id:mime-version;
-        bh=ewMAyHFgxegsNn8WJ7dm4gQ67b4uTuabOcJHl6cUDf4=;
-        b=BLiVpbp+j8Tb6pyjg4aBe3D3YqO3VOm2TaqiHAZnZFvuxyfzJNe+DVGbX8ikJWZjLO
-         6a96GAt/T+OFkNIRbqBRUPGncWbffyKVSI1UoXRR9ZFyQ/sYptjTrFKWOMaeURG/8w54
-         TIDBSbtd/l5+jNf6Q0K5QL6BA1H3GerUCj1rGldC1KKMIh5mWjG4A3wJFBY7G4O1gnKP
-         rJf+b/B4XBhVcZ+aKQwoP1HjmQFYPPQeNqhjhvj8yWsits0Y960HDJ5GlABu6UhdADhA
-         aCC311ie3E/Yijkgw+TCI/8PJYcvxpM2TDkhrNnOgG+juE/HUi/VDLcpG5XQkIq+psda
-         7GDA==
-X-Gm-Message-State: AHQUAuYeOZEAlv2/fppfujGp7/Ie6W0k9XL46a3VbicKoRqVv8IVhKph
-        WFskAh/jbeuAregEIY3FlWhDSDjKlsKpAw==
-X-Google-Smtp-Source: AHgI3IadDJJ/+Ii+rKJMv36mT28Ybb0PXDfKLAVufABI4GBa7+GBh9kQYnhzLRjIG6nMiwqAPlEXMQ==
-X-Received: by 2002:adf:b601:: with SMTP id f1mr10602010wre.158.1550662005926;
-        Wed, 20 Feb 2019 03:26:45 -0800 (PST)
-Received: from arch-late ([87.196.73.87])
-        by smtp.gmail.com with ESMTPSA id b4sm8608716wmj.3.2019.02.20.03.26.43
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 20 Feb 2019 03:26:45 -0800 (PST)
-References: <20190206151328.21629-1-rui.silva@linaro.org> <20190206151328.21629-6-rui.silva@linaro.org> <6c6c0e29-d65b-3796-578c-2e3e6f742d11@xs4all.nl>
-User-agent: mu4e 1.0; emacs 27.0.50
-From:   Rui Miguel Silva <rmfrfs@gmail.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v14 05/13] media: staging/imx7: add MIPI CSI-2 receiver subdev for i.MX7
-In-reply-to: <6c6c0e29-d65b-3796-578c-2e3e6f742d11@xs4all.nl>
-Date:   Wed, 20 Feb 2019 11:26:42 +0000
-Message-ID: <m35zteu2dp.fsf@gmail.com>
+        id S1726668AbfBTMVO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 07:21:14 -0500
+Received: from mga02.intel.com ([134.134.136.20]:44810 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726209AbfBTMVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Feb 2019 07:21:14 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Feb 2019 04:21:13 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,390,1544515200"; 
+   d="scan'208";a="145787256"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga004.fm.intel.com with ESMTP; 20 Feb 2019 04:21:12 -0800
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1gwQsB-000Cyf-KL; Wed, 20 Feb 2019 20:21:11 +0800
+Date:   Wed, 20 Feb 2019 20:21:10 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree] BUILD SUCCESS
+ 9fabe1d108ca4755a880de43f751f1c054f8894d
+Message-ID: <5c6d4636.e1OMSSYjb4Hi6yMy%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Hans,
-On Wed 20 Feb 2019 at 08:56, Hans Verkuil wrote:
-> On 2/6/19 4:13 PM, Rui Miguel Silva wrote:
->> Adds MIPI CSI-2 subdev for i.MX7 to connect with sensors with a 
->> MIPI
->> CSI-2 interface.
->> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  drivers/staging/media/imx/Makefile         |    1 +
->>  drivers/staging/media/imx/imx7-mipi-csis.c | 1186 
->>  ++++++++++++++++++++
->>  2 files changed, 1187 insertions(+)
->>  create mode 100644 drivers/staging/media/imx/imx7-mipi-csis.c
->> 
->> diff --git a/drivers/staging/media/imx/Makefile 
->> b/drivers/staging/media/imx/Makefile
->> index 074f016d3519..d2d909a36239 100644
->> --- a/drivers/staging/media/imx/Makefile
->> +++ b/drivers/staging/media/imx/Makefile
->> @@ -14,3 +14,4 @@ obj-$(CONFIG_VIDEO_IMX_CSI) += 
->> imx-media-csi.o
->>  obj-$(CONFIG_VIDEO_IMX_CSI) += imx6-mipi-csi2.o
->>  
->>  obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-media-csi.o
->> +obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-mipi-csis.o
->> diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c 
->> b/drivers/staging/media/imx/imx7-mipi-csis.c
->> new file mode 100644
->> index 000000000000..516d308dc44b
->> --- /dev/null
->> +++ b/drivers/staging/media/imx/imx7-mipi-csis.c
->> @@ -0,0 +1,1186 @@
->
-> <snip>
->
->> +static int mipi_csi_registered(struct v4l2_subdev *mipi_sd)
->> +{
->> +	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
->> +	unsigned int i;
->> +	int ret;
->> +
->> +	for (i = 0; i < CSIS_PADS_NUM; i++) {
->> +		state->pads[i].flags = (i == CSIS_PAD_SINK) ?
->> +			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
->> +	}
->> +
->> +	/* set a default mbus format  */
->> +	ret = imx_media_init_mbus_fmt(&state->format_mbus,
->> +				      MIPI_CSIS_DEF_PIX_HEIGHT,
->> +				      MIPI_CSIS_DEF_PIX_WIDTH, 0,
->> +				      V4L2_FIELD_NONE, NULL);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return media_entity_pads_init(&mipi_sd->entity, 
->> CSIS_PADS_NUM,
->> +				      state->pads);
->> +}
->> +
->> +static const struct v4l2_subdev_core_ops mipi_csis_core_ops = 
->> {
->> +	.log_status	= mipi_csis_log_status,
->> +};
->> +
->> +static const struct media_entity_operations 
->> mipi_csis_entity_ops = {
->> +	.link_setup	= mipi_csis_link_setup,
->> +	.link_validate	= v4l2_subdev_link_validate,
->> +};
->> +
->> +static const struct v4l2_subdev_video_ops mipi_csis_video_ops 
->> = {
->> +	.s_stream	= mipi_csis_s_stream,
->> +};
->> +
->> +static const struct v4l2_subdev_pad_ops mipi_csis_pad_ops = {
->> +	.init_cfg		= mipi_csis_init_cfg,
->> +	.get_fmt		= mipi_csis_get_fmt,
->> +	.set_fmt		= mipi_csis_set_fmt,
->> +};
->> +
->> +static const struct v4l2_subdev_ops mipi_csis_subdev_ops = {
->> +	.core	= &mipi_csis_core_ops,
->> +	.video	= &mipi_csis_video_ops,
->> +	.pad	= &mipi_csis_pad_ops,
->> +};
->> +
->> +static const struct v4l2_subdev_internal_ops 
->> mipi_csis_internal_ops = {
->> +	.registered = mipi_csi_registered,
->> +};
->
-> This struct is not used, and therefor mipi_csi_registered() is 
-> never called
-> either. Should it be called or can this be removed?
+tree/branch: git://git.ragnatech.se/linux  media-tree
+branch HEAD: 9fabe1d108ca4755a880de43f751f1c054f8894d  media: ipu3-mmu: fix some kernel-doc macros
 
-Good question :), I will get back to you on this one later.
+elapsed time: 383m
+
+configs tested: 140
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+parisc                        c3000_defconfig
+um                                  defconfig
+parisc                         b180_defconfig
+parisc                              defconfig
+alpha                               defconfig
+parisc                            allnoconfig
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+x86_64                 randconfig-x005-201907
+x86_64                 randconfig-x008-201907
+x86_64                 randconfig-x009-201907
+x86_64                 randconfig-x001-201907
+x86_64                 randconfig-x002-201907
+x86_64                 randconfig-x003-201907
+x86_64                 randconfig-x006-201907
+x86_64                 randconfig-x007-201907
+x86_64                 randconfig-x000-201907
+x86_64                 randconfig-x004-201907
+i386                   randconfig-x007-201907
+i386                   randconfig-x000-201907
+i386                   randconfig-x006-201907
+i386                   randconfig-x002-201907
+i386                   randconfig-x001-201907
+i386                   randconfig-x003-201907
+i386                   randconfig-x009-201907
+i386                   randconfig-x008-201907
+i386                   randconfig-x005-201907
+i386                   randconfig-x004-201907
+x86_64                 randconfig-x013-201907
+x86_64                 randconfig-x017-201907
+x86_64                 randconfig-x016-201907
+x86_64                 randconfig-x019-201907
+x86_64                 randconfig-x012-201907
+x86_64                 randconfig-x011-201907
+x86_64                 randconfig-x018-201907
+x86_64                 randconfig-x010-201907
+x86_64                 randconfig-x015-201907
+x86_64                 randconfig-x014-201907
+arm                       omap2plus_defconfig
+arm                              allmodconfig
+arm                        mvebu_v7_defconfig
+arm                          ixp4xx_defconfig
+arm                       imx_v6_v7_defconfig
+arm64                            allmodconfig
+arm                           tegra_defconfig
+arm64                            alldefconfig
+i386                     randconfig-a2-201907
+i386                     randconfig-a3-201907
+i386                     randconfig-a0-201907
+i386                     randconfig-a1-201907
+i386                              allnoconfig
+i386                                defconfig
+i386                             alldefconfig
+m68k                           sun3_defconfig
+m68k                          multi_defconfig
+m68k                       m5475evb_defconfig
+m68k                             allmodconfig
+i386                     randconfig-s0-201907
+i386                     randconfig-s1-201907
+i386                     randconfig-s2-201907
+i386                     randconfig-s3-201907
+x86_64                           allmodconfig
+i386                             allmodconfig
+x86_64                                    lkp
+x86_64                                   rhel
+x86_64                               rhel-7.2
+riscv                              tinyconfig
+i386                               tinyconfig
+powerpc                             defconfig
+s390                        default_defconfig
+powerpc                       ppc64_defconfig
+powerpc                           allnoconfig
+sh                               allmodconfig
+sh                            titan_defconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                                allnoconfig
+openrisc                    or1ksim_defconfig
+um                           x86_64_defconfig
+um                             i386_defconfig
+nds32                               defconfig
+nds32                             allnoconfig
+sparc64                          allmodconfig
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+c6x                        evmc6678_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+nios2                         10m50_defconfig
+h8300                    h8300h-sim_defconfig
+mips                             allmodconfig
+mips                      malta_kvm_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+i386                     randconfig-m0-201907
+x86_64                   randconfig-m0-201907
+i386                     randconfig-m1-201907
+x86_64                   randconfig-m3-201907
+x86_64                   randconfig-m1-201907
+i386                     randconfig-m2-201907
+i386                     randconfig-m3-201907
+x86_64                   randconfig-m2-201907
+riscv                             allnoconfig
+riscv                               defconfig
+ia64                             allmodconfig
+ia64                              allnoconfig
+ia64                                defconfig
+ia64                             alldefconfig
+i386                     randconfig-l3-201907
+x86_64                   randconfig-l0-201907
+i386                     randconfig-l2-201907
+x86_64                   randconfig-l2-201907
+x86_64                   randconfig-l1-201907
+x86_64                   randconfig-l3-201907
+i386                     randconfig-l1-201907
+i386                     randconfig-l0-201907
+i386                   randconfig-x019-201907
+i386                   randconfig-x015-201907
+i386                   randconfig-x016-201907
+i386                   randconfig-x014-201907
+i386                   randconfig-x012-201907
+i386                   randconfig-x013-201907
+i386                   randconfig-x010-201907
+i386                   randconfig-x018-201907
+i386                   randconfig-x017-201907
+i386                   randconfig-x011-201907
+x86_64                                  kexec
+x86_64                         rhel-7.2-clear
+x86_64                              fedora-25
+i386                   randconfig-x072-201907
+i386                   randconfig-x079-201907
+i386                   randconfig-x075-201907
+i386                   randconfig-x073-201907
+i386                   randconfig-x077-201907
+i386                   randconfig-x078-201907
+i386                   randconfig-x074-201907
+i386                   randconfig-x076-201907
+i386                   randconfig-x070-201907
+i386                   randconfig-x071-201907
 
 ---
-Cheers,
-	Rui
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
