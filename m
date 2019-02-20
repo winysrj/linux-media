@@ -2,126 +2,91 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,UNWANTED_LANGUAGE_BODY autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FC60C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 21:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F9E9C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 23:53:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57A002086C
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 21:36:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3FBB2063F
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 23:53:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="stXQGQYU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726886AbfBTVgQ convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 16:36:16 -0500
-Received: from relayout02-q01.e.movistar.es ([86.109.101.151]:64721 "EHLO
-        relayout02-q01.e.movistar.es" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726070AbfBTVgP (ORCPT
+        id S1726090AbfBTXxk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 18:53:40 -0500
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:35903 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725989AbfBTXxk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 16:36:15 -0500
-Received: from relayout02-redir.e.movistar.es (relayout02-redir.e.movistar.es [86.109.101.202])
-        by relayout02-out.e.movistar.es (Postfix) with ESMTP id 444WBQ1fwNzhYNB;
-        Wed, 20 Feb 2019 22:36:14 +0100 (CET)
-Received: from [192.168.0.161] (static-146-187-224-77.ipcom.comunitel.net [77.224.187.146])
-        (Authenticated sender: jareguero@telefonica.net)
-        by relayout02.e.movistar.es (Postfix) with ESMTPA id 444WBP1rSVzdZTC;
-        Wed, 20 Feb 2019 22:36:13 +0100 (CET)
-Date:   Wed, 20 Feb 2019 22:36:16 +0100
-User-Agent: K-9 Mail for Android
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Subject: [PATCH V2 2/2] Add suport for Avermedia TD310
-To:     Linux media <linux-media@vger.kernel.org>,
-        Sean Young <sean@mess.org>, Antti Palosaari <crope@iki.fi>,
-        jose.alberto.reguero@gmail.com
-From:   Jose Alberto Reguero <jareguero@telefonica.net>
-Message-ID: <97905686-6FE3-4EFE-9B1B-B137631FBAD3@telefonica.net>
-X-CTCH-Score: 0.000
-X-CTCH-ScoreCust: 0.000
-X-TnetOut-Country: IP: 77.224.187.146 | Country: ES
-X-TnetOut-Information: AntiSPAM and AntiVIRUS on relayout02
-X-TnetOut-MsgID: 444WBP1rSVzdZTC.A912B
-X-TnetOut-SpamCheck: no es spam, Unknown
-X-TnetOut-From: jareguero@telefonica.net
-X-TnetOut-Watermark: 1551303374.11288@b77kPQxJEJuQNhR15+ftYw
+        Wed, 20 Feb 2019 18:53:40 -0500
+Received: by mail-pg1-f194.google.com with SMTP id r124so12748211pgr.3
+        for <linux-media@vger.kernel.org>; Wed, 20 Feb 2019 15:53:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=ur4wYPpJ1zk/Fr8RVPBVz+/pvvNU8GXUBVknjIi/v7I=;
+        b=stXQGQYULieauKVB+aAOu+ArTyJIXMOJyBxRK2TBgAncu1og2n6vbP7EdWEAtNUM+M
+         yPBWRUSQ2slSYAiRMPRfl9Qj7Q6ALvEFEo22/s4Bb9gcBPdfG4Yd7A7Rsi0603hpwO9a
+         8RHK54OAuVOF3dX0ckktHrRDx53/UfRW8v/PHZd+2UKUqO5Ws2R9BxohM3gjqTVg2mL1
+         RJr5L400ZAlmvDyACw8IbqTS0NR3d+/+7edIG/vmRU9i7669RigKk5ZH9V9PNEnUjb8g
+         qNwLWa2Xmnd/WMsWZw+8tdouNECU1YgL1ZXcy720kSQjR4xVM+UWroYHevvu0NY6chOC
+         mN6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=ur4wYPpJ1zk/Fr8RVPBVz+/pvvNU8GXUBVknjIi/v7I=;
+        b=rvzw5D6kbFmilv9pSfHvTPurIKvpiEj0AwZydQejvGjLjb5w9p3W6UbcmnTBZom60P
+         EQ0O9k9kUMv/7Yeefl9CrwUqrpYAEls1ildVyiiSykDni/I6ruaJVgzjjl1mQL5YpnuZ
+         OmBJgTrm/u8fS9NVys1CpA+C74sdTfkqu3r0jtRoLDoAe3TqJFPr/joDkKUcTxeMHsCX
+         622kaA23J1+ltOiak2Hwqfao1mAe/Pcd5QEKuFRSnEV855h3xP1sRFKaFj3LpRCMpUvI
+         ZezVcvoKXXF1lQicPhUky9Ui89moaUgptJGsknj1ck0bQGsvP4TXOdJ5jwoTUhZeU5w1
+         xGGQ==
+X-Gm-Message-State: AHQUAubHSWv8p7tL7+jKulfGHyAOn1o1/DRPltOcOGI0amckZqq9rV6I
+        fDscVL6XPP7GJMdx0DNVEFayQDUR
+X-Google-Smtp-Source: AHgI3Iap1nqAEEVz6/3OMzyInPX9pDu9gqc5x0deBThZjA4NNuw/i65I6NsNOWVYNOnCZNt9BOFEww==
+X-Received: by 2002:a63:cc03:: with SMTP id x3mr9222697pgf.121.1550706818938;
+        Wed, 20 Feb 2019 15:53:38 -0800 (PST)
+Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
+        by smtp.googlemail.com with ESMTPSA id v15sm25530158pgf.75.2019.02.20.15.53.37
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 20 Feb 2019 15:53:37 -0800 (PST)
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>
+Subject: [PATCH v2 0/4] media: imx: Various fixes for i.MX5 support
+Date:   Wed, 20 Feb 2019 15:53:28 -0800
+Message-Id: <20190220235332.15984-1-slongerbeam@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This patch add support for Avermedia TD310 usb stik. 
+Some fixes and improvements to support video capture on i.MX5.
 
-Signed-off-by: Jose Alberto Reguero <jose.alberto.reguero@gmail.com> 
+History:
+v2:
+- Rebased with merge of imx7 capture patches.
 
-diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
---- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2019-02-20 16:54:24.121847069 +0100
-+++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2019-02-20 16:53:50.148848459 +0100
-@@ -1215,6 +1215,7 @@ static int it930x_frontend_attach(struct
- 	int ret;
- 	struct si2168_config si2168_config;
- 	struct i2c_adapter *adapter;
-+	u8 i2c_addr;
- 
- 	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
- 
-@@ -1267,7 +1268,11 @@ static int it930x_frontend_attach(struct
- 
- 	state->af9033_config[adap->id].fe = &adap->fe[0];
- 	state->af9033_config[adap->id].ops = &state->ops;
--	ret = af9035_add_i2c_dev(d, "si2168", 0x67, &si2168_config,
-+	i2c_addr = 0x67;
-+	if ((le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA) &&
-+			(le16_to_cpu(d->udev->descriptor.idProduct) == USB_PID_AVERMEDIA_TD310))
-+		i2c_addr = 0x64;
-+	ret = af9035_add_i2c_dev(d, "si2168", i2c_addr, &si2168_config,
- 				&d->i2c_adap);
- 	if (ret)
- 		goto err;
-@@ -1614,13 +1619,20 @@ static int it930x_tuner_attach(struct dv
- 	struct usb_interface *intf = d->intf;
- 	int ret;
- 	struct si2157_config si2157_config;
-+	u8 i2c_addr;
- 
- 	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
- 
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe[0];
- 	si2157_config.if_port = 1;
--	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
-+	i2c_addr = 0x63;
-+	if ((le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA) &&
-+			(le16_to_cpu(d->udev->descriptor.idProduct) == USB_PID_AVERMEDIA_TD310)) {
-+		i2c_addr = 0x60;
-+		si2157_config.if_port = 0;
-+	}
-+	ret = af9035_add_i2c_dev(d, "si2157", i2c_addr,
- 			&si2157_config, state->i2c_adapter_demod);
- 
- 	if (ret)
-@@ -2128,6 +2140,8 @@ static const struct usb_device_id af9035
- 	/* IT930x devices */
- 	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
- 		&it930x_props, "ITE 9303 Generic", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TD310,
-+		&it930x_props, "AVerMedia TD310 DVB-T2", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, af9035_id_table);
-diff -upr linux/include/media/dvb-usb-ids.h linux.new/include/media/dvb-usb-ids.h
---- linux/include/media/dvb-usb-ids.h	2018-05-05 07:40:18.000000000 +0200
-+++ linux.new/include/media/dvb-usb-ids.h	2019-02-20 16:53:50.149848459 +0100
-@@ -258,6 +258,7 @@
- #define USB_PID_AVERMEDIA_A867				0xa867
- #define USB_PID_AVERMEDIA_H335				0x0335
- #define USB_PID_AVERMEDIA_TD110				0xa110
-+#define USB_PID_AVERMEDIA_TD310				0x1871
- #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
- #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
- #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+Steve Longerbeam (4):
+  media: imx: csi: Allow unknown nearest upstream entities
+  media: imx: Clear fwnode link struct for each endpoint iteration
+  media: imx: Rename functions that add IPU-internal subdevs
+  media: imx: Don't register IPU subdevs/links if CSI port missing
+
+ drivers/staging/media/imx/imx-ic-common.c     |  2 +-
+ drivers/staging/media/imx/imx-media-csi.c     | 18 ++++-
+ drivers/staging/media/imx/imx-media-dev.c     | 11 +--
+ .../staging/media/imx/imx-media-internal-sd.c | 32 +++-----
+ drivers/staging/media/imx/imx-media-of.c      | 73 ++++++++++++-------
+ drivers/staging/media/imx/imx-media-vdic.c    |  2 +-
+ drivers/staging/media/imx/imx-media.h         |  7 +-
+ drivers/staging/media/imx/imx7-media-csi.c    |  2 +-
+ 8 files changed, 80 insertions(+), 67 deletions(-)
 
 -- 
-Enviado desde mi dispositivo Android con K-9 Mail. Por favor, disculpa mi brevedad.
+2.17.1
+
