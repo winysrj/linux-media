@@ -2,233 +2,180 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B1B3C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 08:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3809C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 08:39:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CBB4F20700
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 08:12:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A53F20859
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 08:39:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725804AbfBTIM0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 03:12:26 -0500
-Received: from mout.gmx.net ([212.227.15.18]:53761 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725849AbfBTIMZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 03:12:25 -0500
-Received: from axis700.grange ([87.78.226.14]) by mail.gmx.com (mrgmx003
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0LxgM7-1h7tBw4Aax-017HGj; Wed, 20
- Feb 2019 09:12:20 +0100
-Received: by axis700.grange (Postfix, from userid 1000)
-        id CDF2F61CCF; Wed, 20 Feb 2019 09:12:17 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by axis700.grange (Postfix) with ESMTP id B1C8561C80;
-        Wed, 20 Feb 2019 09:12:17 +0100 (CET)
-Date:   Wed, 20 Feb 2019 09:12:17 +0100 (CET)
-From:   Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-X-X-Sender: lyakh@axis700.grange
-To:     =?ISO-8859-15?Q?Moritz_D=F6tterl?= 
-        <moritz.doetterl@pentlandfirth.com>
-cc:     "linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>,
-        "kieran.bingham@ideasonboard.com" <kieran.bingham@ideasonboard.com>,
+        id S1726124AbfBTIjV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 03:39:21 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:50316 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725885AbfBTIjU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Feb 2019 03:39:20 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id wNPNgq6JRLMwIwNPRgsycX; Wed, 20 Feb 2019 09:39:18 +0100
+Subject: Re: [PATCH 01/10] media: Introduce helpers to fill pixel format
+ structs
+To:     Tomasz Figa <tfiga@chromium.org>
+Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [linux-uvc-devel] metadata device file
-In-Reply-To: <AM0PR10MB2788437E98A6CFB2780A7026F07D0@AM0PR10MB2788.EURPRD10.PROD.OUTLOOK.COM>
-Message-ID: <alpine.DEB.2.20.1902200908540.16595@axis700.grange>
-References: <d6a7d5e54acd4cb6b71eacf0724a92e4AM0PR10MB2788C3DEE0DF6144DAFA6FA1F0600@AM0PR10MB2788.EURPRD10.PROD.OUTLOOK.COM>,<d7b02766-b920-8cf7-9db8-275dfc22851c@ideasonboard.com>
- <AM0PR10MB2788437E98A6CFB2780A7026F07D0@AM0PR10MB2788.EURPRD10.PROD.OUTLOOK.COM>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Jonas Karlman <jonas@kwiboo.se>
+References: <20190205202417.16555-1-ezequiel@collabora.com>
+ <20190205202417.16555-2-ezequiel@collabora.com>
+ <79ad7cf7-90d5-9542-06ea-e28ddeb14e94@xs4all.nl>
+ <85ff24016b4d4b55a1a02f1aee6b42dbbaf2279a.camel@collabora.com>
+ <d1ea8698-e4c6-a826-0820-b8395c8c2a6f@xs4all.nl>
+ <CAAFQd5DLTOJ0kheFdxzTV7Hrtc5MpG4Utn00HgNh06d+h_qJfQ@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ea53ac3d-a337-d725-3317-1cef42481820@xs4all.nl>
+Date:   Wed, 20 Feb 2019 09:39:13 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-X-Provags-ID: V03:K1:ILDQT2vmOYFG/Y3SwgnzlrAX4v1KYoiPGMvX0F3pyUBZoe5Pa1K
- jPPu4jC6+lJ0t6tHlApbnwcpXA0QBRXr0yWiDTcE2Sfw3G5rXa7XNop+dGikZe/lymQVQjc
- 19XjXwuWNvIJJru4pzgQ4145W55TzX/oBEMXA5xEcpjP6Ld3Y0dRmWaj309f2a23h2S3lFJ
- TVELZ/K3nGOjrqcVmLCUg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:BwElpfsER48=:X3Url8ykdIjAm5MY1mkq93
- ESFcX7v1xR3wCNvKXGqOKIgykBSWG0lO7b1cgBMEBw05ViL+YDe1MOpmbr5qx/5PX0K2y2/uJ
- 0eiYq+vb80coK7b8VhxnIE7BQdECnKFIhLWOceEUFzYEGMUvQ1/jBCgcpTT9WF+CCmBojRtFI
- L+dvOHwGLk35vPUJfmolMkd5eXApn0oJzYqEkS2cN5sfN1+vvBIlbI8HaVeYD1KMBPENbNMnQ
- 1CKtFqFWNvMCVW+79jPga61FQ/5rH+HzdjTQcPXRS8rSmehClPilj4s0K3+FUCzNm6YCrz30L
- idd4tiNAxhcGzjPfe9zWv0ndRI7fjMaRNvaJNa5z7DGqxiGzN7YK+9ctKbDx+3ljkN4UsPZBl
- xJjYSk69Qry4icnutbp4SPkbxhcCTWCeGdUhLBvOv90HPHMxMtEYKfhm5yj2yNmZizwyyQza/
- MsFgSZLLQ+odmARbqs54md7477GTsipWitONbxzMt/FNDTP8vGsRVKDytp5/yqmyR6jhuNuZ1
- 0Gh/d+A3brQGxcZPwdOE5/x6bTNNurnXTl7GVA54YnEamQTQ43mIZXpaXaDZzS7ipGV6DQsgi
- etJf3QHr/h+kGqsWuC7E8AlYC76se7wlXH84PqTioAXdB/+ZUqEeuX/jPnfhPd78URHGl5zHI
- K1Ggz9XF/EHeAiCmfMuNwyxQK2NXRRASwdyWDpcxFEVSEWdmvzmJAMxzXM0vY9RwAC2HGh8Ji
- 88DJ/klEJ47r7qY67I4hA06acUFJdPQHe02qIn58u8cGQHYSdhisUtxSg7uiAR6ca1q0xtcbE
- C77eL2X6NY3YejzVccIQrEX3e8ehT9DJIBugooyz0lJ79n6lPoU81xVk4O8c0SiHPQFaX9V6L
- iJRLK5GVguzUShcoQxIskwtZE/AbFTBRCcb1OUtxN2uJZevV2pcRdug/Iyps5j6//4+qzvGkC
- vzKokytFerw==
+In-Reply-To: <CAAFQd5DLTOJ0kheFdxzTV7Hrtc5MpG4Utn00HgNh06d+h_qJfQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfCBowCaxp4IMQbs1WeC8zJfljmePn/F1b3pjvIKaWudPJLG7UxMxk2GrMoHI1n+/viQ3NmWXQsIyUNtC1PQbZnVYSo3X05Z9+8AtscknGjCR11mYBrc5
+ AgzjBYpYHTMQMx1iC3pdXk+upbrx2sDtCvdnykllJbnZTLpXYaA87dKSjQQQ3WBgbv5nrsd8r4dUJ4sh6EHpQ8dOTdiqJGhyt7f226WpTrQZqRIDeD6V6Fxe
+ ct4ZVC+FvrmPZkgmQJQNPUEPU8EiFlgzizjDZ9ieUF+kCRg/a72ZJUnotLyCFPjP+RCiyoOPD926UIYGwwdUrBC/+DkLDtc66wGHpS9yZCp2K2hbx8D+fWLP
+ 1EAqkKKd30deKBum6dXRINOVRYs7e131Bib7yq4qXmJopqoSaeB9l9lxKFJzRt8pZmsnQQh5rNqHuB7upt6LQATMzRTBvrYqnLE79gdxNlJgCZAMF29hEzvf
+ nUI8lhwnrMXVjN0mYCKtKP01bzp/TKnmMzb3yw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Moritz,
+On 2/20/19 7:53 AM, Tomasz Figa wrote:
+> On Thu, Feb 7, 2019 at 1:36 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> On 2/6/19 5:22 PM, Ezequiel Garcia wrote:
+>>> On Wed, 2019-02-06 at 11:43 +0100, Hans Verkuil wrote:
+>>>> Hi Ezequiel,
+>>>>
+>>>> A quick review below. This looks really useful, BTW.
+>>>>
+>>>> On 2/5/19 9:24 PM, Ezequiel Garcia wrote:
+> 
+> [snip]
+>>>>> +/**
+>>>>> + * struct v4l2_format_info - information about a V4L2 format
+>>>>> + * @format: 4CC format identifier (V4L2_PIX_FMT_*)
+>>>>> + * @header_size: Size of header, optional and used by compressed formats
+>>>>> + * @num_planes: Number of planes (1 to 3)
+>>>>
+>>>> This is actually 1-4 since there may be an alpha channel as well. Not that we have
+>>>> such formats since the only formats with an alpha channel are interleaved formats,
+>>>> but it is possible.
+> 
+> How about 1 to VIDEO_MAX_PLANES to be a bit more consistent?
+> Tbh. I'm not sure why we have that defined to 8, but if we have such
+> constant already, it could make sense to use it here as well.
 
-On Wed, 20 Feb 2019, Moritz Dötterl wrote:
+We didn't know at the time how many planes we would need. I think we
+chose 8 because 1) that fit inside struct v4l2_format and 2) it allowed
+room for planes carrying meta data.
 
-> Hi Kieran
-> 
-> 
-> Thank you very much for your explanation.
-> 
-> At least in the setup we are using every /dev/video device is a capture device.
-> 
-> Wouldn't it be good to have that configurable with a module parameter?
+In hindsight we probably should have chosen 4 instead of 8.
 
-I don't think it would. It can be argued whether the decision to add video 
-metadata device nodes as /dev/video* was the best choice possible, but 
-once the choice has been made, I think our best option now is to convert 
-all users to be prepared to handle them.
+In any case, since this is an internal API I think chosing MAX_PLANES
+here would waste unnecessary memory.
 
-Thanks
-Guennadi
+> 
+> [snip]
+>>>
+>>> Also, note that drm-fourcc deprecates cpp, to support tile formats.
+>>> Hopefully we don't need that here?
+>>
+>> We do have tile formats (V4L2_PIX_FMT_NV12MT_16X16), but it is up to the
+>> driver to align width/height accordingly.
+>>
+> 
+> I'd still make these helpers align to the constraints defined by the
+> format itself (e.g. 16x16), since it doesn't cost us anything, and
+> have the driver do any further alignment only if they need so.
 
-> Best regards / Mit freundlichen Grüßen
-> Moritz Dötterl
+Yes, sorry, I should have said that: for tiled pixel formats this
+struct should give the alignments.
+
+But those alignments differ from hsub/vsub: those values restrict the
+resolution, but the 'tiled' alignments are on top of that.
+
 > 
-> Pentland Firth Software GmbH
+>>>
+>>>>> + * @hsub: Horizontal chroma subsampling factor
+>>>>> + * @vsub: Vertical chroma subsampling factor
+>>>>
+>>>> A bit too cryptic IMHO. I would prefer hdiv or hsubsampling. 'hsub' suggests
+>>>> subtraction :-)
+>>>>
+>>>
+>>> Ditto, this name follows drm-fourcc. I'm fine either way.
+>>>
 > 
-> Hofmannstr. 61
-> 81379 München, Germany
+> I personally like hsub and vsub too, but maybe I just spent too much
+> time with DRM code. *subsampling would make the initializers super
+> wide, so if we decide that we don't like *sub, I'd go with *div.
 > 
-> Mobile: +49 17655389056
+>>>>> + * @multiplanar: Is it a multiplanar variant format? (e.g. NV12M)
+>>>>
+>>>> This should, I think, be renamed to num_non_contig_planes to indicate how many
+>>>> non-contiguous planes there are in the format.
+>>>>
+>>>> So this value is 1 for NV12 and 2 for NV12M. For V4L2_PIX_FMT_YUV444M it is 3.
+>>>>
+>>>> You can stick this value directly into pixfmt_mp->num_planes.
+>>>>
+>>>
+>>> Fine by me, but I have to admit I don't see the value of adding the
+>>> number of non-contiguous planes. For multiplanar non-contiguous formats
+>>> the number of planes is equal to the number of planes.
+>>
+>> Hmm, that's true. Choose whatever gives you the shortest code :-)
+>>
+>>>
+>>> Although maybe it will be clear this way for readers?
+>>>
+>>>> As an aside: perhaps we should start calling the 'multiplanar API' the
+>>>> 'multiple non-contiguous planes API', at least in the documentation. It's the
 > 
-> moritz.doetterl@pentlandfirth.com<mailto:aron.borbath@pentlandfirth.com>
+> To me, "multiple non-contiguous planes API" would suggest that the
+> planes themselves are non-contiguous.
 > 
-> ----------------------------------------------------------------------------------------------------------------------------------
-> Pentland Firth is Microsoft Gold Partner
+> Many drivers (especially Samsung ones) have a distinction between
+> "color planes" and "memory planes" internally, so maybe "Multiple
+> memory planes API" could make sense?
+
+Huh, that's an idea. So _MPLANE should have been _MMPLANE?
+
 > 
-> Brands we own:  www.whiz-cart.com<http://www.whiz-cart.com/>
-> ----------------------------------------------------------------------------------------------------------------------------------
-> Sitz der Gesellschaft: München, Handelsregister München, HRB 155 786, Geschäftsführer: Frank Heinrich
+>>>> first time that I found a description that actually covers the real meaning.
+>>>>
+>>>
+>>> Yes, indeed. In fact, my first version of this code had something like
+>>> "is_noncontiguous" instead of the "multiplanar" field.
+>>
+>> I'm fine with that. Add a comment after it like: /* aka multiplanar */
+>>
 > 
-> 
-> ________________________________
-> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> Sent: Friday, February 15, 2019 9:51:08 PM
-> To: Moritz Dötterl; linux-uvc-devel@lists.berlios.de
-> Cc: Linux Media Mailing List; Laurent Pinchart; Guennadi Liakhovetski
-> Subject: Re: [linux-uvc-devel] metadata device file
-> 
-> Hi Moritz,
-> 
-> On 15/02/2019 08:45, Moritz Dötterl wrote:
-> > Hello
-> >
-> > Recently we updated the Kernel on our Ubuntu machines from 4.15 to 4.18
-> > because the OS was randomly freezing. However with the new Kernel we ran
-> > into a problem regarding our two webcams. We had two /dev/video device
-> > files per camera of which only one seemed to work.
-> 
-> Yes, a new device node has been added to represent the meta-data from
-> the device.
-> 
-> You should be able to enumerate the devices, and you should
-> verify/validate the capabilities of the device after you open it.
-> 
-> A UVC capture device will expose the V4L2_CAP_VIDEO_OUTPUT capability flag.
-> 
-> > The problem was that
-> > our application would just randomly open one of those two device files
-> 
-> Is this an application you have control over the source code for?
-> or some external application?
-> 
-> > and then crashed if it opened the wrong one. After some search i figured
-> > out that the second device file is for meta data (which might not be
-> > provided by our camera i guess...). However i also found the line in the
-> > uvc_driver.c which generates the device file
-> > (https://elixir.bootlin.com/linux/v4.18/source/drivers/media/usb/uvc/uvc_driver.c#L2005)
-> > that line including the whole uvc_metadata.c was added when comparing
-> > 4.15 and 4.18 Kernel. I took that line out, recompiled the Kernel and
-> > ended up with having only one /dev/video device file per camera. I also
-> > found it is using the exact same function to register the device node
-> > that the uvc_driver.c is using and also using the same vfl_devnode_type
-> >  (VFL_TYPE_GRABBER) and therefore ending up as a /dev/video device. Was
-> > that move on purpose?
-> 
-> Yes, this addition was on purpose. It was added by the following patch:
-> 
-> https://www.spinics.net/lists/linux-media/msg125681.html
-> 
-> I've added the linux-media mailing list on Cc where you will be able to
-> find better support if this topic causes further problems.
-> 
-> 
-> > Why was it split up in two device files, or is
-> > that just added functionality?
-> 
-> I believe it is just added functionality - not split.
-> 
-> > I would rather like this device file to
-> > have a different name because in this setup it is not easily decidable
-> 
-> Perhaps some different naming might have continued to hide this issue
-> for you but it would only have hidden a potential bug.
-> 
-> Even with a different name, you can not expect that all /dev/video*
-> nodes are capture devices. They can be output devices or M2M devices for
-> example. Your application should always check the device capabilities
-> using the V4L2 API's as applicable.
-> 
-> 
-> > if a /dev/video device is the "real" webcam or just the meta data... So
-> > i would prefer that to end up as something like /dev/metavideo or so (
-> > or maybe easier: change the type to VFL_TYPE_SUBDEV so it will end up as
-> > a v4l-subdev device, that sounds more suitable for me...)
-> 
-> I think in this instance it has to be a full video node and not a subdev
-> so that data can be captured from the device node.
-> 
-> 
-> > What are the plans for this in future kernel versions? Should it stay
-> > like it is now or are there plans to change/evolve the meta data
-> > handling again?
-> 
-> This is in mainline now - so I would expect it to continue to be supported.
-> 
-> >
-> >
-> > Thanks very much.
-> >
-> >
-> > Best regards / Mit freundlichen Grüßen
-> > *Moritz Dötterl*
-> >
-> > Pentland Firth Software GmbH
-> >
-> > Hofmannstr. 61
-> > 81379 München, Germany
-> >
-> > Mobile: +49 17655389056
-> >
-> > moritz.doetterl@pentlandfirth.com <mailto:aron.borbath@pentlandfirth.com>
-> >
-> > ----------------------------------------------------------------------------------------------------------------------------------
-> > Pentland Firth is *Microsoft Gold Partner*
-> >
-> > Brands we own:  www.whiz-cart.com<http://www.whiz-cart.com> <http://www.whiz-cart.com/>
-> > ----------------------------------------------------------------------------------------------------------------------------------
-> > Sitz der Gesellschaft: München, Handelsregister München, HRB 155 786,
-> > Geschäftsführer: Frank Heinrich
-> >
-> >
-> >
-> >
-> > _______________________________________________
-> > Linux-uvc-devel mailing list
-> > Linux-uvc-devel@lists.sourceforge.net
-> > https://lists.sourceforge.net/lists/listinfo/linux-uvc-devel
-> >
-> 
-> --
-> Regards
-> --
-> Kieran
-> 
+> FWIW, some of the drivers have .num_cplanes and .num_mplanes in their
+> format descriptors.
+
+I think that makes sense. Good suggestion.
+
+Regards,
+
+	Hans
