@@ -2,201 +2,194 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACAE3C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 12:21:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35EDBC43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 12:49:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E0B72147A
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 12:21:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 052C020C01
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 12:49:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726668AbfBTMVO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 07:21:14 -0500
-Received: from mga02.intel.com ([134.134.136.20]:44810 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726209AbfBTMVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 07:21:14 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Feb 2019 04:21:13 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,390,1544515200"; 
-   d="scan'208";a="145787256"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga004.fm.intel.com with ESMTP; 20 Feb 2019 04:21:12 -0800
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1gwQsB-000Cyf-KL; Wed, 20 Feb 2019 20:21:11 +0800
-Date:   Wed, 20 Feb 2019 20:21:10 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 9fabe1d108ca4755a880de43f751f1c054f8894d
-Message-ID: <5c6d4636.e1OMSSYjb4Hi6yMy%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1727620AbfBTMtn convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 07:49:43 -0500
+Received: from relayout03-q02.e.movistar.es ([86.109.101.162]:59347 "EHLO
+        relayout03-q02.e.movistar.es" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725869AbfBTMtn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Feb 2019 07:49:43 -0500
+Received: from relayout03-redir.e.movistar.es (relayout03-redir.e.movistar.es [86.109.101.203])
+        by relayout03-out.e.movistar.es (Postfix) with ESMTP id 444HVr29h1zQk75;
+        Wed, 20 Feb 2019 13:49:40 +0100 (CET)
+Received: from [192.168.0.161] (static-146-187-224-77.ipcom.comunitel.net [77.224.187.146])
+        (Authenticated sender: jareguero@telefonica.net)
+        by relayout03.e.movistar.es (Postfix) with ESMTPA id 444HVp5prSzMlff;
+        Wed, 20 Feb 2019 13:49:38 +0100 (CET)
+Date:   Wed, 20 Feb 2019 13:49:28 +0100
+User-Agent: K-9 Mail for Android
+In-Reply-To: <20190220093715.26edyirbpolt6eha@gofer.mess.org>
+References: <cba5b0fd-d626-4736-a017-5a1edf35283e.maildroid@localhost> <20190219215731.ktm7zpcnyv7y46ok@gofer.mess.org> <FF598AFC-D10A-46B6-B8D7-7D71BB65355A@telefonica.net> <20190220093715.26edyirbpolt6eha@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Subject: Re: [PATCH] Add suport for Avermedia TD310
+To:     Sean Young <sean@mess.org>
+CC:     Jose Alberto Reguero <jose.alberto.reguero@gmail.com>,
+        linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+From:   Jose Alberto Reguero <jareguero@telefonica.net>
+Message-ID: <FD5F2F73-D4C8-429A-BC72-8EB729A78CB9@telefonica.net>
+X-CTCH-Score: 0.000
+X-CTCH-ScoreCust: 0.000
+X-TnetOut-Country: IP: 77.224.187.146 | Country: ES
+X-TnetOut-Information: AntiSPAM and AntiVIRUS on relayout03
+X-TnetOut-MsgID: 444HVp5prSzMlff.ACF1B
+X-TnetOut-SpamCheck: no es spam, Unknown
+X-TnetOut-From: jareguero@telefonica.net
+X-TnetOut-Watermark: 1551271779.79283@8V1fDXvBGZ9xMRz8iVT74A
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 9fabe1d108ca4755a880de43f751f1c054f8894d  media: ipu3-mmu: fix some kernel-doc macros
+El 20 de febrero de 2019 10:37:15 CET, Sean Young <sean@mess.org> escribió:
+>On Tue, Feb 19, 2019 at 11:51:25PM +0100, Jose Alberto Reguero wrote:
+>> El 19 de febrero de 2019 22:57:31 CET, Sean Young <sean@mess.org>
+>escribió:
+>> >On Mon, Feb 11, 2019 at 11:13:25PM +0100, Jose Alberto Reguero
+>wrote:
+>> >> This patch add support for Avermedia TD310 usb stik.
+>> >> This patch must be aplied after this one:
+>> >> https://patchwork.linuxtv.org/patch/40087/
+>> >
+>> >That patch is marked Changes Requested. Please fix that patch first,
+>> >and then re-submit.
+>> >
+>> >Thanks,
+>> >Sean
+>> >
+>> 
+>> The patch that that need changes is the other one of the serie, the
+>one for the si2157. This one can be applyed like this.
+>
+>Do you mean:
+>
+>	https://patchwork.linuxtv.org/patch/40089/
+>
+>That also needs changes before it can be applied, I'm afraid.
+>
+>Sean
+>
 
-elapsed time: 383m
+I only need the patch:
 
-configs tested: 140
+[2/3,media] af9035: init i2c already in it930x_frontend_attach
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+I think that It can be applied. I don't know what need no be changed.
 
-parisc                        c3000_defconfig
-um                                  defconfig
-parisc                         b180_defconfig
-parisc                              defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-x86_64                 randconfig-x005-201907
-x86_64                 randconfig-x008-201907
-x86_64                 randconfig-x009-201907
-x86_64                 randconfig-x001-201907
-x86_64                 randconfig-x002-201907
-x86_64                 randconfig-x003-201907
-x86_64                 randconfig-x006-201907
-x86_64                 randconfig-x007-201907
-x86_64                 randconfig-x000-201907
-x86_64                 randconfig-x004-201907
-i386                   randconfig-x007-201907
-i386                   randconfig-x000-201907
-i386                   randconfig-x006-201907
-i386                   randconfig-x002-201907
-i386                   randconfig-x001-201907
-i386                   randconfig-x003-201907
-i386                   randconfig-x009-201907
-i386                   randconfig-x008-201907
-i386                   randconfig-x005-201907
-i386                   randconfig-x004-201907
-x86_64                 randconfig-x013-201907
-x86_64                 randconfig-x017-201907
-x86_64                 randconfig-x016-201907
-x86_64                 randconfig-x019-201907
-x86_64                 randconfig-x012-201907
-x86_64                 randconfig-x011-201907
-x86_64                 randconfig-x018-201907
-x86_64                 randconfig-x010-201907
-x86_64                 randconfig-x015-201907
-x86_64                 randconfig-x014-201907
-arm                       omap2plus_defconfig
-arm                              allmodconfig
-arm                        mvebu_v7_defconfig
-arm                          ixp4xx_defconfig
-arm                       imx_v6_v7_defconfig
-arm64                            allmodconfig
-arm                           tegra_defconfig
-arm64                            alldefconfig
-i386                     randconfig-a2-201907
-i386                     randconfig-a3-201907
-i386                     randconfig-a0-201907
-i386                     randconfig-a1-201907
-i386                              allnoconfig
-i386                                defconfig
-i386                             alldefconfig
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-m68k                       m5475evb_defconfig
-m68k                             allmodconfig
-i386                     randconfig-s0-201907
-i386                     randconfig-s1-201907
-i386                     randconfig-s2-201907
-i386                     randconfig-s3-201907
-x86_64                           allmodconfig
-i386                             allmodconfig
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                               rhel-7.2
-riscv                              tinyconfig
-i386                               tinyconfig
-powerpc                             defconfig
-s390                        default_defconfig
-powerpc                       ppc64_defconfig
-powerpc                           allnoconfig
-sh                               allmodconfig
-sh                            titan_defconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-openrisc                    or1ksim_defconfig
-um                           x86_64_defconfig
-um                             i386_defconfig
-nds32                               defconfig
-nds32                             allnoconfig
-sparc64                          allmodconfig
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-c6x                        evmc6678_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-nios2                         10m50_defconfig
-h8300                    h8300h-sim_defconfig
-mips                             allmodconfig
-mips                      malta_kvm_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-i386                     randconfig-m0-201907
-x86_64                   randconfig-m0-201907
-i386                     randconfig-m1-201907
-x86_64                   randconfig-m3-201907
-x86_64                   randconfig-m1-201907
-i386                     randconfig-m2-201907
-i386                     randconfig-m3-201907
-x86_64                   randconfig-m2-201907
-riscv                             allnoconfig
-riscv                               defconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                                defconfig
-ia64                             alldefconfig
-i386                     randconfig-l3-201907
-x86_64                   randconfig-l0-201907
-i386                     randconfig-l2-201907
-x86_64                   randconfig-l2-201907
-x86_64                   randconfig-l1-201907
-x86_64                   randconfig-l3-201907
-i386                     randconfig-l1-201907
-i386                     randconfig-l0-201907
-i386                   randconfig-x019-201907
-i386                   randconfig-x015-201907
-i386                   randconfig-x016-201907
-i386                   randconfig-x014-201907
-i386                   randconfig-x012-201907
-i386                   randconfig-x013-201907
-i386                   randconfig-x010-201907
-i386                   randconfig-x018-201907
-i386                   randconfig-x017-201907
-i386                   randconfig-x011-201907
-x86_64                                  kexec
-x86_64                         rhel-7.2-clear
-x86_64                              fedora-25
-i386                   randconfig-x072-201907
-i386                   randconfig-x079-201907
-i386                   randconfig-x075-201907
-i386                   randconfig-x073-201907
-i386                   randconfig-x077-201907
-i386                   randconfig-x078-201907
-i386                   randconfig-x074-201907
-i386                   randconfig-x076-201907
-i386                   randconfig-x070-201907
-i386                   randconfig-x071-201907
+Thanks.
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Jose Alberto
+
+>> 
+>> Thanks.
+>> 
+>> Jose Alberto
+>> 
+>> >> 
+>> >> Signed-off-by: Jose Alberto Reguero
+><jose.alberto.reguero@gmail.com>
+>> >> 
+>> >> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>> >linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+>> >> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2019-02-11
+>> >14:48:58.133751038 +0100
+>> >> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2019-02-11
+>> >15:02:10.646718610 +0100
+>> >> @@ -1215,6 +1215,7 @@ static int it930x_frontend_attach(struct
+>> >>  	int ret;
+>> >>  	struct si2168_config si2168_config;
+>> >>  	struct i2c_adapter *adapter;
+>> >> +	u8 i2c_addr;
+>> >>  
+>> >>  	dev_dbg(&intf->dev, "%s  adap->id=%d\n", __func__, adap->id);
+>> >>  
+>> >> @@ -1266,7 +1267,11 @@ static int it930x_frontend_attach(struct
+>> >>  
+>> >>  	state->af9033_config[adap->id].fe = &adap->fe[0];
+>> >>  	state->af9033_config[adap->id].ops = &state->ops;
+>> >> -	ret = af9035_add_i2c_dev(d, "si2168", 0x67, &si2168_config,
+>> >> +	i2c_addr = 0x67;
+>> >> +	if ((le16_to_cpu(d->udev->descriptor.idVendor) ==
+>> >USB_VID_AVERMEDIA) &&
+>> >> +			(le16_to_cpu(d->udev->descriptor.idProduct) ==
+>> >USB_PID_AVERMEDIA_TD310))
+>> >> +		i2c_addr = 0x64;
+>> >> +	ret = af9035_add_i2c_dev(d, "si2168", i2c_addr, &si2168_config,
+>> >>  				&d->i2c_adap);
+>> >>  	if (ret)
+>> >>  		goto err;
+>> >> @@ -1613,6 +1618,7 @@ static int it930x_tuner_attach(struct dv
+>> >>  	struct usb_interface *intf = d->intf;
+>> >>  	int ret;
+>> >>  	struct si2157_config si2157_config;
+>> >> +	u8 i2c_addr;
+>> >>  
+>> >>  	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+>> >>  
+>> >> @@ -1661,7 +1667,13 @@ static int it930x_tuner_attach(struct dv
+>> >>  	memset(&si2157_config, 0, sizeof(si2157_config));
+>> >>  	si2157_config.fe = adap->fe[0];
+>> >>  	si2157_config.if_port = 1;
+>> >> -	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
+>> >> +	i2c_addr = 0x63;
+>> >> +	if ((le16_to_cpu(d->udev->descriptor.idVendor) ==
+>> >USB_VID_AVERMEDIA) &&
+>> >> +			(le16_to_cpu(d->udev->descriptor.idProduct) ==
+>> >USB_PID_AVERMEDIA_TD310)) {
+>> >> +		i2c_addr = 0x60;
+>> >> +		si2157_config.if_port = 0;
+>> >> +	}
+>> >> +	ret = af9035_add_i2c_dev(d, "si2157", i2c_addr,
+>> >>  			&si2157_config, state->i2c_adapter_demod);
+>> >>  
+>> >>  	if (ret)
+>> >> @@ -2169,6 +2181,8 @@ static const struct usb_device_id af9035
+>> >>  	/* IT930x devices */
+>> >>  	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
+>> >>  		&it930x_props, "ITE 9303 Generic", NULL) },
+>> >> +	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TD310,
+>> >> +		&it930x_props, "AVerMedia TD310 DVB-T2", NULL) },
+>> >>  	{ }
+>> >>  };
+>> >>  MODULE_DEVICE_TABLE(usb, af9035_id_table);
+>> >> diff -upr linux/include/media/dvb-usb-ids.h
+>> >linux.new/include/media/dvb-usb-ids.h
+>> >> --- linux/include/media/dvb-usb-ids.h	2018-05-05
+>07:40:18.000000000
+>> >+0200
+>> >> +++ linux.new/include/media/dvb-usb-ids.h	2019-02-08
+>> >22:00:24.765541474 +0100
+>> >> @@ -258,6 +258,7 @@
+>> >>  #define USB_PID_AVERMEDIA_A867				0xa867
+>> >>  #define USB_PID_AVERMEDIA_H335				0x0335
+>> >>  #define USB_PID_AVERMEDIA_TD110				0xa110
+>> >> +#define USB_PID_AVERMEDIA_TD310				0x1871
+>> >>  #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
+>> >>  #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+>> >>  #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+>> >> 
+>> >> 
+>> >> 
+>> >> Sent from MailDroid
+>> 
+>> 
+>> -- 
+>> Enviado desde mi dispositivo Android con K-9 Mail. Por favor,
+>disculpa mi brevedad.
+
+
+-- 
+Enviado desde mi dispositivo Android con K-9 Mail. Por favor, disculpa mi brevedad.
