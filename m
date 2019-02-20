@@ -7,65 +7,64 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCFF9C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 23:53:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E23C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 23:53:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 81A242089F
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 23:53:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76D5920657
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 23:53:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ExAQkxES"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N4ODwXTA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726738AbfBTXxr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 18:53:47 -0500
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:42592 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726481AbfBTXxq (ORCPT
+        id S1726412AbfBTXxp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 18:53:45 -0500
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:33137 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726282AbfBTXxn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 18:53:46 -0500
-Received: by mail-pg1-f195.google.com with SMTP id b2so7007775pgl.9;
-        Wed, 20 Feb 2019 15:53:45 -0800 (PST)
+        Wed, 20 Feb 2019 18:53:43 -0500
+Received: by mail-pf1-f195.google.com with SMTP id c123so12760032pfb.0;
+        Wed, 20 Feb 2019 15:53:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=R8xwaSl0ZhiNpJHuoTqTqV7m61d58ZGc33VmhSE032E=;
-        b=ExAQkxES/2S67eRw7KvCY9BZys7nmMc589Amz3IZQxBV6MpXZk/yrn+9l9MI7yQzvn
-         neIC5jUQH37OQLGNhtkZsQ0ErfGqnYmDrFww0kg1w3i+n4drsPq1OU36Q2B2tHgmpANG
-         izjNVql1A0JA4OFp0YMsN9VqD1k2BhHSgA+Cj8BnnSAIAa5po0Cxzsv7TALUj+ZZWLFi
-         1hYTx2cJsKHJVafJkjAnrL+xPvtEpQDMPPnSp05S7jB2ZmvJBnAueSB5Op6MYyVGjPTP
-         /ZzWCa2ORts5+ANqzZA4fYhJX4l3xwG4plT0Q/DsEewLPNyJ0J0+60OD1txllk76CWgQ
-         x8Kg==
+        bh=Z2X4Y/BmuGKn49aohchku7mm3X+nWciJE2mI8ws/RbQ=;
+        b=N4ODwXTA3L+nUzOkH4NKslgcYSL1z1qV9elk/1jdDTmq/P0qbQpw1RysS/AGIHoZ6m
+         S5rXdSZ7qWlbzFGYU3pntzzVm34uE44t2jmyuqux52w+oQ2/JPilHZnQONaF3iG39D33
+         hpiM8V4QGLyraJkp2L6ah6kj9VoFEp5IKlU1J+hwAbYsbdILzSXoI8fBumupl4YIT3aR
+         aXogZYUBg2kfk/PemCWTrlAybehobrE9LcmOcD+6/wLveFTRA8JRVzOi8DOqumKZ6JE5
+         d3DM8IfBL151M59vCg6XbLcVKmHMmXsUG8SU3ydFUoJqH6MXtWFyIznM/Q5O8gW9/wVw
+         Y9wQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=R8xwaSl0ZhiNpJHuoTqTqV7m61d58ZGc33VmhSE032E=;
-        b=bZaRmpDRz60UsPEr4tMpo79VczqzajsfR45m18ajwbq0zFfX739uPht3AuODEFiGKp
-         TU+gKFlm7XfodF0VfP61QSQcLk73hxgsGzpQuozeVeBxlGjY8rzTqDDjw1LeRthK/JSb
-         zWQVKh2uixyYccUvlTdzrXwQLKLrOwIPqIIn5bSrN1OMjAfDGHRsO7nUjixzy0rpFLgz
-         FsfSHgVMFpwvgwaBpEmwLiF8fwq/h1QVR9G0Hn/t5uqicpJqrgTL6ZjOepANQZVJ7LUi
-         i1NBvci3HgoAtkJSGnqKb9AEfal2Ko6/2MhJq720bRHVPUrV4UmJcKY/PnewwZjVG75l
-         XknQ==
-X-Gm-Message-State: AHQUAuaoHtIm0506XhW6ezLpiNIQGbeUYegXbO2l1Qqmcq+0kmIlwTVo
-        URU1roojX71rraH3FZCA/S73UPdo
-X-Google-Smtp-Source: AHgI3IYmG4G3Al1LCY9JvKTI8OCrdeF0i4RT25alz7tY3JubqvowTeqs5qyqiLA/vrjQSqzyCki2ew==
-X-Received: by 2002:a63:9dc3:: with SMTP id i186mr35345694pgd.305.1550706824963;
-        Wed, 20 Feb 2019 15:53:44 -0800 (PST)
+        bh=Z2X4Y/BmuGKn49aohchku7mm3X+nWciJE2mI8ws/RbQ=;
+        b=okrz+5I0xZlB8zSVEEawQFtBvGqtG/EU+FnxRFlfINNRrYtdtaxsLHxKHXxI/C36d8
+         a+4f8l8Zsy/rbAzmBYw+qQtFMRs4CTldVGs3Upjf7bq44fVtVBlMBkhCwq2/QZH7rjmM
+         RsKTiYJ2ut6vasn52f4+7byuaz6YttGIn8ObbmAmffFV5DQxqDYr/im9B/svewtJNW9z
+         IkNHqREwPzMAcDySOO4CFKKCTqdMzx7tbELD9uFXln89chRt1spQ6a2341DIeeBpISb2
+         Jdvg8rPSPYtXGUXnjf9BHnV24yYAlpNP7DkBIFww6cLFItYqf0hmBDaZ04P3YUsuBONP
+         QVpg==
+X-Gm-Message-State: AHQUAuaaLdEc1kFhNtB1oGPLMIBDH+8vDUa1hY4Tgdj/W8D6wk5ktv52
+        O3N2KiFoQ8NLmQiLYn2PQjQnPHKY
+X-Google-Smtp-Source: AHgI3IanX296S54WcYhjb3mndB9odqjViqxJlSR7jaepQhh6xs5IJCKenFq1AdALbEKbKw8EucHW6A==
+X-Received: by 2002:a65:6654:: with SMTP id z20mr22806069pgv.390.1550706821773;
+        Wed, 20 Feb 2019 15:53:41 -0800 (PST)
 Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
-        by smtp.googlemail.com with ESMTPSA id v15sm25530158pgf.75.2019.02.20.15.53.43
+        by smtp.googlemail.com with ESMTPSA id v15sm25530158pgf.75.2019.02.20.15.53.40
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 20 Feb 2019 15:53:44 -0800 (PST)
+        Wed, 20 Feb 2019 15:53:41 -0800 (PST)
 From:   Steve Longerbeam <slongerbeam@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Steve Longerbeam <slongerbeam@gmail.com>, stable@vger.kernel.org,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
         devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v2 4/4] media: imx: Don't register IPU subdevs/links if CSI port missing
-Date:   Wed, 20 Feb 2019 15:53:32 -0800
-Message-Id: <20190220235332.15984-5-slongerbeam@gmail.com>
+Subject: [PATCH v2 2/4] media: imx: Clear fwnode link struct for each endpoint iteration
+Date:   Wed, 20 Feb 2019 15:53:30 -0800
+Message-Id: <20190220235332.15984-3-slongerbeam@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190220235332.15984-1-slongerbeam@gmail.com>
 References: <20190220235332.15984-1-slongerbeam@gmail.com>
@@ -74,209 +73,50 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The second IPU internal sub-devices were being registered and links
-to them created even when the second IPU is not present. This is wrong
-for i.MX6 S/DL and i.MX53 which have only a single IPU.
+In imx_media_create_csi_of_links(), the 'struct v4l2_fwnode_link' must
+be cleared for each endpoint iteration, otherwise if the remote port
+has no "reg" property, link.remote_port will not be reset to zero.
+This was discovered on the i.MX53 SMD board, since the OV5642 connects
+directly to ipu1_csi0 and has a single source port with no "reg"
+property.
 
-Fixes: e130291212df5 ("[media] media: Add i.MX media core driver")
+Fixes: 621b08eabcddb ("media: staging/imx: remove static media link arrays")
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: stable@vger.kernel.org
 ---
- drivers/staging/media/imx/imx-media-dev.c     |  7 ---
- .../staging/media/imx/imx-media-internal-sd.c | 22 ++-----
- drivers/staging/media/imx/imx-media-of.c      | 58 +++++++++++++------
- drivers/staging/media/imx/imx-media.h         |  3 +-
- drivers/staging/media/imx/imx7-media-csi.c    |  2 +-
- 5 files changed, 46 insertions(+), 46 deletions(-)
+ drivers/staging/media/imx/imx-media-of.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index fc35508d9396..10a63a4fa90b 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -477,13 +477,6 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto cleanup;
- 	}
- 
--	ret = imx_media_add_ipu_internal_subdevs(imxmd);
--	if (ret) {
--		v4l2_err(&imxmd->v4l2_dev,
--			 "add_ipu_internal_subdevs failed with %d\n", ret);
--		goto cleanup;
--	}
--
- 	ret = imx_media_dev_notifier_register(imxmd);
- 	if (ret)
- 		goto del_int;
-diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
-index e620f4adb755..dc510dcfe160 100644
---- a/drivers/staging/media/imx/imx-media-internal-sd.c
-+++ b/drivers/staging/media/imx/imx-media-internal-sd.c
-@@ -298,13 +298,14 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
- }
- 
- /* adds the internal subdevs in one ipu */
--static int add_ipu_internal_subdevs(struct imx_media_dev *imxmd, int ipu_id)
-+int imx_media_add_ipu_internal_subdevs(struct imx_media_dev *imxmd,
-+				       int ipu_id)
- {
- 	enum isd_enum i;
-+	int ret;
- 
- 	for (i = 0; i < num_isd; i++) {
- 		const struct internal_subdev *isd = &int_subdev[i];
--		int ret;
- 
- 		/*
- 		 * the CSIs are represented in the device-tree, so those
-@@ -322,25 +323,10 @@ static int add_ipu_internal_subdevs(struct imx_media_dev *imxmd, int ipu_id)
- 		}
- 
- 		if (ret)
--			return ret;
-+			goto remove;
- 	}
- 
- 	return 0;
--}
--
--int imx_media_add_ipu_internal_subdevs(struct imx_media_dev *imxmd)
--{
--	int ret;
--
--	ret = add_ipu_internal_subdevs(imxmd, 0);
--	if (ret)
--		goto remove;
--
--	ret = add_ipu_internal_subdevs(imxmd, 1);
--	if (ret)
--		goto remove;
--
--	return 0;
- 
- remove:
- 	imx_media_remove_ipu_internal_subdevs(imxmd);
 diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index a26bdeb1af34..12383f4785ad 100644
+index 03446335ac03..a26bdeb1af34 100644
 --- a/drivers/staging/media/imx/imx-media-of.c
 +++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -23,36 +23,25 @@
- int imx_media_of_add_csi(struct imx_media_dev *imxmd,
- 			 struct device_node *csi_np)
+@@ -145,15 +145,18 @@ int imx_media_create_csi_of_links(struct imx_media_dev *imxmd,
+ 				  struct v4l2_subdev *csi)
  {
+ 	struct device_node *csi_np = csi->dev->of_node;
+-	struct fwnode_handle *fwnode, *csi_ep;
+-	struct v4l2_fwnode_link link;
+ 	struct device_node *ep;
 -	int ret;
 -
- 	if (!of_device_is_available(csi_np)) {
- 		dev_dbg(imxmd->md.dev, "%s: %pOFn not enabled\n", __func__,
- 			csi_np);
--		/* unavailable is not an error */
--		return 0;
-+		return -ENODEV;
- 	}
+-	link.local_node = of_fwnode_handle(csi_np);
+-	link.local_port = CSI_SINK_PAD;
  
- 	/* add CSI fwnode to async notifier */
--	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np), NULL);
--	if (ret) {
--		if (ret == -EEXIST) {
--			/* already added, everything is fine */
--			return 0;
--		}
--
--		/* other error, can't continue */
--		return ret;
--	}
--
--	return 0;
-+	return imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np),
-+					  NULL);
- }
- EXPORT_SYMBOL_GPL(imx_media_of_add_csi);
- 
- int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 			     struct device_node *np)
- {
-+	bool ipu_found[2] = {false, false};
- 	struct device_node *csi_np;
- 	int i, ret;
-+	u32 ipu_id;
- 
- 	for (i = 0; ; i++) {
- 		csi_np = of_parse_phandle(np, "ports", i);
-@@ -60,12 +49,43 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 			break;
- 
- 		ret = imx_media_of_add_csi(imxmd, csi_np);
--		of_node_put(csi_np);
--		if (ret)
--			return ret;
-+		if (ret) {
-+			/* unavailable or already added is not an error */
-+			if (ret == -ENODEV || ret == -EEXIST) {
-+				of_node_put(csi_np);
-+				continue;
-+			}
+ 	for_each_child_of_node(csi_np, ep) {
++		struct fwnode_handle *fwnode, *csi_ep;
++		struct v4l2_fwnode_link link;
++		int ret;
 +
-+			/* other error, can't continue */
-+			goto err_out;
-+		}
++		memset(&link, 0, sizeof(link));
 +
-+		ret = of_alias_get_id(csi_np->parent, "ipu");
-+		if (ret < 0)
-+			goto err_out;
-+		if (ret > 1) {
-+			ret = -EINVAL;
-+			goto err_out;
-+		}
++		link.local_node = of_fwnode_handle(csi_np);
++		link.local_port = CSI_SINK_PAD;
 +
-+		ipu_id = ret;
-+
-+		if (!ipu_found[ipu_id]) {
-+			ret = imx_media_add_ipu_internal_subdevs(imxmd,
-+								 ipu_id);
-+			if (ret)
-+				goto err_out;
-+		}
-+
-+		ipu_found[ipu_id] = true;
- 	}
+ 		csi_ep = of_fwnode_handle(ep);
  
- 	return 0;
-+
-+err_out:
-+	imx_media_remove_ipu_internal_subdevs(imxmd);
-+	of_node_put(csi_np);
-+	return ret;
- }
- 
- /*
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index ccbfc4438c85..dd603a6b3a70 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -252,7 +252,8 @@ struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
- void imx_media_fim_free(struct imx_media_fim *fim);
- 
- /* imx-media-internal-sd.c */
--int imx_media_add_ipu_internal_subdevs(struct imx_media_dev *imxmd);
-+int imx_media_add_ipu_internal_subdevs(struct imx_media_dev *imxmd,
-+				       int ipu_id);
- int imx_media_create_ipu_internal_links(struct imx_media_dev *imxmd,
- 					struct v4l2_subdev *sd);
- void imx_media_remove_ipu_internal_subdevs(struct imx_media_dev *imxmd);
-diff --git a/drivers/staging/media/imx/imx7-media-csi.c b/drivers/staging/media/imx/imx7-media-csi.c
-index 3fba7c27c0ec..1ba62fcdcae8 100644
---- a/drivers/staging/media/imx/imx7-media-csi.c
-+++ b/drivers/staging/media/imx/imx7-media-csi.c
-@@ -1271,7 +1271,7 @@ static int imx7_csi_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, &csi->sd);
- 
- 	ret = imx_media_of_add_csi(imxmd, node);
--	if (ret < 0)
-+	if (ret < 0 && ret != -ENODEV && ret != -EEXIST)
- 		goto cleanup;
- 
- 	ret = imx_media_dev_notifier_register(imxmd);
+ 		fwnode = fwnode_graph_get_remote_endpoint(csi_ep);
 -- 
 2.17.1
 
