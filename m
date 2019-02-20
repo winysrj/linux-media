@@ -6,268 +6,136 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCECC43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:22:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94535C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:34:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 518302086C
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:22:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E9D12147C
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:34:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725881AbfBTNWG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 08:22:06 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41458 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725826AbfBTNWG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 08:22:06 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 10AF2634C7B;
-        Wed, 20 Feb 2019 15:21:57 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gwRoz-0000Sa-LD; Wed, 20 Feb 2019 15:21:57 +0200
-Date:   Wed, 20 Feb 2019 15:21:57 +0200
-From:   Sakari Ailus <sakari.ailus@iki.fi>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH yavta 1/7] yavta: Refactor video_list_controls()
-Message-ID: <20190220132157.g222mjamfuyh5t2l@valkosipuli.retiisi.org.uk>
-References: <20190220125123.9410-1-laurent.pinchart@ideasonboard.com>
- <20190220125123.9410-2-laurent.pinchart@ideasonboard.com>
+        id S1727844AbfBTNev (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 08:34:51 -0500
+Received: from mga01.intel.com ([192.55.52.88]:43726 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726213AbfBTNev (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Feb 2019 08:34:51 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Feb 2019 05:34:51 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,391,1544515200"; 
+   d="scan'208";a="117655726"
+Received: from karrer-mobl1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.61.234])
+  by orsmga006.jf.intel.com with ESMTP; 20 Feb 2019 05:34:49 -0800
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id 5C04C21F18; Wed, 20 Feb 2019 15:34:44 +0200 (EET)
+Date:   Wed, 20 Feb 2019 15:34:44 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [RFCv2 PATCH] videodev2.h: introduce VIDIOC_DQ_EXT_EVENT
+Message-ID: <20190220133443.hg2n6vjra4gppgno@kekkonen.localdomain>
+References: <a28bda76-c8e5-7e93-43a0-0d07844cebf0@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190220125123.9410-2-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <a28bda76-c8e5-7e93-43a0-0d07844cebf0@xs4all.nl>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Laurent,
+Hi Hans,
 
-Thanks for the patchset.
-
-On Wed, Feb 20, 2019 at 02:51:17PM +0200, Laurent Pinchart wrote:
-> Separate iteration over controls from printing, in order to reuse the
-> iteration to implement control reset.
+On Tue, Feb 05, 2019 at 02:49:45PM +0100, Hans Verkuil wrote:
+> This patch adds an extended version of VIDIOC_DQEVENT that:
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 1) is Y2038 safe by using a __u64 for the timestamp
+> 2) needs no compat32 conversion code
+> 3) is able to handle control events from 64-bit control types
+>    by changing the type of the minimum, maximum, step and default_value
+>    field to __u64
+> 
+> All drivers and frameworks will be using this, and v4l2-ioctl.c would be the
+> only place where the old event ioctl and structs are used.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > ---
->  yavta.c | 133 ++++++++++++++++++++++++++++++++++----------------------
->  1 file changed, 82 insertions(+), 51 deletions(-)
+> I chose to name this DQ_EXT_EVENT since the struct it dequeues is now called
+> v4l2_ext_event. This is also consistent with the names of the G/S/TRY_EXT_CTRLS
+> ioctls. An alternative could be VIDIOC_DQEXT_EVENT as that would be consistent
+> with the lack of _ between DQ and EVENT in the current ioctl. But somehow it
+> doesn't look right.
 > 
-> diff --git a/yavta.c b/yavta.c
-> index 2d3b2d096f7d..98bc09810ff1 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -484,9 +484,12 @@ static int query_control(struct device *dev, unsigned int id,
->  	query->id = id;
->  
->  	ret = ioctl(dev->fd, VIDIOC_QUERYCTRL, query);
-> -	if (ret < 0 && errno != EINVAL)
-> -		printf("unable to query control 0x%8.8x: %s (%d).\n",
-> -		       id, strerror(errno), errno);
-> +	if (ret < 0) {
-> +		ret = -errno;
-> +		if (ret != -EINVAL)
-> +			printf("unable to query control 0x%8.8x: %s (%d).\n",
-> +			       id, strerror(errno), errno);
-> +	}
->  
->  	return ret;
->  }
-> @@ -1120,7 +1123,45 @@ static int video_enable(struct device *dev, int enable)
->  	return 0;
->  }
->  
-> -static void video_query_menu(struct device *dev, struct v4l2_queryctrl *query,
-> +static int video_for_each_control(struct device *dev,
-> +				  int(*callback)(struct device *dev, const struct v4l2_queryctrl *query))
+> Changes since v1:
+> - rename ioctl from VIDIOC_DQEXTEVENT.
+> - move the reserved array up to right after the union: this will allow us to
+>   extend the union into the reserved array if we ever need more than 64 bytes
+>   for the event payload (suggested by Sakari).
+> ---
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 9a920f071ff9..301e3678bdb0 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -2303,6 +2303,37 @@ struct v4l2_event {
+>  	__u32				reserved[8];
+>  };
+> 
+> +struct v4l2_event_ext_ctrl {
+> +	__u32 changes;
+> +	__u32 type;
+> +	union {
+> +		__s32 value;
+> +		__s64 value64;
+> +	};
+> +	__s64 minimum;
+> +	__s64 maximum;
+> +	__s64 step;
+> +	__s64 default_value;
+> +	__u32 flags;
+> +};
+> +
+> +struct v4l2_ext_event {
+> +	__u32				type;
+> +	__u32				id;
+> +	union {
+> +		struct v4l2_event_vsync		vsync;
+> +		struct v4l2_event_ext_ctrl	ctrl;
+> +		struct v4l2_event_frame_sync	frame_sync;
+> +		struct v4l2_event_src_change	src_change;
+> +		struct v4l2_event_motion_det	motion_det;
+> +		__u8				data[64];
+> +	} u;
+> +	__u32				reserved[8];
+> +	__u64				timestamp;
+> +	__u32				pending;
+> +	__u32				sequence;
+> +};
 
-This is over 80 characters per line. How about wrapping? Also int on the
-above line is desperate for some breathing room before the opening
-parenthesis.
+The size of the struct is at the moment 120 bytes. The allocation done by
+the kernel is always 128 bytes anyway, and the ext control event above is
+just 12 bytes short of the maximum. I'd therefore add two more reserved
+fields. That's fine tuning though. The structs look very nice to me.
 
-> +{
-> +	struct v4l2_queryctrl query;
-> +	unsigned int nctrls = 0;
-> +	unsigned int id;
-> +	int ret;
-> +
-> +#ifndef V4L2_CTRL_FLAG_NEXT_CTRL
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-This was added back in 2012. Do you think it's still worth checking for it?
-
-Not related to this patch though, just a general remark.
-
-> +	unsigned int i;
 > +
-> +	for (i = V4L2_CID_BASE; i <= V4L2_CID_LASTP1; ++i) {
-> +		id = i;
-> +#else
-> +	id = 0;
-> +	while (1) {
-> +		id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-> +#endif
-> +
-> +		ret = query_control(dev, id, &query);
-> +		if (ret == -EINVAL)
-> +			break;
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		id = query.id;
-> +
-> +		ret = callback(dev, &query);
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		if (ret)
-> +			nctrls++;
-> +	}
-> +
-> +	return nctrls;
-> +}
-> +
-> +static void video_query_menu(struct device *dev, const struct v4l2_queryctrl *query,
->  			     unsigned int value)
->  {
->  	struct v4l2_querymenu menu;
-> @@ -1142,83 +1183,68 @@ static void video_query_menu(struct device *dev, struct v4l2_queryctrl *query,
->  	};
->  }
->  
-> -static int video_print_control(struct device *dev, unsigned int id, bool full)
-> +static int video_print_control(struct device *dev,
-> +			       const struct v4l2_queryctrl *query, bool full)
->  {
->  	struct v4l2_ext_control ctrl;
-> -	struct v4l2_queryctrl query;
->  	char sval[24];
->  	char *current = sval;
->  	int ret;
->  
-> -	ret = query_control(dev, id, &query);
-> -	if (ret < 0)
-> -		return ret;
-> +	if (query->flags & V4L2_CTRL_FLAG_DISABLED)
-> +		return 0;
->  
-> -	if (query.flags & V4L2_CTRL_FLAG_DISABLED)
-> -		return query.id;
-> -
-> -	if (query.type == V4L2_CTRL_TYPE_CTRL_CLASS) {
-> -		printf("--- %s (class 0x%08x) ---\n", query.name, query.id);
-> -		return query.id;
-> +	if (query->type == V4L2_CTRL_TYPE_CTRL_CLASS) {
-> +		printf("--- %s (class 0x%08x) ---\n", query->name, query->id);
-> +		return 0;
->  	}
->  
-> -	ret = get_control(dev, &query, &ctrl);
-> +	ret = get_control(dev, query, &ctrl);
->  	if (ret < 0)
->  		strcpy(sval, "n/a");
-> -	else if (query.type == V4L2_CTRL_TYPE_INTEGER64)
-> +	else if (query->type == V4L2_CTRL_TYPE_INTEGER64)
->  		sprintf(sval, "%lld", ctrl.value64);
-> -	else if (query.type == V4L2_CTRL_TYPE_STRING)
-> +	else if (query->type == V4L2_CTRL_TYPE_STRING)
->  		current = ctrl.string;
->  	else
->  		sprintf(sval, "%d", ctrl.value);
->  
->  	if (full)
->  		printf("control 0x%08x `%s' min %d max %d step %d default %d current %s.\n",
-> -			query.id, query.name, query.minimum, query.maximum,
-> -			query.step, query.default_value, current);
-> +			query->id, query->name, query->minimum, query->maximum,
-> +			query->step, query->default_value, current);
->  	else
-> -		printf("control 0x%08x current %s.\n", query.id, current);
-> +		printf("control 0x%08x current %s.\n", query->id, current);
->  
-> -	if (query.type == V4L2_CTRL_TYPE_STRING)
-> +	if (query->type == V4L2_CTRL_TYPE_STRING)
->  		free(ctrl.string);
->  
->  	if (!full)
-> -		return query.id;
-> +		return 1;
->  
-> -	if (query.type == V4L2_CTRL_TYPE_MENU ||
-> -	    query.type == V4L2_CTRL_TYPE_INTEGER_MENU)
-> -		video_query_menu(dev, &query, ctrl.value);
-> +	if (query->type == V4L2_CTRL_TYPE_MENU ||
-> +	    query->type == V4L2_CTRL_TYPE_INTEGER_MENU)
-> +		video_query_menu(dev, query, ctrl.value);
->  
-> -	return query.id;
-> +	return 1;
-> +}
-> +
-> +static int __video_print_control(struct device *dev,
-> +				 const struct v4l2_queryctrl *query)
-> +{
-> +	return video_print_control(dev, query, true);
->  }
->  
->  static void video_list_controls(struct device *dev)
->  {
-> -	unsigned int nctrls = 0;
-> -	unsigned int id;
->  	int ret;
->  
-> -#ifndef V4L2_CTRL_FLAG_NEXT_CTRL
-> -	unsigned int i;
-> +	ret = video_for_each_control(dev, __video_print_control);
-> +	if (ret < 0)
-> +		return;
->  
-> -	for (i = V4L2_CID_BASE; i <= V4L2_CID_LASTP1; ++i) {
-> -		id = i;
-> -#else
-> -	id = 0;
-> -	while (1) {
-> -		id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-> -#endif
-> -
-> -		ret = video_print_control(dev, id, true);
-> -		if (ret < 0)
-> -			break;
-> -
-> -		id = ret;
-> -		nctrls++;
-> -	}
-> -
-> -	if (nctrls)
-> -		printf("%u control%s found.\n", nctrls, nctrls > 1 ? "s" : "");
-> +	if (ret)
-> +		printf("%u control%s found.\n", ret, ret > 1 ? "s" : "");
->  	else
->  		printf("No control found.\n");
->  }
-> @@ -2184,8 +2210,13 @@ int main(int argc, char *argv[])
->  	if (do_log_status)
->  		video_log_status(&dev);
->  
-> -	if (do_get_control)
-> -		video_print_control(&dev, ctrl_name, false);
-> +	if (do_get_control) {
-> +		struct v4l2_queryctrl query;
-> +
-> +		ret = query_control(&dev, ctrl_name, &query);
-> +		if (ret == 0)
-> +			video_print_control(&dev, &query, false);
-> +	}
->  
->  	if (do_set_control)
->  		set_control(&dev, ctrl_name, ctrl_value);
+>  #define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
+>  #define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
+> 
+> @@ -2475,6 +2506,7 @@ struct v4l2_create_buffers {
+>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+> 
+>  #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+> +#define	VIDIOC_DQ_EXT_EVENT	 _IOR('V', 104, struct v4l2_ext_event)
+> 
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
 
 -- 
-Cheers,
-
 Sakari Ailus
+sakari.ailus@linux.intel.com
