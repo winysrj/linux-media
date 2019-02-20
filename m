@@ -2,31 +2,31 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAEE8C10F01
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 05:32:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02E28C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 05:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A15042147A
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 05:32:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C65842147A
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 05:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727104AbfBTFaw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 00:30:52 -0500
-Received: from mga11.intel.com ([192.55.52.93]:42355 "EHLO mga11.intel.com"
+        id S1726787AbfBTFav (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 00:30:51 -0500
+Received: from mga06.intel.com ([134.134.136.31]:25315 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726233AbfBTFav (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1726082AbfBTFav (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Wed, 20 Feb 2019 00:30:51 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Feb 2019 21:30:50 -0800
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Feb 2019 21:30:49 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.58,388,1544515200"; 
-   d="scan'208";a="144924916"
+   d="scan'208";a="144924899"
 Received: from iweiny-desk2.sc.intel.com ([10.3.52.157])
-  by fmsmga002.fm.intel.com with ESMTP; 19 Feb 2019 21:30:50 -0800
+  by fmsmga002.fm.intel.com with ESMTP; 19 Feb 2019 21:30:48 -0800
 From:   ira.weiny@intel.com
 To:     John Hubbard <jhubbard@nvidia.com>,
         Andrew Morton <akpm@linux-foundation.org>,
@@ -58,12 +58,10 @@ Cc:     Ira Weiny <ira.weiny@intel.com>, linux-kernel@vger.kernel.org,
         linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
         devel@lists.orangefs.org, ceph-devel@vger.kernel.org,
         rds-devel@oss.oracle.com
-Subject: [RESEND PATCH 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Date:   Tue, 19 Feb 2019 21:30:38 -0800
-Message-Id: <20190220053040.10831-6-ira.weiny@intel.com>
+Subject: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Date:   Tue, 19 Feb 2019 21:30:33 -0800
+Message-Id: <20190220053040.10831-1-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
-References: <20190220053040.10831-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
@@ -73,32 +71,83 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-FS DAX pages being mapped.
+Resending these as I had only 1 minor comment which I believe we have covered
+in this series.  I was anticipating these going through the mm tree as they
+depend on a cleanup patch there and the IB changes are very minor.  But they
+could just as well go through the IB tree.
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- drivers/infiniband/hw/hfi1/user_pages.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+NOTE: This series depends on my clean up patch to remove the write parameter
+from gup_fast_permitted()[1]
 
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index 78ccacaf97d0..6a7f9cd5a94e 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -104,9 +104,11 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
- 			    bool writable, struct page **pages)
- {
- 	int ret;
-+	unsigned int gup_flags = writable ? FOLL_WRITE : 0;
- 
--	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
--				  pages);
-+	gup_flags |= FOLL_LONGTERM;
-+
-+	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
- 	if (ret < 0)
- 		return ret;
- 
+HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+advantages.  These pages can be held for a significant time.  But
+get_user_pages_fast() does not protect against mapping of FS DAX pages.
+
+Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+retains the performance while also adding the FS DAX checks.  XDP has also
+shown interest in using this functionality.[2]
+
+In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+remove the specialized get_user_pages_longterm call.
+
+[1] https://lkml.org/lkml/2019/2/11/237
+[2] https://lkml.org/lkml/2019/2/11/1789
+
+Ira Weiny (7):
+  mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+  mm/gup: Change write parameter to flags in fast walk
+  mm/gup: Change GUP fast to use flags rather than a write 'bool'
+  mm/gup: Add FOLL_LONGTERM capability to GUP fast
+  IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+
+ arch/mips/mm/gup.c                          |  11 +-
+ arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+ arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+ arch/powerpc/mm/mmu_context_iommu.c         |   4 +-
+ arch/s390/kvm/interrupt.c                   |   2 +-
+ arch/s390/mm/gup.c                          |  12 +-
+ arch/sh/mm/gup.c                            |  11 +-
+ arch/sparc/mm/gup.c                         |   9 +-
+ arch/x86/kvm/paging_tmpl.h                  |   2 +-
+ arch/x86/kvm/svm.c                          |   2 +-
+ drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+ drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+ drivers/infiniband/core/umem.c              |   5 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |   5 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+ drivers/misc/genwqe/card_utils.c            |   2 +-
+ drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+ drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+ drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+ drivers/sbus/char/oradax.c                  |   2 +-
+ drivers/scsi/st.c                           |   3 +-
+ drivers/staging/gasket/gasket_page_table.c  |   4 +-
+ drivers/tee/tee_shm.c                       |   2 +-
+ drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+ drivers/vfio/vfio_iommu_type1.c             |   3 +-
+ drivers/vhost/vhost.c                       |   2 +-
+ drivers/video/fbdev/pvr2fb.c                |   2 +-
+ drivers/virt/fsl_hypervisor.c               |   2 +-
+ drivers/xen/gntdev.c                        |   2 +-
+ fs/orangefs/orangefs-bufmap.c               |   2 +-
+ include/linux/mm.h                          |  17 +-
+ kernel/futex.c                              |   2 +-
+ lib/iov_iter.c                              |   7 +-
+ mm/gup.c                                    | 220 ++++++++++++--------
+ mm/gup_benchmark.c                          |   5 +-
+ mm/util.c                                   |   8 +-
+ net/ceph/pagevec.c                          |   2 +-
+ net/rds/info.c                              |   2 +-
+ net/rds/rdma.c                              |   3 +-
+ 44 files changed, 232 insertions(+), 180 deletions(-)
+
 -- 
 2.20.1
 
