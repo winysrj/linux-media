@@ -2,106 +2,144 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D465CC43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 01:09:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8923EC43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 05:13:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2B6E217D9
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 01:09:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jsxnb+ib"
+	by mail.kernel.org (Postfix) with ESMTP id 55DF821773
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 05:13:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727547AbfBTBJr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Feb 2019 20:09:47 -0500
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:33576 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726016AbfBTBJr (ORCPT
+        id S1725929AbfBTFNF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 00:13:05 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49977 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725828AbfBTFNF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Feb 2019 20:09:47 -0500
-Received: by mail-pg1-f196.google.com with SMTP id h11so8616151pgl.0;
-        Tue, 19 Feb 2019 17:09:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=/ZXl8u2+Ji7jhuDrdnqY/X5VDHJkz/h056CNe/x5sP4=;
-        b=jsxnb+ibyvF08NSmHdch3pRCMIHSBnKTIZk24PhDBzBYqpRiKQ9vQAbL1IgmeN1eGU
-         UaAVAQdedikJ/e+b41TIvRAhJdYbIuXHuEWK+NC+Vw+jfGKQXgllwAS0p1DHyD1iQ08m
-         smh/jSnbFf7qt3iC+aydS2JvKCQJXiSlKnijyJErpCf8SCKw74i2UHPxJR659u26JHyd
-         td5NnDkJDNgTlsXPtpkeUlmVVRiUHHBzSeck71KEXCUi6gtiNshfXNOYmKow/IJs8by5
-         zug33pXZcGM7/ezAk3RM1XUun7isPZs4vrd+mJZdYAobARbp0rWy91ayj+dPPuZI502Y
-         mruA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=/ZXl8u2+Ji7jhuDrdnqY/X5VDHJkz/h056CNe/x5sP4=;
-        b=fQOcdVcKnllnIi2WX5DxXF0EtPUrzPAOWEfdo+QwM63+ZMO666qPwsJEcqbSsqrkhd
-         dejwFu8FvP51i90IFOtOkCKRoXbJu+l0f/2Ef2X8b/7PRjPAuJDw8ozF795fgISH+zBZ
-         dM4gAEOC8YvAiYJnpd7UOc3VmZEqU+NIGgPA3fl05ijkGT00rWbe4ZOWHfSNOzje/a8A
-         jnyww0kg195rsDQRZLWhqG51boWgEMf3psr1DCs3Y2MHqTpv7MI9s+U0mR+2ORhybwWk
-         bSh90U9iSCrMIKFDnDWWJA+FUIJrTlt4EvfJNXKQ7V5dNwvUD/nNJNecDOKQlnr2OVQS
-         hajw==
-X-Gm-Message-State: AHQUAualF0VJQ0nmd58IRcSPcKgYXl5hACOyxCSFKz1NQiPN86NyVKRm
-        59wpraLL+Zq8wvads+6UC1nm0j5l
-X-Google-Smtp-Source: AHgI3IZ9HOc+W0MAtLDj4iqrkQCb3s5VnEvATLHqkmTUtwEcPJLLmLMmmyIBlHn/K2LGNB0R2B54pA==
-X-Received: by 2002:a63:2882:: with SMTP id o124mr26878378pgo.446.1550624986007;
-        Tue, 19 Feb 2019 17:09:46 -0800 (PST)
-Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
-        by smtp.googlemail.com with ESMTPSA id 67sm58685582pfl.175.2019.02.19.17.09.44
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 19 Feb 2019 17:09:45 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
+        Wed, 20 Feb 2019 00:13:05 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:2ca2:3f58:752b:c293])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id wKBqgiLuII8AWwKBrgI0pM; Wed, 20 Feb 2019 06:13:03 +0100
+Message-ID: <597d81bc67c35c1efd426d704454c82b@smtp-cloud9.xs4all.net>
+Date:   Wed, 20 Feb 2019 06:13:02 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
 To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] media: imx: vdic: Restore default case to prepare_vdi_in_buffers()
-Date:   Tue, 19 Feb 2019 17:09:38 -0800
-Message-Id: <20190220010938.5197-1-slongerbeam@gmail.com>
-X-Mailer: git-send-email 2.17.1
+Subject: cron job: media_tree daily build: ERRORS
+X-CMAE-Envelope: MS4wfBWl/LjIe5Yy/5wcHAXKAlNzmZiOH2+Q/YhYUqdJZfyCIQcX35wLqbhmAd6yQEAEATCugI/p5so36lcJJzv3e7ZqRs7YzxRC2fQr4LOxg/MTfrx4EvgQ
+ BnpynV+V5jldrE5ye24+WKa1uhGlNpQYSj77MEefVlGRAUREztPx19BWbLBjA+rL6xiMAfuRsDI/amRulykfR2Sj3B+5uejhhHqgT+pKfTlcZ1xJ5qrMtd0m
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Restore a default case to prepare_vdi_in_buffers() to fix the following
-smatch errors:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-drivers/staging/media/imx/imx-media-vdic.c:236 prepare_vdi_in_buffers() error: uninitialized symbol 'prev_phys'.
-drivers/staging/media/imx/imx-media-vdic.c:237 prepare_vdi_in_buffers() error: uninitialized symbol 'curr_phys'.
-drivers/staging/media/imx/imx-media-vdic.c:238 prepare_vdi_in_buffers() error: uninitialized symbol 'next_phys'.
+Results of the daily build of media_tree:
 
-Fixes: 6e537b58de772 ("media: imx: vdic: rely on VDIC for correct field order")
+date:			Wed Feb 20 05:00:11 CET 2019
+media-tree git hash:	9fabe1d108ca4755a880de43f751f1c054f8894d
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	602c87b681d6ebd0f9ce15ce4421d735f01ef8c0
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
----
- drivers/staging/media/imx/imx-media-vdic.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: WARNINGS: SOC_CAMERA_MT9T031 SOC_CAMERA SOC_CAMERA_MT9M111 SOC_CAMERA_MT9V022 SOC_CAMERA_OV5642 SOC_CAMERA_OV9740 SOC_CAMERA_IMX074 SOC_CAMERA_MT9T031
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+virtme: ERRORS: Final Summary: 1878, Succeeded: 1873, Failed: 5, Warnings: 15
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 2808662e2597..37bfbd4a1c39 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -231,6 +231,12 @@ static void __maybe_unused prepare_vdi_in_buffers(struct vdic_priv *priv,
- 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
- 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
- 		break;
-+	default:
-+		/*
-+		 * can't get here, priv->fieldtype can only be one of
-+		 * the above. This is to quiet smatch errors.
-+		 */
-+		return;
- 	}
- 
- 	ipu_cpmem_set_buffer(priv->vdi_in_ch_p, 0, prev_phys);
--- 
-2.17.1
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
