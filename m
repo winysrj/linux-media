@@ -2,200 +2,272 @@ Return-Path: <SRS0=tJec=Q3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5877C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:08:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCECC43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:22:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83B532183F
-	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:08:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 518302086C
+	for <linux-media@archiver.kernel.org>; Wed, 20 Feb 2019 13:22:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727499AbfBTNIZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 08:08:25 -0500
-Received: from gofer.mess.org ([88.97.38.141]:34565 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726455AbfBTNIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 08:08:24 -0500
-Received: by gofer.mess.org (Postfix, from userid 1000)
-        id 8B3B060366; Wed, 20 Feb 2019 13:08:22 +0000 (GMT)
-Date:   Wed, 20 Feb 2019 13:08:22 +0000
-From:   Sean Young <sean@mess.org>
-To:     Jose Alberto Reguero <jareguero@telefonica.net>
-Cc:     Jose Alberto Reguero <jose.alberto.reguero@gmail.com>,
-        linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] Add suport for Avermedia TD310
-Message-ID: <20190220130822.ny35l6we6xbwo36z@gofer.mess.org>
-References: <cba5b0fd-d626-4736-a017-5a1edf35283e.maildroid@localhost>
- <20190219215731.ktm7zpcnyv7y46ok@gofer.mess.org>
- <FF598AFC-D10A-46B6-B8D7-7D71BB65355A@telefonica.net>
- <20190220093715.26edyirbpolt6eha@gofer.mess.org>
- <FD5F2F73-D4C8-429A-BC72-8EB729A78CB9@telefonica.net>
+        id S1725881AbfBTNWG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Feb 2019 08:22:06 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41458 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725826AbfBTNWG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Feb 2019 08:22:06 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 10AF2634C7B;
+        Wed, 20 Feb 2019 15:21:57 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1gwRoz-0000Sa-LD; Wed, 20 Feb 2019 15:21:57 +0200
+Date:   Wed, 20 Feb 2019 15:21:57 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH yavta 1/7] yavta: Refactor video_list_controls()
+Message-ID: <20190220132157.g222mjamfuyh5t2l@valkosipuli.retiisi.org.uk>
+References: <20190220125123.9410-1-laurent.pinchart@ideasonboard.com>
+ <20190220125123.9410-2-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <FD5F2F73-D4C8-429A-BC72-8EB729A78CB9@telefonica.net>
+In-Reply-To: <20190220125123.9410-2-laurent.pinchart@ideasonboard.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Feb 20, 2019 at 01:49:28PM +0100, Jose Alberto Reguero wrote:
-> El 20 de febrero de 2019 10:37:15 CET, Sean Young <sean@mess.org> escribió:
-> >On Tue, Feb 19, 2019 at 11:51:25PM +0100, Jose Alberto Reguero wrote:
-> >> El 19 de febrero de 2019 22:57:31 CET, Sean Young <sean@mess.org>
-> >escribió:
-> >> >On Mon, Feb 11, 2019 at 11:13:25PM +0100, Jose Alberto Reguero
-> >wrote:
-> >> >> This patch add support for Avermedia TD310 usb stik.
-> >> >> This patch must be aplied after this one:
-> >> >> https://patchwork.linuxtv.org/patch/40087/
-> >> >
-> >> >That patch is marked Changes Requested. Please fix that patch first,
-> >> >and then re-submit.
-> >> >
-> >> >Thanks,
-> >> >Sean
-> >> >
-> >> 
-> >> The patch that that need changes is the other one of the serie, the
-> >one for the si2157. This one can be applyed like this.
-> >
-> >Do you mean:
-> >
-> >	https://patchwork.linuxtv.org/patch/40089/
-> >
-> >That also needs changes before it can be applied, I'm afraid.
-> >
-> >Sean
-> >
-> 
-> I only need the patch:
-> 
-> [2/3,media] af9035: init i2c already in it930x_frontend_attach
-> 
-> I think that It can be applied. I don't know what need no be changed.
+Hi Laurent,
 
-Ah sorry, I was not following before. So, in patch
+Thanks for the patchset.
 
-https://patchwork.linuxtv.org/patch/40087/
-called:
-[2/3,media] af9035: init i2c already in it930x_frontend_attach
+On Wed, Feb 20, 2019 at 02:51:17PM +0200, Laurent Pinchart wrote:
+> Separate iteration over controls from printing, in order to reuse the
+> iteration to implement control reset.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  yavta.c | 133 ++++++++++++++++++++++++++++++++++----------------------
+>  1 file changed, 82 insertions(+), 51 deletions(-)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index 2d3b2d096f7d..98bc09810ff1 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -484,9 +484,12 @@ static int query_control(struct device *dev, unsigned int id,
+>  	query->id = id;
+>  
+>  	ret = ioctl(dev->fd, VIDIOC_QUERYCTRL, query);
+> -	if (ret < 0 && errno != EINVAL)
+> -		printf("unable to query control 0x%8.8x: %s (%d).\n",
+> -		       id, strerror(errno), errno);
+> +	if (ret < 0) {
+> +		ret = -errno;
+> +		if (ret != -EINVAL)
+> +			printf("unable to query control 0x%8.8x: %s (%d).\n",
+> +			       id, strerror(errno), errno);
+> +	}
+>  
+>  	return ret;
+>  }
+> @@ -1120,7 +1123,45 @@ static int video_enable(struct device *dev, int enable)
+>  	return 0;
+>  }
+>  
+> -static void video_query_menu(struct device *dev, struct v4l2_queryctrl *query,
+> +static int video_for_each_control(struct device *dev,
+> +				  int(*callback)(struct device *dev, const struct v4l2_queryctrl *query))
 
-The i2c bus init is copied into it930x_frontend_attach() from 
-it930x_tuner_attach(). However the copy in the tuner attach is
-still there, so it should be removed from the tuner attach. Please
-fix this patch and re-submit both two patches as a new series and
-we can review again.
+This is over 80 characters per line. How about wrapping? Also int on the
+above line is desperate for some breathing room before the opening
+parenthesis.
 
-Thanks,
+> +{
+> +	struct v4l2_queryctrl query;
+> +	unsigned int nctrls = 0;
+> +	unsigned int id;
+> +	int ret;
+> +
+> +#ifndef V4L2_CTRL_FLAG_NEXT_CTRL
 
-Sean
-> 
-> Thanks.
-> 
-> Jose Alberto
-> 
-> >> 
-> >> Thanks.
-> >> 
-> >> Jose Alberto
-> >> 
-> >> >> 
-> >> >> Signed-off-by: Jose Alberto Reguero
-> ><jose.alberto.reguero@gmail.com>
-> >> >> 
-> >> >> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> >> >linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> >> >> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2019-02-11
-> >> >14:48:58.133751038 +0100
-> >> >> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2019-02-11
-> >> >15:02:10.646718610 +0100
-> >> >> @@ -1215,6 +1215,7 @@ static int it930x_frontend_attach(struct
-> >> >>  	int ret;
-> >> >>  	struct si2168_config si2168_config;
-> >> >>  	struct i2c_adapter *adapter;
-> >> >> +	u8 i2c_addr;
-> >> >>  
-> >> >>  	dev_dbg(&intf->dev, "%s  adap->id=%d\n", __func__, adap->id);
-> >> >>  
-> >> >> @@ -1266,7 +1267,11 @@ static int it930x_frontend_attach(struct
-> >> >>  
-> >> >>  	state->af9033_config[adap->id].fe = &adap->fe[0];
-> >> >>  	state->af9033_config[adap->id].ops = &state->ops;
-> >> >> -	ret = af9035_add_i2c_dev(d, "si2168", 0x67, &si2168_config,
-> >> >> +	i2c_addr = 0x67;
-> >> >> +	if ((le16_to_cpu(d->udev->descriptor.idVendor) ==
-> >> >USB_VID_AVERMEDIA) &&
-> >> >> +			(le16_to_cpu(d->udev->descriptor.idProduct) ==
-> >> >USB_PID_AVERMEDIA_TD310))
-> >> >> +		i2c_addr = 0x64;
-> >> >> +	ret = af9035_add_i2c_dev(d, "si2168", i2c_addr, &si2168_config,
-> >> >>  				&d->i2c_adap);
-> >> >>  	if (ret)
-> >> >>  		goto err;
-> >> >> @@ -1613,6 +1618,7 @@ static int it930x_tuner_attach(struct dv
-> >> >>  	struct usb_interface *intf = d->intf;
-> >> >>  	int ret;
-> >> >>  	struct si2157_config si2157_config;
-> >> >> +	u8 i2c_addr;
-> >> >>  
-> >> >>  	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
-> >> >>  
-> >> >> @@ -1661,7 +1667,13 @@ static int it930x_tuner_attach(struct dv
-> >> >>  	memset(&si2157_config, 0, sizeof(si2157_config));
-> >> >>  	si2157_config.fe = adap->fe[0];
-> >> >>  	si2157_config.if_port = 1;
-> >> >> -	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
-> >> >> +	i2c_addr = 0x63;
-> >> >> +	if ((le16_to_cpu(d->udev->descriptor.idVendor) ==
-> >> >USB_VID_AVERMEDIA) &&
-> >> >> +			(le16_to_cpu(d->udev->descriptor.idProduct) ==
-> >> >USB_PID_AVERMEDIA_TD310)) {
-> >> >> +		i2c_addr = 0x60;
-> >> >> +		si2157_config.if_port = 0;
-> >> >> +	}
-> >> >> +	ret = af9035_add_i2c_dev(d, "si2157", i2c_addr,
-> >> >>  			&si2157_config, state->i2c_adapter_demod);
-> >> >>  
-> >> >>  	if (ret)
-> >> >> @@ -2169,6 +2181,8 @@ static const struct usb_device_id af9035
-> >> >>  	/* IT930x devices */
-> >> >>  	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
-> >> >>  		&it930x_props, "ITE 9303 Generic", NULL) },
-> >> >> +	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TD310,
-> >> >> +		&it930x_props, "AVerMedia TD310 DVB-T2", NULL) },
-> >> >>  	{ }
-> >> >>  };
-> >> >>  MODULE_DEVICE_TABLE(usb, af9035_id_table);
-> >> >> diff -upr linux/include/media/dvb-usb-ids.h
-> >> >linux.new/include/media/dvb-usb-ids.h
-> >> >> --- linux/include/media/dvb-usb-ids.h	2018-05-05
-> >07:40:18.000000000
-> >> >+0200
-> >> >> +++ linux.new/include/media/dvb-usb-ids.h	2019-02-08
-> >> >22:00:24.765541474 +0100
-> >> >> @@ -258,6 +258,7 @@
-> >> >>  #define USB_PID_AVERMEDIA_A867				0xa867
-> >> >>  #define USB_PID_AVERMEDIA_H335				0x0335
-> >> >>  #define USB_PID_AVERMEDIA_TD110				0xa110
-> >> >> +#define USB_PID_AVERMEDIA_TD310				0x1871
-> >> >>  #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
-> >> >>  #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
-> >> >>  #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
-> >> >> 
-> >> >> 
-> >> >> 
-> >> >> Sent from MailDroid
-> >> 
-> >> 
-> >> -- 
-> >> Enviado desde mi dispositivo Android con K-9 Mail. Por favor,
-> >disculpa mi brevedad.
-> 
-> 
-> -- 
-> Enviado desde mi dispositivo Android con K-9 Mail. Por favor, disculpa mi brevedad.
+This was added back in 2012. Do you think it's still worth checking for it?
+
+Not related to this patch though, just a general remark.
+
+> +	unsigned int i;
+> +
+> +	for (i = V4L2_CID_BASE; i <= V4L2_CID_LASTP1; ++i) {
+> +		id = i;
+> +#else
+> +	id = 0;
+> +	while (1) {
+> +		id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+> +#endif
+> +
+> +		ret = query_control(dev, id, &query);
+> +		if (ret == -EINVAL)
+> +			break;
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		id = query.id;
+> +
+> +		ret = callback(dev, &query);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		if (ret)
+> +			nctrls++;
+> +	}
+> +
+> +	return nctrls;
+> +}
+> +
+> +static void video_query_menu(struct device *dev, const struct v4l2_queryctrl *query,
+>  			     unsigned int value)
+>  {
+>  	struct v4l2_querymenu menu;
+> @@ -1142,83 +1183,68 @@ static void video_query_menu(struct device *dev, struct v4l2_queryctrl *query,
+>  	};
+>  }
+>  
+> -static int video_print_control(struct device *dev, unsigned int id, bool full)
+> +static int video_print_control(struct device *dev,
+> +			       const struct v4l2_queryctrl *query, bool full)
+>  {
+>  	struct v4l2_ext_control ctrl;
+> -	struct v4l2_queryctrl query;
+>  	char sval[24];
+>  	char *current = sval;
+>  	int ret;
+>  
+> -	ret = query_control(dev, id, &query);
+> -	if (ret < 0)
+> -		return ret;
+> +	if (query->flags & V4L2_CTRL_FLAG_DISABLED)
+> +		return 0;
+>  
+> -	if (query.flags & V4L2_CTRL_FLAG_DISABLED)
+> -		return query.id;
+> -
+> -	if (query.type == V4L2_CTRL_TYPE_CTRL_CLASS) {
+> -		printf("--- %s (class 0x%08x) ---\n", query.name, query.id);
+> -		return query.id;
+> +	if (query->type == V4L2_CTRL_TYPE_CTRL_CLASS) {
+> +		printf("--- %s (class 0x%08x) ---\n", query->name, query->id);
+> +		return 0;
+>  	}
+>  
+> -	ret = get_control(dev, &query, &ctrl);
+> +	ret = get_control(dev, query, &ctrl);
+>  	if (ret < 0)
+>  		strcpy(sval, "n/a");
+> -	else if (query.type == V4L2_CTRL_TYPE_INTEGER64)
+> +	else if (query->type == V4L2_CTRL_TYPE_INTEGER64)
+>  		sprintf(sval, "%lld", ctrl.value64);
+> -	else if (query.type == V4L2_CTRL_TYPE_STRING)
+> +	else if (query->type == V4L2_CTRL_TYPE_STRING)
+>  		current = ctrl.string;
+>  	else
+>  		sprintf(sval, "%d", ctrl.value);
+>  
+>  	if (full)
+>  		printf("control 0x%08x `%s' min %d max %d step %d default %d current %s.\n",
+> -			query.id, query.name, query.minimum, query.maximum,
+> -			query.step, query.default_value, current);
+> +			query->id, query->name, query->minimum, query->maximum,
+> +			query->step, query->default_value, current);
+>  	else
+> -		printf("control 0x%08x current %s.\n", query.id, current);
+> +		printf("control 0x%08x current %s.\n", query->id, current);
+>  
+> -	if (query.type == V4L2_CTRL_TYPE_STRING)
+> +	if (query->type == V4L2_CTRL_TYPE_STRING)
+>  		free(ctrl.string);
+>  
+>  	if (!full)
+> -		return query.id;
+> +		return 1;
+>  
+> -	if (query.type == V4L2_CTRL_TYPE_MENU ||
+> -	    query.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+> -		video_query_menu(dev, &query, ctrl.value);
+> +	if (query->type == V4L2_CTRL_TYPE_MENU ||
+> +	    query->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+> +		video_query_menu(dev, query, ctrl.value);
+>  
+> -	return query.id;
+> +	return 1;
+> +}
+> +
+> +static int __video_print_control(struct device *dev,
+> +				 const struct v4l2_queryctrl *query)
+> +{
+> +	return video_print_control(dev, query, true);
+>  }
+>  
+>  static void video_list_controls(struct device *dev)
+>  {
+> -	unsigned int nctrls = 0;
+> -	unsigned int id;
+>  	int ret;
+>  
+> -#ifndef V4L2_CTRL_FLAG_NEXT_CTRL
+> -	unsigned int i;
+> +	ret = video_for_each_control(dev, __video_print_control);
+> +	if (ret < 0)
+> +		return;
+>  
+> -	for (i = V4L2_CID_BASE; i <= V4L2_CID_LASTP1; ++i) {
+> -		id = i;
+> -#else
+> -	id = 0;
+> -	while (1) {
+> -		id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+> -#endif
+> -
+> -		ret = video_print_control(dev, id, true);
+> -		if (ret < 0)
+> -			break;
+> -
+> -		id = ret;
+> -		nctrls++;
+> -	}
+> -
+> -	if (nctrls)
+> -		printf("%u control%s found.\n", nctrls, nctrls > 1 ? "s" : "");
+> +	if (ret)
+> +		printf("%u control%s found.\n", ret, ret > 1 ? "s" : "");
+>  	else
+>  		printf("No control found.\n");
+>  }
+> @@ -2184,8 +2210,13 @@ int main(int argc, char *argv[])
+>  	if (do_log_status)
+>  		video_log_status(&dev);
+>  
+> -	if (do_get_control)
+> -		video_print_control(&dev, ctrl_name, false);
+> +	if (do_get_control) {
+> +		struct v4l2_queryctrl query;
+> +
+> +		ret = query_control(&dev, ctrl_name, &query);
+> +		if (ret == 0)
+> +			video_print_control(&dev, &query, false);
+> +	}
+>  
+>  	if (do_set_control)
+>  		set_control(&dev, ctrl_name, ctrl_value);
+
+-- 
+Cheers,
+
+Sakari Ailus
