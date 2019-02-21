@@ -2,144 +2,99 @@ Return-Path: <SRS0=PlsX=Q4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8742C4360F
-	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 04:44:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A27C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 07:22:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8ED532147A
-	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 04:44:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37F8320838
+	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 07:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727176AbfBUEoe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Feb 2019 23:44:34 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38134 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725837AbfBUEoe (ORCPT
+        id S1727204AbfBUHWK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Feb 2019 02:22:10 -0500
+Received: from mailgw02.mediatek.com ([210.61.82.184]:26429 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727161AbfBUHWJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Feb 2019 23:44:34 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:b152:c192:e246:706a])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id wgDngynlJLMwIwgDogxokp; Thu, 21 Feb 2019 05:44:32 +0100
-Message-ID: <5b0dfaab93421294620e5f746d85edf4@smtp-cloud7.xs4all.net>
-Date:   Thu, 21 Feb 2019 05:44:31 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfE37bZpu/oLNPip6hrmoDUSv7HmZ6C9dLuM/LYVtYP8H8pSgYICJuV7EN1nNA8qC9H0vxeI4sQuh8V/UYikPzoOSZh0tq1wxnXz+BaWttfXrSXUUV8Xm
- S6pkKnl4SC5JT9UF67hXWybLj8bREiYEJlDUACR7nyLEqn8M/HCgOJvs9XdWM3jWl5JMeWuLsPiYbePrOJSjC4fGR9jcy4ZcKO+qjFZ4X1I2VUPWUu9rvhbC
+        Thu, 21 Feb 2019 02:22:09 -0500
+X-UUID: 1b7f6ba946ea4391b561601ef198256a-20190221
+X-UUID: 1b7f6ba946ea4391b561601ef198256a-20190221
+Received: from mtkmrs01.mediatek.inc [(172.21.131.159)] by mailgw02.mediatek.com
+        (envelope-from <louis.kuo@mediatek.com>)
+        (mhqrelay.mediatek.com ESMTP with TLS)
+        with ESMTP id 714725779; Thu, 21 Feb 2019 15:22:04 +0800
+Received: from MTKMBS06N1.mediatek.inc (172.21.101.129) by
+ mtkexhb02.mediatek.inc (172.21.101.103) with Microsoft SMTP Server (TLS) id
+ 15.0.1395.4; Thu, 21 Feb 2019 15:22:03 +0800
+Received: from MTKCAS06.mediatek.inc (172.21.101.30) by
+ mtkmbs06n1.mediatek.inc (172.21.101.129) with Microsoft SMTP Server (TLS) id
+ 15.0.1395.4; Thu, 21 Feb 2019 15:22:02 +0800
+Received: from mtkslt306.mediatek.inc (10.21.14.136) by MTKCAS06.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1395.4 via Frontend
+ Transport; Thu, 21 Feb 2019 15:22:02 +0800
+From:   Louis Kuo <louis.kuo@mediatek.com>
+To:     <hans.verkuil@cisco.com>,
+        <laurent.pinchart+renesas@ideasonboard.com>, <tfiga@chromium.org>,
+        <matthias.bgg@gmail.com>, <mchehab@kernel.org>
+CC:     <yuzhao@chromium.org>, <zwisler@chromium.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>, <Sean.Cheng@mediatek.com>,
+        <sj.huang@mediatek.com>, <christie.yu@mediatek.com>,
+        <holmes.chiou@mediatek.com>, <frederic.chen@mediatek.com>,
+        <Jerry-ch.Chen@mediatek.com>, <jungo.lin@mediatek.com>,
+        <Rynn.Wu@mediatek.com>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>, <devicetree@vger.kernel.org>,
+        Louis Kuo <louis.kuo@mediatek.com>
+Subject: [RFC PATCH V0 2/4] media: platform: Add Mediatek sensor interface driver KConfig
+Date:   Thu, 21 Feb 2019 15:21:56 +0800
+Message-ID: <1550733718-31702-3-git-send-email-louis.kuo@mediatek.com>
+X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1550733718-31702-1-git-send-email-louis.kuo@mediatek.com>
+References: <1550733718-31702-1-git-send-email-louis.kuo@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+X-MTK:  N
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds KConfig for sensor interface driver. Sensor interface driver
+is a MIPI-CSI2 host driver, namely, a HW camera interface controller.
+It support a widely adopted, simple, high-speed protocol primarily intended
+for point-to-point image and video transmission between cameras and host
+devices.
 
-Results of the daily build of media_tree:
+Signed-off-by: Louis Kuo <louis.kuo@mediatek.com>
+---
+ drivers/media/platform/mtk-isp/Kconfig | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+ create mode 100644 drivers/media/platform/mtk-isp/Kconfig
 
-date:			Thu Feb 21 05:00:17 CET 2019
-media-tree git hash:	9fabe1d108ca4755a880de43f751f1c054f8894d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	a93caccd06a62e40bcb22c808988511b63ea9920
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+diff --git a/drivers/media/platform/mtk-isp/Kconfig b/drivers/media/platform/mtk-isp/Kconfig
+new file mode 100644
+index 0000000..c665fa1
+--- /dev/null
++++ b/drivers/media/platform/mtk-isp/Kconfig
+@@ -0,0 +1,16 @@
++config MTK_SENINF
++	bool "Mediatek mipi csi2 driver"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	select V4L2_FWNODE
++
++	default n
++	help
++	    This driver provides a mipi-csi2 host driver used as a
++	    interface to connect camera with Mediatek's
++	    MT8183 SOCs. It is able to handle multiple cameras
++	    at the same time.
++
++		Choose y if you want to use Mediatek SoCs to create image
++		capture application such as video recording and still image
++		capture.
+-- 
+1.9.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1862, Succeeded: 1862, Failed: 0, Warnings: 15
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
