@@ -2,188 +2,99 @@ Return-Path: <SRS0=PlsX=Q4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A05C7C43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 19:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E45C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 21:50:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7694020836
-	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 19:26:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B79302080F
+	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 21:50:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="TADZ3iQj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726198AbfBUT0U (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Feb 2019 14:26:20 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53830 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726125AbfBUT0U (ORCPT
+        id S1726050AbfBUVuz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Feb 2019 16:50:55 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48286 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725943AbfBUVuz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Feb 2019 14:26:20 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id D244F27EFCD
-Message-ID: <d53c1a3c8ffdc0bbc4460e6eaa4810456c723304.camel@collabora.com>
-Subject: Re: [PATCH 01/10] media: Introduce helpers to fill pixel format
- structs
-From:   Ezequiel Garcia <ezequiel@collabora.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>, Tomasz Figa <tfiga@chromium.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Jonas Karlman <jonas@kwiboo.se>
-Date:   Thu, 21 Feb 2019 16:26:10 -0300
-In-Reply-To: <ea53ac3d-a337-d725-3317-1cef42481820@xs4all.nl>
-References: <20190205202417.16555-1-ezequiel@collabora.com>
-         <20190205202417.16555-2-ezequiel@collabora.com>
-         <79ad7cf7-90d5-9542-06ea-e28ddeb14e94@xs4all.nl>
-         <85ff24016b4d4b55a1a02f1aee6b42dbbaf2279a.camel@collabora.com>
-         <d1ea8698-e4c6-a826-0820-b8395c8c2a6f@xs4all.nl>
-         <CAAFQd5DLTOJ0kheFdxzTV7Hrtc5MpG4Utn00HgNh06d+h_qJfQ@mail.gmail.com>
-         <ea53ac3d-a337-d725-3317-1cef42481820@xs4all.nl>
-Organization: Collabora
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.5-1 
+        Thu, 21 Feb 2019 16:50:55 -0500
+Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 18B05255;
+        Thu, 21 Feb 2019 22:50:53 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1550785853;
+        bh=XD5/nNTQSaqAJD6zRs7ajHg14qMkoRLFBAONOtJNRGU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=TADZ3iQj2Ex1mdTClwoptm77DkG05PG9vTwPqhSAsQi7cYWNsZAYtad4T1u8Ds//W
+         V4BPFYlf08kDU9BX0xCFRIfMNpHH2yP7ztWunJ/2D5ZUAZklM7DYaDBt+FOneOR4td
+         Ezz2vHIstyovD5d8uPfiAheAyiTJa2ed3O/698Bg=
+Date:   Thu, 21 Feb 2019 23:50:48 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Shaobo <shaobo@cs.utah.edu>
+Cc:     linux-media@vger.kernel.org, pawel@osciak.com,
+        m.szyprowski@samsung.com
+Subject: Re: Problematic code in media/v4l2-core/v4l2-mem2mem.c
+Message-ID: <20190221215048.GA3485@pendragon.ideasonboard.com>
+References: <4c01f7987951d7a66350a069f471c129@cs.utah.edu>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <4c01f7987951d7a66350a069f471c129@cs.utah.edu>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, 2019-02-20 at 09:39 +0100, Hans Verkuil wrote:
-> On 2/20/19 7:53 AM, Tomasz Figa wrote:
-> > On Thu, Feb 7, 2019 at 1:36 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > On 2/6/19 5:22 PM, Ezequiel Garcia wrote:
-> > > > On Wed, 2019-02-06 at 11:43 +0100, Hans Verkuil wrote:
-> > > > > Hi Ezequiel,
-> > > > > 
-> > > > > A quick review below. This looks really useful, BTW.
-> > > > > 
-> > > > > On 2/5/19 9:24 PM, Ezequiel Garcia wrote:
-> > 
-> > [snip]
-> > > > > > +/**
-> > > > > > + * struct v4l2_format_info - information about a V4L2 format
-> > > > > > + * @format: 4CC format identifier (V4L2_PIX_FMT_*)
-> > > > > > + * @header_size: Size of header, optional and used by compressed formats
-> > > > > > + * @num_planes: Number of planes (1 to 3)
-> > > > > 
-> > > > > This is actually 1-4 since there may be an alpha channel as well. Not that we have
-> > > > > such formats since the only formats with an alpha channel are interleaved formats,
-> > > > > but it is possible.
-> > 
-> > How about 1 to VIDEO_MAX_PLANES to be a bit more consistent?
-> > Tbh. I'm not sure why we have that defined to 8, but if we have such
-> > constant already, it could make sense to use it here as well.
+Hi Shaobo,
+
+On Thu, Feb 21, 2019 at 11:11:32AM -0700, Shaobo wrote:
+> Hello everyone,
 > 
-> We didn't know at the time how many planes we would need. I think we
-> chose 8 because 1) that fit inside struct v4l2_format and 2) it allowed
-> room for planes carrying meta data.
+> I think I brought up this issue before but didn't resolve it completely. 
+> Now I'd like to double check this and if we can agree on it, I'd also 
+> like to submit a patch to fix it. The problem is that function 
+> `get_queue_ctx` can never return a NULL pointer unless pointer overflow 
+> occurs, which is very unlikely. To be more specific,
 > 
-> In hindsight we probably should have chosen 4 instead of 8.
+> ```
+> static struct v4l2_m2m_queue_ctx *get_queue_ctx(struct v4l2_m2m_ctx 
+> *m2m_ctx,
+> 						enum v4l2_buf_type type)
+> {
+> 	if (V4L2_TYPE_IS_OUTPUT(type))
+> 		return &m2m_ctx->out_q_ctx;
+> 	else
+> 		return &m2m_ctx->cap_q_ctx;
+> }
+> ```
 > 
-> In any case, since this is an internal API I think chosing MAX_PLANES
-> here would waste unnecessary memory.
+> The address returned by this function is either `(char*)m2m_ctx+968` or 
+> `(char*)m2m_ctx+16`, so for it to be NULL, `m2m_ctx` must be a large 
+> unsigned value. Yet the return value of this function is NULL-checked, 
+> for example in v4l2_m2m_get_vq.
 > 
+> Please let me know if it makes sense.
 
-4 it is then.
+It makes complete sense.
 
-> > [snip]
-> > > > Also, note that drm-fourcc deprecates cpp, to support tile formats.
-> > > > Hopefully we don't need that here?
-> > > 
-> > > We do have tile formats (V4L2_PIX_FMT_NV12MT_16X16), but it is up to the
-> > > driver to align width/height accordingly.
-> > > 
-> > 
-> > I'd still make these helpers align to the constraints defined by the
-> > format itself (e.g. 16x16), since it doesn't cost us anything, and
-> > have the driver do any further alignment only if they need so.
-> 
-> Yes, sorry, I should have said that: for tiled pixel formats this
-> struct should give the alignments.
-> 
-> But those alignments differ from hsub/vsub: those values restrict the
-> resolution, but the 'tiled' alignments are on top of that.
-> 
+There are only two callers of get_queue_ctx() that check the return
+value of the function. It may be argued that the intent was to check for
+a NULL m2m_ctx, so you could replace those two checks with a NULL check
+for m2m_ctx before calling get_queue_ctx(). However, given that nothing
+is crashing, it may also be argued that the checks are unnecessary and
+can be dropped completely. The best would be to review the call paths to
+ensure the functions can indeed never be called with NULL, but a quick
+look at the code shows no other NULL check in functions taking a m2m_ctx
+pointer as argument, so I'd vote for just dropping the two offending
+checks.
 
-Hm, OK. So the idea is support tiling formats on this helpers?
+Care to submit a patch ? :-)
 
-Might need to change the way we describe formats, as DRM does,
-to incorporate some notion of pixel blocks.
+-- 
+Regards,
 
-> > > > > > + * @hsub: Horizontal chroma subsampling factor
-> > > > > > + * @vsub: Vertical chroma subsampling factor
-> > > > > 
-> > > > > A bit too cryptic IMHO. I would prefer hdiv or hsubsampling. 'hsub' suggests
-> > > > > subtraction :-)
-> > > > > 
-> > > > 
-> > > > Ditto, this name follows drm-fourcc. I'm fine either way.
-> > > > 
-> > 
-> > I personally like hsub and vsub too, but maybe I just spent too much
-> > time with DRM code. *subsampling would make the initializers super
-> > wide, so if we decide that we don't like *sub, I'd go with *div.
-> > 
-
-Note that there's a v2 patch, where I went with *div :-)
-
-> > > > > > + * @multiplanar: Is it a multiplanar variant format? (e.g. NV12M)
-> > > > > 
-> > > > > This should, I think, be renamed to num_non_contig_planes to indicate how many
-> > > > > non-contiguous planes there are in the format.
-> > > > > 
-> > > > > So this value is 1 for NV12 and 2 for NV12M. For V4L2_PIX_FMT_YUV444M it is 3.
-> > > > > 
-> > > > > You can stick this value directly into pixfmt_mp->num_planes.
-> > > > > 
-> > > > 
-> > > > Fine by me, but I have to admit I don't see the value of adding the
-> > > > number of non-contiguous planes. For multiplanar non-contiguous formats
-> > > > the number of planes is equal to the number of planes.
-> > > 
-> > > Hmm, that's true. Choose whatever gives you the shortest code :-)
-> > > 
-> > > > Although maybe it will be clear this way for readers?
-> > > > 
-> > > > > As an aside: perhaps we should start calling the 'multiplanar API' the
-> > > > > 'multiple non-contiguous planes API', at least in the documentation. It's the
-> > 
-> > To me, "multiple non-contiguous planes API" would suggest that the
-> > planes themselves are non-contiguous.
-> > 
-> > Many drivers (especially Samsung ones) have a distinction between
-> > "color planes" and "memory planes" internally, so maybe "Multiple
-> > memory planes API" could make sense?
-> 
-> Huh, that's an idea. So _MPLANE should have been _MMPLANE?
-> 
-> > > > > first time that I found a description that actually covers the real meaning.
-> > > > > 
-> > > > 
-> > > > Yes, indeed. In fact, my first version of this code had something like
-> > > > "is_noncontiguous" instead of the "multiplanar" field.
-> > > 
-> > > I'm fine with that. Add a comment after it like: /* aka multiplanar */
-> > > 
-> > 
-> > FWIW, some of the drivers have .num_cplanes and .num_mplanes in their
-> > format descriptors.
-> 
-> 
-
-This sounds nice.
-
-To be clear, this means that instead of a boolean is_noncontigous, we describe
-the number of (non-contiguous) memory planes and the number of component planes.
-
-I really dislike the name "color planes", because it could be misleading
-as chroma planes, so I think "component planes" makes it more clear.
-
-Thanks for reviewing!
-Eze
-
+Laurent Pinchart
