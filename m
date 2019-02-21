@@ -2,307 +2,105 @@ Return-Path: <SRS0=PlsX=Q4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EF9EC4360F
-	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 14:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0CB1C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 14:47:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CE6C42086A
-	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 14:39:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71AB120700
+	for <linux-media@archiver.kernel.org>; Thu, 21 Feb 2019 14:47:44 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="u/kBLNGz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728870AbfBUOjW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Feb 2019 09:39:22 -0500
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:37053 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728847AbfBUOjV (ORCPT
+        id S1728555AbfBUOrn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Feb 2019 09:47:43 -0500
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:41538 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728429AbfBUOrm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Feb 2019 09:39:21 -0500
-X-Originating-IP: 37.176.227.16
-Received: from uno.localdomain (unknown [37.176.227.16])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id C20841BF20E;
-        Thu, 21 Feb 2019 14:39:14 +0000 (UTC)
-Date:   Thu, 21 Feb 2019 15:39:40 +0100
-From:   Jacopo Mondi <jacopo@jmondi.org>
-To:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH v2 16/30] v4l: subdev: Add [GS]_ROUTING subdev ioctls and
- operations
-Message-ID: <20190221143940.k56z2vwovu3y5okh@uno.localdomain>
-References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-17-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 21 Feb 2019 09:47:42 -0500
+Received: by mail-pf1-f193.google.com with SMTP id d25so5587356pfn.8
+        for <linux-media@vger.kernel.org>; Thu, 21 Feb 2019 06:47:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=to:from:subject:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=T3Ik+nPuFV1FZjIR/q2fUpsFYQCrSxwwhlTRF5r9cyA=;
+        b=u/kBLNGzwsk5oT1IbOTOgvt+qM7VsgsKw/C2kaSi4HNiqBJxyoG3om0qBKSL0K/1Cr
+         NcPRjb6hsoyAHTijHQAlhYOUDRW1dpRgpWCDX6TgBLq3IpCiwo9h2X3+4zorcnasTzqp
+         2A9JTjmHnOYD0WsKux9zpXQpE+nH/fCqMlWBrBvcgRgNe8zUES7jYSXKNpJAtkr7xP4l
+         Ac7hnblSOv42aJbTsW0yLbXzEph7LA7TH+laP+jYOf9wUWYANdMpkSaoLDpSZhKtirLt
+         T9x0xOhaPWO8cjwc/UT6Rf6CI9qyiMiCF7dQ3Q2OeHjcp7Q8iZsttobi34yKVq6KULf/
+         YBjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=T3Ik+nPuFV1FZjIR/q2fUpsFYQCrSxwwhlTRF5r9cyA=;
+        b=mHK5PXvNatsdHYeZNfwS0W84TyzVUbVlmqqog4BPbVFfCF6jAplI9MfLg0u2nWQeN6
+         TAhN9A5fWgltDKuii5LC3ChAUGvVTjnKAEMVYNemvA8oWXNP+q1Av0uBGAyOQMW9AkKC
+         yZnawPrWbVpadZCpvzrt25lA+lnY3yMtVmnzKmF/jVW/D2yB0oX7FdaBnHGVHRHWA2yh
+         i0He177TCDy4ENh72z44mmKiVYlj9Js5fHRpqORtwUWc7XqrGo50L/SPF04QfMvMSbeE
+         iG7WQzMU+ksly7nGAi/Q7edJ7jaxDZlPzau856/nbNv2mOO0XyQToWqq2viaNGSwhikW
+         Ttag==
+X-Gm-Message-State: AHQUAuYrWLMFhKMFzU2sTX8PN7hnqTnv95ProxZWuhHxr5cYBL0YJj6V
+        iUzuXLhtp79U6+zselQEe1g=
+X-Google-Smtp-Source: AHgI3IbGBemo/tWX5Sck5sYKuMI1GWBp4Y4uJGr1ZTT/YkSFNXo8KEUBZSQKVpUfNDG4p+ZWkIWxYw==
+X-Received: by 2002:a63:e14e:: with SMTP id h14mr24083581pgk.184.1550760461730;
+        Thu, 21 Feb 2019 06:47:41 -0800 (PST)
+Received: from [192.168.3.4] (softbank219203027033.bbtec.net. [219.203.27.33])
+        by smtp.gmail.com with ESMTPSA id y9sm33461524pfi.74.2019.02.21.06.47.39
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 21 Feb 2019 06:47:41 -0800 (PST)
+To:     sean@mess.org, linux-media@vger.kernel.org, mchehab@kernel.org
+From:   Akihiro TSUKADA <tskd08@gmail.com>
+Subject: Re: [PATCH] media: dvb/earth-pt1: fix wrong initialization for demod
+ blocks
+Message-ID: <80759e10-a3e3-6c69-114a-b91bcf1308d6@gmail.com>
+Date:   Thu, 21 Feb 2019 23:47:31 +0900
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bdgnkhipvdwkzgcr"
-Content-Disposition: inline
-In-Reply-To: <20181101233144.31507-17-niklas.soderlund+renesas@ragnatech.se>
-User-Agent: NeoMutt/20180716
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Language: en-US-large
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi,
+thank you for reviewing my patch,
+ ( <20190110095623.28070-1-tskd08@gmail.com>
+   https://patchwork.linuxtv.org/patch/53834/ ),
+and excuse me for my late reply.
+I somehow lost your mail and noticed it just today by checking Patchwork.
 
---bdgnkhipvdwkzgcr
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, 18 Feb 2019 21:04:28 +0000, you wrote:
+> It might be possible to simplify the code a little by using strcmp() and
+> making it into one loop, like so:
+> 
+> 	for (i = 0; i < PT1_NR_ADAPS; i++) {
+> 		cl = pt1->adaps[i]->demod_i2c_client;
+> 		if (strcmp(cl->name, TC90522_I2C_DEV_SAT) &&
+> 		    strcmp(cl->name, TC90522_I2C_DEV_TER)) 
+> 			continue;
+> 
+> 		ret = i2c_master_send(cl, buf, 2);
+> 		if (ret < 0)
+> 			return ret;
+> 
+> 		usleep_range(30000, 50000);
+> 	}
 
-Hi Sakari,
-   one quick question
+Any "cl" has the name of either TC90522_I2C_DEV_SAT or TC90522_I2C_DEV_TER,
+and no other name exists.  (adaps[0],adaps[2]: _SAT, adaps[1],adaps[3]: _TER)
+The purpose of the code is to ensure that TER clients are processed
+BEFORE SAT clients, as noted in the header comment of this function.
+So I am afraid that unifying the two loops does not work.
 
-On Fri, Nov 02, 2018 at 12:31:30AM +0100, Niklas S=C3=B6derlund wrote:
-> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
->
-> - Add sink and source streams for multiplexed links
-> - Copy the argument back in case of an error. This is needed to let the
->   caller know the number of routes.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c  | 20 +++++++++++++-
->  drivers/media/v4l2-core/v4l2-subdev.c | 28 +++++++++++++++++++
->  include/media/v4l2-subdev.h           |  7 +++++
->  include/uapi/linux/v4l2-subdev.h      | 40 +++++++++++++++++++++++++++
->  4 files changed, 94 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-co=
-re/v4l2-ioctl.c
-> index 7de041bae84fb2f2..40406acb51ec0906 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -19,6 +19,7 @@
->  #include <linux/kernel.h>
->  #include <linux/version.h>
->
-> +#include <linux/v4l2-subdev.h>
->  #include <linux/videodev2.h>
->
->  #include <media/v4l2-common.h>
-> @@ -2924,6 +2925,23 @@ static int check_array_args(unsigned int cmd, void=
- *parg, size_t *array_size,
->  		}
->  		break;
->  	}
-> +
-> +	case VIDIOC_SUBDEV_G_ROUTING:
-> +	case VIDIOC_SUBDEV_S_ROUTING: {
-> +		struct v4l2_subdev_routing *route =3D parg;
-> +
-> +		if (route->num_routes > 0) {
-> +			if (route->num_routes > 256)
-> +				return -EINVAL;
-> +
-> +			*user_ptr =3D (void __user *)route->routes;
-> +			*kernel_ptr =3D (void *)&route->routes;
-> +			*array_size =3D sizeof(struct v4l2_subdev_route)
-> +				    * route->num_routes;
-> +			ret =3D 1;
-> +		}
-> +		break;
-> +	}
->  	}
->
->  	return ret;
-> @@ -3033,7 +3051,7 @@ video_usercopy(struct file *file, unsigned int cmd,=
- unsigned long arg,
->  	 * Some ioctls can return an error, but still have valid
->  	 * results that must be returned.
->  	 */
-> -	if (err < 0 && !always_copy)
-> +	if (err < 0 && !always_copy && cmd !=3D VIDIOC_SUBDEV_G_ROUTING)
->  		goto out;
->
->  out_array_args:
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-c=
-ore/v4l2-subdev.c
-> index 792f41dffe2329b9..1d3b37cf548fa533 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -516,7 +516,35 @@ static long subdev_do_ioctl(struct file *file, unsig=
-ned int cmd, void *arg)
->
->  	case VIDIOC_SUBDEV_QUERYSTD:
->  		return v4l2_subdev_call(sd, video, querystd, arg);
-> +
-> +	case VIDIOC_SUBDEV_G_ROUTING:
-> +		return v4l2_subdev_call(sd, pad, get_routing, arg);
-> +
-> +	case VIDIOC_SUBDEV_S_ROUTING: {
-> +		struct v4l2_subdev_routing *route =3D arg;
-> +		unsigned int i;
-> +
-> +		if (route->num_routes > sd->entity.num_pads)
-> +			return -EINVAL;
-
-Can't the number of routes exceeds the total number of pad?
-
-To make an example, a subdevice with 2 sink pads, and 1 multiplexed
-source pad, with 2 streams would expose the following routing table,
-right?
-
-pad #0 =3D sink, 1 stream
-pad #1 =3D sink, 1 stream
-pad #2 =3D source, 2 streams
-
-Routing table:
-0/0 -> 2/0
-0/0 -> 2/1
-1/0 -> 2/0
-1/0 -> 2/1
-
-In general, the number of accepted routes should depend on the number
-of streams, not pads, and that's better handled by drivers, am I
-wrong?
-
-Thanks
-  j
-
-> +
-> +		for (i =3D 0; i < route->num_routes; ++i) {
-> +			unsigned int sink =3D route->routes[i].sink_pad;
-> +			unsigned int source =3D route->routes[i].source_pad;
-> +			struct media_pad *pads =3D sd->entity.pads;
-> +
-> +			if (sink >=3D sd->entity.num_pads ||
-> +			    source >=3D sd->entity.num_pads)
-> +				return -EINVAL;
-> +
-> +			if (!(pads[sink].flags & MEDIA_PAD_FL_SINK) ||
-> +			    !(pads[source].flags & MEDIA_PAD_FL_SOURCE))
-> +				return -EINVAL;
-> +		}
-> +
-> +		return v4l2_subdev_call(sd, pad, set_routing, route);
-> +	}
->  #endif
-> +
->  	default:
->  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
->  	}
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 9102d6ca566e01f2..5acaeeb9b3cacefa 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -679,6 +679,9 @@ struct v4l2_subdev_pad_config {
->   *
->   * @set_frame_desc: set the low level media bus frame parameters, @fd ar=
-ray
->   *                  may be adjusted by the subdev driver to device capab=
-ilities.
-> + *
-> + * @get_routing: callback for VIDIOC_SUBDEV_G_ROUTING IOCTL handler.
-> + * @set_routing: callback for VIDIOC_SUBDEV_S_ROUTING IOCTL handler.
->   */
->  struct v4l2_subdev_pad_ops {
->  	int (*init_cfg)(struct v4l2_subdev *sd,
-> @@ -719,6 +722,10 @@ struct v4l2_subdev_pad_ops {
->  			      struct v4l2_mbus_frame_desc *fd);
->  	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
->  			      struct v4l2_mbus_frame_desc *fd);
-> +	int (*get_routing)(struct v4l2_subdev *sd,
-> +			   struct v4l2_subdev_routing *route);
-> +	int (*set_routing)(struct v4l2_subdev *sd,
-> +			   struct v4l2_subdev_routing *route);
->  };
->
->  /**
-> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-s=
-ubdev.h
-> index 03970ce3074193e6..af069bfb10ca23a5 100644
-> --- a/include/uapi/linux/v4l2-subdev.h
-> +++ b/include/uapi/linux/v4l2-subdev.h
-> @@ -155,6 +155,44 @@ struct v4l2_subdev_selection {
->  	__u32 reserved[8];
->  };
->
-> +#define V4L2_SUBDEV_ROUTE_FL_ACTIVE	(1 << 0)
-> +#define V4L2_SUBDEV_ROUTE_FL_IMMUTABLE	(1 << 1)
-> +
-> +/**
-> + * struct v4l2_subdev_route - A signal route inside a subdev
-> + * @sink_pad: the sink pad
-> + * @sink_stream: the sink stream
-> + * @source_pad: the source pad
-> + * @source_stream: the source stream
-> + * @flags: route flags:
-> + *
-> + *	V4L2_SUBDEV_ROUTE_FL_ACTIVE: Is the stream in use or not? An
-> + *	active stream will start when streaming is enabled on a video
-> + *	node. Set by the user.
-> + *
-> + *	V4L2_SUBDEV_ROUTE_FL_IMMUTABLE: Is the stream immutable, i.e.
-> + *	can it be activated and inactivated? Set by the driver.
-> + */
-> +struct v4l2_subdev_route {
-> +	__u32 sink_pad;
-> +	__u32 sink_stream;
-> +	__u32 source_pad;
-> +	__u32 source_stream;
-> +	__u32 flags;
-> +	__u32 reserved[5];
-> +};
-> +
-> +/**
-> + * struct v4l2_subdev_routing - Routing information
-> + * @routes: the routes array
-> + * @num_routes: the total number of routes in the routes array
-> + */
-> +struct v4l2_subdev_routing {
-> +	struct v4l2_subdev_route *routes;
-> +	__u32 num_routes;
-> +	__u32 reserved[5];
-> +};
-> +
->  /* Backwards compatibility define --- to be removed */
->  #define v4l2_subdev_edid v4l2_edid
->
-> @@ -181,5 +219,7 @@ struct v4l2_subdev_selection {
->  #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_d=
-v_timings)
->  #define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 99, struct v4l2_dv_tim=
-ings)
->  #define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 100, struct v4l2_dv_tim=
-ings_cap)
-> +#define VIDIOC_SUBDEV_G_ROUTING			_IOWR('V', 38, struct v4l2_subdev_rout=
-ing)
-> +#define VIDIOC_SUBDEV_S_ROUTING			_IOWR('V', 39, struct v4l2_subdev_rout=
-ing)
->
->  #endif
-> --
-> 2.19.1
->
-
---bdgnkhipvdwkzgcr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlxuuCwACgkQcjQGjxah
-Vjyalw//caQPPTfQtbm8RgzvUX+0A4de81t7FItNLLET6tCVihUZTTvJa6+9ri2v
-1seLh0hzdGWbIOgTgMWtQHF8AML4D7bOGJcrBvLCXMpm9Uk6tgVi1mx/ubNZt7Yy
-PrU5QppmQFN+RnIBzbP6SnMtciXlbO3exr4fO4eYze9hGysCnNPWemUTk8of7ABw
-R4n3vDLrVElqhCvrQO7ze60k6q6k9urmpp7o4EXjmtjk/52dvv7TuNBRdqziQoXM
-v7s9TKw0EQxLRCNs2pwpNPIFardl/mQHHUL8ps1p49jexkynpWOd7m1oq014/wez
-6deE0aAoMpI77SgMeztUYi4FkyaxouuHP0gc6gCY90IKWpM1KQ5FnT9fZhQUEiyM
-kiR+ixk1icI1Vqt/xAWnaYT6MN8IWSj4kgvJ0tyJzytIv/wuhVVvqQ7q9DJd66Iy
-63lcBSg9X4KhbtaAwfAeIS6Y6Rs52LTWHmKEetUqQTzEwesIPPi6PQHYaNgJkZLj
-qt8PdC60EAjtfrkWqse1yESOeuwV29Vdt1EdPD4l42gY5KIpkRU4M8aOGGnk1q3w
-ONOKFydzd+akQkR9jwXO16gsSGjHgGzLlBPjkOKJqPlnUEal5BCtM4Qgt/FTRsC7
-qm/M5lFvB34tokPEJrCVJgwTgrOQ0rp0iXYY3+i4CP876AMhgr8=
-=MNzh
------END PGP SIGNATURE-----
-
---bdgnkhipvdwkzgcr--
+--
+Akihiro
