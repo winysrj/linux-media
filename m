@@ -2,153 +2,150 @@ Return-Path: <SRS0=hjs2=Q5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9714CC43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 14:50:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C060C43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 14:58:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F3072075A
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 14:50:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE43720665
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 14:58:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="uVJvFgfU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726485AbfBVOud (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Feb 2019 09:50:33 -0500
-Received: from mout.kundenserver.de ([217.72.192.75]:39369 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726067AbfBVOuc (ORCPT
+        id S1727150AbfBVO66 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Feb 2019 09:58:58 -0500
+Received: from lelv0143.ext.ti.com ([198.47.23.248]:39812 "EHLO
+        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726419AbfBVO65 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Feb 2019 09:50:32 -0500
-Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
- (mreue109 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1M3DBb-1h0l3S2JS9-003d51; Fri, 22 Feb 2019 15:50:23 +0100
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     natechancellor@gmail.com, ndesaulniers@google.com,
-        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] media: vicodec: avoic clang frame size warning
-Date:   Fri, 22 Feb 2019 15:50:03 +0100
-Message-Id: <20190222145021.3518315-1-arnd@arndb.de>
-X-Mailer: git-send-email 2.20.0
+        Fri, 22 Feb 2019 09:58:57 -0500
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id x1MEwf9O110754;
+        Fri, 22 Feb 2019 08:58:41 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1550847521;
+        bh=mJOEhjQGcBwfv5TfW4E0PHKOuaVVDjPsRlfzyxkxLkc=;
+        h=Date:From:To:CC:Subject:References:In-Reply-To;
+        b=uVJvFgfUynTHfrVt4j6GZqhf8zCHvOYIfMnyG6RgDzPCp3i7bAZR5ZjSbyrkSvcQc
+         08VgWf1Bx7C3294tXrpIE2qXy8GSDxpwzMYbb7ibd2vpMiPf/qUB6NPbTG0GF08CXF
+         0G8tJZTXy4EKOgzCcyySOugTXb02MixwdVlNqfqA=
+Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id x1MEwfJR069703
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 22 Feb 2019 08:58:41 -0600
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1591.10; Fri, 22
+ Feb 2019 08:58:40 -0600
+Received: from dflp33.itg.ti.com (10.64.6.16) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_0,
+ cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.1.1591.10 via Frontend Transport;
+ Fri, 22 Feb 2019 08:58:40 -0600
+Received: from ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
+        by dflp33.itg.ti.com (8.14.3/8.13.8) with SMTP id x1MEweFZ003204;
+        Fri, 22 Feb 2019 08:58:40 -0600
+Date:   Fri, 22 Feb 2019 08:54:56 -0600
+From:   Benoit Parrot <bparrot@ti.com>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+CC:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH v4 05/12] media: ov5640: Compute the clock rate at runtime
+Message-ID: <20190222145456.3v6lsslj7slb2kob@ti.com>
+References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
+ <20181011092107.30715-6-maxime.ripard@bootlin.com>
+ <20190221162020.keonztyi7yq2a4hg@ti.com>
+ <20190222143959.gothnp6namn2gt2w@flea>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:6q78oP8JbTyfawMgSRmmqVIS26D+xz5WfNhWBLJwj4oxFfeg1VY
- 29PuVcwSP7iJMboAsM2bTNaKaXRIZVHna2Q7UBQdI6zDiMvt+A00TK48drlh5wSmUEVxT4i
- m1g+A/k6SXPJ4qmD5ODEdTQ9r7Kx7L3FxjrrFS69sRA1TBpA9VyUHJmIeDV2hQveseFCsEK
- WoN3gc7dglbm4t4ni7L7A==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:hFM/ksKozPg=:t2pf6/7aRLWkjSdPqpRbn7
- 3WlqZtBZJzye/tWCdkudLSicWY9MH4Ww/bF8rEPtijZqwK181qeWeRgbgfbzXbgiAP0BV88dp
- pCZ/6J65XM0LHDTeiZVqas73yG66nZyFkCh9+TXf6AspPiPM1pMB5YKbxqAjpw+/xQ1Z/MFcT
- c2HVnSdclWuMqGDTasOtz0CVKB01k9GFw5M9Q1KFMBwEfeBoIgxAjp4P5RRb6dYXK/6A4MfgA
- lixftGjTF8HQYYih0oDxylIwdxdapQ1FrRNeryX/q42R9Wit2+ET/TfDVZzLgo8e3tbJFh+ou
- pIoSB23hEPADjJL15bqQLhn7WWYvgynWUIdk3JefWF/pkt3GNPoeW25jTbwS84BLdHxRwvMn9
- x8w0xeGPxNporqrBzLEsj6pg7j8CTpbN4saemKqFkE8fF/gLEE00q5fHnQ/BUIgB5j+3vO9uL
- /+bGTU7T7fdmS/D4C7XMfP7xhh3crKUfaFv8PExe50NPMJHfGOO+teuca3hJm5KMcePAe9xNF
- OXhmbdkFXXqSzHuErs27J+Q3VdB4udAdybAKRhkmPbbt4ZcDu1LAVGslIERJVXDIsWot44L9j
- W4edbC3NSYk7navyG5U67eliWDo1tPq2SsgxmQq+Cq6wImvq7FHaY6te8Ac4NOTCVQHbh0W24
- 6FrCTC5+49Z5yEa7D8J1AdUsEOMlbT1sy/CbuQRKKfahhsMJQjoTJheAM83IimLgMDK+xddow
- HgUN6cQgtiQUVVUQFDdaL01RI1I47mJqCoV5qw==
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20190222143959.gothnp6namn2gt2w@flea>
+User-Agent: NeoMutt/20171215
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Clang-9 makes some different inlining decisions compared to gcc, which
-leads to a warning about a possible stack overflow problem when building
-with CONFIG_KASAN, including when setting asan-stack=0, which avoids
-most other frame overflow warnings:
+Maxime Ripard <maxime.ripard@bootlin.com> wrote on Fri [2019-Feb-22 15:39:59 +0100]:
+> On Thu, Feb 21, 2019 at 10:20:20AM -0600, Benoit Parrot wrote:
+> > Hi Maxime,
+> > 
+> > A couple of questions,
+> > 
+> > Maxime Ripard <maxime.ripard@bootlin.com> wrote on Thu [2018-Oct-11 04:21:00 -0500]:
+> > > The clock rate, while hardcoded until now, is actually a function of the
+> > > resolution, framerate and bytes per pixel. Now that we have an algorithm to
+> > > adjust our clock rate, we can select it dynamically when we change the
+> > > mode.
+> > > 
+> > > This changes a bit the clock rate being used, with the following effect:
+> > > 
+> > > +------+------+------+------+-----+-----------------+----------------+-----------+
+> > > | Hact | Vact | Htot | Vtot | FPS | Hardcoded clock | Computed clock | Deviation |
+> > > +------+------+------+------+-----+-----------------+----------------+-----------+
+> > > |  640 |  480 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+> > > |  640 |  480 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+> > > | 1024 |  768 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+> > > | 1024 |  768 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+> > > |  320 |  240 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+> > > |  320 |  240 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+> > > |  176 |  144 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+> > > |  176 |  144 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+> > > |  720 |  480 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+> > > |  720 |  480 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+> > > |  720 |  576 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+> > > |  720 |  576 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+> > > | 1280 |  720 | 1892 |  740 |  15 |        42000000 |       42002400 | 0.01 %    |
+> > > | 1280 |  720 | 1892 |  740 |  30 |        84000000 |       84004800 | 0.01 %    |
+> > > | 1920 | 1080 | 2500 | 1120 |  15 |        84000000 |       84000000 | 0.00 %    |
+> > > | 1920 | 1080 | 2500 | 1120 |  30 |       168000000 |      168000000 | 0.00 %    |
+> > > | 2592 | 1944 | 2844 | 1944 |  15 |        84000000 |      165862080 | 49.36 %   |
+> > > +------+------+------+------+-----+-----------------+----------------+-----------+
+> > 
+> > Is the computed clock above the same for both parallel and CSI2?
+> > 
+> > I want to add controls for PIXEL_RATE and LINK_FREQ, would you have any
+> > quick pointer on taking the computed clock and translating that into the
+> > PIXEL_RATE and LINK_FREQ values?
+> > 
+> > I am trying to use this sensor with TI CAL driver which at the moment uses
+> > the PIXEL_RATE values in order to compute ths_settle and ths_term values
+> > needed to program the DPHY properly. This is similar in behavior as the way
+> > omap3isp relies on this info as well.
+> 
+> I haven't looked that much into the csi-2 case, but the pixel rate
+> should be the same at least.
 
-drivers/media/platform/vicodec/codec-fwht.c:673:12: error: stack frame size of 2224 bytes in function 'encode_plane'
+I'll have to study the way the computed clock is actually calculated for
+either case, but if they yield the same number then I would be surprised
+that the pixel rate would be the same as in parallel mode you get 8 data
+bits per clock whereas in CSI2 using 2 data lanes you get 4 data bits per
+clock.
 
-Manually adding noinline_for_stack annotations in those functions
-called by encode_plane() or decode_plane() that require a significant
-amount of kernel stack makes this impossible to happen with any
-compiler.
+So just to be certain here the "Computed clock" column above would be the
+pixel clock frequency?
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v2: annotate fwht() as well, add a comment
----
- drivers/media/platform/vicodec/codec-fwht.c | 29 +++++++++++++--------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+Benoit
 
-diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
-index d1d6085da9f1..a9ae11783c90 100644
---- a/drivers/media/platform/vicodec/codec-fwht.c
-+++ b/drivers/media/platform/vicodec/codec-fwht.c
-@@ -46,8 +46,12 @@ static const uint8_t zigzag[64] = {
- 	63,
- };
- 
--
--static int rlc(const s16 *in, __be16 *output, int blocktype)
-+/*
-+ * noinline_for_stack to work around
-+ * https://bugs.llvm.org/show_bug.cgi?id=38809
-+ */
-+static int noinline_for_stack
-+rlc(const s16 *in, __be16 *output, int blocktype)
- {
- 	s16 block[8 * 8];
- 	s16 *wp = block;
-@@ -106,8 +110,8 @@ static int rlc(const s16 *in, __be16 *output, int blocktype)
-  * This function will worst-case increase rlc_in by 65*2 bytes:
-  * one s16 value for the header and 8 * 8 coefficients of type s16.
-  */
--static u16 derlc(const __be16 **rlc_in, s16 *dwht_out,
--		 const __be16 *end_of_input)
-+static noinline_for_stack u16
-+derlc(const __be16 **rlc_in, s16 *dwht_out, const __be16 *end_of_input)
- {
- 	/* header */
- 	const __be16 *input = *rlc_in;
-@@ -240,8 +244,9 @@ static void dequantize_inter(s16 *coeff)
- 			*coeff <<= *quant;
- }
- 
--static void fwht(const u8 *block, s16 *output_block, unsigned int stride,
--		 unsigned int input_step, bool intra)
-+static void noinline_for_stack
-+fwht(const u8 *block, s16 *output_block, unsigned int stride,
-+      unsigned int input_step, bool intra)
- {
- 	/* we'll need more than 8 bits for the transformed coefficients */
- 	s32 workspace1[8], workspace2[8];
-@@ -373,7 +378,8 @@ static void fwht(const u8 *block, s16 *output_block, unsigned int stride,
-  * Furthermore values can be negative... This is just a version that
-  * works with 16 signed data
-  */
--static void fwht16(const s16 *block, s16 *output_block, int stride, int intra)
-+static void noinline_for_stack
-+fwht16(const s16 *block, s16 *output_block, int stride, int intra)
- {
- 	/* we'll need more than 8 bits for the transformed coefficients */
- 	s32 workspace1[8], workspace2[8];
-@@ -456,7 +462,8 @@ static void fwht16(const s16 *block, s16 *output_block, int stride, int intra)
- 	}
- }
- 
--static void ifwht(const s16 *block, s16 *output_block, int intra)
-+static noinline_for_stack void
-+ifwht(const s16 *block, s16 *output_block, int intra)
- {
- 	/*
- 	 * we'll need more than 8 bits for the transformed coefficients
-@@ -604,9 +611,9 @@ static int var_inter(const s16 *old, const s16 *new)
- 	return ret;
- }
- 
--static int decide_blocktype(const u8 *cur, const u8 *reference,
--			    s16 *deltablock, unsigned int stride,
--			    unsigned int input_step)
-+static noinline_for_stack int
-+decide_blocktype(const u8 *cur, const u8 *reference, s16 *deltablock,
-+		 unsigned int stride, unsigned int input_step)
- {
- 	s16 tmp[64];
- 	s16 old[64];
--- 
-2.20.0
+> 
+> Maxime
+> 
+> -- 
+> Maxime Ripard, Bootlin
+> Embedded Linux and Kernel engineering
+> https://bootlin.com
+
 
