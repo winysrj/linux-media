@@ -2,79 +2,103 @@ Return-Path: <SRS0=hjs2=Q5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB8EC43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 10:03:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC9FCC43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 10:17:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0CBD220700
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 10:03:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9741C20823
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 10:17:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="Vce095GU"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="BLLZucUn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726083AbfBVKDf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Feb 2019 05:03:35 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:57972 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725895AbfBVKDf (ORCPT
+        id S1726766AbfBVKR2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Feb 2019 05:17:28 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:34154 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726184AbfBVKR1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Feb 2019 05:03:35 -0500
-Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8C6E2255;
-        Fri, 22 Feb 2019 11:03:33 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1550829813;
-        bh=NakHNHDHVLs0l8eNyy93tJZWDOF9c1uT1Y6AI3b+sPc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Vce095GUKsBRejHpfb5/sEObh9xzn6n74EWf1vDsR8CuBmgbZVaS6X7sO+ku4KUIb
-         l7c+JV8Yvr6JQFRqNCCla3HNkXOGjGcE0gHw2WVOFaB+uw2iKZOnvgYzpi0if0O6Sz
-         JHUraMa/+cYwKZkigTUq4Q+f0BLJujCzb+Pmi3wU=
-Date:   Fri, 22 Feb 2019 12:03:29 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Sakari Ailus <sakari.ailus@iki.fi>
+        Fri, 22 Feb 2019 05:17:27 -0500
+Received: by mail-wm1-f67.google.com with SMTP id y185so8556380wmd.1
+        for <linux-media@vger.kernel.org>; Fri, 22 Feb 2019 02:17:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=zv0rxKqQsLgGZ5uFT0zZ4DKYZwC9uuUeZe3dGDeLZoY=;
+        b=BLLZucUne98WFjnJEEt3bw0LmB0+hTEibOqg5jzSX/RyWO+eELpYp2K1wkcfzIvDI1
+         XIWYNpEX2r3Zgiy337MB98krg+ZPVhJTrNlJO6JuXE7ATiQSidqAf6vVTL25V8x2p9Fy
+         a+NpHsopCNGan62dztwHrXk8oUVeuGcXFV3ExhUX6sS5mBKA/aV/lMszgU81wtut7Aqu
+         cKSc8gkEfBNiywiuk9Kc9lqvmQVrxtGTlxOllYlsgy96ulgmkWosbtcBl2i66jES797X
+         SALXJxRgdw9pNdLDahPlXWQhin9i70EXu2Hftw+6tyNQejukxVzjtsIx8am+9zzN6qyh
+         O0GQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=zv0rxKqQsLgGZ5uFT0zZ4DKYZwC9uuUeZe3dGDeLZoY=;
+        b=ATp2/GLQsfeUzybMOKhzvKdxaHBUw08BnKnC6g5CnPmYbkyzI19S6uP3ML+NPH/Ki9
+         9CTdMkyWCs58qjx/Ugy7p2tHKpUiWJicuRJu8fZFCNwZIYPdFo8MtrBkYUwDA6TTUX0E
+         p04DSb6zDTunu+MPlqmqXw2xOo6CWIqsc5ZeAwz5AQ+Bj47qNUKKupoQxkKw7UJdH8wU
+         igY7pfZNl+18KvK6SgP++p3lfFOXh8x3lWiUPRJ1Bhn3q53eeb/5RFDPwmhV556/oo99
+         7H2zBJYVwS4hN/WlO4WG3VtCXDN2Tp0IAtNNc07Wl2146+CzBCBs7I+IT4ZRTr6Y8zcy
+         eWgw==
+X-Gm-Message-State: AHQUAuYAu5Esz7MDs/VtjZjISDHPFvvn/QyTuQCOQ/zF6u1MjEIuANRP
+        jVhoeBYJTu6P9kRWiePbPDgg9g==
+X-Google-Smtp-Source: AHgI3IaML1oRFzszEFkclWx3Ru3/Mf8VyQDOEALwY3nFKJieu4X9+0kVFTMdnL7cIilJR/Yhae+zAg==
+X-Received: by 2002:a1c:cf43:: with SMTP id f64mr1826846wmg.61.1550830645979;
+        Fri, 22 Feb 2019 02:17:25 -0800 (PST)
+Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
+        by smtp.gmail.com with ESMTPSA id u12sm1141064wmf.44.2019.02.22.02.17.24
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 22 Feb 2019 02:17:25 -0800 (PST)
+From:   Rui Miguel Silva <rui.silva@linaro.org>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 Cc:     linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH yavta 0/3] Fixes for compound control support
-Message-ID: <20190222100329.GC3522@pendragon.ideasonboard.com>
-References: <20190220151952.15376-1-laurent.pinchart@ideasonboard.com>
- <20190220213428.osyghernh5drqo7x@valkosipuli.retiisi.org.uk>
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH] media: imx7-media-csi: don't store a floating pointer
+Date:   Fri, 22 Feb 2019 10:17:10 +0000
+Message-Id: <20190222101710.28465-1-rui.silva@linaro.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190222070143.GF1711@kadam>
+References: <20190222070143.GF1711@kadam>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20190220213428.osyghernh5drqo7x@valkosipuli.retiisi.org.uk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Feb 20, 2019 at 11:34:28PM +0200, Sakari Ailus wrote:
-> On Wed, Feb 20, 2019 at 05:19:49PM +0200, Laurent Pinchart wrote:
-> > Hello,
-> > 
-> > This small series fixes issues in yavta reported during the review of
-> > the compound control support patches.
-> > 
-> > Laurent Pinchart (3):
-> >   Fix emulation of old API for string controls
-> >   Print numerical control type for unsupported types
-> >   Fix control array parsing
-> > 
-> >  yavta.c | 13 ++++++++++---
-> >  1 file changed, 10 insertions(+), 3 deletions(-)
-> > 
-> 
-> Oh my. Aren't you planning to send v2 that would address the comments?
+if imx7_csi_try_fmt() fails, cc variable won't be
+initialized and csi->cc[sdformat->pad] would be pointing
+to a random location.
 
-I would have if v1 hadn't been merged yet.
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/staging/media/imx/imx7-media-csi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-> That said, the changes seem fine to me.
-
-Thank you. I've pushed these fixes.
-
+diff --git a/drivers/staging/media/imx/imx7-media-csi.c b/drivers/staging/media/imx/imx7-media-csi.c
+index 3fba7c27c0ec..894e5be3f17c 100644
+--- a/drivers/staging/media/imx/imx7-media-csi.c
++++ b/drivers/staging/media/imx/imx7-media-csi.c
+@@ -1051,7 +1051,9 @@ static int imx7_csi_set_fmt(struct v4l2_subdev *sd,
+ 		goto out_unlock;
+ 	}
+ 
+-	imx7_csi_try_fmt(csi, cfg, sdformat, &cc);
++	ret = imx7_csi_try_fmt(csi, cfg, sdformat, &cc);
++	if (ret < 0)
++		goto out_unlock;
+ 
+ 	fmt = imx7_csi_get_format(csi, cfg, sdformat->pad, sdformat->which);
+ 	if (!fmt) {
 -- 
-Regards,
+2.20.1
 
-Laurent Pinchart
