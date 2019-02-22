@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D1EBC43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 17:29:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6852EC43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 17:29:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D2AA12070B
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 17:29:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A3592070B
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 17:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550856571;
-	bh=ArcGIucQXiy8vIZ0oY6G2rrKIztzKnNxJNPq6tvzvKA=;
+	s=default; t=1550856578;
+	bh=X6Pl0UgIaILAKrNXYVp8d1/KCjm6yEF9Drb6SWBzyZg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=AD5Uk8x3p9amSUSKla5oYubQdwvkJ6KNm83CDW7tQKm8OVixrbedTFYTyUOqDPJfG
-	 LUOxdDg5+NhBgNviVCoRe+jqptX9HSZsmTOxEDM/ZjbLjkDDblwGWrWC+DyTcyMWcb
-	 +2W9GoJFqij/d/L9LcmjWvvzgU3wVCmoIGjjLnEs=
+	b=ivAxHqehE3lfpFtPXOgxiKv7qLJmnbq9icanvKYw+Px4A0Jx0ynPxCXTY/FOLuruP
+	 YmMDcNeoc8KPDQ/8Vjfaj2ZK//WMedgkX0Ktm44Eu17pVBkte38oObmfQiH2CFuCec
+	 O1meKy9YDuam6lABbALm54Qz0ErhIMgNiIIMXykk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727425AbfBVR3Q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Feb 2019 12:29:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57884 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727284AbfBVR3O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1727296AbfBVR3O (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Fri, 22 Feb 2019 12:29:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57832 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726131AbfBVR3M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Feb 2019 12:29:12 -0500
 Received: from shuah-t480s.internal (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 53F0D2086C;
-        Fri, 22 Feb 2019 17:29:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 381D1207E0;
+        Fri, 22 Feb 2019 17:29:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550856553;
-        bh=ArcGIucQXiy8vIZ0oY6G2rrKIztzKnNxJNPq6tvzvKA=;
+        s=default; t=1550856551;
+        bh=X6Pl0UgIaILAKrNXYVp8d1/KCjm6yEF9Drb6SWBzyZg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SP1q0cVhHZfSsR8yHGzppwC1WTfrrO+iZ8hA8Nb3/SUimP/0yMtI40KGvvgrUw31G
-         D63iBcM3ZzyJhs2HrFQoe4v9I1wD8PAp1TQrWgqRrQkeF1vZNxVPo90ucT4TxWl4o/
-         NNTXCfMgSPjOeAXahsK1gUAjLJAH6hJsQjVSQBwg=
+        b=KGnMBJHCiAtTr7czPdPLU2EPlCX3PAegNd9jiv3YlAvXa/YMDSus654rM1Zh2nx8Z
+         Xs0WZnC/YNvICeC+cIJpnOZt2/VHPgIjNagO4/vVZoaYGbEk8U6WBZ6kLPiP8BXXED
+         PT97xeoLQqWMdnRM1spxmyFZTFhBxBKc6EsKNgb0=
 From:   Shuah Khan <shuah@kernel.org>
 To:     mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
         hverkuil@xs4all.nl
 Cc:     Shuah Khan <shuah@kernel.org>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH v11 3/5] media: media.h: Enable ALSA MEDIA_INTF_T* interface types
-Date:   Fri, 22 Feb 2019 10:29:01 -0700
-Message-Id: <baf5038cc4005f2ba5b1655f6dfec8e61da78bb8.1550804023.git.shuah@kernel.org>
+Subject: [PATCH v11 2/5] media: change au0828 to use Media Device Allocator API
+Date:   Fri, 22 Feb 2019 10:29:00 -0700
+Message-Id: <4e2bf508231edab5f790a1fcbc6b543cc3235fae.1550804023.git.shuah@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <cover.1550804023.git.shuah@kernel.org>
 References: <cover.1550804023.git.shuah@kernel.org>
@@ -55,61 +55,80 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Move PCM_CAPTURE, PCM_PLAYBACK, and CONTROL ALSA MEDIA_INTF_T* interface
-types back into __KERNEL__ scope to get ready for adding ALSA support for
-these to the media controller.
+Media Device Allocator API to allows multiple drivers share a media device.
+This API solves a very common use-case for media devices where one physical
+device (an USB stick) provides both audio and video. When such media device
+exposes a standard USB Audio class, a proprietary Video class, two or more
+independent drivers will share a single physical USB bridge. In such cases,
+it is necessary to coordinate access to the shared resource.
+
+Using this API, drivers can allocate a media device with the shared struct
+device as the key. Once the media device is allocated by a driver, other
+drivers can get a reference to it. The media device is released when all
+the references are released.
+
+Change au0828 to use Media Device Allocator API to allocate media device
+with the parent usb struct device as the key, so it can be shared with the
+snd_usb_audio driver.
 
 Signed-off-by: Shuah Khan <shuah@kernel.org>
 ---
- include/uapi/linux/media.h | 25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index e5d0c5c611b5..9aedb187bc48 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -262,6 +262,11 @@ struct media_links_enum {
- #define MEDIA_INTF_T_V4L_SWRADIO		(MEDIA_INTF_T_V4L_BASE + 4)
- #define MEDIA_INTF_T_V4L_TOUCH			(MEDIA_INTF_T_V4L_BASE + 5)
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 1fdb1601dc65..4b0a395d59aa 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -155,9 +155,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	dev->media_dev->disable_source = NULL;
+ 	mutex_unlock(&mdev->graph_mutex);
  
-+#define MEDIA_INTF_T_ALSA_BASE			0x00000300
-+#define MEDIA_INTF_T_ALSA_PCM_CAPTURE		(MEDIA_INTF_T_ALSA_BASE)
-+#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK		(MEDIA_INTF_T_ALSA_BASE + 1)
-+#define MEDIA_INTF_T_ALSA_CONTROL		(MEDIA_INTF_T_ALSA_BASE + 2)
-+
- #if defined(__KERNEL__)
+-	media_device_unregister(dev->media_dev);
+-	media_device_cleanup(dev->media_dev);
+-	kfree(dev->media_dev);
++	media_device_delete(dev->media_dev, KBUILD_MODNAME);
+ 	dev->media_dev = NULL;
+ #endif
+ }
+@@ -210,14 +208,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
  
- /*
-@@ -413,19 +418,19 @@ struct media_v2_topology {
- #define MEDIA_ENT_F_DTV_DECODER			MEDIA_ENT_F_DV_DECODER
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
+ 	if (!mdev)
+ 		return -ENOMEM;
  
- /*
-- * There is still no ALSA support in the media controller. These
-+ * There is still no full ALSA support in the media controller. These
-  * defines should not have been added and we leave them here only
-  * in case some application tries to use these defines.
-+ *
-+ * The ALSA defines that are in use have been moved into __KERNEL__
-+ * scope. As support gets added to these interface types, they should
-+ * be moved into __KERNEL__ scope with the code that uses them.
-  */
--#define MEDIA_INTF_T_ALSA_BASE			0x00000300
--#define MEDIA_INTF_T_ALSA_PCM_CAPTURE		(MEDIA_INTF_T_ALSA_BASE)
--#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK		(MEDIA_INTF_T_ALSA_BASE + 1)
--#define MEDIA_INTF_T_ALSA_CONTROL		(MEDIA_INTF_T_ALSA_BASE + 2)
--#define MEDIA_INTF_T_ALSA_COMPRESS		(MEDIA_INTF_T_ALSA_BASE + 3)
--#define MEDIA_INTF_T_ALSA_RAWMIDI		(MEDIA_INTF_T_ALSA_BASE + 4)
--#define MEDIA_INTF_T_ALSA_HWDEP			(MEDIA_INTF_T_ALSA_BASE + 5)
--#define MEDIA_INTF_T_ALSA_SEQUENCER		(MEDIA_INTF_T_ALSA_BASE + 6)
--#define MEDIA_INTF_T_ALSA_TIMER			(MEDIA_INTF_T_ALSA_BASE + 7)
-+#define MEDIA_INTF_T_ALSA_COMPRESS             (MEDIA_INTF_T_ALSA_BASE + 3)
-+#define MEDIA_INTF_T_ALSA_RAWMIDI              (MEDIA_INTF_T_ALSA_BASE + 4)
-+#define MEDIA_INTF_T_ALSA_HWDEP                (MEDIA_INTF_T_ALSA_BASE + 5)
-+#define MEDIA_INTF_T_ALSA_SEQUENCER            (MEDIA_INTF_T_ALSA_BASE + 6)
-+#define MEDIA_INTF_T_ALSA_TIMER                (MEDIA_INTF_T_ALSA_BASE + 7)
+-	/* check if media device is already initialized */
+-	if (!mdev->dev)
+-		media_device_usb_init(mdev, udev, udev->product);
+-
+ 	dev->media_dev = mdev;
+ #endif
+ 	return 0;
+@@ -480,6 +474,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 		/* register media device */
+ 		ret = media_device_register(dev->media_dev);
+ 		if (ret) {
++			media_device_delete(dev->media_dev, KBUILD_MODNAME);
++			dev->media_dev = NULL;
+ 			dev_err(&udev->dev,
+ 				"Media Device Register Error: %d\n", ret);
+ 			return ret;
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 004eadef55c7..7dbe3db15ebe 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -31,6 +31,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/media-device.h>
++#include <media/media-dev-allocator.h>
  
- /* Obsolete symbol for media_version, no longer used in the kernel */
- #define MEDIA_API_VERSION			((0 << 16) | (1 << 8) | 0)
+ /* DVB */
+ #include <media/demux.h>
 -- 
 2.17.1
 
