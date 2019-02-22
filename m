@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E307C43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 11:10:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 898F4C43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 11:10:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C742A206B6
-	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 11:10:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C5AD206B6
+	for <linux-media@archiver.kernel.org>; Fri, 22 Feb 2019 11:10:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="MVgGiQb2"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="aUs5BoeI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726337AbfBVLKA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Feb 2019 06:10:00 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:33762 "EHLO
+        id S1726273AbfBVLKV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Feb 2019 06:10:21 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33776 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726273AbfBVLKA (ORCPT
+        with ESMTP id S1726163AbfBVLKV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Feb 2019 06:10:00 -0500
+        Fri, 22 Feb 2019 06:10:21 -0500
 Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EEC782D2;
-        Fri, 22 Feb 2019 12:09:57 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id DD4CD2D2;
+        Fri, 22 Feb 2019 12:10:19 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1550833798;
-        bh=IOMDel/04PgcpO8fEoNrzjt+NNv0pzrnuLY2gtkWnF8=;
+        s=mail; t=1550833820;
+        bh=ZGRDnOjSQAFpRr++q7XHtIyw96Hs2wx5dlLqYTPRWSo=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=MVgGiQb29Xqrv/lMDYDA8QA/wfjampxShcK+3y+lQ+lkdRa63Jv1ahsI0Nr2T2Ijt
-         TevLoRXablQ5tcOD/HhYSxbEDGlgBFeKclsO5hmIY0AmpmLcPOlaRnhH8JjXAYNCIt
-         Cb/GWPLuFLJPfeXJOhXQ8cEzuZsppVbyHh3PsJJo=
-Date:   Fri, 22 Feb 2019 13:09:53 +0200
+        b=aUs5BoeIDCEqpmN465A+hM/T4T6NOPtyiJ2YE4E1ukF7rHsP/eQRdzLdzUESoWWFL
+         aIGjN6rGX7oMGoL6ZZDRpRWbayvsn5rZOqG9cpVku3ASggoUVX+nKkXUGB9pnE/vtp
+         CFaFPhoMyr1xyFiIMO5WK6txvQkopDOU38oJr7zs=
+Date:   Fri, 22 Feb 2019 13:10:15 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Cc:     linux-media@vger.kernel.org,
         Helen Koike <helen.koike@collabora.com>
-Subject: Re: [PATCH 3/7] vivid: use vzalloc for dev->bitmap_out
-Message-ID: <20190222110953.GK3522@pendragon.ideasonboard.com>
+Subject: Re: [PATCH 1/7] cec: fill in cec chardev kobject to ease debugging
+Message-ID: <20190222111015.GL3522@pendragon.ideasonboard.com>
 References: <20190221142148.3412-1-hverkuil-cisco@xs4all.nl>
- <20190221142148.3412-4-hverkuil-cisco@xs4all.nl>
+ <20190221142148.3412-2-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20190221142148.3412-4-hverkuil-cisco@xs4all.nl>
+In-Reply-To: <20190221142148.3412-2-hverkuil-cisco@xs4all.nl>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -55,56 +55,30 @@ Hi Hans,
 
 Thank you for the patch.
 
-On Thu, Feb 21, 2019 at 03:21:44PM +0100, Hans Verkuil wrote:
-> When vivid is unloaded it used vfree to free dev->bitmap_out,
-> but it was actually allocated using kmalloc. Use vzalloc
-> instead, conform what vivid-vid-cap.c does.
+On Thu, Feb 21, 2019 at 03:21:42PM +0100, Hans Verkuil wrote:
+> The cec chardev kobject has no name, which made it hard to
+> debug when kobject debugging is turned on.
 > 
 > Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 > ---
->  drivers/media/platform/vivid/vivid-vid-out.c | 14 +++++++++-----
->  1 file changed, 9 insertions(+), 5 deletions(-)
+>  drivers/media/cec/cec-core.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-> index e61b91b414f9..9350ca65dd91 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-out.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-out.c
-> @@ -798,7 +798,7 @@ int vivid_vid_out_s_selection(struct file *file, void *fh, struct v4l2_selection
->  		s->r.height *= factor;
->  		if (dev->bitmap_out && (compose->width != s->r.width ||
->  					compose->height != s->r.height)) {
-> -			kfree(dev->bitmap_out);
-> +			vfree(dev->bitmap_out);
->  			dev->bitmap_out = NULL;
->  		}
->  		*compose = s->r;
-> @@ -941,15 +941,19 @@ int vidioc_s_fmt_vid_out_overlay(struct file *file, void *priv,
->  		return ret;
+> diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+> index cc875dabd765..f5d1578e256a 100644
+> --- a/drivers/media/cec/cec-core.c
+> +++ b/drivers/media/cec/cec-core.c
+> @@ -126,6 +126,7 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+>  	/* Part 2: Initialize and register the character device */
+>  	cdev_init(&devnode->cdev, &cec_devnode_fops);
+>  	devnode->cdev.owner = owner;
+> +	kobject_set_name(&devnode->cdev.kobj, "cec%d", devnode->minor);
 >  
->  	if (win->bitmap) {
-> -		new_bitmap = memdup_user(win->bitmap, bitmap_size);
-> +		new_bitmap = vzalloc(bitmap_size);
->  
-> -		if (IS_ERR(new_bitmap))
-> -			return PTR_ERR(new_bitmap);
-> +		if (!new_bitmap)
-> +			return -ENOMEM;
-> +		if (copy_from_user(new_bitmap, win->bitmap, bitmap_size)) {
-> +			vfree(new_bitmap);
-> +			return -EFAULT;
-> +		}
->  	}
->  
->  	dev->overlay_out_top = win->w.top;
->  	dev->overlay_out_left = win->w.left;
-> -	kfree(dev->bitmap_out);
-> +	vfree(dev->bitmap_out);
->  	dev->bitmap_out = new_bitmap;
->  	dev->clipcount_out = win->clipcount;
->  	if (dev->clipcount_out)
+>  	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
+>  	if (ret) {
 
 -- 
 Regards,
