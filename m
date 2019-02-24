@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 092B1C00319
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 08:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C19AC43381
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 08:41:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD7C12083E
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 08:41:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F08322083E
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 08:41:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KKZoKSyj"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pVa8n2Jk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728121AbfBXIlw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Feb 2019 03:41:52 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:32993 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727852AbfBXIlv (ORCPT
+        id S1728141AbfBXIlx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Feb 2019 03:41:53 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:39158 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728004AbfBXIlx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Feb 2019 03:41:51 -0500
-Received: by mail-wr1-f66.google.com with SMTP id i12so6666498wrw.0
-        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 00:41:50 -0800 (PST)
+        Sun, 24 Feb 2019 03:41:53 -0500
+Received: by mail-wm1-f66.google.com with SMTP id z84so5382953wmg.4
+        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 00:41:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=2Kz4T0TAMia1m8zxthVlaxPb1YjonSLkcRZLcMO9ol4=;
-        b=KKZoKSyj6SmSby+07MvtXXNwppFj1n6hQdObGavxCBCK44Wu40O+P6DwVMHFUZie4y
-         fW08vsJrlOUwRhnOzV3EWq4m/qNbUgsVlhxVsoh5j2XW/mo8McAeAD/PfLS2IwBPSw7g
-         pRmTgT9i79JQ0YiG9LlQ7gmMLHU2yUQ+8qp9cIC2hAUPa68fz8v9x1f9abWSNrbAbbWa
-         Fy1Fu46qnnIBlRgoeT2ooWYAI/SA8lbCdnHwXUlyPy/be1f1APJat9Q6KT4MBWubuvsO
-         MtPW8IVcXJtEK4AnLI1JyLz+MhcUHBbRDYOgwKIwfuNgT88m/YXXfnNh+kbvQTwvQXLY
-         hxmg==
+        bh=NJuDvYOzvxWLj4xiAF59Sw+NAvCcwJCWwv5LqJCSCFI=;
+        b=pVa8n2JkrJDhd3mKrTEqaDYfUFQ4mLR8mJrsRnmeqNmIhA/FXmGDw9x4pLXDMTWuAq
+         vKvkkwLqMkaS2V3wA4e4cwVBWcJQAX16y32GxD+bNrkPH2NTET2XaOIjoFFS+hA1U2eu
+         rd3RbnHLMTSP6SMApSXU9HVvgwOsmKIjtG6KKXFTIkWN8IO6/PzePfAqYh+upA3Ifn6V
+         M5ChFuegGAqmwbCYA4YiDVcZhWWyh+t0Nf6aNSfgAGciUtPywNm0GIscmEDmrDjCaSwm
+         uIedAUz+3OVlgiJ33FrTx2Xf5F43dVXm+OGDDKDdVi/ngWHxZJIcw03TrtxUerziFCuI
+         4l0g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=2Kz4T0TAMia1m8zxthVlaxPb1YjonSLkcRZLcMO9ol4=;
-        b=tujBNHeASlI4AYAqDW435nlNqr8gY2rRsLxaRS72r7ZFrH+9hCfI3+E987l7jIu5sA
-         dzwZjNHEvhOp8SYWfbLwaBTJgHiwJ4kS38F8L05LXdx4n55pMw06m/32bg0V23BF9f8N
-         efn9WcwclPskt8xtge8Yu+a/SENkj/P58Ip+d1iGL7Z8j4XRLgt4H6KF1AGWdIWtSgO9
-         tYycnx8KZZfCrwe80d0m6bLCRKg9vvU4lcgzwZJGaO53QHTSiyiarybaX5FdIPAV61WB
-         ozguv8A2qJAHh2fPlZD8M4Nkv5S1kpkdmzbIvDXUEn1TD0ITGvz8lN7T8RGX/2f3UR1b
-         dzvg==
-X-Gm-Message-State: AHQUAua0g+wvGuy8ohepSF9pnVlYlNpZzjyB/FNp+HXRNw+6sJYdNtGG
-        M3dKN6tyWxHOc1ve95r+BZm3g3MIjH8=
-X-Google-Smtp-Source: AHgI3IYzP9zL3VHA3nqF1vltQceamy8YlhKze4P3Jsk7bPY5ZPSOBDyNYSa6Fw3TGCJ3IYYjMuftZw==
-X-Received: by 2002:a05:6000:1142:: with SMTP id d2mr8477794wrx.43.1550997709462;
-        Sun, 24 Feb 2019 00:41:49 -0800 (PST)
+        bh=NJuDvYOzvxWLj4xiAF59Sw+NAvCcwJCWwv5LqJCSCFI=;
+        b=ACabNd/T1g26f0W8FpS7FGdw5QHEL1+W948+RZqjEuweXiPH/c4Qnog4+726xs+dcK
+         zIr4IV7NdgnLKfb7KaR5tuW0VY5otTAu08heezxH+qLtXuG2KfQBS/brVUzJP8qKW4m/
+         1BDaCnbLVPJxggazK0FWYSKgbFrcAEBKV4iVjMN3g0wk0MN4Z4vnBUFHtIMKNzbQsWZy
+         OxICjtX3ViopwO/8kcnLUWnvLa6tgcN68Fmy6dIOzX/H/1UEWUXZ42GsatRSsJCdOK4q
+         NrkABQvcu5K3tfMhxP1fLr4ohmcFgKJDuuw0MtVXjCcSrOcjA6uT+JXK/3bnEdr5PKpn
+         mNkQ==
+X-Gm-Message-State: AHQUAubM4siQcU6/yGczJu+3E1YQXuXykpVLZe0PsDaUpyzDmBpmpVxs
+        QqlhUJC3J+oo1VD2buByJWBL3uOSxqg=
+X-Google-Smtp-Source: AHgI3IbVBFjddJCulfAjZx80+UH5H9R/mKyZisqhJyI/cA5YBDmtO3Xy33yryU2bI5KormhkpFwUfA==
+X-Received: by 2002:a1c:6a18:: with SMTP id f24mr2257721wmc.115.1550997710791;
+        Sun, 24 Feb 2019 00:41:50 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id x24sm6837465wmi.5.2019.02.24.00.41.48
+        by smtp.gmail.com with ESMTPSA id x24sm6837465wmi.5.2019.02.24.00.41.49
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Feb 2019 00:41:48 -0800 (PST)
+        Sun, 24 Feb 2019 00:41:50 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [v4l-utils PATCH v3 5/8] (c)v4l-helpers.h: Add support for the request api
-Date:   Sun, 24 Feb 2019 00:41:23 -0800
-Message-Id: <20190224084126.19412-6-dafna3@gmail.com>
+Subject: [v4l-utils PATCH v3 6/8] v4l-utils: copy fwht-ctrls.h from kernel dir
+Date:   Sun, 24 Feb 2019 00:41:24 -0800
+Message-Id: <20190224084126.19412-7-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190224084126.19412-1-dafna3@gmail.com>
 References: <20190224084126.19412-1-dafna3@gmail.com>
@@ -69,92 +69,50 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add an array of request file descriptors to v4l_queue
-and add methods to allocate and get them.
+copy fwht-ctrls.h from the kernel dir when
+running 'sync' and add typedef for u64
+in codec-fwht.h
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- utils/common/cv4l-helpers.h |  5 +++++
- utils/common/v4l-helpers.h  | 22 ++++++++++++++++++++++
- 2 files changed, 27 insertions(+)
+ Makefile.am                   | 1 +
+ utils/common/codec-fwht.patch | 7 ++++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/utils/common/cv4l-helpers.h b/utils/common/cv4l-helpers.h
-index 1cd2b6b2..551d4673 100644
---- a/utils/common/cv4l-helpers.h
-+++ b/utils/common/cv4l-helpers.h
-@@ -745,6 +745,7 @@ public:
- 	unsigned g_capabilities() const { return v4l_queue_g_capabilities(this); }
- 	unsigned g_length(unsigned plane) const { return v4l_queue_g_length(this, plane); }
- 	unsigned g_mem_offset(unsigned index, unsigned plane) const { return v4l_queue_g_mem_offset(this, index, plane); }
-+	unsigned g_req_fd(unsigned index) const { return v4l_queue_g_req_fd(this, index); }
- 	void *g_mmapping(unsigned index, unsigned plane) const { return v4l_queue_g_mmapping(this, index, plane); }
- 	void s_mmapping(unsigned index, unsigned plane, void *m) { v4l_queue_s_mmapping(this, index, plane, m); }
- 	void *g_userptr(unsigned index, unsigned plane) const { return v4l_queue_g_userptr(this, index, plane); }
-@@ -797,6 +798,10 @@ public:
- 	{
- 		return v4l_queue_export_bufs(fd->g_v4l_fd(), this, exp_type);
- 	}
-+	int alloc_req(int media_fd, unsigned index)
-+	{
-+		return v4l_queue_alloc_req(this, media_fd, index);
-+	}
- 	void close_exported_fds()
- 	{
- 		v4l_queue_close_exported_fds(this);
-diff --git a/utils/common/v4l-helpers.h b/utils/common/v4l-helpers.h
-index 59d8566a..daa49a1f 100644
---- a/utils/common/v4l-helpers.h
-+++ b/utils/common/v4l-helpers.h
-@@ -10,6 +10,7 @@
- #define _V4L_HELPERS_H_
- 
- #include <linux/videodev2.h>
-+#include <linux/media.h>
- #include <string.h>
- #include <stdlib.h>
- #include <stdio.h>
-@@ -1414,6 +1415,7 @@ struct v4l_queue {
- 	void *mmappings[VIDEO_MAX_FRAME][VIDEO_MAX_PLANES];
- 	unsigned long userptrs[VIDEO_MAX_FRAME][VIDEO_MAX_PLANES];
- 	int fds[VIDEO_MAX_FRAME][VIDEO_MAX_PLANES];
-+	int req_fds[VIDEO_MAX_FRAME];
- };
- 
- static inline void v4l_queue_init(struct v4l_queue *q,
-@@ -1445,6 +1447,11 @@ static inline __u32 v4l_queue_g_mem_offset(const struct v4l_queue *q, unsigned i
- 	return q->mem_offsets[index][plane];
- }
- 
-+static inline unsigned v4l_queue_g_req_fd(const struct v4l_queue *q, unsigned index)
-+{
-+	return q->req_fds[index];
-+}
-+
- static inline void v4l_queue_s_mmapping(struct v4l_queue *q, unsigned index, unsigned plane, void *m)
- {
- 	q->mmappings[index][plane] = m;
-@@ -1701,6 +1708,21 @@ static inline int v4l_queue_export_bufs(struct v4l_fd *f, struct v4l_queue *q,
- 	return 0;
- }
- 
-+static inline int v4l_queue_alloc_req(struct v4l_queue *q, int media_fd, unsigned index)
-+{
-+	int rc = 0;
-+
-+	rc = ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &q->req_fds[index]);
-+	if (rc < 0) {
-+		fprintf(stderr, "Unable to allocate media request: %s\n",
-+			strerror(errno));
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+
- static inline void v4l_queue_close_exported_fds(struct v4l_queue *q)
- {
- 	unsigned b, p;
+diff --git a/Makefile.am b/Makefile.am
+index b0b8a098..8abe4f94 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -52,6 +52,7 @@ sync-with-kernel:
+ 	cp -a $(KERNEL_DIR)/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c $(top_srcdir)/utils/common
+ 	cp -a $(KERNEL_DIR)/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c $(top_srcdir)/utils/common
+ 	cp -a $(KERNEL_DIR)/include/media/tpg/v4l2-tpg* $(top_srcdir)/utils/common
++	cp -a $(KERNEL_DIR)/include/media/fwht-ctrls.h $(top_srcdir)/utils/common
+ 	patch -d $(top_srcdir) --no-backup-if-mismatch -p0 <$(top_srcdir)/utils/common/v4l2-tpg.patch
+ 	cp -a $(KERNEL_DIR)/drivers/media/platform/vicodec/codec-fwht.[ch] $(top_srcdir)/utils/common/
+ 	cp -a $(KERNEL_DIR)/drivers/media/platform/vicodec/codec-v4l2-fwht.[ch] $(top_srcdir)/utils/common/
+diff --git a/utils/common/codec-fwht.patch b/utils/common/codec-fwht.patch
+index 37ac4672..ad27b37a 100644
+--- a/utils/common/codec-fwht.patch
++++ b/utils/common/codec-fwht.patch
+@@ -1,6 +1,6 @@
+---- a/utils/common/codec-fwht.h.old	2018-12-29 11:23:58.128328613 -0800
+-+++ b/utils/common/codec-fwht.h	2018-12-29 11:24:16.099127560 -0800
+-@@ -8,8 +8,26 @@
++--- a/utils/common/codec-fwht.h.old	2019-02-23 09:38:59.454065366 -0800
+++++ b/utils/common/codec-fwht.h	2019-02-23 09:40:44.007803414 -0800
++@@ -8,8 +8,27 @@
+  #define CODEC_FWHT_H
+  
+  #include <linux/types.h>
+@@ -21,6 +21,7 @@
+ +#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
+ +
+ +
+++typedef __u64 u64;
+ +typedef __u32 u32;
+ +typedef __u16 u16;
+ +typedef __s16 s16;
 -- 
 2.17.1
 
