@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83829C43381
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:02:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A476C43381
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:02:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FFB820652
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:02:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4858A20652
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:02:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="t+pAJrRL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JWLBGtnM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728004AbfBXJCx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Feb 2019 04:02:53 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:44126 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726001AbfBXJCx (ORCPT
+        id S1728151AbfBXJCz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Feb 2019 04:02:55 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:39013 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726001AbfBXJCy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Feb 2019 04:02:53 -0500
-Received: by mail-wr1-f66.google.com with SMTP id w2so6640390wrt.11
-        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 01:02:52 -0800 (PST)
+        Sun, 24 Feb 2019 04:02:54 -0500
+Received: by mail-wm1-f65.google.com with SMTP id z84so5404174wmg.4
+        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 01:02:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=MAunhPLiQsMAY05okqvSKPPo8Hd0S9bQIXD1NW17kLg=;
-        b=t+pAJrRLyj+1flja8Y5dsBFxU8EQ7so3MUO5Hw75U7Fo0HLLOopLeEfVghtNWMGWZ8
-         bZX6hubYQHrgX+SMPZzGG7wyQaeINaKjgwu4lVlJMCI/+0Nbjt0qcOOtzzh7zpKzpN7N
-         xzNSDZrvHHmUNzajORY6NXTrzK+2GAaq1GTuwu1Z8rbS1MPqJ/TJcz6xLPKA3jx7gvHB
-         Il+1b/Wjx9v2RDVNJtqPs6zTE6KHv5/69gXNvol8NvpMPj2wnHmtS+a9bsBDKuSb3+Nc
-         L6SE0ZHujTKPWJwgTXF5Ew5lRttcM7JgzvlgEV9Ok5d1XMQOMVVX3B7v5YgtwLkqNsrU
-         9mWA==
+        bh=Wd3HgaUvH1soc/yfyWI6dAQdM9lUwSjfn9ndiCGooyo=;
+        b=JWLBGtnMhszysQzGd+OfF4k239OUhAItbOHXFASAaZQy5EFsDh/DGtxdEu4jwOPNn0
+         QjfmforjhacmzyKAOlq+FDh0aQbf3kUTlVirMY17rpFY264seCDraWipEpf2cEgmB9tE
+         ++4dPiRRKKXmQeMVSolez1x3QMgyvrehKYGw97oheDUPdXIq0UpxuHZglsLOQGf9RZeO
+         5a23N3pLGpjq0yBY2YZ1AlZ/zUVxzOz/pXXbV4RXeFcbeYEjW5BAQB5fWcHeRnx1jCP6
+         jo09Atp33Q6jAoVxHbfkqqPXJC6AIdRLXk//lStpMMEynrqB6HwY1lCsEdUBsEo80ZbL
+         lYXw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=MAunhPLiQsMAY05okqvSKPPo8Hd0S9bQIXD1NW17kLg=;
-        b=iJOmUY973DWwGlwysPB65Zyah+3mwALlXswcgIPqtxvSZ68QaL+FH2qIt02udA8pzc
-         QcV1yg/V+RO/6glfIwMczym/Iyi3CZWLe2ex+Dj0EI7yYs6NZC05UnnmcmRnrSlDkfMV
-         QETrGcTknTyyFkQbGf9mKuSWHO1xMWZJLmMZraOseORONbTEjOYXzeSW+byVURFFMgL2
-         lsmBSMdWyay4ZpCbBwx7gyDOu5dQe3WUQwowEKy79EBiJbptOcbf34W6BrLIAiD+6/f8
-         Ic0VEEF2ktN2xPKcIc3JBzmZmq+9KLIXoAmSo77Z+F//JcnG2UPyF7ZIZ9Lum8RSta2L
-         44GA==
-X-Gm-Message-State: AHQUAuYc4IC5jNY9MoWYenEt5sHQhrGbieL6HkeA7wJcVHqtuHlRqpzN
-        pGnZ7G4Qb2H2ySIQdw3jrIxg7DanY8I=
-X-Google-Smtp-Source: AHgI3IaSJHD4jrfUEvOT4y0jpw1qy+6J/o5CDyvANvTJaInXsWeMbiscAD7otuSVzDEnWP5G1drMhw==
-X-Received: by 2002:adf:a4c9:: with SMTP id h9mr8541132wrb.254.1550998971063;
-        Sun, 24 Feb 2019 01:02:51 -0800 (PST)
+        bh=Wd3HgaUvH1soc/yfyWI6dAQdM9lUwSjfn9ndiCGooyo=;
+        b=TYCDccsvy59oHZHTccQnSs78XpQSZSHOyhqLCJDFGT7HFfTj8qYLlo8Jj8Vjmd4kt+
+         CqGJgsbW57P4KcH7fh4c6yRY+24VCCZt97J7uag8OlGokgsuHTyVYWCm3pxOao+AWYZ1
+         mZOp6MkCi598WHorMxDBlifAIvs/dE0LMr3Lf1oA8MhcSp/fkwi/hoe/g7IbAIsM+ChY
+         dlkj/FYdBr2wiJ36yrPm95OgKFhUHf5flzHPX/1tJKEeM+a3BWBToGysG0rR2wAUeoUQ
+         Zzo/zkdkNLjNnQwWDLaIq+on3xtk336ne34gL5uQ+PqZZijYQCviz/NJQDeIz+0LMIEU
+         xEzA==
+X-Gm-Message-State: AHQUAuYDqcEtjOv8nRDxfYowxOff9/dcPfGJCnqXkar0pIQs/a2Sh7/3
+        Rje7OWkW25KepzfALkGQXxNRMZxMzlk=
+X-Google-Smtp-Source: AHgI3IbiKVVTcU5fbs0XjEndcDn91TLK7uqQq5hzPK1GYDoSE2xI4vjiK7ywZVMmV3sz5o0v2Ab9MQ==
+X-Received: by 2002:a1c:4406:: with SMTP id r6mr7190516wma.114.1550998972496;
+        Sun, 24 Feb 2019 01:02:52 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id e75sm8701971wmg.32.2019.02.24.01.02.49
+        by smtp.gmail.com with ESMTPSA id e75sm8701971wmg.32.2019.02.24.01.02.51
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Feb 2019 01:02:50 -0800 (PST)
+        Sun, 24 Feb 2019 01:02:51 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH v3 01/18] vb2: add requires_requests bit for stateless codecs
-Date:   Sun, 24 Feb 2019 01:02:18 -0800
-Message-Id: <20190224090234.19723-2-dafna3@gmail.com>
+Subject: [PATCH v3 02/18] videodev2.h: add V4L2_BUF_CAP_REQUIRES_REQUESTS
+Date:   Sun, 24 Feb 2019 01:02:19 -0800
+Message-Id: <20190224090234.19723-3-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190224090234.19723-1-dafna3@gmail.com>
 References: <20190224090234.19723-1-dafna3@gmail.com>
@@ -71,86 +71,49 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Stateless codecs require the use of the Request API as opposed of it
-being optional.
-
-So add a bit to indicate this and let vb2 check for this.
+Add capability to indicate that requests are required instead of
+merely supported.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/common/videobuf2/videobuf2-core.c | 5 ++++-
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 6 ++++++
- include/media/videobuf2-core.h                  | 3 +++
- 3 files changed, 13 insertions(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/vidioc-reqbufs.rst | 4 ++++
+ include/uapi/linux/videodev2.h                  | 1 +
+ 2 files changed, 5 insertions(+)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 15b6b9c0a2e4..d8cf9d3ec54d 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1518,7 +1518,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+index d7faef10e39b..d42a3d9a7db3 100644
+--- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
++++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+@@ -125,6 +125,7 @@ aborting or finishing any DMA in progress, an implicit
+ .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
+ .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
+ .. _V4L2-BUF-CAP-SUPPORTS-ORPHANED-BUFS:
++.. _V4L2-BUF-CAP-REQUIRES-REQUESTS:
  
- 	if ((req && q->uses_qbuf) ||
- 	    (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
--	     q->uses_requests)) {
-+	     (q->uses_requests || q->requires_requests))) {
- 		dprintk(1, "queue in wrong mode (qbuf vs requests)\n");
- 		return -EBUSY;
- 	}
-@@ -2247,6 +2247,9 @@ int vb2_core_queue_init(struct vb2_queue *q)
- 	    WARN_ON(!q->ops->buf_queue))
- 		return -EINVAL;
+ .. cssclass:: longtable
  
-+	if (WARN_ON(q->requires_requests && !q->supports_requests))
-+		return -EINVAL;
-+
- 	INIT_LIST_HEAD(&q->queued_list);
- 	INIT_LIST_HEAD(&q->done_list);
- 	spin_lock_init(&q->done_lock);
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index d09dee20e421..4dc4855056f1 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -385,6 +385,10 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
- 			dprintk(1, "%s: queue uses requests\n", opname);
- 			return -EBUSY;
- 		}
-+		if (q->requires_requests) {
-+			dprintk(1, "%s: queue requires requests\n", opname);
-+			return -EACCES;
-+		}
- 		return 0;
- 	} else if (!q->supports_requests) {
- 		dprintk(1, "%s: queue does not support requests\n", opname);
-@@ -658,6 +662,8 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
- #ifdef CONFIG_MEDIA_CONTROLLER_REQUEST_API
- 	if (q->supports_requests)
- 		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
-+	if (q->requires_requests)
-+		*caps |= V4L2_BUF_CAP_REQUIRES_REQUESTS;
- #endif
- }
+@@ -150,6 +151,9 @@ aborting or finishing any DMA in progress, an implicit
+       - The kernel allows calling :ref:`VIDIOC_REQBUFS` while buffers are still
+         mapped or exported via DMABUF. These orphaned buffers will be freed
+         when they are unmapped or when the exported DMABUF fds are closed.
++    * - ``V4L2_BUF_CAP_REQUIRES_REQUESTS``
++      - 0x00000020
++      - This buffer type requires the use of :ref:`requests <media-request-api>`.
  
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index a844abcae71e..bf50090af859 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -484,6 +484,8 @@ struct vb2_buf_ops {
-  *              has not been called. This is a vb1 idiom that has been adopted
-  *              also by vb2.
-  * @supports_requests: this queue supports the Request API.
-+ * @requires_requests: this queue requires the Request API. If this is set to 1,
-+ *		then supports_requests must be set to 1 as well.
-  * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
-  *		time this is called. Set to 0 when the queue is canceled.
-  *		If this is 1, then you cannot queue buffers from a request.
-@@ -558,6 +560,7 @@ struct vb2_queue {
- 	unsigned			allow_zero_bytesused:1;
- 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
- 	unsigned			supports_requests:1;
-+	unsigned			requires_requests:1;
- 	unsigned			uses_qbuf:1;
- 	unsigned			uses_requests:1;
+ Return Value
+ ============
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1db220da3bcc..97e6a6a968ba 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -895,6 +895,7 @@ struct v4l2_requestbuffers {
+ #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+ #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+ #define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
++#define V4L2_BUF_CAP_REQUIRES_REQUESTS	(1 << 5)
  
+ /**
+  * struct v4l2_plane - plane info for multi-planar buffers
 -- 
 2.17.1
 
