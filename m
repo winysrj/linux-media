@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52F98C00319
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FDB1C43381
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:03:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 20C0E206B6
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:03:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A7AA20652
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:03:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BxSkxK3e"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g5isDTVI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728212AbfBXJDJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Feb 2019 04:03:09 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:40100 "EHLO
+        id S1728216AbfBXJDK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Feb 2019 04:03:10 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:46120 "EHLO
         mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728207AbfBXJDI (ORCPT
+        with ESMTP id S1728171AbfBXJDJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Feb 2019 04:03:08 -0500
-Received: by mail-wr1-f67.google.com with SMTP id q1so6662876wrp.7
-        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 01:03:07 -0800 (PST)
+        Sun, 24 Feb 2019 04:03:09 -0500
+Received: by mail-wr1-f67.google.com with SMTP id i16so6640951wrs.13
+        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 01:03:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=x7ib4WLUfGJ45BSE6ujgHo5L3bC+9vl6OSVSFf4Ry00=;
-        b=BxSkxK3edJmCnsn87AgVlHFCe0W6UEl/Il9xEVsk9GEO8dGn3pSAxYUVqQbjQD5IYC
-         qld5Fscwh3WeiV7pP5JeevvkbnWV0pzDmSYEw2K9D+55JYlw2OGL+oQVMhTDBkq5DRK1
-         Msdbt6bssaHWHeAvB/u1bVX8lkLAE1LQiUZe2he1ssGsY8x0QIV2OsqlEtnMe8Qsu4k0
-         Sr8BCgEcZwzLG8WqzYxzDJq7H36aplALkV1i9jQluFTsnv9CQ5kAAdtQvVa2ojf0M15A
-         eWnLerbvhCya22IOsvnGvAWIP4fa4DypKotOfifCfZBXw+JOpG/hgDzBhCqSu/B2Uyez
-         dLSw==
+        bh=AYEBhkP1dkE6ls6X0HedOdFesY0vxFEcctcgT7NJZdM=;
+        b=g5isDTVI2/bViYvFqBXG7S7N3bNUjpni1SkjlWjKmJuOeKu3eRuclfRsyvCvElbkhS
+         ZCGFDAMtQpfoK5zfPXBB8kzMS9x3s/6XGXYecBPnjBETbebf1XrygiwUZOcL92yZEryC
+         r2Z+3axEGyECTErTQrOB55vy2nqJlavqJyFDnvvrTAWahPmwgIa3KP67E/p3IC1GoCHZ
+         6MTUTl12b0lPPAlini85RrB3ax9BRaKsBX7gP5SQlB3RQwvzCBdWGF+17mgAVwNVwK8h
+         5hLCYuLFOzWNDYIIC/GWq69AIp/1Bm949PN1f98H3TurOSkO7AsmLOwVwHiKGODHPon3
+         mRIg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=x7ib4WLUfGJ45BSE6ujgHo5L3bC+9vl6OSVSFf4Ry00=;
-        b=SUAukQhDDvZx9RnwmL1z1E0YBX5hWqX2R/EGtXXaeS5bjdq99RRIMKipWuLhSF0n5S
-         OqP7BieyzWASoF0ESs2FjJ7mmsHcPH5LYHZ2EFu3PS1VnYckrFwQB6WtwORufd01MGZb
-         uRIUiFoJX4U0mOIhBHqS7HVkn6Re+U4AEsqQT4hcST6O2KNtHA3kgw2tHwf10LN+8HwB
-         vK10wFaUy1GYa3WRGsu63FQcFQohPzBYLOPyC6ZvqRsueVzxb04cPD7XY44ARTsp/sEn
-         IzqUz/BB6o5ljErBexk0uZZ20IOwFyXSOGvX0pp4DF1VBFdU4gY/Wgl7tYKDY0pGpEnG
-         u+Xw==
-X-Gm-Message-State: AHQUAubORrnWFVo06xdmmYY6yZiN5TeEBbjrikqhulSDK6xTdCnw55WH
-        6DBtH+kF4QweYFhpkBMmEfLo547dvi4=
-X-Google-Smtp-Source: AHgI3IZI546QAOZqZBNi7ppbuI5UpxHkiU6gS+DunimTJ2d2m9yVkZqWok8ffFuagDU+oOlW1cFIAQ==
-X-Received: by 2002:a05:6000:1142:: with SMTP id d2mr8524668wrx.43.1550998986728;
-        Sun, 24 Feb 2019 01:03:06 -0800 (PST)
+        bh=AYEBhkP1dkE6ls6X0HedOdFesY0vxFEcctcgT7NJZdM=;
+        b=npMpRvtQ3jBNf39ejDdAYvghbMErkplDL1YcX+ntw3HBbHoy09D1JxqwnSbaZ94ol7
+         7N34Vq01RlCG+nzRAgEUiKpKJtNwRpYbOwZWpds5i5PAJSrjWi0sZzTd3arrLUj4b8fa
+         WKVE/SzPLMZIXa2G6Kpf9HXWYzW3l8t9F9AnkXrSeBVzAO0G4Y/30/hP6o/xpVSiNl/t
+         boxl0GWd1v608xT+DtS1aJLz/3xBC2ZT57WOi4TotnVwkzw975HhHwg4VCSgXc1vbyit
+         SWlc2kNz22/aF8cMEfpF/MaJXvaySRMZ22BISIks9Euq/j8p/BRIruqPpLRDid7IeTnF
+         CzTg==
+X-Gm-Message-State: AHQUAuYT9qiD92DrEbkgqNaKRYid516S0knwA5ghwB5syvpGtru4brTo
+        VO493/w2S9bDDBfVMM04yOlYKyiIk4c=
+X-Google-Smtp-Source: AHgI3IYbKyEAJQtv3cG48i5CEz+ed1n77wSwfMl3g5lwm1VLqM0qv8MANYqodXsIeciMqY58dSa1Mg==
+X-Received: by 2002:adf:dd86:: with SMTP id x6mr8588464wrl.250.1550998988042;
+        Sun, 24 Feb 2019 01:03:08 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id e75sm8701971wmg.32.2019.02.24.01.03.05
+        by smtp.gmail.com with ESMTPSA id e75sm8701971wmg.32.2019.02.24.01.03.06
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Feb 2019 01:03:06 -0800 (PST)
+        Sun, 24 Feb 2019 01:03:07 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [PATCH v3 12/18] media: vicodec: Validate version dependent header values in a separate function
-Date:   Sun, 24 Feb 2019 01:02:29 -0800
-Message-Id: <20190224090234.19723-13-dafna3@gmail.com>
+Subject: [PATCH v3 13/18] media: vicodec: rename v4l2_fwht_default_fmt to v4l2_fwht_find_nth_fmt
+Date:   Sun, 24 Feb 2019 01:02:30 -0800
+Message-Id: <20190224090234.19723-14-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190224090234.19723-1-dafna3@gmail.com>
 References: <20190224090234.19723-1-dafna3@gmail.com>
@@ -69,66 +69,97 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Move the code that validates version dependent header
-values to a separate function 'validate_by_version'
+Rename 'v4l2_fwht_default_fmt' to 'v4l2_fwht_find_nth_fmt'
+and add a function 'v4l2_fwht_validate_fmt' to check if
+a format info matches the parameters.
+This function will also be used to validate the stateless
+params when adding support for stateless codecs.
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- drivers/media/platform/vicodec/vicodec-core.c | 31 ++++++++++++-------
- 1 file changed, 19 insertions(+), 12 deletions(-)
+ .../media/platform/vicodec/codec-v4l2-fwht.c  | 22 ++++++++++++++-----
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |  5 ++++-
+ drivers/media/platform/vicodec/vicodec-core.c |  4 ++--
+ 3 files changed, 23 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index c07e131d23ba..55b003de43a3 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -191,6 +191,23 @@ static void copy_cap_to_ref(const u8 *cap, const struct v4l2_fwht_pixfmt_info *i
- 	}
- }
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+index f15d76fae45c..372ed95e1a1f 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+@@ -37,7 +37,19 @@ static const struct v4l2_fwht_pixfmt_info v4l2_fwht_pixfmts[] = {
+ 	{ V4L2_PIX_FMT_GREY,    1, 1, 1, 1, 0, 1, 1, 1, 1, FWHT_FL_PIXENC_RGB},
+ };
  
-+static bool validate_by_version(unsigned int flags, unsigned int version)
+-const struct v4l2_fwht_pixfmt_info *v4l2_fwht_default_fmt(u32 width_div,
++bool v4l2_fwht_validate_fmt(const struct v4l2_fwht_pixfmt_info *info,
++			    u32 width_div, u32 height_div, u32 components_num,
++			    u32 pixenc)
 +{
-+	if (!version || version > FWHT_VERSION)
-+		return false;
-+
-+	if (version >= 2) {
-+		unsigned int components_num = 1 +
-+			((flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
-+			 FWHT_FL_COMPONENTS_NUM_OFFSET);
-+		unsigned int pixenc = flags & FWHT_FL_PIXENC_MSK;
-+
-+		if (components_num == 0 || components_num > 4 || !pixenc)
-+			return false;
-+	}
-+	return true;
++	if (info->width_div == width_div &&
++	    info->height_div == height_div &&
++	    (!pixenc || info->pixenc == pixenc) &&
++	    info->components_num == components_num)
++		return true;
++	return false;
 +}
 +
- static int device_process(struct vicodec_ctx *ctx,
- 			  struct vb2_v4l2_buffer *src_vb,
- 			  struct vb2_v4l2_buffer *dst_vb)
-@@ -397,21 +414,11 @@ static bool is_header_valid(const struct fwht_cframe_hdr *p_hdr)
- 	unsigned int version = ntohl(p_hdr->version);
- 	unsigned int flags = ntohl(p_hdr->flags);
++const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_nth_fmt(u32 width_div,
+ 							  u32 height_div,
+ 							  u32 components_num,
+ 							  u32 pixenc,
+@@ -46,10 +58,10 @@ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_default_fmt(u32 width_div,
+ 	unsigned int i;
  
--	if (!version || version > FWHT_VERSION)
--		return false;
--
- 	if (w < MIN_WIDTH || w > MAX_WIDTH || h < MIN_HEIGHT || h > MAX_HEIGHT)
- 		return false;
+ 	for (i = 0; i < ARRAY_SIZE(v4l2_fwht_pixfmts); i++) {
+-		if (v4l2_fwht_pixfmts[i].width_div == width_div &&
+-		    v4l2_fwht_pixfmts[i].height_div == height_div &&
+-		    (!pixenc || v4l2_fwht_pixfmts[i].pixenc == pixenc) &&
+-		    v4l2_fwht_pixfmts[i].components_num == components_num) {
++		bool is_valid = v4l2_fwht_validate_fmt(&v4l2_fwht_pixfmts[i],
++						       width_div, height_div,
++						       components_num, pixenc);
++		if (is_valid) {
+ 			if (start_idx == 0)
+ 				return v4l2_fwht_pixfmts + i;
+ 			start_idx--;
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+index 53eba97ebc83..b59503d4049a 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+@@ -48,7 +48,10 @@ struct v4l2_fwht_state {
  
--	if (version >= 2) {
--		unsigned int components_num = 1 +
--			((flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
--			FWHT_FL_COMPONENTS_NUM_OFFSET);
--		unsigned int pixenc = flags & FWHT_FL_PIXENC_MSK;
--
--		if (components_num == 0 || components_num > 4 || !pixenc)
--			return false;
--	}
-+	if (!validate_by_version(flags, version))
-+		return false;
+ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_pixfmt(u32 pixelformat);
+ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx);
+-const struct v4l2_fwht_pixfmt_info *v4l2_fwht_default_fmt(u32 width_div,
++bool v4l2_fwht_validate_fmt(const struct v4l2_fwht_pixfmt_info *info,
++			    u32 width_div, u32 height_div, u32 components_num,
++			    u32 pixenc);
++const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_nth_fmt(u32 width_div,
+ 							  u32 height_div,
+ 							  u32 components_num,
+ 							  u32 pixenc,
+diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+index 55b003de43a3..d20e829274ae 100644
+--- a/drivers/media/platform/vicodec/vicodec-core.c
++++ b/drivers/media/platform/vicodec/vicodec-core.c
+@@ -402,7 +402,7 @@ info_from_header(const struct fwht_cframe_hdr *p_hdr)
+ 				FWHT_FL_COMPONENTS_NUM_OFFSET);
+ 		pixenc = (flags & FWHT_FL_PIXENC_MSK);
+ 	}
+-	return v4l2_fwht_default_fmt(width_div, height_div,
++	return v4l2_fwht_find_nth_fmt(width_div, height_div,
+ 				     components_num, pixenc, 0);
+ }
  
- 	info = info_from_header(p_hdr);
- 	if (!info)
+@@ -623,7 +623,7 @@ static int enum_fmt(struct v4l2_fmtdesc *f, struct vicodec_ctx *ctx,
+ 		if (!info || ctx->is_enc)
+ 			info = v4l2_fwht_get_pixfmt(f->index);
+ 		else
+-			info = v4l2_fwht_default_fmt(info->width_div,
++			info = v4l2_fwht_find_nth_fmt(info->width_div,
+ 						     info->height_div,
+ 						     info->components_num,
+ 						     info->pixenc,
 -- 
 2.17.1
 
