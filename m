@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF057C00319
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:02:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0427AC43381
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:03:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB1E220652
-	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:02:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C685820652
+	for <linux-media@archiver.kernel.org>; Sun, 24 Feb 2019 09:03:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oa8szHa8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o0oOXt97"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728172AbfBXJC7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Feb 2019 04:02:59 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:51815 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728150AbfBXJC6 (ORCPT
+        id S1728176AbfBXJDB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Feb 2019 04:03:01 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:36442 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728171AbfBXJDA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Feb 2019 04:02:58 -0500
-Received: by mail-wm1-f68.google.com with SMTP id n19so5395881wmi.1
-        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 01:02:57 -0800 (PST)
+        Sun, 24 Feb 2019 04:03:00 -0500
+Received: by mail-wm1-f66.google.com with SMTP id j125so5427914wmj.1
+        for <linux-media@vger.kernel.org>; Sun, 24 Feb 2019 01:02:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=iPmSdIbe4trCHxbnuMCBZC6tC1phNVbZzz8x8XUekG8=;
-        b=oa8szHa8SYd9PKka+9lsntlo4y930h1AP3sfVqONgE2h8177G+MfvQM16rRwhdW1YE
-         JBdjdTR9vdq3UDPb+znSSF/33T8uC3cGl1EEXR5FqTn9hI2/awF/zDqM+iD39JECIqVE
-         Oz07Ax7XsddSG9XPVsRM+AuTjutIeBVOoWOLXNsWXSqzFlOcWEg0ORlHIpPZb2jDx9lQ
-         Cx6L8nsBB9FPz1m7yNRudcdgH+hMNtseEtBGW+ngmBsBHHp7uEg9F/yxXNHqMKT9Jugt
-         gqmH6QduPNNHZIsT1Ej36iAfcu04kRv3IwJief03iWVJZaZG8oMP0zSPL7ZTook+2Vbw
-         DT3Q==
+        bh=cdbAx39js5NverI3DEvBFyhQC6S1f7hf9HQO4u/9CQ8=;
+        b=o0oOXt976MYxZdttWVmjyyx42Hjjv9oXV/p5aZujyyL1WYHPJztWc1uqHMVAVZqDDl
+         /QUYnRXPJwY7SEmBbEBtBGfNsrNvlrbNna9gorw/Ljxxj9kw8hiUTeS6zDLSj8l+SbEv
+         xpYYPmM9MG13F2mH4EguK5U185tWlSvUugQrXDKOrm3CFawQyHJ5OzkH4he9P30nE0WC
+         jqrWMU6u/yghamTEYNPxaZcAQVKx/i79iO4cEulkRDdHBITMFyLccKW96+ORFhTafNst
+         6CgkddbeuAlXzzzFiamyIli8Mxdecp6AgAwU7ZxNUmFoKRJ+mppqcoL1rVAxmvGtZVpx
+         qApg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=iPmSdIbe4trCHxbnuMCBZC6tC1phNVbZzz8x8XUekG8=;
-        b=QLkMlZ9uT29ghHL2Gx1SYJ/qNc4uJByZ1oofjnS5z2MP0+vDuDO87RdVOvs8APbzdW
-         HxIar43lvF93Uv1Bgif89haW0w3x5rWJRkAUjGO+yGJ+znSE8Urytw1HDG3fyNdaSIMA
-         wZbuGYS6n8cBF+uFF5YERFqcvi/60PzgZXO5sOUEpIeDUDT+RnFmRhbAo0YH8b4RkF2o
-         m7hAouehUuzwTX1VsM/gEYw1zburVrPgDEVGz8QdbO9DE3M3MueTaC/CCxlmZTN9hv7r
-         c4e/7M2/W/wttuLRwqF1zvmmS2pmf9Yu82ecRSVizAOYbuSG9ZFkGSWU9TfoVHRM/y/2
-         PkwQ==
-X-Gm-Message-State: AHQUAuYvu1o0uqQYgrGAjYJs6Rgh3r0NKFGveg9BJ4RhJDX4LVXIZIxz
-        atqb6G5ZpvN0hk6a3Nw6sWvB0o6jUdE=
-X-Google-Smtp-Source: AHgI3IZRBN7n4GPDHsVpQ1uZuYlGCwZbAClZgIrwe6XCpFMPfaVG7GwjRnCZR8nPoV86VkygGVs/rA==
-X-Received: by 2002:a1c:2283:: with SMTP id i125mr7156939wmi.24.1550998976610;
-        Sun, 24 Feb 2019 01:02:56 -0800 (PST)
+        bh=cdbAx39js5NverI3DEvBFyhQC6S1f7hf9HQO4u/9CQ8=;
+        b=DScm/7CHRRD9UQleOQJPP/g8KiZMzDvAsqwOXTAjULJXW1xuHtDskp8RO+P/VJabaZ
+         jnIiJzeHmUGZArYl6jxaaP/eUHkQWLu77na3cqL2xMLe/Jk9+zfMrQJ7SMGHClkYIEiz
+         ZBVdvlKbv7Py2c9QaiyE63KgrztOOPk1wcZ3BLOqJQkUfj8ZHE8IlBg4H7mcemOpAMsS
+         8Gp58zJHq82sZSZtZ315L2nrATG0pNFC8uYh/Xu01CiH9FL9s5OsCkw53mNzqLSw+C8R
+         bkFDI4+s/gzbMrWdnBO3eaO8BjFAexPm87t4EcOgtXG0kMybyaJYixwjRAGwVhF4hyPa
+         zK/w==
+X-Gm-Message-State: AHQUAuZVPn4tPguAMVVS2Wd6ElpRok51ddLAelAAuxANpkHgeBrcZXtt
+        a57YDy6xwfavuoJcD3jIpvbnYypA7cU=
+X-Google-Smtp-Source: AHgI3IZTo4z1FpTrSTSXSqmWkFsKZxaSljSawjdqpvQRSuANNwkc1HB/FV9LEQZSzMtkw/bJCqbmJg==
+X-Received: by 2002:a1c:f510:: with SMTP id t16mr3137681wmh.105.1550998977952;
+        Sun, 24 Feb 2019 01:02:57 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id e75sm8701971wmg.32.2019.02.24.01.02.55
+        by smtp.gmail.com with ESMTPSA id e75sm8701971wmg.32.2019.02.24.01.02.56
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Feb 2019 01:02:56 -0800 (PST)
+        Sun, 24 Feb 2019 01:02:57 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [PATCH v3 05/18] media: v4l2-ctrl: v4l2_ctrl_request_setup returns with error upon failure
-Date:   Sun, 24 Feb 2019 01:02:22 -0800
-Message-Id: <20190224090234.19723-6-dafna3@gmail.com>
+Subject: [PATCH v3 06/18] media: vicodec: change variable name for the return value of v4l2_fwht_encode
+Date:   Sun, 24 Feb 2019 01:02:23 -0800
+Message-Id: <20190224090234.19723-7-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190224090234.19723-1-dafna3@gmail.com>
 References: <20190224090234.19723-1-dafna3@gmail.com>
@@ -69,87 +69,39 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-If one of the controls fails to set,
-then 'v4l2_ctrl_request_setup'
-immediately returns with the error code.
+v4l2_fwht_encode returns either an error code on
+failure or the size of the compressed frame on
+success. So change the var assigned to it from
+'ret' to 'comp_sz_or_errcode' to clarify that.
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++++-------
- include/media/v4l2-ctrls.h           |  2 +-
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/media/platform/vicodec/vicodec-core.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b79d3bbd8350..54d66dbc2a31 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3899,18 +3899,19 @@ void v4l2_ctrl_request_complete(struct media_request *req,
- }
- EXPORT_SYMBOL(v4l2_ctrl_request_complete);
+diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+index b92a91e06e18..778b974e9624 100644
+--- a/drivers/media/platform/vicodec/vicodec-core.c
++++ b/drivers/media/platform/vicodec/vicodec-core.c
+@@ -178,13 +178,14 @@ static int device_process(struct vicodec_ctx *ctx,
  
--void v4l2_ctrl_request_setup(struct media_request *req,
-+int v4l2_ctrl_request_setup(struct media_request *req,
- 			     struct v4l2_ctrl_handler *main_hdl)
- {
- 	struct media_request_object *obj;
- 	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_ctrl_ref *ref;
-+	int ret = 0;
+ 	if (ctx->is_enc) {
+ 		struct vicodec_q_data *q_src;
++		int comp_sz_or_errcode;
  
- 	if (!req || !main_hdl)
--		return;
-+		return 0;
+ 		q_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 		state->info = q_src->info;
+-		ret = v4l2_fwht_encode(state, p_src, p_dst);
+-		if (ret < 0)
+-			return ret;
+-		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, ret);
++		comp_sz_or_errcode = v4l2_fwht_encode(state, p_src, p_dst);
++		if (comp_sz_or_errcode < 0)
++			return comp_sz_or_errcode;
++		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, comp_sz_or_errcode);
+ 	} else {
+ 		unsigned int comp_frame_size = ntohl(ctx->state.header.size);
  
- 	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_QUEUED))
--		return;
-+		return -EBUSY;
- 
- 	/*
- 	 * Note that it is valid if nothing was found. It means
-@@ -3919,10 +3920,10 @@ void v4l2_ctrl_request_setup(struct media_request *req,
- 	 */
- 	obj = media_request_object_find(req, &req_ops, main_hdl);
- 	if (!obj)
--		return;
-+		return 0;
- 	if (obj->completed) {
- 		media_request_object_put(obj);
--		return;
-+		return -EBUSY;
- 	}
- 	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
- 
-@@ -3990,12 +3991,15 @@ void v4l2_ctrl_request_setup(struct media_request *req,
- 				update_from_auto_cluster(master);
- 		}
- 
--		try_or_set_cluster(NULL, master, true, 0);
--
-+		ret = try_or_set_cluster(NULL, master, true, 0);
- 		v4l2_ctrl_unlock(master);
-+
-+		if (ret)
-+			break;
- 	}
- 
- 	media_request_object_put(obj);
-+	return ret;
- }
- EXPORT_SYMBOL(v4l2_ctrl_request_setup);
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index d63cf227b0ab..c40dcf79b5b9 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -1127,7 +1127,7 @@ __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
-  * applying control values in a request is only applicable to memory-to-memory
-  * devices.
-  */
--void v4l2_ctrl_request_setup(struct media_request *req,
-+int v4l2_ctrl_request_setup(struct media_request *req,
- 			     struct v4l2_ctrl_handler *parent);
- 
- /**
 -- 
 2.17.1
 
