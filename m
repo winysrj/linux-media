@@ -2,241 +2,125 @@ Return-Path: <SRS0=o7tn=RA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AD2BC10F00
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 21:50:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79477C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 22:19:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DEA922083D
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 21:50:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 436A0213A2
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 22:19:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cXsbqIew"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729593AbfBYVuB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Feb 2019 16:50:01 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:40184 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731351AbfBYVZM (ORCPT
+        id S1727200AbfBYWTy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Feb 2019 17:19:54 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:39699 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726845AbfBYWTy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Feb 2019 16:25:12 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id 26114280A51
-Message-ID: <0add34a2c633e387f47ce64a7967b65abdca79e2.camel@collabora.com>
-Subject: Re: [PATCH 4/4] media: v4l: ctrls: Add debug messages
-From:   Ezequiel Garcia <ezequiel@collabora.com>
+        Mon, 25 Feb 2019 17:19:54 -0500
+Received: by mail-wm1-f67.google.com with SMTP id z84so463240wmg.4
+        for <linux-media@vger.kernel.org>; Mon, 25 Feb 2019 14:19:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=PlEyKJ27dJIqS/gB0k3yJ3Jzz9BfZnSKw9PHTev7P9g=;
+        b=cXsbqIewKoMLJJQfYpEspFOr+Uhz4RybGs5bVz+8r/K8UwdqAvHPmQiodQYPQSomQX
+         6J79RWU3alzb+rEXnlrdt9kPVlstGjzEU0iH9m6aFfa3ymOpyrzQ7rm/QehHg4nDyMqd
+         qCxHRAqv/NNpED4S9JhmzxRZ5nGfffZQ9Xck3tH1LpDutNu+ng9ouKmoqMhOCEbkhkPx
+         pViY+0hWuJo6Bk+jopU8H3XhMw6TnZJSaeFLVlIqRJUDhp31UKbxNXuE0KVftaVQ+hl7
+         ATZabZoPwf84rS/f0wNyAgzEkzpAC3TfNxbbAkOHiiXRpQkxSAM+ysjviOU+QfsSvP+G
+         OO0g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=PlEyKJ27dJIqS/gB0k3yJ3Jzz9BfZnSKw9PHTev7P9g=;
+        b=WcwPc5n2qp+Gcte2KViZvEfCdFldyRcAo6DfcDftEmxDYX6ZVfjYxWRhGKmB/pKdtU
+         i0YS66TIg0XbvvED8ItL+WSdAVRbdYeZJstVmTCtFnALGKlh+rbsOsZPGF75U4VtvD6p
+         SRVX5hfLXDQJvDAE5Wy8zDgJvgcsAXc6afJvyYCs5b+2RvlYW1+vS8+Ydh//kqxhU+Rs
+         JVx6SCk2hs/ZRi7It15RBoJetJ0VKm3wdM02byiT3igDImLbhYRjfZQS6XKBHzEMfcS0
+         Yxop88Tmz0N8q6az512KUAnbZtqPWG0q7vTssUf/YJCRrmIsxPuEEJaXCtFexn+YL1YU
+         N0kA==
+X-Gm-Message-State: AHQUAubZb8xoKm+cv4cBAqbIOpQsLKqDsKwcbj8c8+I0m9Hn0k6afbZz
+        Vt9jbLMyBDcgBmOHH8tcBGLRiWymHLk=
+X-Google-Smtp-Source: AHgI3IYfCia2jRZFsiEU0lHyhSn4R1EaPfilxY7sWexEF1QRhVoxHelZvCRPS6mPOKo0yhYPG5rZQg==
+X-Received: by 2002:a1c:7a1a:: with SMTP id v26mr526077wmc.129.1551133191966;
+        Mon, 25 Feb 2019 14:19:51 -0800 (PST)
+Received: from ubuntu.home ([77.127.107.32])
+        by smtp.gmail.com with ESMTPSA id a20sm4168033wmb.17.2019.02.25.14.19.49
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 25 Feb 2019 14:19:50 -0800 (PST)
+From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com
-Date:   Mon, 25 Feb 2019 18:25:02 -0300
-In-Reply-To: <20190218201528.21545-5-ezequiel@collabora.com>
-References: <20190218201528.21545-1-ezequiel@collabora.com>
-         <20190218201528.21545-5-ezequiel@collabora.com>
-Organization: Collabora
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.5-1 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [PATCH v4 00/21] add support to stateless decoder
+Date:   Mon, 25 Feb 2019 14:19:24 -0800
+Message-Id: <20190225221933.121653-1-dafna3@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, 2019-02-18 at 17:15 -0300, Ezequiel Garcia wrote:
-> Currently, the v4l2 control code is a bit silent on errors.
-> To ease debugging of the control logic, add debug messages
-> on (hopefully) most of the error paths.
-> 
+main changes from v2:
+- fixes according to the review.
+- patch 5: new bugfix
+- patches 16, 17, 18: new documentation
 
-I'm thinking some of these could receive a struct video_device,
-and so use it to print the device node name.
+Dafna Hirschfeld (18):
+  media: vicodec: selection api should only check single buffer types
+  media: vicodec: upon release, call m2m release before freeing ctrl
+    handler
+  media: v4l2-ctrl: v4l2_ctrl_request_setup returns with error upon
+    failure
+  media: vicodec: change variable name for the return value of
+    v4l2_fwht_encode
+  media: vicodec: bugfix - call v4l2_m2m_buf_copy_metadata also if
+    decoding fails
+  media: vicodec: bugfix: free compressed_frame upon device release
+  media: vicodec: Move raw frame preparation code to a function
+  media: vicodec: add field 'buf' to fwht_raw_frame
+  media: vicodec: keep the ref frame according to the format in decoder
+  media: vicodec: Validate version dependent header values in a separate
+    function
+  media: vicodec: rename v4l2_fwht_default_fmt to v4l2_fwht_find_nth_fmt
+  media: vicodec: add struct for encoder/decoder instance
+  media: vicodec: add documentation to V4L2_CID_FWHT_I/P_FRAME_QP
+  media: vicodec: add documentation to V4L2_CID_MPEG_VIDEO_FWHT_PARAMS
+  media: vicodec: add documentation to V4L2_PIX_FMT_FWHT_STATELESS
+  media: vicodec: Introducing stateless fwht defs and structs
+  media: vicodec: Register another node for stateless decoder
+  media: vicodec: Add support for stateless decoder.
 
-I'll explore that and try to get a v2.
+Hans Verkuil (3):
+  vb2: add requires_requests bit for stateless codecs
+  videodev2.h: add V4L2_BUF_CAP_REQUIRES_REQUESTS
+  cedrus: set requires_requests
 
-Thanks,
-Eze
+ .../media/uapi/v4l/ext-ctrls-codec.rst        |  66 ++
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   5 +
+ .../media/uapi/v4l/vidioc-reqbufs.rst         |   4 +
+ .../media/common/videobuf2/videobuf2-core.c   |   5 +-
+ .../media/common/videobuf2/videobuf2-v4l2.c   |   6 +
+ drivers/media/platform/vicodec/codec-fwht.c   |  83 ++-
+ drivers/media/platform/vicodec/codec-fwht.h   |  12 +-
+ .../media/platform/vicodec/codec-v4l2-fwht.c  | 420 ++++-------
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |   7 +-
+ drivers/media/platform/vicodec/vicodec-core.c | 665 +++++++++++++-----
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  28 +-
+ .../staging/media/sunxi/cedrus/cedrus_video.c |   1 +
+ include/media/fwht-ctrls.h                    |  32 +
+ include/media/v4l2-ctrls.h                    |   6 +-
+ include/media/videobuf2-core.h                |   3 +
+ include/uapi/linux/v4l2-controls.h            |   3 +
+ include/uapi/linux/videodev2.h                |   2 +
+ 17 files changed, 822 insertions(+), 526 deletions(-)
+ create mode 100644 include/media/fwht-ctrls.h
 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 63 +++++++++++++++++++++++-----
->  include/media/v4l2-ioctl.h           |  2 +
->  2 files changed, 54 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 99308dac2daa..c9f4e00f2229 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -18,6 +18,8 @@
->      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->   */
->  
-> +#define pr_fmt(fmt) "v4l2-ctrls: " fmt
-> +
->  #include <linux/ctype.h>
->  #include <linux/mm.h>
->  #include <linux/slab.h>
-> @@ -28,6 +30,14 @@
->  #include <media/v4l2-event.h>
->  #include <media/v4l2-dev.h>
->  
-> +extern unsigned int videodev_debug;
-> +
-> +#define dprintk(fmt, arg...) do {					\
-> +	if (videodev_debug & V4L2_DEV_DEBUG_CTRL)			\
-> +		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
-> +		       __func__, ##arg);				\
-> +} while (0)
-> +
->  #define has_op(master, op) \
->  	(master->ops && master->ops->op)
->  #define call_op(master, op) \
-> @@ -1952,8 +1962,11 @@ static int validate_new(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr p_new)
->  	unsigned idx;
->  	int err = 0;
->  
-> -	for (idx = 0; !err && idx < ctrl->elems; idx++)
-> +	for (idx = 0; !err && idx < ctrl->elems; idx++) {
->  		err = ctrl->type_ops->validate(ctrl, idx, p_new);
-> +		if (err)
-> +			dprintk("failed to validate control id 0x%x (%d)\n", ctrl->id, err);
-> +	}
->  	return err;
->  }
->  
-> @@ -3136,20 +3149,28 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  		if (cs->which &&
->  		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
->  		    cs->which != V4L2_CTRL_WHICH_REQUEST_VAL &&
-> -		    V4L2_CTRL_ID2WHICH(id) != cs->which)
-> +		    V4L2_CTRL_ID2WHICH(id) != cs->which) {
-> +			dprintk("invalid which 0x%x or control id 0x%x\n", cs->which, id);
->  			return -EINVAL;
-> +		}
->  
->  		/* Old-style private controls are not allowed for
->  		   extended controls */
-> -		if (id >= V4L2_CID_PRIVATE_BASE)
-> +		if (id >= V4L2_CID_PRIVATE_BASE) {
-> +			dprintk("old-style private controls not allowed for extended controls\n");
->  			return -EINVAL;
-> +		}
->  		ref = find_ref_lock(hdl, id);
-> -		if (ref == NULL)
-> +		if (ref == NULL) {
-> +			dprintk("cannot find control id 0x%x\n", id);
->  			return -EINVAL;
-> +		}
->  		h->ref = ref;
->  		ctrl = ref->ctrl;
-> -		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
-> +		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED) {
-> +			dprintk("control id 0x%x is disabled\n", id);
->  			return -EINVAL;
-> +		}
->  
->  		if (ctrl->cluster[0]->ncontrols > 1)
->  			have_clusters = true;
-> @@ -3159,10 +3180,16 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  			unsigned tot_size = ctrl->elems * ctrl->elem_size;
->  
->  			if (c->size < tot_size) {
-> +				/*
-> +				 * In the get case the application first queries
-> +				 * to obtain the size of the control.
-> +				 */
->  				if (get) {
->  					c->size = tot_size;
->  					return -ENOSPC;
->  				}
-> +				dprintk("pointer control id 0x%x size too small, %d bytes but %d bytes needed\n",
-> +					id, c->size, tot_size);
->  				return -EFAULT;
->  			}
->  			c->size = tot_size;
-> @@ -3534,16 +3561,20 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
->  
->  		cs->error_idx = i;
->  
-> -		if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
-> +		if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY) {
-> +			dprintk("control id 0x%x is read-only\n", ctrl->id);
->  			return -EACCES;
-> +		}
->  		/* This test is also done in try_set_control_cluster() which
->  		   is called in atomic context, so that has the final say,
->  		   but it makes sense to do an up-front check as well. Once
->  		   an error occurs in try_set_control_cluster() some other
->  		   controls may have been set already and we want to do a
->  		   best-effort to avoid that. */
-> -		if (set && (ctrl->flags & V4L2_CTRL_FLAG_GRABBED))
-> +		if (set && (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)) {
-> +			dprintk("control id 0x%x is grabbed, cannot set\n", ctrl->id);
->  			return -EBUSY;
-> +		}
->  		/*
->  		 * Skip validation for now if the payload needs to be copied
->  		 * from userspace into kernelspace. We'll validate those later.
-> @@ -3588,13 +3619,17 @@ static int try_set_ext_ctrls_common(struct v4l2_fh *fh,
->  	cs->error_idx = cs->count;
->  
->  	/* Default value cannot be changed */
-> -	if (cs->which == V4L2_CTRL_WHICH_DEF_VAL)
-> +	if (cs->which == V4L2_CTRL_WHICH_DEF_VAL) {
-> +		dprintk("cannot change default value\n");
->  		return -EINVAL;
-> +	}
->  
->  	cs->which = V4L2_CTRL_ID2WHICH(cs->which);
->  
-> -	if (hdl == NULL)
-> +	if (hdl == NULL) {
-> +		dprintk("invalid null control handler\n");
->  		return -EINVAL;
-> +	}
->  
->  	if (cs->count == 0)
->  		return class_check(hdl, cs->which);
-> @@ -3700,21 +3735,27 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
->  	int ret;
->  
->  	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-> -		if (!mdev || cs->request_fd < 0)
-> +		if (!mdev || cs->request_fd < 0) {
-> +			dprintk("missing media device or invalid request fd\n");
->  			return -EINVAL;
-> +		}
->  
->  		req = media_request_get_by_fd(mdev, cs->request_fd);
-> -		if (IS_ERR(req))
-> +		if (IS_ERR(req)) {
-> +			dprintk("cannot find request fd %d\n", cs->request_fd);
->  			return PTR_ERR(req);
-> +		}
->  
->  		ret = media_request_lock_for_update(req);
->  		if (ret) {
-> +			dprintk("cannot lock request fd %d\n", cs->request_fd);
->  			media_request_put(req);
->  			return ret;
->  		}
->  
->  		obj = v4l2_ctrls_find_req_obj(hdl, req, set);
->  		if (IS_ERR(obj)) {
-> +			dprintk("cannot find request object for request fd %d\n", cs->request_fd);
->  			media_request_unlock_for_update(req);
->  			media_request_put(req);
->  			return PTR_ERR(obj);
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index 8533ece5026e..0ecd4e3e76a4 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -612,6 +612,8 @@ struct v4l2_ioctl_ops {
->  #define V4L2_DEV_DEBUG_STREAMING	0x08
->  /* Log poll() */
->  #define V4L2_DEV_DEBUG_POLL		0x10
-> +/* Log controls */
-> +#define V4L2_DEV_DEBUG_CTRL		0x20
->  
->  /*  Video standard functions  */
->  
-
+-- 
+2.17.1
 
