@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87427C43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 22:20:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 452CBC43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 22:20:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48C6D213A2
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 22:20:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FE58213A2
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 22:20:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HwsjWL/J"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rbJts2OP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728043AbfBYWT6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Feb 2019 17:19:58 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:43503 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726919AbfBYWT6 (ORCPT
+        id S1728071AbfBYWUB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Feb 2019 17:20:01 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:50607 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727357AbfBYWUA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Feb 2019 17:19:58 -0500
-Received: by mail-wr1-f65.google.com with SMTP id d17so11674943wre.10
-        for <linux-media@vger.kernel.org>; Mon, 25 Feb 2019 14:19:57 -0800 (PST)
+        Mon, 25 Feb 2019 17:20:00 -0500
+Received: by mail-wm1-f67.google.com with SMTP id x7so511898wmj.0
+        for <linux-media@vger.kernel.org>; Mon, 25 Feb 2019 14:19:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=Z1jDQ2uZhsiJD3Dk2zOYxfBXHk1iczGdhf5c/i9EnwA=;
-        b=HwsjWL/JVyFSgbyaeCIr9kkeoSyrY8cJPJgoO3FYF1qUZFi/fLiIM7CcKcYxwa2SxF
-         88CsmKssie9Hg2woDIhOIMmycyM5ulfm5ipd9xXm2hu7FWub01+j5Ay2TUGwsWNirHqo
-         LJ4e6HzwJN6K+WMDVz+wyj7+8laOGheElvqPmIiodmMzVUrrDTjIVxwYkVz6zlFkEvEQ
-         qyGBXGo8LAzwFBUcvzwbD64DEEMHAHxu7sZZBaXZtIkQTCDM2KM/CZVEQrsWcCOD7Rat
-         skVAyesllx9cwPw0+K6McoJ1aBl1/kebW+dXbNJNz5iNPSz7hTmt8KUSQ1H1ltsuyZss
-         A79Q==
+        bh=zKajMQ8qbbs/vF9eB7W61cC95ASl/yiwMSYyCZNuyJA=;
+        b=rbJts2OPoO0sRnga0/YQjYxEdoMuWxrXv1FxFlq+xQUCfSdKawpIvYJkTRDALjcFLh
+         L/7BVGtqt+UUAfvdPlh0WfHFWyqzwfC2ofCBm2JBbD9GHP6lstmiOaC/vp88iBvijryZ
+         v6/ZepKiHHAZ4QrloAgbbQLiH3NhcEonsBozTxkptMAYwhklqNTM2DuXEY6oI27iQw3S
+         EMTAqd3z9W9MVLQMoXnq/eZfwbJi9vvblInjEe/eMDXSDa6c0iBvYzDuhQuWgOy1+lHM
+         ZwoDMnfUNLvevX4YyvybM8UdkSHAAc/CACQHlvv68OlYVj/4VASrf9ofkWVWVgNG1IEs
+         hf0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=Z1jDQ2uZhsiJD3Dk2zOYxfBXHk1iczGdhf5c/i9EnwA=;
-        b=RzMW1gPS9QMsWQQaJQKm4jtqic2Hdvs4IXf0mdIOgFSq4CprAArRohgSPb/9dhwgn5
-         AaXkl8MHzBJdZ/L6jgo3V5Ws6tBdkabgkBEW3smpd622f3OUet1h9fvU16VUsbaBArMN
-         dRcUZibFGiGDVB3GHiduDgilWaPfIneMS2rFep8WYDCdEbotl04GPqz530FokVudZs78
-         9NZXhhfAZUZ1SbXWVrY3PYK+N42DSgzvFITXfrbBWlfNbRZqEcSKdkSbUlKJW1Ae6BkV
-         q4iLcUqK+o7ZwW/jkjCevfghlUFUxZ9twBbcDNlm+X8hF9iii0R2wF5+0uNiBCbeF7pP
-         2hsg==
-X-Gm-Message-State: AHQUAuZhKdeSHNKd+8zs3DKc9pfXfzlGMx9Hvjkc8LIYmAgad3fTpZpK
-        EEt5rJdQB9pt7oKo7rNckSITFT3KEyk=
-X-Google-Smtp-Source: AHgI3IbeZk/VPxJDHLoNx+3g8oipVEMnTj5j5wB5i4/rHYw+7M4wu2QDmXvlunSRySN4u0IjkylQxg==
-X-Received: by 2002:a5d:6810:: with SMTP id w16mr13864586wru.62.1551133196295;
-        Mon, 25 Feb 2019 14:19:56 -0800 (PST)
+        bh=zKajMQ8qbbs/vF9eB7W61cC95ASl/yiwMSYyCZNuyJA=;
+        b=Cn6kaeuQUzTaW9ISDnCKjsS0y69v25E5fd8nPngv/CV2Bu7OYZh9h53zv2QLr61Zhi
+         wUw83to7k7/ixomBiUiFyKsqFKyO7UCyL/+KFhsz8jlzziROJYx+KyJEZr6x/QVpizF3
+         8TedY/UGKwkpGkIIoYRR2LY9eg8gBakXrTiPTNH3+3oQomgWTKC1nx4xZwW18kpi+kwj
+         T3M/kJ3YtMqOxQzHAmNRIawfabtVc2J/vsews0vbp7SH1l7VScb9wO70CE3mzMkIhzLL
+         Om8CQnftmsFBddXAY9VtVgZnVmKk1bOW1rZAXhrrL0IrXsiNpj7oP2trzCX+41RqM2+X
+         30Tw==
+X-Gm-Message-State: AHQUAuYfcUO2P3tyWm8XCmFWn0QcM2fgqGFuFcT62gZ0ZRKFZcQDfBkq
+        aWkkAzvKw/65JB4BBk3tUDWL+pSnM1c=
+X-Google-Smtp-Source: AHgI3IbJyf7bJTlFyihaIzbXEVeOcP8H3PUHYN6cwbvS/kzCB3m6wW6B6aEgpWJhgqI7f3pL1U9SRQ==
+X-Received: by 2002:a7b:c34c:: with SMTP id l12mr528356wmj.147.1551133197657;
+        Mon, 25 Feb 2019 14:19:57 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id a20sm4168033wmb.17.2019.02.25.14.19.55
+        by smtp.gmail.com with ESMTPSA id a20sm4168033wmb.17.2019.02.25.14.19.56
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 25 Feb 2019 14:19:55 -0800 (PST)
+        Mon, 25 Feb 2019 14:19:57 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH v4 03/21] cedrus: set requires_requests
-Date:   Mon, 25 Feb 2019 14:19:27 -0800
-Message-Id: <20190225221933.121653-4-dafna3@gmail.com>
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [PATCH v4 04/21] media: vicodec: selection api should only check single buffer types
+Date:   Mon, 25 Feb 2019 14:19:28 -0800
+Message-Id: <20190225221933.121653-5-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190225221933.121653-1-dafna3@gmail.com>
 References: <20190225221933.121653-1-dafna3@gmail.com>
@@ -69,28 +69,61 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+The selection api should check only single buffer types
+because multiplanar types are converted to
+single in drivers/media/v4l2-core/v4l2-ioctl.c
 
-The cedrus stateless decoder requires the use of request, so
-indicate this by setting requires_requests to 1.
-
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- drivers/staging/media/sunxi/cedrus/cedrus_video.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/vicodec/vicodec-core.c | 20 +++----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_video.c b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
-index b47854b3bce4..9673874ece10 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus_video.c
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
-@@ -536,6 +536,7 @@ int cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->lock = &ctx->dev->dev_mutex;
- 	src_vq->dev = ctx->dev->dev;
- 	src_vq->supports_requests = true;
-+	src_vq->requires_requests = true;
+diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+index d7636fe9e174..b92a91e06e18 100644
+--- a/drivers/media/platform/vicodec/vicodec-core.c
++++ b/drivers/media/platform/vicodec/vicodec-core.c
+@@ -945,16 +945,6 @@ static int vidioc_g_selection(struct file *file, void *priv,
+ {
+ 	struct vicodec_ctx *ctx = file2ctx(file);
+ 	struct vicodec_q_data *q_data;
+-	enum v4l2_buf_type valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	enum v4l2_buf_type valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-
+-	if (multiplanar) {
+-		valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-		valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	}
+-
+-	if (s->type != valid_cap_type && s->type != valid_out_type)
+-		return -EINVAL;
  
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
+ 	q_data = get_q_data(ctx, s->type);
+ 	if (!q_data)
+@@ -963,8 +953,8 @@ static int vidioc_g_selection(struct file *file, void *priv,
+ 	 * encoder supports only cropping on the OUTPUT buffer
+ 	 * decoder supports only composing on the CAPTURE buffer
+ 	 */
+-	if ((ctx->is_enc && s->type == valid_out_type) ||
+-	    (!ctx->is_enc && s->type == valid_cap_type)) {
++	if ((ctx->is_enc && s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) ||
++	    (!ctx->is_enc && s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)) {
+ 		switch (s->target) {
+ 		case V4L2_SEL_TGT_COMPOSE:
+ 		case V4L2_SEL_TGT_CROP:
+@@ -992,12 +982,8 @@ static int vidioc_s_selection(struct file *file, void *priv,
+ {
+ 	struct vicodec_ctx *ctx = file2ctx(file);
+ 	struct vicodec_q_data *q_data;
+-	enum v4l2_buf_type out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-
+-	if (multiplanar)
+-		out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+ 
+-	if (s->type != out_type)
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		return -EINVAL;
+ 
+ 	q_data = get_q_data(ctx, s->type);
 -- 
 2.17.1
 
