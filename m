@@ -2,234 +2,241 @@ Return-Path: <SRS0=o7tn=RA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EC82C43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 09:21:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A33C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 09:26:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F1EAB2084D
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 09:21:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3F0C2084D
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 09:26:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726422AbfBYJVb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Feb 2019 04:21:31 -0500
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:47955 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726346AbfBYJVb (ORCPT
+        id S1726420AbfBYJ0v (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Feb 2019 04:26:51 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:48673 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726376AbfBYJ0v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Feb 2019 04:21:31 -0500
-X-Originating-IP: 2.224.242.101
-Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id 5773D1C0005;
-        Mon, 25 Feb 2019 09:21:26 +0000 (UTC)
-Date:   Mon, 25 Feb 2019 10:21:51 +0100
-From:   Jacopo Mondi <jacopo@jmondi.org>
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Benoit Parrot <bparrot@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH v4 05/12] media: ov5640: Compute the clock rate at runtime
-Message-ID: <20190225092151.pra7mvgvpvekth7z@uno.localdomain>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
- <20181011092107.30715-6-maxime.ripard@bootlin.com>
- <20190221162020.keonztyi7yq2a4hg@ti.com>
- <20190222143959.gothnp6namn2gt2w@flea>
- <20190222145456.3v6lsslj7slb2kob@ti.com>
- <20190222150421.ilg62fyvrxwp2moh@flea>
+        Mon, 25 Feb 2019 04:26:51 -0500
+Received: from [IPv6:2001:983:e9a7:1:187c:1a74:db21:99] ([IPv6:2001:983:e9a7:1:187c:1a74:db21:99])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id yCX9gKBUO4HFnyCXAgJYBr; Mon, 25 Feb 2019 10:26:48 +0100
+Subject: Re: [PATCH v3 15/18] media: vicodec: Introducing stateless fwht defs
+ and structs
+To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
+Cc:     helen.koike@collabora.com
+References: <20190224090234.19723-1-dafna3@gmail.com>
+ <20190224090234.19723-16-dafna3@gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <49d7b358-16e6-47ea-52f1-2eeeaf17486b@xs4all.nl>
+Date:   Mon, 25 Feb 2019 10:26:47 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4o3ltaxgxd7u3nlp"
-Content-Disposition: inline
-In-Reply-To: <20190222150421.ilg62fyvrxwp2moh@flea>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <20190224090234.19723-16-dafna3@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfHMLXfWgqxtqglNExYGisRVJlUz5s3/omDNclrvdP9VUizXfKGwFgx8++BElDBaCOOGu0nsTxWPAtwCzRApK+uMVcJe6oSOjLkSG36+BLhxLS8M3gIhi
+ MdYQHg+eI3QKi7bg8ebPn4VX4vC98xl0SVwg5+EdM/932mZnCP8NVHgtMnKzcqls2TteOc9+g8VAB4PLpJjFbRMAMjKfNI/dfMhvjpSaeidFA51uzvAK3ZHQ
+ FVmMu6uf8/Z7vARGGFy+6IVTxpNhpgDWo3Olc+MXCLLp80I2VyS+WmRBwoIpfBLnKrXML8GC0+a8/PMA3SJs0D8Ipgb0alWC1yFD6qlZjbw=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On 2/24/19 10:02 AM, Dafna Hirschfeld wrote:
+> Add structs and definitions needed to implement stateless
+> decoder for fwht.
+> 
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  drivers/media/platform/vicodec/vicodec-core.c | 15 +++++---
+>  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
+>  include/media/fwht-ctrls.h                    | 35 +++++++++++++++++++
+>  include/media/v4l2-ctrls.h                    |  4 ++-
+>  include/uapi/linux/videodev2.h                |  1 +
+>  5 files changed, 60 insertions(+), 5 deletions(-)
+>  create mode 100644 include/media/fwht-ctrls.h
+> 
+> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+> index 2b71b723862a..869fe33f6f26 100644
+> --- a/drivers/media/platform/vicodec/vicodec-core.c
+> +++ b/drivers/media/platform/vicodec/vicodec-core.c
+> @@ -64,6 +64,10 @@ static const struct v4l2_fwht_pixfmt_info pixfmt_fwht = {
+>  	V4L2_PIX_FMT_FWHT, 0, 3, 1, 1, 1, 1, 1, 0, 1
+>  };
+>  
+> +static const struct v4l2_fwht_pixfmt_info pixfmt_stateless_fwht = {
+> +	V4L2_PIX_FMT_FWHT_STATELESS, 0, 3, 1, 1, 1, 1, 1, 0, 1
+> +};
+> +
+>  static void vicodec_dev_release(struct device *dev)
+>  {
+>  }
+> @@ -1510,10 +1514,6 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+>  	return vb2_queue_init(dst_vq);
+>  }
+>  
+> -#define VICODEC_CID_CUSTOM_BASE		(V4L2_CID_MPEG_BASE | 0xf000)
+> -#define VICODEC_CID_I_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 0)
+> -#define VICODEC_CID_P_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 1)
+> -
+>  static int vicodec_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>  	struct vicodec_ctx *ctx = container_of(ctrl->handler,
+> @@ -1559,6 +1559,13 @@ static const struct v4l2_ctrl_config vicodec_ctrl_p_frame = {
+>  	.step = 1,
+>  };
+>  
+> +static const struct v4l2_ctrl_config vicodec_ctrl_stateless_state = {
+> +	.id		= VICODEC_CID_STATELESS_FWHT,
+> +	.elem_size	= sizeof(struct v4l2_ctrl_fwht_params),
+> +	.name		= "FWHT-Stateless State Params",
+> +	.type		= V4L2_CTRL_TYPE_FWHT_PARAMS,
+> +};
+> +
+>  /*
+>   * File operations
+>   */
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 54d66dbc2a31..bfd51c2c1368 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -849,6 +849,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:		return "Force Key Frame";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS:		return "MPEG-2 Slice Parameters";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:		return "MPEG-2 Quantization Matrices";
+> +	case VICODEC_CID_STATELESS_FWHT:			return "FWHT stateless parameters";
+>  
+>  	/* VPX controls */
+>  	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+> @@ -1303,6 +1304,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:
+>  		*type = V4L2_CTRL_TYPE_MPEG2_QUANTIZATION;
+>  		break;
+> +	case VICODEC_CID_STATELESS_FWHT:
+> +		*type = V4L2_CTRL_TYPE_FWHT_PARAMS;
+> +		break;
+>  	default:
+>  		*type = V4L2_CTRL_TYPE_INTEGER;
+>  		break;
+> @@ -1669,6 +1673,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+>  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
+>  		return 0;
+>  
+> +	case V4L2_CTRL_TYPE_FWHT_PARAMS:
+> +		return 0;
+> +
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -2249,6 +2256,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
+>  		elem_size = sizeof(struct v4l2_ctrl_mpeg2_quantization);
+>  		break;
+> +	case V4L2_CTRL_TYPE_FWHT_PARAMS:
+> +		elem_size = sizeof(struct v4l2_ctrl_fwht_params);
+> +		break;
+>  	default:
+>  		if (type < V4L2_CTRL_COMPOUND_TYPES)
+>  			elem_size = sizeof(s32);
+> diff --git a/include/media/fwht-ctrls.h b/include/media/fwht-ctrls.h
+> new file mode 100644
+> index 000000000000..3e7f411f5f94
+> --- /dev/null
+> +++ b/include/media/fwht-ctrls.h
+> @@ -0,0 +1,35 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * These are the FWHT state controls for use with stateless FWHT
+> + * codec drivers.
+> + *
+> + * It turns out that these structs are not stable yet and will undergo
+> + * more changes. So keep them private until they are stable and ready to
+> + * become part of the official public API.
+> + */
+> +
+> +#ifndef _FWHT_CTRLS_H_
+> +#define _FWHT_CTRLS_H_
+> +
+> +#define V4L2_CTRL_TYPE_FWHT_PARAMS 0x0105
+> +
+> +#define VICODEC_CID_CUSTOM_BASE		(V4L2_CID_MPEG_BASE | 0xf000)
+> +#define VICODEC_CID_I_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 0)
+> +#define VICODEC_CID_P_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 1)
+> +#define VICODEC_CID_STATELESS_FWHT	(VICODEC_CID_CUSTOM_BASE + 2)
 
---4o3ltaxgxd7u3nlp
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I think we should make these controls 'official' and part of the public API
+(except for the STATELESS_FWHT).
 
-Hello Maxime, Benoit,
-  sorry for chiming in, but I'm a bit confused...
+So this becomes:
 
-On Fri, Feb 22, 2019 at 04:04:21PM +0100, Maxime Ripard wrote:
-> On Fri, Feb 22, 2019 at 08:54:56AM -0600, Benoit Parrot wrote:
-> > Maxime Ripard <maxime.ripard@bootlin.com> wrote on Fri [2019-Feb-22 15:=
-39:59 +0100]:
-> > > On Thu, Feb 21, 2019 at 10:20:20AM -0600, Benoit Parrot wrote:
-> > > > Hi Maxime,
-> > > >
-> > > > A couple of questions,
-> > > >
-> > > > Maxime Ripard <maxime.ripard@bootlin.com> wrote on Thu [2018-Oct-11=
- 04:21:00 -0500]:
-> > > > > The clock rate, while hardcoded until now, is actually a function=
- of the
-> > > > > resolution, framerate and bytes per pixel. Now that we have an al=
-gorithm to
-> > > > > adjust our clock rate, we can select it dynamically when we chang=
-e the
-> > > > > mode.
-> > > > >
-> > > > > This changes a bit the clock rate being used, with the following =
-effect:
-> > > > >
-> > > > > +------+------+------+------+-----+-----------------+------------=
-----+-----------+
-> > > > > | Hact | Vact | Htot | Vtot | FPS | Hardcoded clock | Computed cl=
-ock | Deviation |
-> > > > > +------+------+------+------+-----+-----------------+------------=
-----+-----------+
-> > > > > |  640 |  480 | 1896 | 1080 |  15 |        56000000 |       61430=
-400 | 8.84 %    |
-> > > > > |  640 |  480 | 1896 | 1080 |  30 |       112000000 |      122860=
-800 | 8.84 %    |
-> > > > > | 1024 |  768 | 1896 | 1080 |  15 |        56000000 |       61430=
-400 | 8.84 %    |
-> > > > > | 1024 |  768 | 1896 | 1080 |  30 |       112000000 |      122860=
-800 | 8.84 %    |
-> > > > > |  320 |  240 | 1896 |  984 |  15 |        56000000 |       55969=
-920 | 0.05 %    |
-> > > > > |  320 |  240 | 1896 |  984 |  30 |       112000000 |      111939=
-840 | 0.05 %    |
-> > > > > |  176 |  144 | 1896 |  984 |  15 |        56000000 |       55969=
-920 | 0.05 %    |
-> > > > > |  176 |  144 | 1896 |  984 |  30 |       112000000 |      111939=
-840 | 0.05 %    |
-> > > > > |  720 |  480 | 1896 |  984 |  15 |        56000000 |       55969=
-920 | 0.05 %    |
-> > > > > |  720 |  480 | 1896 |  984 |  30 |       112000000 |      111939=
-840 | 0.05 %    |
-> > > > > |  720 |  576 | 1896 |  984 |  15 |        56000000 |       55969=
-920 | 0.05 %    |
-> > > > > |  720 |  576 | 1896 |  984 |  30 |       112000000 |      111939=
-840 | 0.05 %    |
-> > > > > | 1280 |  720 | 1892 |  740 |  15 |        42000000 |       42002=
-400 | 0.01 %    |
-> > > > > | 1280 |  720 | 1892 |  740 |  30 |        84000000 |       84004=
-800 | 0.01 %    |
-> > > > > | 1920 | 1080 | 2500 | 1120 |  15 |        84000000 |       84000=
-000 | 0.00 %    |
-> > > > > | 1920 | 1080 | 2500 | 1120 |  30 |       168000000 |      168000=
-000 | 0.00 %    |
-> > > > > | 2592 | 1944 | 2844 | 1944 |  15 |        84000000 |      165862=
-080 | 49.36 %   |
-> > > > > +------+------+------+------+-----+-----------------+------------=
-----+-----------+
-> > > >
-> > > > Is the computed clock above the same for both parallel and CSI2?
-> > > >
-> > > > I want to add controls for PIXEL_RATE and LINK_FREQ, would you have=
- any
-> > > > quick pointer on taking the computed clock and translating that int=
-o the
-> > > > PIXEL_RATE and LINK_FREQ values?
-> > > >
-> > > > I am trying to use this sensor with TI CAL driver which at the mome=
-nt uses
-> > > > the PIXEL_RATE values in order to compute ths_settle and ths_term v=
-alues
-> > > > needed to program the DPHY properly. This is similar in behavior as=
- the way
-> > > > omap3isp relies on this info as well.
-> > >
-> > > I haven't looked that much into the csi-2 case, but the pixel rate
-> > > should be the same at least.
-> >
-> > I'll have to study the way the computed clock is actually calculated for
-> > either case, but if they yield the same number then I would be surprised
-> > that the pixel rate would be the same as in parallel mode you get 8 data
-> > bits per clock whereas in CSI2 using 2 data lanes you get 4 data bits p=
-er
-> > clock.
->
-> The bus rate will be different, but the pixel rate is the same: you
-> have as many pixels per frames and as many frames per seconds in the
-> parallel and CSI cases.
->
+#define VICODEC_CID_FWHT_I_FRAME_QP		(V4L2_CID_MPEG_BASE + 290)
+#define VICODEC_CID_FWHT_P_FRAME_QP		(V4L2_CID_MPEG_BASE + 291)
+#define VICODEC_CID_STATELESS_FWHT		(V4L2_CID_MPEG_BASE + 292)
 
-I agree with that, but..
+where the first two defines can be added to include/uapi/linux/v4l2-controls.h
+(add a comment '/* CIDs for FWHT encoding (vicodec driver) */' before the
+defines) and the last define stays in this header.
 
-> > So just to be certain here the "Computed clock" column above would be t=
-he
-> > pixel clock frequency?
->
-> it is
+Regards,
 
-=2E..it seems to me the Computed clock column is actually the "byte clock".
+	Hans
 
-=46rom a simple calculation for the 640x480@15FPS case:
-"Computed clock" =3D 1896 * 1080 * 15 * 2 =3D 61430400
+> +
+> +struct v4l2_ctrl_fwht_params {
+> +	__u64 backward_ref_ts;
+> +	__u32 version;
+> +	__u32 width;
+> +	__u32 height;
+> +	__u32 flags;
+> +	__u32 colorspace;
+> +	__u32 xfer_func;
+> +	__u32 ycbcr_enc;
+> +	__u32 quantization;
+> +	__u32 comp_frame_size;
+> +};
+> +
+> +
+> +#endif
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index c40dcf79b5b9..4dad20658feb 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -23,10 +23,11 @@
+>  #include <media/media-request.h>
+>  
+>  /*
+> - * Include the mpeg2 stateless codec compound control definitions.
+> + * Include the mpeg2 and fwht stateless codec compound control definitions.
+>   * This will move to the public headers once this API is fully stable.
+>   */
+>  #include <media/mpeg2-ctrls.h>
+> +#include <media/fwht-ctrls.h>
+>  
+>  /* forward references */
+>  struct file;
+> @@ -60,6 +61,7 @@ union v4l2_ctrl_ptr {
+>  	char *p_char;
+>  	struct v4l2_ctrl_mpeg2_slice_params *p_mpeg2_slice_params;
+>  	struct v4l2_ctrl_mpeg2_quantization *p_mpeg2_quantization;
+> +	struct v4l2_ctrl_fwht_params *p_fwht_params;
+>  	void *p;
+>  };
+>  
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 97e6a6a968ba..1ac3c22d883a 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -669,6 +669,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
+>  #define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC aka H.265 */
+>  #define V4L2_PIX_FMT_FWHT     v4l2_fourcc('F', 'W', 'H', 'T') /* Fast Walsh Hadamard Transform (vicodec) */
+> +#define V4L2_PIX_FMT_FWHT_STATELESS     v4l2_fourcc('S', 'F', 'W', 'H') /* Stateless FWHT (vicodec) */
+>  
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+> 
 
-While, in my understanding, the pixel clock would just be
-pixel_clock =3D HTOT * VTOT * FPS =3D 1896 * 1080 * 15 =3D 30715200
-
-So I suspect the "* 2" there is the number of bytes per pixel.
-
-That would match what's also reported here
-file:///home/jmondi/project/renesas/linux/linux-build/Documentation/output/=
-media/kapi/csi2.html?highlight=3Dlink_freq
-
-Where:
-link_freq =3D (pixel_rate * bpp) / (2 * nr_lanes)
-
-So if I were to calculate PIXEL_RATE and LINK_FREQ in this driver,
-that would be:
-PIXEL_RATE =3D mode->vtot * mode->htot * ov5640_framerates[sensor->current_=
-fr];
-LINK_FREQ =3D PIXEL_RATE * 16 / ( 2 * sensor->ep.bus.mipi_csi2.num_data_lan=
-es);
-(assuming, as the driver does now, all formats have 16bpp)
-
-Does this match your understanding as well?
-
-Thanks
-  j
-
->
-> Maxime
->
-> --
-> Maxime Ripard, Bootlin
-> Embedded Linux and Kernel engineering
-> https://bootlin.com
-
-
-
---4o3ltaxgxd7u3nlp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlxzs6gACgkQcjQGjxah
-VjwRmRAAplxpKjSyn//+ZParGZ9AFnt2YODptKU8zGUoKMruPt95+NCNOliCJdRk
-Z7tqOGwzsIzFo1tg7itAqw10eWI6XJdiLLxVf81VuwNcdaJVAR9jrnXt7XUSKqNS
-XVJ6VePM8gLzS9n/p+oEXkPtowBgtIdJ9rUnLMUEsdkN1sh75yY1hnhFQgWRbxgj
-WUBzXMRoSKwR+pKSAPMwQ0+kZMLmPZXAECzuEDAdXftV1QSRgBO04DlpBEhJ9/Ct
-esJV7AfkSpBDotnnBpmSwLM+wu5I55Id0cCXgRLj0Wk5XfYUUq0tqDcUSsl6nl3H
-sb9HsAQR0HrliEiChH/cQOFAtFN8LgGgOwLtkCxls2dVY+hmqjcL6rSwRmKN/sAB
-5jbCslNdi6zxDiEaL0p/88n+3PIv4l9NoagpKeZAY8ZEdZBe3iQaNw1yLzwhZXnw
-/flZEgpJioCnKdsspAKCS2sg9HKVgZ0eyIDp8oT6s8TE53Dl7gfZidzhfw3KVEBB
-lWb8ILR5EqC9cSQL4MijrRvn9o02cvwxh4QTT+xj3npUSnUR5Du7tU00AtWhwnIR
-H5wFeiJZTKg7STGRp+PRfcRERyrh61LcOxMoAqEn7yokr2Rtb1AQoSe+knwifyL0
-8Z2LjdCKwMO9yUH3VuBhxtGKSjPgdD8k7ySBDgL72kK//uzVd5c=
-=YBzW
------END PGP SIGNATURE-----
-
---4o3ltaxgxd7u3nlp--
