@@ -3,99 +3,160 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62315C4360F
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 11:25:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C402AC43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 11:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CEA0213A2
-	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 11:25:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C0E62083D
+	for <linux-media@archiver.kernel.org>; Mon, 25 Feb 2019 11:27:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726803AbfBYLZu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Feb 2019 06:25:50 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:58215 "EHLO
+        id S1726787AbfBYL1S (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Feb 2019 06:27:18 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53040 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726701AbfBYLZt (ORCPT
+        by vger.kernel.org with ESMTP id S1726701AbfBYL1R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Feb 2019 06:25:49 -0500
+        Mon, 25 Feb 2019 06:27:17 -0500
 Received: from [IPv6:2001:983:e9a7:1:187c:1a74:db21:99] ([IPv6:2001:983:e9a7:1:187c:1a74:db21:99])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id yEOIgL5RL4HFnyEOJgK7H8; Mon, 25 Feb 2019 12:25:47 +0100
-Subject: Re: [PATCH 4/7] media-entity: set ent_enum->bmap to NULL after
- freeing it
+        id yEPigL66U4HFnyEPjgK7ea; Mon, 25 Feb 2019 12:27:16 +0100
+Subject: Re: [PATCH 5/7] vim2m: replace devm_kzalloc by kzalloc
 To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc:     linux-media@vger.kernel.org,
         Helen Koike <helen.koike@collabora.com>
 References: <20190221142148.3412-1-hverkuil-cisco@xs4all.nl>
- <20190221142148.3412-5-hverkuil-cisco@xs4all.nl>
- <20190222111739.GM3522@pendragon.ideasonboard.com>
+ <20190221142148.3412-6-hverkuil-cisco@xs4all.nl>
+ <20190222112017.GN3522@pendragon.ideasonboard.com>
 From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <8723b11e-6e79-7c11-c0c3-93cde4ac02ce@xs4all.nl>
-Date:   Mon, 25 Feb 2019 12:25:46 +0100
+Message-ID: <93851199-e0d2-3429-5e0d-5a019459fee6@xs4all.nl>
+Date:   Mon, 25 Feb 2019 12:27:14 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.3.1
 MIME-Version: 1.0
-In-Reply-To: <20190222111739.GM3522@pendragon.ideasonboard.com>
+In-Reply-To: <20190222112017.GN3522@pendragon.ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfMIZdIfwzekPCi5bwuGrJwaEC6l3l5eFQJUugKbIGPqRu7MVPCDzfSfNJrTwbdabEsnzlMIMbIHUW0Hs4SU1oo2r745cIKlxy1PumUG/sBvykoZuFyh6
- PlpxUA6G8fuLRq8Tc9Gxl0EfoMhMH+Je/byip9FvV0maS6Pq0QyU9kFeIqwhoy4HCTDqIq2Fbh6wNLFk+LChTj8G9hA/hZXBPCGq3dYzyAiZtglZ4Rzo5oQ5
- xiqXe9TfD9tIhqIn4U5KS2UUPAe8dpto2qKUrS6rCHVb5KKxzIuwJ41i/Pcz86vgsAnBLUPziMntcU6jY6jG+1E9aKZf/4iDAp+alD0Q4x5F3lIVZeOx6but
- cZLpeilg
+X-CMAE-Envelope: MS4wfJwx0mAS5zM42nj2vfRbNOFMAzAtV4WTgVZ8TStIVOLJ3k5/Lvca2FtAEvZx6M6ZVX9c49rOikvGQ/++hib4oqA06V4znkZtYAyWJ3JO6urlhcbbUZq6
+ HkzsX5nPd3bYMUnNayCI8Pmxd+aIR8arexZKE/2zejZA7lqDqEiZUxpC+hsnCrOA+E2OimLeYCKm+xpstSZ02jZFxmILL2FT0YuG1g/e8fPcd38kfoC+pofa
+ 0GmhzkkGDoC+0GUm34U2wkawvs8c/KGvr841SRSiBtH6iJYwc36fNXbNFpJEXNlkpbj8/zHx9bO6yrL/SGInacmkuAL3v0U4tQ2j2TYz3YAdw8+brpD3XWFj
+ 4g9PQfQb
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/22/19 12:17 PM, Laurent Pinchart wrote:
+On 2/22/19 12:20 PM, Laurent Pinchart wrote:
 > Hi Hans,
 > 
 > Thank you for the patch.
 > 
-> On Thu, Feb 21, 2019 at 03:21:45PM +0100, Hans Verkuil wrote:
->> Ensure that this pointer is set to NULL after it is freed.
->> The vimc driver has a static media_entity and after
->> unbinding and rebinding the vimc device the media code will
->> try to free this pointer again since it wasn't set to NULL.
+> On Thu, Feb 21, 2019 at 03:21:46PM +0100, Hans Verkuil wrote:
+>> It is not possible to use devm_kzalloc since that memory is
+>> freed immediately when the device instance is unbound.
+>>
+>> Various objects like the video device may still be in use
+>> since someone has the device node open, and when that is closed
+>> it expects the memory to be around.
+>>
+>> So use kzalloc and release it at the appropriate time.
 > 
-> As this fixes a problem in vimc, should you add a Fixes: tag ? To avoid
+> You're opening a can of worms, we have tons of drivers that use
+> devm_kzalloc() :-) I however believe this is the right course of action.
+> 
+>> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+>> ---
+>>  drivers/media/platform/vim2m.c | 20 +++++++++++++++-----
+>>  1 file changed, 15 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+>> index a27d3052bb62..bfb3e3eb48d1 100644
+>> --- a/drivers/media/platform/vim2m.c
+>> +++ b/drivers/media/platform/vim2m.c
+>> @@ -1087,6 +1087,16 @@ static int vim2m_release(struct file *file)
+>>  	return 0;
+>>  }
+>>  
+>> +static void vim2m_device_release(struct video_device *vdev)
+>> +{
+>> +	struct vim2m_dev *dev = container_of(vdev, struct vim2m_dev, vfd);
+>> +
+>> +	dprintk(dev, "Releasing last dev\n");
+> 
+> Do we really need a debug printk here ?
 
-The Fixes tag is really for cases where a patch introduces a bug, whereas
-this was always wrong.
+Oops, that's a left-over debug message. I'll remove it.
 
-> other similar problems, I think the vimc driver should allocate the
-> media_device and other device data dynamically at probe time. Bundling
-> them with the platform_device in struct vimc_device isn't a good idea.
+> 
+>> +	v4l2_device_unregister(&dev->v4l2_dev);
+>> +	v4l2_m2m_release(dev->m2m_dev);
+>> +	kfree(dev);
+>> +}
+>> +
+>>  static const struct v4l2_file_operations vim2m_fops = {
+>>  	.owner		= THIS_MODULE,
+>>  	.open		= vim2m_open,
+>> @@ -1102,7 +1112,7 @@ static const struct video_device vim2m_videodev = {
+>>  	.fops		= &vim2m_fops,
+>>  	.ioctl_ops	= &vim2m_ioctl_ops,
+>>  	.minor		= -1,
+>> -	.release	= video_device_release_empty,
+>> +	.release	= vim2m_device_release,
+>>  	.device_caps	= V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING,
+>>  };
+>>  
+>> @@ -1123,13 +1133,13 @@ static int vim2m_probe(struct platform_device *pdev)
+>>  	struct video_device *vfd;
+>>  	int ret;
+>>  
+>> -	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+>> +	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+>>  	if (!dev)
+>>  		return -ENOMEM;
+>>  
+>>  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+>>  	if (ret)
+>> -		return ret;
+>> +		goto unreg_free;
+>>  
+>>  	atomic_set(&dev->num_inst, 0);
+>>  	mutex_init(&dev->dev_mutex);
+>> @@ -1192,6 +1202,8 @@ static int vim2m_probe(struct platform_device *pdev)
+>>  	video_unregister_device(&dev->vfd);
+>>  unreg_v4l2:
+>>  	v4l2_device_unregister(&dev->v4l2_dev);
+>> +unreg_free:
+> 
+> I'd call the label error_free, and rename the other ones with an error_
+> prefix, as you don't register anything here.
 
-It's not actually wrong as such, just unusual. Which actually makes it a
-good test case.
+OK
 
-Anyway, the upcoming "vimc: add configfs API to configure the topology" patch
-makes this dynamic. Waiting for a v2 of that patch.
+> 
+> With these two small issues fixes,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 Regards,
 
 	Hans
 
 > 
->> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->> ---
->>  drivers/media/media-entity.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->> index 0b1cb3559140..7b2a2cc95530 100644
->> --- a/drivers/media/media-entity.c
->> +++ b/drivers/media/media-entity.c
->> @@ -88,6 +88,7 @@ EXPORT_SYMBOL_GPL(__media_entity_enum_init);
->>  void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
->>  {
->>  	kfree(ent_enum->bmap);
->> +	ent_enum->bmap = NULL;
->>  }
->>  EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
+>> +	kfree(dev);
 >>  
+>>  	return ret;
+>>  }
+>> @@ -1207,9 +1219,7 @@ static int vim2m_remove(struct platform_device *pdev)
+>>  	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
+>>  	media_device_cleanup(&dev->mdev);
+>>  #endif
+>> -	v4l2_m2m_release(dev->m2m_dev);
+>>  	video_unregister_device(&dev->vfd);
+>> -	v4l2_device_unregister(&dev->v4l2_dev);
+>>  
+>>  	return 0;
+>>  }
 > 
 
