@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22495C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:05:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EB31C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:05:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DDFC82173C
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:05:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4092620C01
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:05:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qwxUAL6d"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jOBrA+90"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728524AbfBZRFo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Feb 2019 12:05:44 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:42766 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728475AbfBZRFo (ORCPT
+        id S1728580AbfBZRFq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Feb 2019 12:05:46 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:39189 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728475AbfBZRFq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Feb 2019 12:05:44 -0500
-Received: by mail-wr1-f67.google.com with SMTP id r5so14776201wrg.9
-        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2019 09:05:42 -0800 (PST)
+        Tue, 26 Feb 2019 12:05:46 -0500
+Received: by mail-wr1-f65.google.com with SMTP id l5so14791701wrw.6
+        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2019 09:05:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=W9KqbqFn/6YfJv+YuJSvZWh6iSIWrSMsB1/ivTkTeB8=;
-        b=qwxUAL6dXgeNAMq51wYa6jbC9s9TzHweutUOkbh7HQSqOxIHD5J728czGNEyjF1kaH
-         fXaNPfAgGDcoUUP9v8aY4DywxJ+dV3+Y+Av+ARnAvpFBfoXmruYrRnMkXULcPAqZo15E
-         xPxUbGCajCNRSI8r/gUbNyJBnvH6f4f6uAvQIMBCVnUG1usXsfivMP+uPJH2xX/OK6TN
-         h4bFJo0EU7mxSs3CmECW3zRdV47up+MPauGyB8OFbed8EacYU5W6YkvbRZ2YNPg8m3Qc
-         by1vwMq0aP2EU3EXtspOZDtneoESxIf4MmN8+zBdK4euasHnjzmdh8bx83c7KhqKFMj/
-         2iaA==
+        bh=N3iDG/yikMh8AExZiSWQRYKCi89Q3tUUiOmO5GOcbl0=;
+        b=jOBrA+90oUwc60HJWX6W2HGZVVtWlsJsGxpilmEbNRzMB5uhtaUpH0Xo8HmAiphKrT
+         Y5/IobEb2HqQ6o6qweWskpwHu44qF4jkfYi9gCd72IsRFLCCqnHixOtMY+VZmp+KprOg
+         ncGV3LksJqT5kFxnuk5+BEagGV7rUZMmXIa7Wsc5uSy7VupeSqGJTXZFMTF6KxGf33ZX
+         izXwXZfXCM5URGSa8PK25Sp3evF3ZczlSkeIKdeApz/w2KlupSRwOq6UZvOsrT2xlyeA
+         iqqEfWjSXD5va5I6bnkTScCeEQPFhBVXxLlcGop4BwvdNntLK/U8Zfgggo4Q9NCvyo4R
+         y0ZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=W9KqbqFn/6YfJv+YuJSvZWh6iSIWrSMsB1/ivTkTeB8=;
-        b=Ye0OUZfDfHNPVQ7GDLxTFhZNtzop+Ge0spyEDFYqxLt9L8KUiHgBEr8Ac6reX767MY
-         Q0Ri/c1I+4x2Ug+b2a5WYlu134TvZDdUA/evEVRxjmeD3CsDa8lVB3VV/VzBi93Z7Bkd
-         BoMvOpPXyyEPAFhdG4OmnakUs05jGZ2Nl6/1yuqyfXeQPegnUlyUOHu8y+/QiB3SrgKP
-         7gSLgcspCBcarqcnr0eRfswllgCFHhoiXDZbL8aO7tsOmhgH7ETAGnW+tFXaZt/q3Us4
-         DQKXDATdu0eHnbsKrEJA1eVx36978OCbQX54ydmkCzry6I7gnFK0Fk2SyOn6jjvZXIeR
-         TMqA==
-X-Gm-Message-State: AHQUAuarYbFZ6tICNS2kMoR299G9B7WTuugV0GIZlJSBfPVfI5jrkCU+
-        SCbSj9X7AZYsZDzrVPbQzHIjOJtFCkE=
-X-Google-Smtp-Source: AHgI3IZY0mM51TAbjDr2R2sHZQdeabx6zV3TZSMWvD4kspPgb/orAuMWB6b3aCmqozwK6jkpUtSfeA==
-X-Received: by 2002:adf:f9c4:: with SMTP id w4mr17819103wrr.218.1551200741925;
-        Tue, 26 Feb 2019 09:05:41 -0800 (PST)
+        bh=N3iDG/yikMh8AExZiSWQRYKCi89Q3tUUiOmO5GOcbl0=;
+        b=b8ZqeqMY8X2OEssbSluFPtocg+hEULxQNRj27oi/KiRSVP9Q3ZuoEx5eH4yE3XWFX6
+         KnOWQ97z37Qpul/gI2ArvK1OKGMTorLnvM2NhyDqBIXzM0wuQQ2x+MkoyZPKDe6Brk8r
+         kr52o3TfyU56+yobp5c5/Hh5Oa3xlIuAWJlaIH2qvxjzQm7GYKA+fk2K3Te8Et0v/bcI
+         NQ6KrVYqkRdNbMLbWPfKesNfMqwMe0D6GGv8OYpMS4llV0bsCqdytbbUJYVJg1V2qTXf
+         eFrmDb6BXQzXgBOm3vIbQ+F6G3LaDLk4WBA1J4epFitDY19w34V6z//oLnFgSPK24R8h
+         2TWQ==
+X-Gm-Message-State: AHQUAuY6Au1NAPOrWh0iMnlAfK5y8sgwhgJT/BvoRtsYWHCqJBlWGfII
+        +q5Z7FiqF1lhO6yyjnBpJaUyzPIFMzo=
+X-Google-Smtp-Source: AHgI3IZaYdTzVxR2bfKlxYoHfGy08xqd9oHxJmqpe+1o8vVnpOjDxKImQ3CseWsO0NEyOk5+m3hPtQ==
+X-Received: by 2002:adf:e3cb:: with SMTP id k11mr17618146wrm.263.1551200743709;
+        Tue, 26 Feb 2019 09:05:43 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id w4sm21024486wrk.85.2019.02.26.09.05.40
+        by smtp.gmail.com with ESMTPSA id w4sm21024486wrk.85.2019.02.26.09.05.42
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 26 Feb 2019 09:05:41 -0800 (PST)
+        Tue, 26 Feb 2019 09:05:43 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [PATCH v5 09/21] media: vicodec: bugfix: free compressed_frame upon device release
-Date:   Tue, 26 Feb 2019 09:05:02 -0800
-Message-Id: <20190226170514.86127-10-dafna3@gmail.com>
+Subject: [PATCH v5 10/21] media: vicodec: Move raw frame preparation code to a function
+Date:   Tue, 26 Feb 2019 09:05:03 -0800
+Message-Id: <20190226170514.86127-11-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190226170514.86127-1-dafna3@gmail.com>
 References: <20190226170514.86127-1-dafna3@gmail.com>
@@ -69,25 +69,214 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Free compressed_frame buffer upon device release.
+Introduce 'prepare_raw_frame' function that fills the values
+of a raw frame struct according to the format.
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- drivers/media/platform/vicodec/vicodec-core.c | 1 +
- 1 file changed, 1 insertion(+)
+ .../media/platform/vicodec/codec-v4l2-fwht.c  | 143 ++++++++++--------
+ 1 file changed, 78 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 8205a602bb38..8128ea6d1948 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -1614,6 +1614,7 @@ static int vicodec_release(struct file *file)
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
- 	v4l2_ctrl_handler_free(&ctx->hdl);
-+	kvfree(ctx->state.compressed_frame);
- 	kfree(ctx);
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+index 6573a471c5ca..515b3115b3c6 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+@@ -75,117 +75,130 @@ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx)
+ 	return v4l2_fwht_pixfmts + idx;
+ }
  
- 	return 0;
+-int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
++static int prepare_raw_frame(struct fwht_raw_frame *rf,
++			 const struct v4l2_fwht_pixfmt_info *info, u8 *buf,
++			 unsigned int size)
+ {
+-	unsigned int size = state->stride * state->coded_height;
+-	unsigned int chroma_stride = state->stride;
+-	const struct v4l2_fwht_pixfmt_info *info = state->info;
+-	struct fwht_cframe_hdr *p_hdr;
+-	struct fwht_cframe cf;
+-	struct fwht_raw_frame rf;
+-	u32 encoding;
+-	u32 flags = 0;
+-
+-	if (!info)
+-		return -EINVAL;
+-
+-	rf.luma = p_in;
+-	rf.width_div = info->width_div;
+-	rf.height_div = info->height_div;
+-	rf.luma_alpha_step = info->luma_alpha_step;
+-	rf.chroma_step = info->chroma_step;
+-	rf.alpha = NULL;
+-	rf.components_num = info->components_num;
++	rf->luma = buf;
++	rf->width_div = info->width_div;
++	rf->height_div = info->height_div;
++	rf->luma_alpha_step = info->luma_alpha_step;
++	rf->chroma_step = info->chroma_step;
++	rf->alpha = NULL;
++	rf->components_num = info->components_num;
+ 
+ 	switch (info->id) {
+ 	case V4L2_PIX_FMT_GREY:
+-		rf.cb = NULL;
+-		rf.cr = NULL;
++		rf->cb = NULL;
++		rf->cr = NULL;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV420:
+-		rf.cb = rf.luma + size;
+-		rf.cr = rf.cb + size / 4;
+-		chroma_stride /= 2;
++		rf->cb = rf->luma + size;
++		rf->cr = rf->cb + size / 4;
+ 		break;
+ 	case V4L2_PIX_FMT_YVU420:
+-		rf.cr = rf.luma + size;
+-		rf.cb = rf.cr + size / 4;
+-		chroma_stride /= 2;
++		rf->cr = rf->luma + size;
++		rf->cb = rf->cr + size / 4;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV422P:
+-		rf.cb = rf.luma + size;
+-		rf.cr = rf.cb + size / 2;
+-		chroma_stride /= 2;
++		rf->cb = rf->luma + size;
++		rf->cr = rf->cb + size / 2;
+ 		break;
+ 	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_NV16:
+ 	case V4L2_PIX_FMT_NV24:
+-		rf.cb = rf.luma + size;
+-		rf.cr = rf.cb + 1;
++		rf->cb = rf->luma + size;
++		rf->cr = rf->cb + 1;
+ 		break;
+ 	case V4L2_PIX_FMT_NV21:
+ 	case V4L2_PIX_FMT_NV61:
+ 	case V4L2_PIX_FMT_NV42:
+-		rf.cr = rf.luma + size;
+-		rf.cb = rf.cr + 1;
++		rf->cr = rf->luma + size;
++		rf->cb = rf->cr + 1;
+ 		break;
+ 	case V4L2_PIX_FMT_YUYV:
+-		rf.cb = rf.luma + 1;
+-		rf.cr = rf.cb + 2;
++		rf->cb = rf->luma + 1;
++		rf->cr = rf->cb + 2;
+ 		break;
+ 	case V4L2_PIX_FMT_YVYU:
+-		rf.cr = rf.luma + 1;
+-		rf.cb = rf.cr + 2;
++		rf->cr = rf->luma + 1;
++		rf->cb = rf->cr + 2;
+ 		break;
+ 	case V4L2_PIX_FMT_UYVY:
+-		rf.cb = rf.luma;
+-		rf.cr = rf.cb + 2;
+-		rf.luma++;
++		rf->cb = rf->luma;
++		rf->cr = rf->cb + 2;
++		rf->luma++;
+ 		break;
+ 	case V4L2_PIX_FMT_VYUY:
+-		rf.cr = rf.luma;
+-		rf.cb = rf.cr + 2;
+-		rf.luma++;
++		rf->cr = rf->luma;
++		rf->cb = rf->cr + 2;
++		rf->luma++;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_HSV24:
+-		rf.cr = rf.luma;
+-		rf.cb = rf.cr + 2;
+-		rf.luma++;
++		rf->cr = rf->luma;
++		rf->cb = rf->cr + 2;
++		rf->luma++;
+ 		break;
+ 	case V4L2_PIX_FMT_BGR24:
+-		rf.cb = rf.luma;
+-		rf.cr = rf.cb + 2;
+-		rf.luma++;
++		rf->cb = rf->luma;
++		rf->cr = rf->cb + 2;
++		rf->luma++;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_XRGB32:
+ 	case V4L2_PIX_FMT_HSV32:
+-		rf.cr = rf.luma + 1;
+-		rf.cb = rf.cr + 2;
+-		rf.luma += 2;
++		rf->cr = rf->luma + 1;
++		rf->cb = rf->cr + 2;
++		rf->luma += 2;
+ 		break;
+ 	case V4L2_PIX_FMT_BGR32:
+ 	case V4L2_PIX_FMT_XBGR32:
+-		rf.cb = rf.luma;
+-		rf.cr = rf.cb + 2;
+-		rf.luma++;
++		rf->cb = rf->luma;
++		rf->cr = rf->cb + 2;
++		rf->luma++;
+ 		break;
+ 	case V4L2_PIX_FMT_ARGB32:
+-		rf.alpha = rf.luma;
+-		rf.cr = rf.luma + 1;
+-		rf.cb = rf.cr + 2;
+-		rf.luma += 2;
++		rf->alpha = rf->luma;
++		rf->cr = rf->luma + 1;
++		rf->cb = rf->cr + 2;
++		rf->luma += 2;
+ 		break;
+ 	case V4L2_PIX_FMT_ABGR32:
+-		rf.cb = rf.luma;
+-		rf.cr = rf.cb + 2;
+-		rf.luma++;
+-		rf.alpha = rf.cr + 1;
++		rf->cb = rf->luma;
++		rf->cr = rf->cb + 2;
++		rf->luma++;
++		rf->alpha = rf->cr + 1;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
++	return 0;
++}
++
++int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
++{
++	unsigned int size = state->stride * state->coded_height;
++	unsigned int chroma_stride = state->stride;
++	const struct v4l2_fwht_pixfmt_info *info = state->info;
++	struct fwht_cframe_hdr *p_hdr;
++	struct fwht_cframe cf;
++	struct fwht_raw_frame rf;
++	u32 encoding;
++	u32 flags = 0;
++
++	if (!info)
++		return -EINVAL;
++
++	if (prepare_raw_frame(&rf, info, p_in, size))
++		return -EINVAL;
++
++	if (info->planes_num == 3)
++		chroma_stride /= 2;
++
++	if (info->id == V4L2_PIX_FMT_NV24 ||
++	    info->id == V4L2_PIX_FMT_NV42)
++		chroma_stride *= 2;
+ 
+ 	cf.i_frame_qp = state->i_frame_qp;
+ 	cf.p_frame_qp = state->p_frame_qp;
 -- 
 2.17.1
 
