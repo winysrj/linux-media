@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E814C4360F
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5343C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:06:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F358B20C01
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:06:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5451E20C01
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 17:06:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xp/2Nw2o"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NN5bk8cB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728660AbfBZRGC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Feb 2019 12:06:02 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:37897 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727416AbfBZRGC (ORCPT
+        id S1728673AbfBZRGE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Feb 2019 12:06:04 -0500
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:39224 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727416AbfBZRGE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Feb 2019 12:06:02 -0500
-Received: by mail-wr1-f68.google.com with SMTP id g12so2717717wrm.5
-        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2019 09:06:00 -0800 (PST)
+        Tue, 26 Feb 2019 12:06:04 -0500
+Received: by mail-wr1-f66.google.com with SMTP id l5so14792865wrw.6
+        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2019 09:06:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=HherVcHU+jrhSoQOHql2YvBenIfobA4ob398Xl/p6Fw=;
-        b=Xp/2Nw2osDCeI2cX1w8sufSlxGlVID2wFlBtC+dG0LbjpdhlxOk3ZHY72jZdHjsfmY
-         /zKNaP4YC3jvL6rfGM0Q5wlXeijt8l3s33pyD8ZpDgmev6gxIk3ff5zvYHCwwjC4oDE2
-         wnxSIW6oQskp+QsIhLIuptrHk98NuBNbYvMKyZLB4spGkmDxhlpkgqft+G1T5BiEmDjD
-         2hhrnfErreBxRhzdntF1dmX+4+5j/a8ZbOlKuTLRV+Wa4VDfvX+ociMLqVW6xlMTRHqU
-         W3K6nUX6pEviZ1Oeov61EeqevODQ97bRjDBDNh+QYxIQC5qa1qs0P6Ytt82ekLWiEV2K
-         0z7A==
+        bh=KQxzwIQr8rvgYRT55KPAbVzgm21pxfuFqR7ADYqoDsw=;
+        b=NN5bk8cBYmNJAU0Jtl5W8CoEPWgQzt8jW9pf7t7B161gbQT0Gfrplib5wAWgNN0PWQ
+         dBeqcyNjx6Y2CyK5SaYv/Wxr4TkuoVZhn+E3LLZL8SltjQrK/5ZtX+2wA1U4WBKFjm9C
+         UyX3IVod5dzBJd5QJ5Tb3Y7fZSYq8qX4x4WMEKhk13vZ2h1AuY0pvdZCTBuyasF26okw
+         RC3/b2NyEZ6h2evqtMkcM1zrG7CGXP85LdbKOFA+8yaCKByPO2JOcRdhWBEwPEgLZqeS
+         aoJl4HX1sc4hc2ugzun6W3Lph/4t8M4ImYDbEan0bqo8DfL87axjhHhSdyUhTIHW+Dwq
+         IZsA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=HherVcHU+jrhSoQOHql2YvBenIfobA4ob398Xl/p6Fw=;
-        b=Ui99Nrtrh9P+UXSSE4MBMEm3Ra2El8BfDMUd/4h72bilXuPXml2B4OaIrnZk0CJrSl
-         HJDUwd9MNOe9f3Hnn1AQhLL+Mjq6Xn9MpvLwQeLlp2v4YZuM9lYQvWWnGdsBWtm+mMGF
-         lzlh3GU2Q6t0t3SxqNPxyhrDbpxyeZC06l6YsvjIJJwNDd4wTdUvjc93ZXJDiYphJXmC
-         jhGJLcOYTvxgvD3NUK4ws4REDnlaFwRwHiPaS8vmNvXGHl7On7Wt7XEJgZ8GkS+1cz6u
-         WXX3KAJHXIV4w+ylXe3cCnDkv6eUaAm1lNovR8mPfs3pSnChnZnNArn0iiHpUYfAeyHg
-         9rzw==
-X-Gm-Message-State: AHQUAuYBXb978EoPSWN4qEWIBsamGs23muJYbWpNYAYlBStCPrnDuqHJ
-        bvFhGp/OypZNcj4cEYYwAmBsyhdol5k=
-X-Google-Smtp-Source: AHgI3IYgCKUKj2rPoodneZEr3wwMPZW93w/mIug2OffktBUfHnnQyj5ZLZhxrLvjk5th3a2S7k4N6Q==
-X-Received: by 2002:adf:deca:: with SMTP id i10mr16343955wrn.312.1551200759624;
-        Tue, 26 Feb 2019 09:05:59 -0800 (PST)
+        bh=KQxzwIQr8rvgYRT55KPAbVzgm21pxfuFqR7ADYqoDsw=;
+        b=qKYClVLCzm2UTNXSrjrHptOVm//SKTQQstRt9Mms1fnLP4xkhYRB/2euyKw0hyw4Hs
+         YqoNBFg8IfT6bXdC0I/t2ciB+JTGMm1qB/cwXMTsi6h5LpKc+Zg6rbVT/JqwqHbRfznr
+         LYucPicwsFLf2Cf8Ro0+upSZ5AX2+wqT9JiQu+VJN61/CMPjK5CJKf3nn3xmB6+c36Dx
+         HFSQMQ6/MCGO42S1/cobIlRSoEnCOCrrtio0OmFJR/WbUxgmrO+PXojcOa2pyzk7MWSN
+         yVYsT5Rje0scZEgUFGxyOZ0fn5xDaeJMAj8HmPSwjyR4JP533gw27S6VI8R3nyj5mgvC
+         p26A==
+X-Gm-Message-State: AHQUAubKqhUzJ0eVbQqHM6OzBYDq1J6CkFB1tTiliwOv1/URMNcMHvwD
+        Buj88P5eJEldfx1u8SuX+ptV6E8ueoo=
+X-Google-Smtp-Source: AHgI3IYpTBwVNyWp4O2C7zqYTOleBV4RsbdhGaCqUeLQ4cJArRNZ1efpYnCWb/If8+9QMiZISGs2Hg==
+X-Received: by 2002:adf:e3cb:: with SMTP id k11mr17619242wrm.263.1551200761305;
+        Tue, 26 Feb 2019 09:06:01 -0800 (PST)
 Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id w4sm21024486wrk.85.2019.02.26.09.05.58
+        by smtp.gmail.com with ESMTPSA id w4sm21024486wrk.85.2019.02.26.09.05.59
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 26 Feb 2019 09:05:58 -0800 (PST)
+        Tue, 26 Feb 2019 09:06:00 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [PATCH v5 20/21] media: vicodec: Register another node for stateless decoder
-Date:   Tue, 26 Feb 2019 09:05:13 -0800
-Message-Id: <20190226170514.86127-21-dafna3@gmail.com>
+Subject: [PATCH v5 21/21] media: vicodec: Add support for stateless decoder.
+Date:   Tue, 26 Feb 2019 09:05:14 -0800
+Message-Id: <20190226170514.86127-22-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190226170514.86127-1-dafna3@gmail.com>
 References: <20190226170514.86127-1-dafna3@gmail.com>
@@ -69,157 +69,496 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add stateless decoder instance field to the dev struct and
-register another node for the statelsess decoder.
-The stateless API for the node will be implemented in further patches.
+Implement a stateless decoder for the new node.
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- drivers/media/platform/vicodec/vicodec-core.c | 46 +++++++++++++++++--
- 1 file changed, 42 insertions(+), 4 deletions(-)
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |   1 +
+ drivers/media/platform/vicodec/vicodec-core.c | 284 ++++++++++++++++--
+ 2 files changed, 261 insertions(+), 24 deletions(-)
 
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+index b59503d4049a..1a0d2a9f931a 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+@@ -44,6 +44,7 @@ struct v4l2_fwht_state {
+ 	struct fwht_raw_frame ref_frame;
+ 	struct fwht_cframe_hdr header;
+ 	u8 *compressed_frame;
++	u64 ref_frame_ts;
+ };
+ 
+ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_pixfmt(u32 pixelformat);
 diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 6c9a41838d31..7733b22247b6 100644
+index 7733b22247b6..c965043eb185 100644
 --- a/drivers/media/platform/vicodec/vicodec-core.c
 +++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -104,6 +104,7 @@ struct vicodec_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct vicodec_dev_instance stateful_enc;
- 	struct vicodec_dev_instance stateful_dec;
-+	struct vicodec_dev_instance stateless_dec;
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device	mdev;
- #endif
-@@ -114,6 +115,7 @@ struct vicodec_ctx {
- 	struct v4l2_fh		fh;
- 	struct vicodec_dev	*dev;
- 	bool			is_enc;
-+	bool			is_stateless;
- 	spinlock_t		*lock;
- 
- 	struct v4l2_ctrl_handler hdl;
-@@ -373,6 +375,9 @@ static void device_run(void *priv)
- 
- 	if (ctx->is_enc)
- 		v4l2_m2m_job_finish(dev->stateful_enc.m2m_dev, ctx->fh.m2m_ctx);
-+	else if (ctx->is_stateless)
-+		v4l2_m2m_job_finish(dev->stateless_dec.m2m_dev,
-+				    ctx->fh.m2m_ctx);
- 	else
- 		v4l2_m2m_job_finish(dev->stateful_dec.m2m_dev, ctx->fh.m2m_ctx);
+@@ -214,6 +214,41 @@ static bool validate_by_version(unsigned int flags, unsigned int version)
+ 	return true;
  }
-@@ -1494,8 +1499,14 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->ops = &vicodec_qops;
- 	src_vq->mem_ops = &vb2_vmalloc_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
--	src_vq->lock = ctx->is_enc ? &ctx->dev->stateful_enc.mutex :
--		&ctx->dev->stateful_dec.mutex;
-+	if (ctx->is_enc)
-+		src_vq->lock = &ctx->dev->stateful_enc.mutex;
-+	else if (ctx->is_stateless)
-+		src_vq->lock = &ctx->dev->stateless_dec.mutex;
-+	else
-+		src_vq->lock = &ctx->dev->stateful_dec.mutex;
-+	src_vq->supports_requests = ctx->is_stateless;
-+	src_vq->requires_requests = ctx->is_stateless;
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
- 		return ret;
-@@ -1564,6 +1575,8 @@ static int vicodec_open(struct file *file)
  
- 	if (vfd == &dev->stateful_enc.vfd)
- 		ctx->is_enc = true;
-+	else if (vfd == &dev->stateless_dec.vfd)
-+		ctx->is_stateless = true;
- 
- 	v4l2_fh_init(&ctx->fh, video_devdata(file));
- 	file->private_data = &ctx->fh;
-@@ -1576,6 +1589,8 @@ static int vicodec_open(struct file *file)
- 			  1, 31, 1, 20);
- 	v4l2_ctrl_new_std(hdl, &vicodec_ctrl_ops, V4L2_CID_FWHT_P_FRAME_QP,
- 			  1, 31, 1, 20);
-+	if (ctx->is_stateless)
-+		v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_stateless_state, NULL);
- 	if (hdl->error) {
- 		rc = hdl->error;
- 		v4l2_ctrl_handler_free(hdl);
-@@ -1615,6 +1630,10 @@ static int vicodec_open(struct file *file)
- 		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->stateful_enc.m2m_dev,
- 						    ctx, &queue_init);
- 		ctx->lock = &dev->stateful_enc.lock;
-+	} else if (ctx->is_stateless) {
-+		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->stateless_dec.m2m_dev,
-+						    ctx, &queue_init);
-+		ctx->lock = &dev->stateless_dec.lock;
- 	} else {
- 		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->stateful_dec.m2m_dev,
- 						    ctx, &queue_init);
-@@ -1751,6 +1770,10 @@ static int vicodec_probe(struct platform_device *pdev)
- 			      "stateful-decoder", false))
- 		goto unreg_sf_enc;
- 
-+	if (register_instance(dev, &dev->stateless_dec,
-+			      "videdev-stateless-dec", false))
-+		goto unreg_sf_dec;
++static bool validate_stateless_params_flags(const struct v4l2_ctrl_fwht_params *params,
++					    const struct v4l2_fwht_pixfmt_info *cur_info)
++{
++	unsigned int width_div =
++		(params->flags & FWHT_FL_CHROMA_FULL_WIDTH) ? 1 : 2;
++	unsigned int height_div =
++		(params->flags & FWHT_FL_CHROMA_FULL_HEIGHT) ? 1 : 2;
++	unsigned int components_num = 3;
++	unsigned int pixenc = 0;
 +
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	ret = v4l2_m2m_register_media_controller(dev->stateful_enc.m2m_dev,
- 						 &dev->stateful_enc.vfd,
-@@ -1768,23 +1791,36 @@ static int vicodec_probe(struct platform_device *pdev)
- 		goto unreg_m2m_sf_enc_mc;
++	if (params->version < 3)
++		return false;
++
++	components_num = 1 + ((params->flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
++			      FWHT_FL_COMPONENTS_NUM_OFFSET);
++	pixenc = (params->flags & FWHT_FL_PIXENC_MSK);
++	if (v4l2_fwht_validate_fmt(cur_info, width_div, height_div,
++				    components_num, pixenc))
++		return true;
++	return false;
++}
++
++
++static void update_state_from_header(struct vicodec_ctx *ctx)
++{
++	const struct fwht_cframe_hdr *p_hdr = &ctx->state.header;
++
++	ctx->state.visible_width = ntohl(p_hdr->width);
++	ctx->state.visible_height = ntohl(p_hdr->height);
++	ctx->state.colorspace = ntohl(p_hdr->colorspace);
++	ctx->state.xfer_func = ntohl(p_hdr->xfer_func);
++	ctx->state.ycbcr_enc = ntohl(p_hdr->ycbcr_enc);
++	ctx->state.quantization = ntohl(p_hdr->quantization);
++}
++
+ static int device_process(struct vicodec_ctx *ctx,
+ 			  struct vb2_v4l2_buffer *src_vb,
+ 			  struct vb2_v4l2_buffer *dst_vb)
+@@ -221,12 +256,46 @@ static int device_process(struct vicodec_ctx *ctx,
+ 	struct vicodec_dev *dev = ctx->dev;
+ 	struct v4l2_fwht_state *state = &ctx->state;
+ 	u8 *p_src, *p_dst;
+-	int ret;
++	int ret = 0;
+ 
+-	if (ctx->is_enc)
++	if (ctx->is_enc || ctx->is_stateless)
+ 		p_src = vb2_plane_vaddr(&src_vb->vb2_buf, 0);
+ 	else
+ 		p_src = state->compressed_frame;
++
++	if (ctx->is_stateless) {
++		struct media_request *src_req = src_vb->vb2_buf.req_obj.req;
++
++		ret = v4l2_ctrl_request_setup(src_req, &ctx->hdl);
++		if (ret)
++			return ret;
++		update_state_from_header(ctx);
++
++		ctx->state.header.size =
++			htonl(vb2_get_plane_payload(&src_vb->vb2_buf, 0));
++		/*
++		 * set the reference buffer from the reference timestamp
++		 * only if this is a P-frame
++		 */
++		if (!(ntohl(ctx->state.header.flags) & FWHT_FL_I_FRAME)) {
++			struct vb2_buffer *ref_vb2_buf;
++			int ref_buf_idx;
++			struct vb2_queue *vq_cap =
++				v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
++						V4L2_BUF_TYPE_VIDEO_CAPTURE);
++
++			ref_buf_idx = vb2_find_timestamp(vq_cap,
++							 ctx->state.ref_frame_ts, 0);
++			if (ref_buf_idx < 0)
++				return -EINVAL;
++
++			ref_vb2_buf = vq_cap->bufs[ref_buf_idx];
++			if (ref_vb2_buf->state == VB2_BUF_STATE_ERROR)
++				ret = -EINVAL;
++			ctx->state.ref_frame.buf =
++				vb2_plane_vaddr(ref_vb2_buf, 0);
++		}
++	}
+ 	p_dst = vb2_plane_vaddr(&dst_vb->vb2_buf, 0);
+ 	if (!p_src || !p_dst) {
+ 		v4l2_err(&dev->v4l2_dev,
+@@ -255,11 +324,12 @@ static int device_process(struct vicodec_ctx *ctx,
+ 		ret = v4l2_fwht_decode(state, p_src, p_dst);
+ 		if (ret < 0)
+ 			return ret;
+-		copy_cap_to_ref(p_dst, ctx->state.info, &ctx->state);
++		if (!ctx->is_stateless)
++			copy_cap_to_ref(p_dst, ctx->state.info, &ctx->state);
+ 
+ 		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, q_dst->sizeimage);
+ 	}
+-	return 0;
++	return ret;
+ }
+ 
+ /*
+@@ -334,9 +404,13 @@ static void device_run(void *priv)
+ 	struct vb2_v4l2_buffer *src_buf, *dst_buf;
+ 	struct vicodec_q_data *q_src, *q_dst;
+ 	u32 state;
++	struct media_request *src_req;
++
+ 
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
++	src_req = src_buf->vb2_buf.req_obj.req;
++
+ 	q_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	q_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
+@@ -355,7 +429,7 @@ static void device_run(void *priv)
+ 		dst_buf->flags |= V4L2_BUF_FLAG_LAST;
+ 		v4l2_event_queue_fh(&ctx->fh, &eos_event);
+ 	}
+-	if (ctx->is_enc) {
++	if (ctx->is_enc || ctx->is_stateless) {
+ 		src_buf->sequence = q_src->sequence++;
+ 		src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 		v4l2_m2m_buf_done(src_buf, state);
+@@ -367,6 +441,9 @@ static void device_run(void *priv)
+ 		ctx->comp_has_next_frame = false;
+ 	}
+ 	v4l2_m2m_buf_done(dst_buf, state);
++	if (ctx->is_stateless && src_req)
++		v4l2_ctrl_request_complete(src_req, &ctx->hdl);
++
+ 	ctx->comp_size = 0;
+ 	ctx->header_size = 0;
+ 	ctx->comp_magic_cnt = 0;
+@@ -445,6 +522,12 @@ static void update_capture_data_from_header(struct vicodec_ctx *ctx)
+ 	unsigned int hdr_width_div = (flags & FWHT_FL_CHROMA_FULL_WIDTH) ? 1 : 2;
+ 	unsigned int hdr_height_div = (flags & FWHT_FL_CHROMA_FULL_HEIGHT) ? 1 : 2;
+ 
++	/*
++	 * This function should not be used by a stateless codec since
++	 * it changes values in q_data that are not request specific
++	 */
++	WARN_ON(ctx->is_stateless);
++
+ 	q_dst->info = info;
+ 	q_dst->visible_width = ntohl(p_hdr->width);
+ 	q_dst->visible_height = ntohl(p_hdr->height);
+@@ -497,7 +580,7 @@ static int job_ready(void *priv)
+ 
+ 	if (ctx->source_changed)
+ 		return 0;
+-	if (ctx->is_enc || ctx->comp_has_frame)
++	if (ctx->is_stateless || ctx->is_enc || ctx->comp_has_frame)
+ 		return 1;
+ 
+ restart:
+@@ -1243,6 +1326,14 @@ static int vicodec_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+ 	return 0;
+ }
+ 
++static int vicodec_buf_out_validate(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++
++	vbuf->field = V4L2_FIELD_NONE;
++	return 0;
++}
++
+ static int vicodec_buf_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -1306,10 +1397,11 @@ static void vicodec_buf_queue(struct vb2_buffer *vb)
  	}
  
-+	ret = v4l2_m2m_register_media_controller(dev->stateless_dec.m2m_dev,
-+						 &dev->stateless_dec.vfd,
-+						 MEDIA_ENT_F_PROC_VIDEO_DECODER);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller for stateless dec\n");
-+		goto unreg_m2m_sf_dec_mc;
+ 	/*
+-	 * source change event is relevant only for the decoder
++	 * source change event is relevant only for the stateful decoder
+ 	 * in the compressed stream
+ 	 */
+-	if (ctx->is_enc || !V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
++	if (ctx->is_stateless || ctx->is_enc ||
++	    !V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ 		return;
+ 	}
+@@ -1357,12 +1449,33 @@ static void vicodec_return_bufs(struct vb2_queue *q, u32 state)
+ 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 		if (vbuf == NULL)
+ 			return;
++		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
++					   &ctx->hdl);
+ 		spin_lock(ctx->lock);
+ 		v4l2_m2m_buf_done(vbuf, state);
+ 		spin_unlock(ctx->lock);
+ 	}
+ }
+ 
++static unsigned int total_frame_size(struct vicodec_q_data *q_data)
++{
++	unsigned int size;
++	unsigned int chroma_div;
++
++	if (!q_data->info) {
++		WARN_ON(1);
++		return 0;
++	}
++	size = q_data->coded_width * q_data->coded_height;
++	chroma_div = q_data->info->width_div * q_data->info->height_div;
++
++	if (q_data->info->components_num == 4)
++		return 2 * size + 2 * (size / chroma_div);
++	else if (q_data->info->components_num == 3)
++		return size + 2 * (size / chroma_div);
++	return size;
++}
++
+ static int vicodec_start_streaming(struct vb2_queue *q,
+ 				   unsigned int count)
+ {
+@@ -1373,7 +1486,7 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 	unsigned int size = q_data->coded_width * q_data->coded_height;
+ 	unsigned int chroma_div;
+ 	unsigned int total_planes_size;
+-	u8 *new_comp_frame;
++	u8 *new_comp_frame = NULL;
+ 
+ 	if (!info)
+ 		return -EINVAL;
+@@ -1393,12 +1506,8 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 		vicodec_return_bufs(q, VB2_BUF_STATE_QUEUED);
+ 		return -EINVAL;
+ 	}
+-	if (info->components_num == 4)
+-		total_planes_size = 2 * size + 2 * (size / chroma_div);
+-	else if (info->components_num == 3)
+-		total_planes_size = size + 2 * (size / chroma_div);
+-	else
+-		total_planes_size = size;
++	total_planes_size = total_frame_size(q_data);
++	ctx->comp_max_size = total_planes_size;
+ 
+ 	state->visible_width = q_data->visible_width;
+ 	state->visible_height = q_data->visible_height;
+@@ -1407,10 +1516,14 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 	state->stride = q_data->coded_width *
+ 				info->bytesperline_mult;
+ 
++	if (ctx->is_stateless) {
++		state->ref_stride = state->stride;
++		return 0;
++	}
+ 	state->ref_stride = q_data->coded_width * info->luma_alpha_step;
++
+ 	state->ref_frame.buf = kvmalloc(total_planes_size, GFP_KERNEL);
+ 	state->ref_frame.luma = state->ref_frame.buf;
+-	ctx->comp_max_size = total_planes_size;
+ 	new_comp_frame = kvmalloc(ctx->comp_max_size, GFP_KERNEL);
+ 
+ 	if (!state->ref_frame.luma || !new_comp_frame) {
+@@ -1458,7 +1571,8 @@ static void vicodec_stop_streaming(struct vb2_queue *q)
+ 
+ 	if ((!V4L2_TYPE_IS_OUTPUT(q->type) && !ctx->is_enc) ||
+ 	    (V4L2_TYPE_IS_OUTPUT(q->type) && ctx->is_enc)) {
+-		kvfree(ctx->state.ref_frame.buf);
++		if (!ctx->is_stateless)
++			kvfree(ctx->state.ref_frame.buf);
+ 		ctx->state.ref_frame.buf = NULL;
+ 		ctx->state.ref_frame.luma = NULL;
+ 		ctx->comp_max_size = 0;
+@@ -1474,14 +1588,24 @@ static void vicodec_stop_streaming(struct vb2_queue *q)
+ 	}
+ }
+ 
++static void vicodec_buf_request_complete(struct vb2_buffer *vb)
++{
++	struct vicodec_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_ctrl_request_complete(vb->req_obj.req, &ctx->hdl);
++}
++
++
+ static const struct vb2_ops vicodec_qops = {
+-	.queue_setup	 = vicodec_queue_setup,
+-	.buf_prepare	 = vicodec_buf_prepare,
+-	.buf_queue	 = vicodec_buf_queue,
+-	.start_streaming = vicodec_start_streaming,
+-	.stop_streaming  = vicodec_stop_streaming,
+-	.wait_prepare	 = vb2_ops_wait_prepare,
+-	.wait_finish	 = vb2_ops_wait_finish,
++	.queue_setup		= vicodec_queue_setup,
++	.buf_out_validate	= vicodec_buf_out_validate,
++	.buf_prepare		= vicodec_buf_prepare,
++	.buf_queue		= vicodec_buf_queue,
++	.buf_request_complete	= vicodec_buf_request_complete,
++	.start_streaming	= vicodec_start_streaming,
++	.stop_streaming		= vicodec_stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq,
+@@ -1525,10 +1649,56 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	return vb2_queue_init(dst_vq);
+ }
+ 
++static int vicodec_try_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vicodec_ctx *ctx = container_of(ctrl->handler,
++			struct vicodec_ctx, hdl);
++	const struct v4l2_ctrl_fwht_params *params;
++	struct vicodec_q_data *q_dst = get_q_data(ctx,
++			V4L2_BUF_TYPE_VIDEO_CAPTURE);
++
++	switch (ctrl->id) {
++	case V4L2_CID_MPEG_VIDEO_FWHT_PARAMS:
++		if (!q_dst->info)
++			return -EINVAL;
++		params = ctrl->p_new.p_fwht_params;
++		if (params->width > q_dst->coded_width ||
++		    params->width < MIN_WIDTH ||
++		    params->height > q_dst->coded_height ||
++		    params->height < MIN_HEIGHT)
++			return -EINVAL;
++		if (!validate_by_version(params->flags, params->version))
++			return -EINVAL;
++		if (!validate_stateless_params_flags(params, q_dst->info))
++			return -EINVAL;
++	default:
++		return 0;
++	}
++	return 0;
++}
++
++static void update_header_from_stateless_params(struct vicodec_ctx *ctx,
++						const struct v4l2_ctrl_fwht_params *params)
++{
++	struct fwht_cframe_hdr *p_hdr = &ctx->state.header;
++
++	p_hdr->magic1 = FWHT_MAGIC1;
++	p_hdr->magic2 = FWHT_MAGIC2;
++	p_hdr->version = htonl(params->version);
++	p_hdr->width = htonl(params->width);
++	p_hdr->height = htonl(params->height);
++	p_hdr->flags = htonl(params->flags);
++	p_hdr->colorspace = htonl(params->colorspace);
++	p_hdr->xfer_func = htonl(params->xfer_func);
++	p_hdr->ycbcr_enc = htonl(params->ycbcr_enc);
++	p_hdr->quantization = htonl(params->quantization);
++}
++
+ static int vicodec_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct vicodec_ctx *ctx = container_of(ctrl->handler,
+ 					       struct vicodec_ctx, hdl);
++	const struct v4l2_ctrl_fwht_params *params;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
+@@ -1540,15 +1710,22 @@ static int vicodec_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_FWHT_P_FRAME_QP:
+ 		ctx->state.p_frame_qp = ctrl->val;
+ 		return 0;
++	case V4L2_CID_MPEG_VIDEO_FWHT_PARAMS:
++		params = ctrl->p_new.p_fwht_params;
++		update_header_from_stateless_params(ctx, params);
++		ctx->state.ref_frame_ts = params->backward_ref_ts;
++		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+ 
+ static const struct v4l2_ctrl_ops vicodec_ctrl_ops = {
+ 	.s_ctrl = vicodec_s_ctrl,
++	.try_ctrl = vicodec_try_ctrl,
+ };
+ 
+ static const struct v4l2_ctrl_config vicodec_ctrl_stateless_state = {
++	.ops		= &vicodec_ctrl_ops,
+ 	.id		= V4L2_CID_MPEG_VIDEO_FWHT_PARAMS,
+ 	.elem_size      = sizeof(struct v4l2_ctrl_fwht_params),
+ };
+@@ -1673,6 +1850,59 @@ static int vicodec_release(struct file *file)
+ 	return 0;
+ }
+ 
++static int vicodec_request_validate(struct media_request *req)
++{
++	struct media_request_object *obj;
++	struct v4l2_ctrl_handler *parent_hdl, *hdl;
++	struct vicodec_ctx *ctx = NULL;
++	struct v4l2_ctrl *ctrl;
++	unsigned int count;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		struct vb2_buffer *vb;
++
++		if (vb2_request_object_is_buffer(obj)) {
++			vb = container_of(obj, struct vb2_buffer, req_obj);
++			ctx = vb2_get_drv_priv(vb->vb2_queue);
++
++			break;
++		}
 +	}
 +
- 	ret = media_device_register(&dev->mdev);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
--		goto unreg_m2m_sf_dec_mc;
-+		goto unreg_m2m_sl_dec_mc;
- 	}
++	if (!ctx) {
++		pr_err("No buffer was provided with the request\n");
++		return -ENOENT;
++	}
++
++	count = vb2_request_buffer_cnt(req);
++	if (!count) {
++		v4l2_info(&ctx->dev->v4l2_dev,
++			  "No buffer was provided with the request\n");
++		return -ENOENT;
++	} else if (count > 1) {
++		v4l2_info(&ctx->dev->v4l2_dev,
++			  "More than one buffer was provided with the request\n");
++		return -EINVAL;
++	}
++
++	parent_hdl = &ctx->hdl;
++
++	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
++	if (!hdl) {
++		v4l2_info(&ctx->dev->v4l2_dev, "Missing codec control\n");
++		return -ENOENT;
++	}
++	ctrl = v4l2_ctrl_request_hdl_ctrl_find(hdl,
++					       vicodec_ctrl_stateless_state.id);
++	if (!ctrl) {
++		v4l2_info(&ctx->dev->v4l2_dev,
++			  "Missing required codec control\n");
++		return -ENOENT;
++	}
++
++	return vb2_request_validate(req);
++}
++
+ static const struct v4l2_file_operations vicodec_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= vicodec_open,
+@@ -1691,6 +1921,11 @@ static const struct video_device vicodec_videodev = {
+ 	.release	= video_device_release_empty,
+ };
+ 
++static const struct media_device_ops vicodec_m2m_media_ops = {
++	.req_validate	= vicodec_request_validate,
++	.req_queue	= v4l2_m2m_request_queue,
++};
++
+ static const struct v4l2_m2m_ops m2m_ops = {
+ 	.device_run	= device_run,
+ 	.job_ready	= job_ready,
+@@ -1757,6 +1992,7 @@ static int vicodec_probe(struct platform_device *pdev)
+ 	strscpy(dev->mdev.bus_info, "platform:vicodec",
+ 		sizeof(dev->mdev.bus_info));
+ 	media_device_init(&dev->mdev);
++	dev->mdev.ops = &vicodec_m2m_media_ops;
+ 	dev->v4l2_dev.mdev = &dev->mdev;
  #endif
- 	return 0;
  
- #ifdef CONFIG_MEDIA_CONTROLLER
-+unreg_m2m_sl_dec_mc:
-+	v4l2_m2m_unregister_media_controller(dev->stateless_dec.m2m_dev);
- unreg_m2m_sf_dec_mc:
- 	v4l2_m2m_unregister_media_controller(dev->stateful_dec.m2m_dev);
- unreg_m2m_sf_enc_mc:
- 	v4l2_m2m_unregister_media_controller(dev->stateful_enc.m2m_dev);
- unreg_m2m:
-+	video_unregister_device(&dev->stateless_dec.vfd);
-+	v4l2_m2m_release(dev->stateless_dec.m2m_dev);
-+#endif
-+unreg_sf_dec:
- 	video_unregister_device(&dev->stateful_dec.vfd);
- 	v4l2_m2m_release(dev->stateful_dec.m2m_dev);
--#endif
- unreg_sf_enc:
- 	video_unregister_device(&dev->stateful_enc.vfd);
- 	v4l2_m2m_release(dev->stateful_enc.m2m_dev);
-@@ -1804,6 +1840,7 @@ static int vicodec_remove(struct platform_device *pdev)
- 	media_device_unregister(&dev->mdev);
- 	v4l2_m2m_unregister_media_controller(dev->stateful_enc.m2m_dev);
- 	v4l2_m2m_unregister_media_controller(dev->stateful_dec.m2m_dev);
-+	v4l2_m2m_unregister_media_controller(dev->stateless_dec.m2m_dev);
- 	media_device_cleanup(&dev->mdev);
- #endif
- 
-@@ -1811,6 +1848,7 @@ static int vicodec_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(dev->stateful_dec.m2m_dev);
- 	video_unregister_device(&dev->stateful_enc.vfd);
- 	video_unregister_device(&dev->stateful_dec.vfd);
-+	video_unregister_device(&dev->stateless_dec.vfd);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	return 0;
 -- 
 2.17.1
 
