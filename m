@@ -2,181 +2,283 @@ Return-Path: <SRS0=99fO=RB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD6CC43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 21:40:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 578CBC43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 22:18:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C3D121874
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 21:40:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551217238;
-	bh=meberCKFmNEMnatoyqAAwA7al27+l8RI58rPTLjHn8E=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=dP7lT7v4+oq1oYezaZFzOvy8ScyqKko2GfaKRWp6103L/iUyTjtSeoW1+pnXlOyf9
-	 ZOSPfi1pKDDrm3QrkRI3WsbfZEQ12m/VMlQ2WjcZqYuOMJVcSDkZFr4zIMa8dKx3cO
-	 L96nmoOFz4fmW2fK7IexooFfTTT2CfD+V0vlJIs8=
+	by mail.kernel.org (Postfix) with ESMTP id 1EF7E218A2
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 22:18:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=xilinx.onmicrosoft.com header.i=@xilinx.onmicrosoft.com header.b="PV2hawhx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728989AbfBZVki (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Feb 2019 16:40:38 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:35422 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728673AbfBZVkh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Feb 2019 16:40:37 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=CVZTzG/vl4EpYEKR7g8bSJ4tiksbWm7Y372tlnkp7YQ=; b=mMXXivVcBGAkHmdIXv1wHIu/e
-        HM+ysOztF7q/enAbZfuzMDRFZsfyjjbf+59Ii/ESKmmSTsP6KkOeQh80GNDIQzVMVSxkoxsV0GShA
-        7mRCFwm73nZdKSyrtCdHwDRcCppTM8mPbPHzr5EbTKY/ZCYxRg1sJS8WvRKbV7ls65zvHOcuZZJVI
-        +0n72mQsIXOl6Y/ctwItG5fIv9PrYHs9bO1G/c87BlZ/pG9E8tsw1VMLo+Y+PkRkMOfgWec8ZntEP
-        6Kl04UKET9Ps9U6H2gTp+1iHcNjf2OiXt9v5fd5oMeG1OQ9i0SmxPvHX2Gvgk20C2QJdnqEbvr/sH
-        +VfjifhZQ==;
-Received: from 177.41.100.217.dynamic.adsl.gvt.net.br ([177.41.100.217] helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gykSr-0007sK-AG; Tue, 26 Feb 2019 21:40:37 +0000
-Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
-        (envelope-from <mchehab@bombadil.infradead.org>)
-        id 1gykSn-000820-Qd; Tue, 26 Feb 2019 18:40:33 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH] media: vim2m: add support for VIDIOC_ENUM_FRAMESIZES
-Date:   Tue, 26 Feb 2019 18:40:32 -0300
-Message-Id: <1a7ffc4a7841abf1fbc83b4ac6d14d0d8dd0be1b.1551217228.git.mchehab+samsung@kernel.org>
-X-Mailer: git-send-email 2.20.1
+        id S1729208AbfBZWSl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Feb 2019 17:18:41 -0500
+Received: from mail-eopbgr710078.outbound.protection.outlook.com ([40.107.71.78]:22304
+        "EHLO NAM05-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728989AbfBZWSk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Feb 2019 17:18:40 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=xilinx.onmicrosoft.com; s=selector1-xilinx-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/+yNuls6czdZcPULun1ednM3lhS7p4rXYXcfFu5j9/s=;
+ b=PV2hawhxjYsXuszOr8kuQUoq9AU2b8EsDNcUlM7JJelrkLKBEbdwoypIIYs+7VBjS2kkq6dXnV+OptcBy6+Z9jWPwelIeNhYACJS5ipOD7NXAp+gvPK6BbLp+N5B835PPG5BubjFEHFqK5rpPv7+p5b4ZSQOzDMD74dcNLvyG7c=
+Received: from BYAPR02CA0043.namprd02.prod.outlook.com (2603:10b6:a03:54::20)
+ by BL0PR02MB4516.namprd02.prod.outlook.com (2603:10b6:208:4a::25) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.1643.15; Tue, 26 Feb
+ 2019 22:18:32 +0000
+Received: from CY1NAM02FT049.eop-nam02.prod.protection.outlook.com
+ (2a01:111:f400:7e45::201) by BYAPR02CA0043.outlook.office365.com
+ (2603:10b6:a03:54::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.1643.15 via Frontend
+ Transport; Tue, 26 Feb 2019 22:18:32 +0000
+Authentication-Results: spf=pass (sender IP is 149.199.60.83)
+ smtp.mailfrom=xilinx.com; vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=bestguesspass action=none
+ header.from=xilinx.com;
+Received-SPF: Pass (protection.outlook.com: domain of xilinx.com designates
+ 149.199.60.83 as permitted sender) receiver=protection.outlook.com;
+ client-ip=149.199.60.83; helo=xsj-pvapsmtpgw01;
+Received: from xsj-pvapsmtpgw01 (149.199.60.83) by
+ CY1NAM02FT049.mail.protection.outlook.com (10.152.75.83) with Microsoft SMTP
+ Server (version=TLS1_0, cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.20.1643.11
+ via Frontend Transport; Tue, 26 Feb 2019 22:18:31 +0000
+Received: from unknown-38-66.xilinx.com ([149.199.38.66] helo=xsj-pvapsmtp01)
+        by xsj-pvapsmtpgw01 with esmtp (Exim 4.63)
+        (envelope-from <hyun.kwon@xilinx.com>)
+        id 1gyl3X-0004Np-5g; Tue, 26 Feb 2019 14:18:31 -0800
+Received: from [127.0.0.1] (helo=localhost)
+        by xsj-pvapsmtp01 with smtp (Exim 4.63)
+        (envelope-from <hyun.kwon@xilinx.com>)
+        id 1gyl3S-0005vi-0n; Tue, 26 Feb 2019 14:18:26 -0800
+Received: from xsj-pvapsmtp01 (smtp.xilinx.com [149.199.38.66])
+        by xsj-smtp-dlp2.xlnx.xilinx.com (8.13.8/8.13.1) with ESMTP id x1QMINdL023256;
+        Tue, 26 Feb 2019 14:18:24 -0800
+Received: from [172.19.2.244] (helo=localhost)
+        by xsj-pvapsmtp01 with esmtp (Exim 4.63)
+        (envelope-from <hyun.kwon@xilinx.com>)
+        id 1gyl3P-0005vI-Rm; Tue, 26 Feb 2019 14:18:23 -0800
+Date:   Tue, 26 Feb 2019 14:16:28 -0800
+From:   Hyun Kwon <hyun.kwon@xilinx.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC:     Hyun Kwon <hyunk@xilinx.com>,
+        Stefano Stabellini <stefanos@xilinx.com>,
+        Sonal Santan <sonals@xilinx.com>,
+        Cyril Chemparathy <cyrilc@xilinx.com>,
+        Jiaying Liang <jliang@xilinx.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Michal Simek <michals@xilinx.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 1/1] uio: Add dma-buf import ioctls
+Message-ID: <20190226221627.GA10631@smtp.xilinx.com>
+References: <1550953697-7288-1-git-send-email-hyun.kwon@xilinx.com>
+ <1550953697-7288-2-git-send-email-hyun.kwon@xilinx.com>
+ <20190226115311.GA4094@kroah.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20190226115311.GA4094@kroah.com>
+User-Agent: Mutt/1.5.24 (2015-08-30)
+X-RCIS-Action: ALLOW
+X-TM-AS-Product-Ver: IMSS-7.1.0.1224-8.2.0.1013-23620.005
+X-TM-AS-User-Approved-Sender: Yes;Yes
+X-EOPAttributedMessage: 0
+X-MS-Office365-Filtering-HT: Tenant
+X-Forefront-Antispam-Report: CIP:149.199.60.83;IPV:NLI;CTRY:US;EFV:NLI;SFV:NSPM;SFS:(10009020)(136003)(376002)(396003)(346002)(39860400002)(2980300002)(51914003)(189003)(199004)(106002)(9786002)(76506005)(2906002)(26005)(106466001)(63266004)(54906003)(33656002)(47776003)(4326008)(6246003)(77096007)(57986006)(6306002)(426003)(966005)(486006)(316002)(16586007)(44832011)(476003)(126002)(336012)(11346002)(446003)(478600001)(58126008)(186003)(81156014)(8936002)(81166006)(8676002)(305945005)(1076003)(36386004)(50466002)(6916009)(229853002)(14444005)(356004)(23676004)(2486003)(76176011)(5660300002)(18370500001)(107986001);DIR:OUT;SFP:1101;SCL:1;SRVR:BL0PR02MB4516;H:xsj-pvapsmtpgw01;FPR:;SPF:Pass;LANG:en;PTR:unknown-60-83.xilinx.com;MX:1;A:1;
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 0362e5ec-1279-4648-e330-08d69c385781
+X-Microsoft-Antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600127)(711020)(4605104)(4608103)(4709054)(2017052603328)(7153060);SRVR:BL0PR02MB4516;
+X-MS-TrafficTypeDiagnostic: BL0PR02MB4516:
+X-MS-Exchange-PUrlCount: 1
+X-Auto-Response-Suppress: DR, RN, NRN, OOF, AutoReply
+X-Microsoft-Exchange-Diagnostics: 1;BL0PR02MB4516;20:4kTMlCAfn28Vk3gk4MA35VUHdnCfEwJNhhrfPaARO2GdaW831q543nLSCBWwNVPM2sF5qCtsnQrl0KqenrXIU/MhvRO6b0WnF/Kd+V7D2oD9ji3ChasJgssBMyk+cRAm425Z0MZZsckXXceA2JeTfRW9bO6NVGMFOSMHoRkJDsnWxjLmej9+U+ZQTzMJSpsT2MHdCIRPhldbSUL6E8ONiXFpHsRRVSKFVRa39xZKYujVy88cgpuOrFpKI8ltblw5iIXoBPUf5DCMFDttW5w4B6bXiVjTeR31mMoe8xNTg7kEgGzQeEp90TF9aOM3/ZkjKvRL36FI11bytdSBFhwWDqPuFufX1QkS+Pn4Jvqg4WWFRGam48N/UajQ8xSwsaRtxbeC2OCDNHNNN56a5RW4IlUOFxisUHwrN3e5KB408lDmdw75P5R6fnyvzWfgExGuvcKXOe3MCL/5lthzabsAlFhz95LCK9zgHxQz5J+qgeFCUTurHrgKcLr/cWkrJnSj
+X-Microsoft-Antispam-PRVS: <BL0PR02MB4516318C0F04545F94B5B2A2D67B0@BL0PR02MB4516.namprd02.prod.outlook.com>
+X-Forefront-PRVS: 096029FF66
+X-Microsoft-Exchange-Diagnostics: =?utf-8?B?MTtCTDBQUjAyTUI0NTE2OzIzOjlwMGlEdmhVMHRvUUdXRHhVWGJHaWNETFVq?=
+ =?utf-8?B?c1R5VXlZM1dNeFRWM3BOdG1FSXUvV0hpVjVVWWFGZm5sMGNjSVRZVmFqYkJV?=
+ =?utf-8?B?YkpPSUczOUhHalFTMWVLVHJscUJ5MXhxWDNkU051cTBVNFVzdGtrbHYzUXpP?=
+ =?utf-8?B?NnZlTGRQNzVSWUQybWNpWGtFRk5LeGhaTFQxMWF2c0c1KzFEaE8vSnZzSnFO?=
+ =?utf-8?B?aDhqcXZHMXlMYXB4L1ZCTVlGcVJjZ1ZZaUpLaExSb2QrUVZuVzU5WWxoVXFr?=
+ =?utf-8?B?RlJ6d1VoaVAzai9JR2JsbnZOblJqZnBrS0VsM284RTgzcExEakZBMmlhWVN6?=
+ =?utf-8?B?Z2NwOEdsUGJUcXJoNE03dDg5MjVkdEZjQ1NUSUpnV3RmaDJhdXhWVWZsWmZa?=
+ =?utf-8?B?TDFKYXJ2UVdkSkFFQUVzODZ1RlJpZmUxNWRXTFdNMXo0bkFNMWFiK21JMGhm?=
+ =?utf-8?B?L0lzR0VTY3gwblY2bGQ3M3NpQ093OWttODI1T1lGRWt6WFNlRXB1Mkg1NDA5?=
+ =?utf-8?B?RXVHQ2JicGJnNHBrVDRmUEl6SmlncCtwRWttOE1tSXdvUDBMbWZ6bmNrVXFx?=
+ =?utf-8?B?QkxiU0tNMGFTM0xzOURsMjY2d3N6WlRwUjJEUVd3enFOT0VnbUh1elBzV0Rr?=
+ =?utf-8?B?Ylkvc1E1Q1ByV2pmSXJUQnNvUXVhYmNWa1RPQWI3eGpoV2ZPbll0emh1eXRu?=
+ =?utf-8?B?NUFyMk9hKy90VkVjZXFib1R5LzR2elhVSUdRekgzWUtueHVSZ1pZNHNqRGdO?=
+ =?utf-8?B?YTJhY2hWT1R0dWlVbVNxNy9NZk1Bd0x2Z2N1V1lxL0crNFVXTVJYUnpBdnJz?=
+ =?utf-8?B?bWFZcDhJSXhHWkY1MXdMVmttalhXUkJoMHBZQjdIbmIwK0lLMzR1ZTA2VW82?=
+ =?utf-8?B?dWw4VVFUTjRsMVJwbjVYYUd6aU1lYjBUaHowTGN0VUlJY3V6d1pnTXhXUEhD?=
+ =?utf-8?B?WS9JVHYrUkR6QngxR3ZzUTNkdlRrdEI0L0VBcnlzNjc5Vk81Tkdnd3ZXMTBh?=
+ =?utf-8?B?MnRicFpuMjRXTHVmdmF5Ull3Y25pTlZjc2t1VE9sZXVudUhkbGJMdU9lM1B4?=
+ =?utf-8?B?WjdBaWduclc1OGhhQ0RTaGxOdnlMMk1GY3hEK1Z6VXpQZUJ6NGV6S004bzRj?=
+ =?utf-8?B?b3VaOWhaZ2c5WWJaR1dSUVFyUGdOMkZOMUkrUWlpcFJ4Q3lFcVZ0WHhEWWg4?=
+ =?utf-8?B?V2J0QTdaNzE5Mm9CVFEvSUNqZjZicTdNY2lLY3ZpdXVYaXhGcDdCT3JBRTZ0?=
+ =?utf-8?B?WmJhM0ViMkd5UU1xOWFKTUU0Z3pVUmRST1l6R0I2QndtVjNYMXM2SFlueUhN?=
+ =?utf-8?B?aGdkclMza2VXb2hYUWlGTHZIRHJMbEdVWEY1endUdFdCWm5YbGtqWmxCK2RS?=
+ =?utf-8?B?RmhTakt6TWZWOUNzM1FEOUxtUjRwZ0NjUGdtQkhzUG1pMlBTaDZrTkxlNk5Z?=
+ =?utf-8?B?bUg0OXZsVWM0OTNtWjByUVJQVEZJNkNpVXdidFRSRHExdkd0QXZKMnMxTWNz?=
+ =?utf-8?B?N05nd0ZIM0xHcEp4bTJFaGVHY0h1Yk5BSVY2dHZqc3NLZHN2aDJKb2cyMTl3?=
+ =?utf-8?B?S3RDbG4xNUhzR0g4SUtmTllkN1NxMkh2aEQ2Qjc2M00zS1BFZEF0K3BDNlVF?=
+ =?utf-8?B?UUFKN1B0VnQyYVVsZitRVlB4WVlUVXpCSndQck1sU0J1dmJyOG1RekFRPT0=?=
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam-Message-Info: dAuJXIn7xhNGK1ZaP+0sK+Nvdq3v9KLLjOU2JwHZHdotCNIf1nar3sLRQBxFw/0MpK4bTIfaIhVsmRfclbscZnreMOI9qu1EMBuz5sGFbuZtY8IS50m45bKA/2w9apzdJNlbiZMO+eMPVVq2h6x5m1ZSfH9Qk9PaDnOYmamECsD+lxVaRo/BnCiqnKgIx7+hpM1umk6rMNFBDoZKJYN4JimqahUX7RDYE9ar9X0TUXbWzETsVbg6Rkm9vxbEiNG/DjWY46hnGcs6+V56we17/LrHYYfY/jfxp0JNE1Nte3MBHgJvMpVT5cxRXXa0+9ILLYuMlVdS0/yLYKD6i4ixmTZDnsE9qouH8frDtBkYeHtCBcjRfrc3ia+L3jKH9Ab5cHXFK5J6+SgSi82kb4V65YveQD3nrGsfpNyur2UZ5qU=
+X-OriginatorOrg: xilinx.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Feb 2019 22:18:31.5942
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0362e5ec-1279-4648-e330-08d69c385781
+X-MS-Exchange-CrossTenant-Id: 657af505-d5df-48d0-8300-c31994686c5c
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=657af505-d5df-48d0-8300-c31994686c5c;Ip=[149.199.60.83];Helo=[xsj-pvapsmtpgw01]
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR02MB4516
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-As we do alignments for width, expose it via V4L2 API.
+Hi Greg,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/platform/vim2m.c | 38 ++++++++++++++++++++++++++--------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+Thanks for the comments.
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index a3a39b8a0664..aa8bf8e96969 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -50,7 +50,7 @@ MODULE_PARM_DESC(default_transtime, "default transaction time in ms");
- #define MIN_H 32
- #define MAX_W 640
- #define MAX_H 480
--#define DIM_ALIGN_MASK 1 /* 2-byte alignment */
-+#define WIDTH_ALIGN 2 /* 2-byte alignment */
- 
- /* Flags that indicate a format can be used for capture/output */
- #define MEM2MEM_CAPTURE	(1 << 0)
-@@ -145,14 +145,14 @@ enum {
- #define V4L2_CID_TRANS_TIME_MSEC	(V4L2_CID_USER_BASE + 0x1000)
- #define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE + 0x1001)
- 
--static struct vim2m_fmt *find_format(struct v4l2_format *f)
-+static struct vim2m_fmt *find_format(u32 fourcc)
- {
- 	struct vim2m_fmt *fmt;
- 	unsigned int k;
- 
- 	for (k = 0; k < NUM_FORMATS; k++) {
- 		fmt = &formats[k];
--		if (fmt->fourcc == f->fmt.pix.pixelformat)
-+		if (fmt->fourcc == fourcc)
- 			break;
- 	}
- 
-@@ -693,6 +693,25 @@ static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
- 	return enum_fmt(f, MEM2MEM_OUTPUT);
- }
- 
-+static int vidioc_enum_framesizes(struct file *file, void *priv,
-+				  struct v4l2_frmsizeenum *fsize)
-+{
-+	if (fsize->index != 0)
-+		return -EINVAL;
-+
-+	if (!find_format(fsize->pixel_format))
-+                return -EINVAL;
-+
-+	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
-+	fsize->stepwise.min_width = MIN_W;
-+	fsize->stepwise.min_height =MIN_H;
-+	fsize->stepwise.max_width = MAX_W;
-+	fsize->stepwise.max_height = MAX_H;
-+	fsize->stepwise.step_width = WIDTH_ALIGN;
-+	fsize->stepwise.step_height = 1;
-+	return 0;
-+}
-+
- static int vidioc_g_fmt(struct vim2m_ctx *ctx, struct v4l2_format *f)
- {
- 	struct vb2_queue *vq;
-@@ -744,7 +763,7 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct vim2m_fmt *fmt)
- 	else if (f->fmt.pix.width > MAX_W)
- 		f->fmt.pix.width = MAX_W;
- 
--	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
-+	f->fmt.pix.width &= ~(WIDTH_ALIGN - 1);
- 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
- 	f->fmt.pix.field = V4L2_FIELD_NONE;
-@@ -758,10 +777,10 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct vim2m_fmt *fmt;
- 	struct vim2m_ctx *ctx = file2ctx(file);
- 
--	fmt = find_format(f);
-+	fmt = find_format(f->fmt.pix.pixelformat);
- 	if (!fmt) {
- 		f->fmt.pix.pixelformat = formats[0].fourcc;
--		fmt = find_format(f);
-+		fmt = find_format(f->fmt.pix.pixelformat);
- 	}
- 	if (!(fmt->types & MEM2MEM_CAPTURE)) {
- 		v4l2_err(&ctx->dev->v4l2_dev,
-@@ -783,10 +802,10 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
- 	struct vim2m_fmt *fmt;
- 	struct vim2m_ctx *ctx = file2ctx(file);
- 
--	fmt = find_format(f);
-+	fmt = find_format(f->fmt.pix.pixelformat);
- 	if (!fmt) {
- 		f->fmt.pix.pixelformat = formats[0].fourcc;
--		fmt = find_format(f);
-+		fmt = find_format(f->fmt.pix.pixelformat);
- 	}
- 	if (!(fmt->types & MEM2MEM_OUTPUT)) {
- 		v4l2_err(&ctx->dev->v4l2_dev,
-@@ -818,7 +837,7 @@ static int vidioc_s_fmt(struct vim2m_ctx *ctx, struct v4l2_format *f)
- 		return -EBUSY;
- 	}
- 
--	q_data->fmt		= find_format(f);
-+	q_data->fmt		= find_format(f->fmt.pix.pixelformat);
- 	q_data->width		= f->fmt.pix.width;
- 	q_data->height		= f->fmt.pix.height;
- 	q_data->sizeimage	= q_data->width * q_data->height
-@@ -915,6 +934,7 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
- 	.vidioc_querycap	= vidioc_querycap,
- 
- 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-+	.vidioc_enum_framesizes = vidioc_enum_framesizes,
- 	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
--- 
-2.20.1
+On Tue, 2019-02-26 at 03:53:11 -0800, Greg Kroah-Hartman wrote:
+> On Sat, Feb 23, 2019 at 12:28:17PM -0800, Hyun Kwon wrote:
+> > Add the dmabuf map / unmap interfaces. This allows the user driver
+> > to be able to import the external dmabuf and use it from user space.
+> > 
+> > Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+> > ---
+> >  drivers/uio/Makefile         |   2 +-
+> >  drivers/uio/uio.c            |  43 +++++++++
+> >  drivers/uio/uio_dmabuf.c     | 210 +++++++++++++++++++++++++++++++++++++++++++
+> >  drivers/uio/uio_dmabuf.h     |  26 ++++++
+> >  include/uapi/linux/uio/uio.h |  33 +++++++
+> >  5 files changed, 313 insertions(+), 1 deletion(-)
+> >  create mode 100644 drivers/uio/uio_dmabuf.c
+> >  create mode 100644 drivers/uio/uio_dmabuf.h
+> >  create mode 100644 include/uapi/linux/uio/uio.h
+> > 
+> > diff --git a/drivers/uio/Makefile b/drivers/uio/Makefile
+> > index c285dd2..5da16c7 100644
+> > --- a/drivers/uio/Makefile
+> > +++ b/drivers/uio/Makefile
+> > @@ -1,5 +1,5 @@
+> >  # SPDX-License-Identifier: GPL-2.0
+> > -obj-$(CONFIG_UIO)	+= uio.o
+> > +obj-$(CONFIG_UIO)	+= uio.o uio_dmabuf.o
+> >  obj-$(CONFIG_UIO_CIF)	+= uio_cif.o
+> >  obj-$(CONFIG_UIO_PDRV_GENIRQ)	+= uio_pdrv_genirq.o
+> >  obj-$(CONFIG_UIO_DMEM_GENIRQ)	+= uio_dmem_genirq.o
+> > diff --git a/drivers/uio/uio.c b/drivers/uio/uio.c
+> > index 1313422..6841f98 100644
+> > --- a/drivers/uio/uio.c
+> > +++ b/drivers/uio/uio.c
+> > @@ -24,6 +24,12 @@
+> >  #include <linux/kobject.h>
+> >  #include <linux/cdev.h>
+> >  #include <linux/uio_driver.h>
+> > +#include <linux/list.h>
+> > +#include <linux/mutex.h>
+> > +
+> > +#include <uapi/linux/uio/uio.h>
+> > +
+> > +#include "uio_dmabuf.h"
+> >  
+> >  #define UIO_MAX_DEVICES		(1U << MINORBITS)
+> >  
+> > @@ -454,6 +460,8 @@ static irqreturn_t uio_interrupt(int irq, void *dev_id)
+> >  struct uio_listener {
+> >  	struct uio_device *dev;
+> >  	s32 event_count;
+> > +	struct list_head dbufs;
+> > +	struct mutex dbufs_lock; /* protect @dbufs */
+> >  };
+> >  
+> >  static int uio_open(struct inode *inode, struct file *filep)
+> > @@ -500,6 +508,9 @@ static int uio_open(struct inode *inode, struct file *filep)
+> >  	if (ret)
+> >  		goto err_infoopen;
+> >  
+> > +	INIT_LIST_HEAD(&listener->dbufs);
+> > +	mutex_init(&listener->dbufs_lock);
+> > +
+> >  	return 0;
+> >  
+> >  err_infoopen:
+> > @@ -529,6 +540,10 @@ static int uio_release(struct inode *inode, struct file *filep)
+> >  	struct uio_listener *listener = filep->private_data;
+> >  	struct uio_device *idev = listener->dev;
+> >  
+> > +	ret = uio_dmabuf_cleanup(idev, &listener->dbufs, &listener->dbufs_lock);
+> > +	if (ret)
+> > +		dev_err(&idev->dev, "failed to clean up the dma bufs\n");
+> > +
+> >  	mutex_lock(&idev->info_lock);
+> >  	if (idev->info && idev->info->release)
+> >  		ret = idev->info->release(idev->info, inode);
+> > @@ -652,6 +667,33 @@ static ssize_t uio_write(struct file *filep, const char __user *buf,
+> >  	return retval ? retval : sizeof(s32);
+> >  }
+> >  
+> > +static long uio_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+> 
+> We have resisted adding a uio ioctl for a long time, can't you do this
+> through sysfs somehow?
+> 
 
+The dmabuf is managed as per process resource, so it's hard to do it through
+sysfs.
+
+> A meta-comment about your ioctl structure:
+> 
+> > +#define UIO_DMABUF_DIR_BIDIR	1
+> > +#define UIO_DMABUF_DIR_TO_DEV	2
+> > +#define UIO_DMABUF_DIR_FROM_DEV	3
+> > +#define UIO_DMABUF_DIR_NONE	4
+> 
+> enumerated type?
+> 
+> > +
+> > +struct uio_dmabuf_args {
+> > +	__s32	dbuf_fd;
+> > +	__u64	dma_addr;
+> > +	__u64	size;
+> > +	__u32	dir;
+> 
+> Why the odd alignment?  Are you sure this is the best packing for such a
+> structure?
+> 
+> Why is dbuf_fd __s32?  dir can be __u8, right?
+
+The dmabuf fd is defined as int, so __s32 seems correct. Please let me know
+otherwise. The dir can be __u8. Will fix if there is v2 at all.
+
+> 
+> I don't know that dma layer very well, it would be good to get some
+> review from others to see if this really is even a viable thing to do.
+> The fd handling seems a bit "odd" here, but maybe I just do not
+> understand it.
+
+Agreed. So I'm looking forward to feedback or if there's more sensible
+alternative.
+
+Thanks,
+-hyun
+
+> 
+> thanks,
+> 
+> greg k-h
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
