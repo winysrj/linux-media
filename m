@@ -2,247 +2,181 @@ Return-Path: <SRS0=99fO=RB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D49E6C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 19:29:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD6CC43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 21:40:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89CE12186A
-	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 19:29:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lj2gzzWC"
+	by mail.kernel.org (Postfix) with ESMTP id 9C3D121874
+	for <linux-media@archiver.kernel.org>; Tue, 26 Feb 2019 21:40:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1551217238;
+	bh=meberCKFmNEMnatoyqAAwA7al27+l8RI58rPTLjHn8E=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=dP7lT7v4+oq1oYezaZFzOvy8ScyqKko2GfaKRWp6103L/iUyTjtSeoW1+pnXlOyf9
+	 ZOSPfi1pKDDrm3QrkRI3WsbfZEQ12m/VMlQ2WjcZqYuOMJVcSDkZFr4zIMa8dKx3cO
+	 L96nmoOFz4fmW2fK7IexooFfTTT2CfD+V0vlJIs8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728303AbfBZT3a (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Feb 2019 14:29:30 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:39482 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727823AbfBZT3a (ORCPT
+        id S1728989AbfBZVki (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Feb 2019 16:40:38 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:35422 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728673AbfBZVkh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Feb 2019 14:29:30 -0500
-Received: by mail-wr1-f68.google.com with SMTP id l5so15267997wrw.6
-        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2019 11:29:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=GCNLqt/c0fipC7pZTfyjmpO+K+c6ScPCv0mb6D6bkcA=;
-        b=lj2gzzWCGOleD+/vkBpQdN6rBYbQzRMJ8utDUNuSn5Ep6IhpMpJ95t0LrM0uplSB4n
-         Z1VTQTuCuZt31DR6dn3tN/6GjIlbiuPV6+xj+rqNW700Ri2VvrQ2FIrHeGymDmDRCrVJ
-         kVDDQbaEZgwae+3Yar0Hs2QQTpFBDmD1rBSbhpOpggHBmWM7TJGBvr60cvCN7ycw0xtl
-         LWpbHThFkKJVYdvibdurfUezUzq1uADjOgzJW6jv9A1HdAWMugzDTgTrwc69mkXjXGj7
-         SyPHC/UB0Vvxy4fqsVYO5fIaZ47gHgQeUSeP8ZlPj7DVh13BcBMqvEJ1o2CtnvTtuYtv
-         Uh+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=GCNLqt/c0fipC7pZTfyjmpO+K+c6ScPCv0mb6D6bkcA=;
-        b=HGTQ5JiYk4ELfh+QkVseMAcXSV+gJ8+rcDB/piAc1OJxC7paDEyPig0xFdnlXeBY99
-         c28cjvtaEXtKUEw4lDTOskfuDOMzTLx90c5RFPDJRlXI2SbvgFn7SkMXFHF402F8/Gxz
-         yQ5aCpNaVycaKsDgBCYCblhrZjPoChtiqU+11wkPbryg/ubOppVyL8mjd2okBJDA0yzh
-         ugjnhq/EDecGaLNl/Zl6tZcuCo0COLquQfhW3ciokT0w+GFhAwmh9iv11x3ISilk139Z
-         o9rbAcOYjsTK50d1VOpA5UvBe2nUDKidvp3yTb3RoY5rynN+VXyDNzr08FSL57uqWBW0
-         zkhw==
-X-Gm-Message-State: AHQUAuZafMBlstTcmV9Nr0V26SrNn8J1e9i91Gf8usZAr6tbkM9Xmp7f
-        +jrmgjaDMxFFR7y2hNjLe2SOq9y1pjY=
-X-Google-Smtp-Source: AHgI3IZZVIABAhyA/beTRQ+4SixZWd1IyWpqUJzNvFqNObH9v1fL6Rc2VFC2W1szPptJUjLwpNltiA==
-X-Received: by 2002:adf:9dc7:: with SMTP id q7mr16624085wre.316.1551209367057;
-        Tue, 26 Feb 2019 11:29:27 -0800 (PST)
-Received: from ubuntu.home ([77.127.107.32])
-        by smtp.gmail.com with ESMTPSA id d21sm40176202wrc.44.2019.02.26.11.29.25
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 26 Feb 2019 11:29:26 -0800 (PST)
-From:   Dafna Hirschfeld <dafna3@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
-        Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [v4l-utils PATCH v4 2/3] v4l2-ctl: Add functions and variables to support fwht stateless decoder
-Date:   Tue, 26 Feb 2019 11:28:59 -0800
-Message-Id: <20190226192900.86461-2-dafna3@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20190226192900.86461-1-dafna3@gmail.com>
-References: <20190226192900.86461-1-dafna3@gmail.com>
+        Tue, 26 Feb 2019 16:40:37 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=CVZTzG/vl4EpYEKR7g8bSJ4tiksbWm7Y372tlnkp7YQ=; b=mMXXivVcBGAkHmdIXv1wHIu/e
+        HM+ysOztF7q/enAbZfuzMDRFZsfyjjbf+59Ii/ESKmmSTsP6KkOeQh80GNDIQzVMVSxkoxsV0GShA
+        7mRCFwm73nZdKSyrtCdHwDRcCppTM8mPbPHzr5EbTKY/ZCYxRg1sJS8WvRKbV7ls65zvHOcuZZJVI
+        +0n72mQsIXOl6Y/ctwItG5fIv9PrYHs9bO1G/c87BlZ/pG9E8tsw1VMLo+Y+PkRkMOfgWec8ZntEP
+        6Kl04UKET9Ps9U6H2gTp+1iHcNjf2OiXt9v5fd5oMeG1OQ9i0SmxPvHX2Gvgk20C2QJdnqEbvr/sH
+        +VfjifhZQ==;
+Received: from 177.41.100.217.dynamic.adsl.gvt.net.br ([177.41.100.217] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gykSr-0007sK-AG; Tue, 26 Feb 2019 21:40:37 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1gykSn-000820-Qd; Tue, 26 Feb 2019 18:40:33 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] media: vim2m: add support for VIDIOC_ENUM_FRAMESIZES
+Date:   Tue, 26 Feb 2019 18:40:32 -0300
+Message-Id: <1a7ffc4a7841abf1fbc83b4ac6d14d0d8dd0be1b.1551217228.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add the variable 'last_fwht_bf_ts' and the array 'fwht_reqs' to
-allow the fwht stateless decoder to maintain the requests.
+As we do alignments for width, expose it via V4L2 API.
 
-Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 130 ++++++++++++++++++++++++++
- 1 file changed, 130 insertions(+)
+ drivers/media/platform/vim2m.c | 38 ++++++++++++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index adfa6796..f1a0b0d0 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -17,9 +17,12 @@
- #include <sys/mman.h>
- #include <dirent.h>
- #include <math.h>
-+#include <linux/media.h>
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index a3a39b8a0664..aa8bf8e96969 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -50,7 +50,7 @@ MODULE_PARM_DESC(default_transtime, "default transaction time in ms");
+ #define MIN_H 32
+ #define MAX_W 640
+ #define MAX_H 480
+-#define DIM_ALIGN_MASK 1 /* 2-byte alignment */
++#define WIDTH_ALIGN 2 /* 2-byte alignment */
  
- #include "v4l2-ctl.h"
- #include "v4l-stream.h"
-+#include <media-info.h>
-+#include <fwht-ctrls.h>
+ /* Flags that indicate a format can be used for capture/output */
+ #define MEM2MEM_CAPTURE	(1 << 0)
+@@ -145,14 +145,14 @@ enum {
+ #define V4L2_CID_TRANS_TIME_MSEC	(V4L2_CID_USER_BASE + 0x1000)
+ #define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE + 0x1001)
  
- extern "C" {
- #include "v4l2-tpg.h"
-@@ -80,6 +83,16 @@ static bool support_cap_compose;
- static bool support_out_crop;
- static bool in_source_change_event;
- 
-+static __u64 last_fwht_bf_ts;
-+
-+struct request_fwht {
-+	int fd;
-+	__u64 ts;
-+	struct v4l2_ctrl_fwht_params params;
-+};
-+
-+static request_fwht fwht_reqs[VIDEO_MAX_FRAME];
-+
- #define TS_WINDOW 241
- #define FILE_HDR_ID			v4l2_fourcc('V', 'h', 'd', 'r')
- 
-@@ -420,6 +433,12 @@ static int get_out_crop_rect(cv4l_fd &fd)
- 	return 0;
- }
- 
-+static __u64 get_ns_timestamp(cv4l_buffer &buf)
-+{
-+	const struct timeval tv = buf.g_timestamp();
-+	return v4l2_timeval_to_ns(&tv);
-+}
-+
- static void set_time_stamp(cv4l_buffer &buf)
+-static struct vim2m_fmt *find_format(struct v4l2_format *f)
++static struct vim2m_fmt *find_format(u32 fourcc)
  {
- 	if ((buf.g_flags() & V4L2_BUF_FLAG_TIMESTAMP_MASK) != V4L2_BUF_FLAG_TIMESTAMP_COPY)
-@@ -749,6 +768,117 @@ void streaming_cmd(int ch, char *optarg)
+ 	struct vim2m_fmt *fmt;
+ 	unsigned int k;
+ 
+ 	for (k = 0; k < NUM_FORMATS; k++) {
+ 		fmt = &formats[k];
+-		if (fmt->fourcc == f->fmt.pix.pixelformat)
++		if (fmt->fourcc == fourcc)
+ 			break;
  	}
+ 
+@@ -693,6 +693,25 @@ static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
+ 	return enum_fmt(f, MEM2MEM_OUTPUT);
  }
  
-+/*
-+ * Assume that the fwht stream is valid and that each
-+ * frame starts right after the previous one.
-+ */
-+static void read_fwht_frame(cv4l_fmt &fmt, unsigned char *buf,
-+			    FILE *fpointer, unsigned &sz,
-+			    unsigned &len)
++static int vidioc_enum_framesizes(struct file *file, void *priv,
++				  struct v4l2_frmsizeenum *fsize)
 +{
-+	struct fwht_cframe_hdr *h = (struct fwht_cframe_hdr *)buf;
++	if (fsize->index != 0)
++		return -EINVAL;
 +
-+	len = sizeof(struct fwht_cframe_hdr);
-+	sz = fread(buf, 1, sizeof(struct fwht_cframe_hdr), fpointer);
-+	if (sz < sizeof(struct fwht_cframe_hdr))
-+		return;
++	if (!find_format(fsize->pixel_format))
++                return -EINVAL;
 +
-+	len += ntohl(h->size);
-+	sz += fread(buf + sz, 1, ntohl(h->size), fpointer);
-+}
-+
-+static void set_fwht_stateless_params(struct v4l2_ctrl_fwht_params &fwht_params,
-+				      const struct fwht_cframe_hdr *hdr,
-+				      __u64 last_bf_ts)
-+{
-+	fwht_params.backward_ref_ts = last_bf_ts;
-+	fwht_params.version = ntohl(hdr->version);
-+	fwht_params.width = ntohl(hdr->width);
-+	fwht_params.height = ntohl(hdr->height);
-+	fwht_params.flags = ntohl(hdr->flags);
-+	fwht_params.colorspace = ntohl(hdr->colorspace);
-+	fwht_params.xfer_func = ntohl(hdr->xfer_func);
-+	fwht_params.ycbcr_enc = ntohl(hdr->ycbcr_enc);
-+	fwht_params.quantization = ntohl(hdr->quantization);
-+	fwht_params.comp_frame_size = ntohl(hdr->size);
-+
-+	if (!last_bf_ts)
-+		fwht_params.flags |= FWHT_FL_I_FRAME;
-+}
-+
-+static int alloc_fwht_req(int media_fd, unsigned index)
-+{
-+	int rc = 0;
-+
-+	rc = ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &fwht_reqs[index]);
-+	if (rc < 0) {
-+		fprintf(stderr, "Unable to allocate media request: %s\n",
-+			strerror(errno));
-+		return rc;
-+	}
-+
++	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
++	fsize->stepwise.min_width = MIN_W;
++	fsize->stepwise.min_height =MIN_H;
++	fsize->stepwise.max_width = MAX_W;
++	fsize->stepwise.max_height = MAX_H;
++	fsize->stepwise.step_width = WIDTH_ALIGN;
++	fsize->stepwise.step_height = 1;
 +	return 0;
 +}
 +
-+static void set_fwht_req_by_idx(unsigned idx, struct fwht_cframe_hdr *hdr,
-+				__u64 last_bf_ts, __u64 ts)
-+{
-+	struct v4l2_ctrl_fwht_params fwht_params;
-+
-+	set_fwht_stateless_params(fwht_params, hdr, last_bf_ts);
-+
-+	fwht_reqs[idx].ts = ts;
-+	fwht_reqs[idx].params = fwht_params;
-+}
-+
-+static int get_fwht_req_by_ts(__u64 ts)
-+{
-+	for (int idx = 0; idx < VIDEO_MAX_FRAME; idx++) {
-+		if (fwht_reqs[idx].ts == ts)
-+			return idx;
-+	}
-+	return -1;
-+}
-+
-+static bool set_fwht_req_by_fd(struct fwht_cframe_hdr *hdr,
-+			       int req_fd, __u64 last_bf_ts, __u64 ts)
-+{
-+	struct v4l2_ctrl_fwht_params fwht_params;
-+
-+	set_fwht_stateless_params(fwht_params, hdr, last_bf_ts);
-+
-+	for (int idx = 0; idx < VIDEO_MAX_FRAME; idx++) {
-+		if (fwht_reqs[idx].fd == req_fd) {
-+			fwht_reqs[idx].ts = ts;
-+			fwht_reqs[idx].params = fwht_params;
-+			return true;
-+		}
-+	}
-+	return false;
-+}
-+
-+static int set_fwht_ext_ctrl(cv4l_fd &fd, struct fwht_cframe_hdr *hdr,
-+			     __u64 last_bf_ts, int req_fd)
-+{
-+	v4l2_ext_controls controls;
-+	struct v4l2_ext_control control;
-+	struct v4l2_ctrl_fwht_params fwht_params;
-+
-+	memset(&control, 0, sizeof(control));
-+	memset(&controls, 0, sizeof(controls));
-+
-+	set_fwht_stateless_params(fwht_params, hdr, last_bf_ts);
-+
-+	control.id = V4L2_CID_MPEG_VIDEO_FWHT_PARAMS;
-+	control.ptr = &fwht_params;
-+	control.size = sizeof(fwht_params);
-+	controls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
-+	controls.request_fd = req_fd;
-+	controls.controls = &control;
-+	controls.count = 1;
-+	return fd.s_ext_ctrls(controls);
-+}
-+
- static void read_write_padded_frame(cv4l_fmt &fmt, unsigned char *buf,
- 				    FILE *fpointer, unsigned &sz,
- 				    unsigned &len, bool is_read)
+ static int vidioc_g_fmt(struct vim2m_ctx *ctx, struct v4l2_format *f)
+ {
+ 	struct vb2_queue *vq;
+@@ -744,7 +763,7 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct vim2m_fmt *fmt)
+ 	else if (f->fmt.pix.width > MAX_W)
+ 		f->fmt.pix.width = MAX_W;
+ 
+-	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
++	f->fmt.pix.width &= ~(WIDTH_ALIGN - 1);
+ 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+ 	f->fmt.pix.field = V4L2_FIELD_NONE;
+@@ -758,10 +777,10 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct vim2m_fmt *fmt;
+ 	struct vim2m_ctx *ctx = file2ctx(file);
+ 
+-	fmt = find_format(f);
++	fmt = find_format(f->fmt.pix.pixelformat);
+ 	if (!fmt) {
+ 		f->fmt.pix.pixelformat = formats[0].fourcc;
+-		fmt = find_format(f);
++		fmt = find_format(f->fmt.pix.pixelformat);
+ 	}
+ 	if (!(fmt->types & MEM2MEM_CAPTURE)) {
+ 		v4l2_err(&ctx->dev->v4l2_dev,
+@@ -783,10 +802,10 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+ 	struct vim2m_fmt *fmt;
+ 	struct vim2m_ctx *ctx = file2ctx(file);
+ 
+-	fmt = find_format(f);
++	fmt = find_format(f->fmt.pix.pixelformat);
+ 	if (!fmt) {
+ 		f->fmt.pix.pixelformat = formats[0].fourcc;
+-		fmt = find_format(f);
++		fmt = find_format(f->fmt.pix.pixelformat);
+ 	}
+ 	if (!(fmt->types & MEM2MEM_OUTPUT)) {
+ 		v4l2_err(&ctx->dev->v4l2_dev,
+@@ -818,7 +837,7 @@ static int vidioc_s_fmt(struct vim2m_ctx *ctx, struct v4l2_format *f)
+ 		return -EBUSY;
+ 	}
+ 
+-	q_data->fmt		= find_format(f);
++	q_data->fmt		= find_format(f->fmt.pix.pixelformat);
+ 	q_data->width		= f->fmt.pix.width;
+ 	q_data->height		= f->fmt.pix.height;
+ 	q_data->sizeimage	= q_data->width * q_data->height
+@@ -915,6 +934,7 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
+ 	.vidioc_querycap	= vidioc_querycap,
+ 
+ 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
++	.vidioc_enum_framesizes = vidioc_enum_framesizes,
+ 	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
+ 	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
 -- 
-2.17.1
+2.20.1
 
