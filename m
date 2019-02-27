@@ -2,149 +2,71 @@ Return-Path: <SRS0=SnUM=RC=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0337BC43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 04:59:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59FDBC43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 05:58:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D088F218E0
-	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 04:59:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 345C2218D9
+	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 05:58:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729714AbfB0E74 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Feb 2019 23:59:56 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58800 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729616AbfB0E7z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Feb 2019 23:59:55 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:7c83:b9e8:1d7e:ebfb])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id yrJwgXFEQ4HFnyrJxgPVf3; Wed, 27 Feb 2019 05:59:53 +0100
-Message-ID: <1935dbda0eee9d089bdae2fcb70e39cb@smtp-cloud8.xs4all.net>
-Date:   Wed, 27 Feb 2019 05:59:52 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfMKzyfbChrM1ehKAld726hSK5duY4ev5E21xynpdNKj4im++OpWtyXQHoRdtgttFfaOMVYqTd8xXt9vd4WM282HZaGVthhRSc1COeMsToq+QEzfAQa1W
- SDglsOCfLCYGNDR5FKljPlPNJCf825Zbgdu8NNReBJYVkpFNpmpvA0tVODwVS4JisluP27Vlqtqg6OIXxr8vqgLCpKJin3VLiXItJfQxMfpBcM3ZsOgl6hNe
+        id S1726704AbfB0F54 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Feb 2019 00:57:56 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4173 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725914AbfB0F54 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Feb 2019 00:57:56 -0500
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 9A5E484FE98949BE9BF1;
+        Wed, 27 Feb 2019 13:57:52 +0800 (CST)
+Received: from localhost (10.177.31.96) by DGGEMS406-HUB.china.huawei.com
+ (10.3.19.206) with Microsoft SMTP Server id 14.3.408.0; Wed, 27 Feb 2019
+ 13:57:46 +0800
+From:   Yue Haibing <yuehaibing@huawei.com>
+To:     <mchehab@kernel.org>, <gregkh@linuxfoundation.org>,
+        <heiko@sntech.de>
+CC:     <linux-kernel@vger.kernel.org>,
+        <linux-rockchip@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devel@driverdev.osuosl.org>, <linux-media@vger.kernel.org>,
+        YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] media: rockchip-vpu: Remove duplicated include from rockchip_vpu_drv.c
+Date:   Wed, 27 Feb 2019 13:57:23 +0800
+Message-ID: <20190227055723.27488-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
+MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.177.31.96]
+X-CFilter-Loop: Reflected
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: YueHaibing <yuehaibing@huawei.com>
 
-Results of the daily build of media_tree:
+Remove duplicated include.
 
-date:			Wed Feb 27 05:00:11 CET 2019
-media-tree git hash:	9fabe1d108ca4755a880de43f751f1c054f8894d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	70d543c3ec02698d63f0de97397566651f9d3aa2
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: ERRORS
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c b/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
+index 962412c..5761146 100644
+--- a/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
++++ b/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
+@@ -22,7 +22,6 @@
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/videobuf2-core.h>
+-#include <media/videobuf2-core.h>
+ #include <media/videobuf2-vmalloc.h>
+ 
+ #include "rockchip_vpu_common.h"
+-- 
+2.7.0
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Detailed regression test results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Wednesday-test-media-dmesg.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
