@@ -7,131 +7,91 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 195A1C00319
-	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 18:28:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A7D2C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 18:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DEF44218A4
-	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 18:28:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08BBE217F5
+	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 18:32:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="EbGZ65d0"
+	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="ORs5pjni"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729432AbfB0S2N (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Feb 2019 13:28:13 -0500
-Received: from bonobo.maple.relay.mailchannels.net ([23.83.214.22]:7758 "EHLO
+        id S1726894AbfB0Sco (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Feb 2019 13:32:44 -0500
+Received: from bonobo.maple.relay.mailchannels.net ([23.83.214.22]:38388 "EHLO
         bonobo.maple.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726389AbfB0S2L (ORCPT
+        by vger.kernel.org with ESMTP id S1726389AbfB0Sco (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Feb 2019 13:28:11 -0500
+        Wed, 27 Feb 2019 13:32:44 -0500
 X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id 75CF73E44C2;
-        Wed, 27 Feb 2019 18:28:10 +0000 (UTC)
+        by relay.mailchannels.net (Postfix) with ESMTP id A91DF3E4A41;
+        Wed, 27 Feb 2019 18:32:42 +0000 (UTC)
 Received: from pdx1-sub0-mail-a6.g.dreamhost.com (unknown [100.96.24.101])
         (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id DD0FC3E352D;
-        Wed, 27 Feb 2019 18:28:09 +0000 (UTC)
+        by relay.mailchannels.net (Postfix) with ESMTPA id 5DA433E22FF;
+        Wed, 27 Feb 2019 18:32:42 +0000 (UTC)
 X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
 Received: from pdx1-sub0-mail-a6.g.dreamhost.com (pop.dreamhost.com
  [64.90.62.162])
         (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
         by 0.0.0.0:2500 (trex/5.16.3);
-        Wed, 27 Feb 2019 18:28:10 +0000
+        Wed, 27 Feb 2019 18:32:42 +0000
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: dreamhost|x-authsender|brad@nextdimension.ws
 X-MailChannels-Auth-Id: dreamhost
-X-Abaft-Skirt: 26d53c7c19fc6626_1551292090079_3366494230
-X-MC-Loop-Signature: 1551292090079:1074128272
-X-MC-Ingress-Time: 1551292090078
+X-Power-Chief: 7f513554615e7919_1551292362495_765890851
+X-MC-Loop-Signature: 1551292362495:3437168956
+X-MC-Ingress-Time: 1551292362495
 Received: from pdx1-sub0-mail-a6.g.dreamhost.com (localhost [127.0.0.1])
-        by pdx1-sub0-mail-a6.g.dreamhost.com (Postfix) with ESMTP id 2E9B57FEFA;
-        Wed, 27 Feb 2019 10:28:09 -0800 (PST)
+        by pdx1-sub0-mail-a6.g.dreamhost.com (Postfix) with ESMTP id 975417FF08;
+        Wed, 27 Feb 2019 10:32:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=from
-        :to:cc:subject:date:message-id:in-reply-to:references; s=
-        nextdimension.cc; bh=V8sENwBvGnydSSoY5uJr9MBFHIY=; b=EbGZ65d01EJ
-        QLLDjz4K/HvJcYk7bsKnArpNBMyHWShOAa0nAoC143z17SAl2lBcePk2pqKdJA3h
-        vZoImPpu0U13sRvHIjAHHsWpiaQTFHW6hfDPemKgxMElDqMHrjbfANq29WumryR7
-        nFvq/99I+ylv3kFkBwkwtFjQft6sWGNg=
+        :to:cc:subject:date:message-id; s=nextdimension.cc; bh=U1FFCFRIW
+        iHIefl6BHcI/O3l4GI=; b=ORs5pjnioY4F8YfvmX0BDnEVUuXO+GylshPL2Blzx
+        xIH7+YQCyz7+Sm/ZjeBFXtsfl3PUvkl/V5JzAR4+ZSy4G/EmiP44d+2ge5Hwedyq
+        n+dKPkIbjMJHYIEqqLTLK8psfLxciS3/KiB3yVGUwQ660ND16Zg4tDuUdbonWkxi
+        E8=
 Received: from localhost.localdomain (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: brad@nextdimension.ws)
-        by pdx1-sub0-mail-a6.g.dreamhost.com (Postfix) with ESMTPSA id 204AA7FF0A;
-        Wed, 27 Feb 2019 10:28:07 -0800 (PST)
+        by pdx1-sub0-mail-a6.g.dreamhost.com (Postfix) with ESMTPSA id 7B7357FEFA;
+        Wed, 27 Feb 2019 10:32:39 -0800 (PST)
 X-DH-BACKEND: pdx1-sub0-mail-a6
 From:   Brad Love <brad@nextdimension.cc>
 To:     linux-media@vger.kernel.org
 Cc:     Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v2 12/12] lgdt3306a: Add CNR v5 stat
-Date:   Wed, 27 Feb 2019 12:27:46 -0600
-Message-Id: <1551292066-29574-13-git-send-email-brad@nextdimension.cc>
+Subject: [PATCH] cx231xx-cards: Add Hauppauge 955Q variant
+Date:   Wed, 27 Feb 2019 12:32:24 -0600
+Message-Id: <1551292344-32751-1-git-send-email-brad@nextdimension.cc>
 X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1551292066-29574-1-git-send-email-brad@nextdimension.cc>
-References: <1546105882-15693-1-git-send-email-brad@nextdimension.cc>
- <1551292066-29574-1-git-send-email-brad@nextdimension.cc>
 X-VR-OUT-STATUS: OK
 X-VR-OUT-SCORE: 30
-X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedutddrvddugdduudefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuggftfghnshhusghstghrihgsvgdpffftgfetoffjqffuvfenuceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfedtmdenucfjughrpefhvffufffkofgjfhestddtredtredttdenucfhrhhomhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqeenucfkphepieeirdeltddrudekledrudeiieenucfrrghrrghmpehmohguvgepshhmthhppdhhvghloheplhhotggrlhhhohhsthdrlhhotggrlhguohhmrghinhdpihhnvghtpeeiiedrledtrddukeelrdduieeipdhrvghtuhhrnhdqphgrthhhpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqpdhmrghilhhfrhhomhepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgdpnhhrtghpthhtohepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgenucevlhhushhtvghrufhiiigvpeduvd
+X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedutddrvddugdduudefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuggftfghnshhusghstghrihgsvgdpffftgfetoffjqffuvfenuceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfedtmdenucfjughrpefhvffufffkofestddtredtredttdenucfhrhhomhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqeenucfkphepieeirdeltddrudekledrudeiieenucfrrghrrghmpehmohguvgepshhmthhppdhhvghloheplhhotggrlhhhohhsthdrlhhotggrlhguohhmrghinhdpihhnvghtpeeiiedrledtrddukeelrdduieeipdhrvghtuhhrnhdqphgrthhhpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqpdhmrghilhhfrhhomhepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgdpnhhrtghpthhtohepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgenucevlhhushhtvghrufhiiigvpedt
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The CNR is already calculated, so populate DVBv5 CNR stat
-during read_status.
-
+2040:b124 is an OEM 955Q
 Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
-No changes
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
- drivers/media/dvb-frontends/lgdt3306a.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 99c6289..ceaf617 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -855,6 +855,7 @@ static int lgdt3306a_fe_sleep(struct dvb_frontend *fe)
- static int lgdt3306a_init(struct dvb_frontend *fe)
- {
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u8 val;
- 	int ret;
- 
-@@ -1006,6 +1007,9 @@ static int lgdt3306a_init(struct dvb_frontend *fe)
- 	ret = lgdt3306a_sleep(state);
- 	lg_chkerr(ret);
- 
-+	c->cnr.len = 1;
-+	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
- fail:
- 	return ret;
- }
-@@ -1606,6 +1610,7 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
- 				 enum fe_status *status)
- {
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u16 strength = 0;
- 	int ret = 0;
- 
-@@ -1646,6 +1651,15 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
- 		default:
- 			ret = -EINVAL;
- 		}
-+
-+		if (*status & FE_HAS_SYNC) {
-+			c->cnr.len = 1;
-+			c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+			c->cnr.stat[0].svalue = lgdt3306a_calculate_snr_x100(state) * 10;
-+		} else {
-+			c->cnr.len = 1;
-+			c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		}
- 	}
- 	return ret;
- }
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index a431a99..daf8f8c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1035,6 +1035,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
+ 	{USB_DEVICE(0x2040, 0xb123),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
++	{USB_DEVICE(0x2040, 0xb124),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
+ 	{USB_DEVICE(0x2040, 0xb151),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
+ 	{USB_DEVICE(0x2040, 0xb150),
 -- 
 2.7.4
 
