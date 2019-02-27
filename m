@@ -2,147 +2,98 @@ Return-Path: <SRS0=SnUM=RC=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A022C43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 19:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C28C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 20:58:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 173D12133D
-	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 19:16:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="D4awgQzi"
+	by mail.kernel.org (Postfix) with ESMTP id 0E78221850
+	for <linux-media@archiver.kernel.org>; Wed, 27 Feb 2019 20:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730163AbfB0TQn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Feb 2019 14:16:43 -0500
-Received: from bonobo.maple.relay.mailchannels.net ([23.83.214.22]:45545 "EHLO
-        bonobo.maple.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726397AbfB0TQn (ORCPT
+        id S1730465AbfB0U6D (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Feb 2019 15:58:03 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:48648 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729412AbfB0U6C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Feb 2019 14:16:43 -0500
-X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id 42765684AFA;
-        Wed, 27 Feb 2019 19:16:36 +0000 (UTC)
-Received: from pdx1-sub0-mail-a6.g.dreamhost.com (unknown [100.96.28.213])
-        (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id E19476849BD;
-        Wed, 27 Feb 2019 19:16:23 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
-Received: from pdx1-sub0-mail-a6.g.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
-        by 0.0.0.0:2500 (trex/5.16.3);
-        Wed, 27 Feb 2019 19:16:31 +0000
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|brad@nextdimension.ws
-X-MailChannels-Auth-Id: dreamhost
-X-Spill-Invention: 37ff412104444d74_1551294984079_2036125412
-X-MC-Loop-Signature: 1551294984079:3927770763
-X-MC-Ingress-Time: 1551294984078
-Received: from pdx1-sub0-mail-a6.g.dreamhost.com (localhost [127.0.0.1])
-        by pdx1-sub0-mail-a6.g.dreamhost.com (Postfix) with ESMTP id 14DD67FF20;
-        Wed, 27 Feb 2019 11:16:19 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=from
-        :to:cc:subject:date:message-id:in-reply-to:references; s=
-        nextdimension.cc; bh=y3XXZjiidbesd8fV8nZG/22YJgo=; b=D4awgQziRxm
-        PYY1t99h5S3hpz5kaFAH5Ew0r+3jHjXRj1GMfayVNYbKIxaggMSPO5kMO7RLVfvi
-        c6Mh5Eg8nyCGA+pH9fbOjQu17quNlikjykjlufrPdCwLANOsy/5PVh/dZJdBq+vO
-        0swYuhd7+N6zYvwHfLSHc5VWoXEOrVQk=
-Received: from localhost.localdomain (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: brad@nextdimension.ws)
-        by pdx1-sub0-mail-a6.g.dreamhost.com (Postfix) with ESMTPSA id 03A377FF1C;
-        Wed, 27 Feb 2019 11:16:17 -0800 (PST)
-X-DH-BACKEND: pdx1-sub0-mail-a6
-From:   Brad Love <brad@nextdimension.cc>
-To:     linux-media@vger.kernel.org
-Cc:     Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v4 1/4] si2157: add detection of si2177 tuner
-Date:   Wed, 27 Feb 2019 13:16:03 -0600
-Message-Id: <1551294966-12564-2-git-send-email-brad@nextdimension.cc>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1551294966-12564-1-git-send-email-brad@nextdimension.cc>
-References: <1545421223-3577-1-git-send-email-brad@nextdimension.cc>
- <1551294966-12564-1-git-send-email-brad@nextdimension.cc>
-X-VR-OUT-STATUS: OK
-X-VR-OUT-SCORE: 15
-X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedutddrvddugdduvdefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuggftfghnshhusghstghrihgsvgdpffftgfetoffjqffuvfenuceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdludehmdenucfjughrpefhvffufffkofgjfhestddtredtredttdenucfhrhhomhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqeenucfkphepieeirdeltddrudekledrudeiieenucfrrghrrghmpehmohguvgepshhmthhppdhhvghloheplhhotggrlhhhohhsthdrlhhotggrlhguohhmrghinhdpihhnvghtpeeiiedrledtrddukeelrdduieeipdhrvghtuhhrnhdqphgrthhhpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqpdhmrghilhhfrhhomhepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgdpnhhrtghpthhtohepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgenucevlhhushhtvghrufhiiigvpedt
+        Wed, 27 Feb 2019 15:58:02 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: nicolas)
+        with ESMTPSA id 91DCE27E79E
+Message-ID: <a581712b3d269525615f21781b45a09e84a22f57.camel@collabora.com>
+Subject: Re: [PATCH v4 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
+From:   Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Cc:     Tomasz Figa <tfiga@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
+         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        jenskuske@gmail.com, Jernej Skrabec <jernej.skrabec@gmail.com>,
+        Jonas Karlman <jonas@kwiboo.se>, linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Date:   Wed, 27 Feb 2019 15:57:55 -0500
+In-Reply-To: <20190227100146.beakovktekqcaei3@flea>
+References: <cover.1862a43851950ddee041d53669f8979aba863c38.1550672228.git-series.maxime.ripard@bootlin.com>
+         <9817c9875638ed2484d61e6e128e2551cf3bda4c.1550672228.git-series.maxime.ripard@bootlin.com>
+         <CAAFQd5D3CVQQDkP3uKM6dYkmfsLohXcdjG0wMMLukFf-D=TCsw@mail.gmail.com>
+         <5d95629590e6ca2abbec898e8e9ee478f7a3a6cc.camel@collabora.com>
+         <20190227100146.beakovktekqcaei3@flea>
+Organization: Collabora
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-S6lyGFrRwRJDWlN87Fjq"
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Works in ATSC and QAM as is, DVB is completely untested.
 
-Firmware required.
+--=-S6lyGFrRwRJDWlN87Fjq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
-Changes since v3:
-- Fix firmware name to be consistent
+Le mercredi 27 f=C3=A9vrier 2019 =C3=A0 11:01 +0100, Maxime Ripard a =C3=A9=
+crit :
+> > Also regarding the pixel formats. I still think we should have two
+> > pixel formats: V4L2_PIX_FMT_H264_SLICE_RAW and
+> > V4L2_PIX_FMT_H264_SLICE_ANNEX_B, to properly represent "raw" NALUs
+> > and "annex B" formatted NALUs.
+>=20
+> I agree with that, but I was under the impression that it would be
+> part of your series, since you would be the prime user (at first at
+> least).
 
- drivers/media/tuners/si2157.c      | 6 ++++++
- drivers/media/tuners/si2157_priv.h | 3 ++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+Notice that Ezequiel is requesting a rename of V4L2_PIX_FMT_H264_SLICE
+to V4L2_PIX_FMT_H264_SLICE_RAW, which is being added in this serie.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index d389f1f..3d21af5 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -138,6 +138,7 @@ static int si2157_init(struct dvb_frontend *fe)
- 	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
- 			cmd.args[4] << 0;
- 
-+	#define SI2177_A30 ('A' << 24 | 77 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2158_A20 ('A' << 24 | 58 << 16 | '2' << 8 | '0' << 0)
- 	#define SI2148_A20 ('A' << 24 | 48 << 16 | '2' << 8 | '0' << 0)
- 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
-@@ -153,6 +154,9 @@ static int si2157_init(struct dvb_frontend *fe)
- 	case SI2141_A10:
- 		fw_name = SI2141_A10_FIRMWARE;
- 		break;
-+	case SI2177_A30:
-+		fw_name = SI2157_A30_FIRMWARE;
-+		break;
- 	case SI2157_A30:
- 	case SI2147_A30:
- 	case SI2146_A10:
-@@ -529,6 +533,7 @@ static const struct i2c_device_id si2157_id_table[] = {
- 	{"si2157", SI2157_CHIPTYPE_SI2157},
- 	{"si2146", SI2157_CHIPTYPE_SI2146},
- 	{"si2141", SI2157_CHIPTYPE_SI2141},
-+	{"si2177", SI2157_CHIPTYPE_SI2177},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, si2157_id_table);
-@@ -550,3 +555,4 @@ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
- MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
-+MODULE_FIRMWARE(SI2157_A30_FIRMWARE);
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index 50f8630..67caee5 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -50,6 +50,7 @@ struct si2157_dev {
- #define SI2157_CHIPTYPE_SI2157 0
- #define SI2157_CHIPTYPE_SI2146 1
- #define SI2157_CHIPTYPE_SI2141 2
-+#define SI2157_CHIPTYPE_SI2177 3
- 
- /* firmware command struct */
- #define SI2157_ARGLEN      30
-@@ -61,5 +62,5 @@ struct si2157_cmd {
- 
- #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
- #define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
--
-+#define SI2157_A30_FIRMWARE "dvb-tuner-si2157-a30-01.fw"
- #endif
--- 
-2.7.4
+Nicolas
+
+--=-S6lyGFrRwRJDWlN87Fjq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCXHb50wAKCRBxUwItrAao
+HFOmAKDSSg4Ecfd2ern37wzLqAAjCt+RXgCghVkTcG9LDo4MXMoHwi0ZK0TFpaM=
+=QTnQ
+-----END PGP SIGNATURE-----
+
+--=-S6lyGFrRwRJDWlN87Fjq--
 
