@@ -2,324 +2,193 @@ Return-Path: <SRS0=4gsG=RD=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C736C43381
-	for <linux-media@archiver.kernel.org>; Thu, 28 Feb 2019 10:01:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D206CC43381
+	for <linux-media@archiver.kernel.org>; Thu, 28 Feb 2019 10:14:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1428C218AE
-	for <linux-media@archiver.kernel.org>; Thu, 28 Feb 2019 10:01:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="ZtoGbn5I"
+	by mail.kernel.org (Postfix) with ESMTP id A160221850
+	for <linux-media@archiver.kernel.org>; Thu, 28 Feb 2019 10:14:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732245AbfB1KBw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 28 Feb 2019 05:01:52 -0500
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:46172 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730215AbfB1KBw (ORCPT
+        id S1732348AbfB1KOU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 28 Feb 2019 05:14:20 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38484 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732285AbfB1KOS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Feb 2019 05:01:52 -0500
-Received: by mail-ed1-f66.google.com with SMTP id f2so16421960edy.13
-        for <linux-media@vger.kernel.org>; Thu, 28 Feb 2019 02:01:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=sender:date:from:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=gaP0uhISDnyAgn0m+B2jeoNq2H1wzucwz4k/mMSko5E=;
-        b=ZtoGbn5I4jlQdNS5qzon8qzKuB2cTvrkDbaVtQ5UmXJvJNj0QlA98WSl5HOP783/RY
-         2eNS9isj+7AIjNl/4pXTZXfk5Ah3pxZiedq7WkGnffrSZWx20pPmgxQ45pxNnFIxBfN/
-         kHxQRXsa8z7wTBd/ldC+h/E53U3Vzrnuyt1aY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to:user-agent;
-        bh=gaP0uhISDnyAgn0m+B2jeoNq2H1wzucwz4k/mMSko5E=;
-        b=kRGRqm+Ie8zurJw/QCdVOoqYOjiHDPtSODBE3xWBtpop1UfFNIaW3SC9JoAaqvocqM
-         JR+c8PHZ08MvAXzt/cZxd4/pc2eGFx/K/FQ5P178h4FdwWh6ShydNEzZH8wQZD8BRmnZ
-         Y9rhahKN7NMqtoAX7PD7YkPo3Nkb4PJ/SGalbTgIzasc4RBdFrOzeI/8Ga4h13/ItOCn
-         wA8hdzXIK6Irp3xTvT1FDJrrUQGjWa6bMjYt4kB+GjpFH6zUmJkaHAGTB608WYcIKgxy
-         p3PULAo7RMR0aw4BWspSK8oMuRWEg+SWTaD6KS2zUrDUHuP6TixeJowBEvBTR/7sSlAM
-         VjaQ==
-X-Gm-Message-State: AHQUAuYFL5J0CkQLI0EH8lkRGAbTYgDo66Rs1owcjmCT7EbzmPKob8mA
-        7xXEDxmVBNNEVylgUw43PBhWuQ==
-X-Google-Smtp-Source: AHgI3Ia7kZyF1vAORkkBRWnRHyZxOI5FBLDkDy+vhMBx6PO6+8Coo9h5vl3txAJpGdG7elgTiMHOQA==
-X-Received: by 2002:a50:a535:: with SMTP id y50mr5481231edb.163.1551348109280;
-        Thu, 28 Feb 2019 02:01:49 -0800 (PST)
-Received: from phenom.ffwll.local ([2a02:168:569e:0:3106:d637:d723:e855])
-        by smtp.gmail.com with ESMTPSA id k16sm2253898ejd.13.2019.02.28.02.01.47
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 28 Feb 2019 02:01:48 -0800 (PST)
-Date:   Thu, 28 Feb 2019 11:01:46 +0100
-From:   Daniel Vetter <daniel@ffwll.ch>
-To:     Hyun Kwon <hyun.kwon@xilinx.com>
-Cc:     Daniel Vetter <daniel@ffwll.ch>, Hyun Kwon <hyunk@xilinx.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Stefano Stabellini <stefanos@xilinx.com>,
-        Sonal Santan <sonals@xilinx.com>,
-        Cyril Chemparathy <cyrilc@xilinx.com>,
-        Jiaying Liang <jliang@xilinx.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
-        <linaro-mm-sig@lists.linaro.org>,
-        Michal Simek <michals@xilinx.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK" 
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 1/1] uio: Add dma-buf import ioctls
-Message-ID: <20190228100146.GK2665@phenom.ffwll.local>
-Mail-Followup-To: Hyun Kwon <hyun.kwon@xilinx.com>,
-        Hyun Kwon <hyunk@xilinx.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Stefano Stabellini <stefanos@xilinx.com>,
-        Sonal Santan <sonals@xilinx.com>,
-        Cyril Chemparathy <cyrilc@xilinx.com>,
-        Jiaying Liang <jliang@xilinx.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" <linaro-mm-sig@lists.linaro.org>,
-        Michal Simek <michals@xilinx.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK" <linux-media@vger.kernel.org>
-References: <1550953697-7288-1-git-send-email-hyun.kwon@xilinx.com>
- <1550953697-7288-2-git-send-email-hyun.kwon@xilinx.com>
- <20190226115311.GA4094@kroah.com>
- <CAKMK7uE=dSyo5vdjtQf=k1rdoegiBgSozCOotXLSW2VAkz2Ldw@mail.gmail.com>
- <20190226221817.GB10631@smtp.xilinx.com>
- <CAKMK7uFay0mjHFhQqmQ7fneS2B0xNW_Nv4AWqp-FK1NnHVe5uw@mail.gmail.com>
- <20190228003606.GA1063@smtp.xilinx.com>
+        Thu, 28 Feb 2019 05:14:18 -0500
+Received: from [IPv6:2001:983:e9a7:1:7dc8:359d:c6e9:ced2] ([IPv6:2001:983:e9a7:1:7dc8:359d:c6e9:ced2])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id zIhjggrxO4HFnzIhkgTUm2; Thu, 28 Feb 2019 11:14:16 +0100
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v3] media: docs-rst: Document m2m stateless video decoder
+ interface
+To:     Alexandre Courbot <acourbot@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc:     Tomasz Figa <tfiga@chromium.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <20190213055317.192029-1-acourbot@chromium.org>
+ <CAPBb6MUDK0s665wjSjvo3ZePtmFXFrs2WqpaywOSjnRxp08Ong@mail.gmail.com>
+ <b24e3e67-9fb3-3602-8a90-826f8c51eadf@xs4all.nl>
+ <3de0825971b91ea0b8fd349f4ecf8164de14254a.camel@bootlin.com>
+ <7caf9381-e920-f5fc-e8f9-a54ac2733add@xs4all.nl>
+ <e19f0821a831c45829c2921ab091b7c6ed80c8f5.camel@bootlin.com>
+ <CAPBb6MW24uJ9dgw3_ME=8shh1NSOy7s2mCmq+vFxm=jM2iH9MQ@mail.gmail.com>
+Message-ID: <2f1585e7-df8c-8d2f-1ab7-331f7dfc36ee@xs4all.nl>
+Date:   Thu, 28 Feb 2019 11:14:10 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190228003606.GA1063@smtp.xilinx.com>
-X-Operating-System: Linux phenom 4.19.0-1-amd64 
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <CAPBb6MW24uJ9dgw3_ME=8shh1NSOy7s2mCmq+vFxm=jM2iH9MQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNNH281Q9fmmC6MWC7Vv8+Ogk5Tg+5/lt3PJLUM0mZCuBCQ6I0826X6zXuP2JQ0ax9CqlQdAVsBTKaH98URZWKFzB3rTK1SovN0wBU6ibE2EWRzMSr/a
+ 6UttbL6aQJojAzC10ISzXD6LPMtOaI5zH+KBoNVW8Qc1aBRmQ76zTFZ2yAuo1uFhubxyt0ApwC/Fsi8sCl1RmcxI8WgLTuqJ1RxQLSh1rm6anq1qJo1Mjbgt
+ QasvujEz7q3a8TBMB6rvdnk8UMTQU2LanynXo+b/yh0f0ajckkP7JshMgZXpAVKVAmJvBBnds/hV0fwUOMDzMImk/kpoDIlsbWzjka7Aq0WkZfoy4CyCSUiv
+ utjpOhj9aVCgCBRWIkRSxb8tX8c+UV+cCoKHJ+5t1nm/dzuDCY4qYeXK3o0b1ccIVaVqD2efxTCVyyvsgHrVEXdixfVnoijIUuthyfa6adN6wJ7NEX/FI8/t
+ 10dgGlcEEOnOdhlAgIAI72GD5yIJNsWdGJIgTCAqGgHPulB4NDVti/LMLF4=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Feb 27, 2019 at 04:36:06PM -0800, Hyun Kwon wrote:
-> Hi Daniel,
+On 2/26/19 4:33 AM, Alexandre Courbot wrote:
+> Hi, sorry for the delayed reply!
 > 
-> On Wed, 2019-02-27 at 06:13:45 -0800, Daniel Vetter wrote:
-> > On Tue, Feb 26, 2019 at 11:20 PM Hyun Kwon <hyun.kwon@xilinx.com> wrote:
-> > >
-> > > Hi Daniel,
-> > >
-> > > Thanks for the comment.
-> > >
-> > > On Tue, 2019-02-26 at 04:06:13 -0800, Daniel Vetter wrote:
-> > > > On Tue, Feb 26, 2019 at 12:53 PM Greg Kroah-Hartman
-> > > > <gregkh@linuxfoundation.org> wrote:
-> > > > >
-> > > > > On Sat, Feb 23, 2019 at 12:28:17PM -0800, Hyun Kwon wrote:
-> > > > > > Add the dmabuf map / unmap interfaces. This allows the user driver
-> > > > > > to be able to import the external dmabuf and use it from user space.
-> > > > > >
-> > > > > > Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-> > > > > > ---
-> > > > > >  drivers/uio/Makefile         |   2 +-
-> > > > > >  drivers/uio/uio.c            |  43 +++++++++
-> > > > > >  drivers/uio/uio_dmabuf.c     | 210 +++++++++++++++++++++++++++++++++++++++++++
-> > > > > >  drivers/uio/uio_dmabuf.h     |  26 ++++++
-> > > > > >  include/uapi/linux/uio/uio.h |  33 +++++++
-> > > > > >  5 files changed, 313 insertions(+), 1 deletion(-)
-> > > > > >  create mode 100644 drivers/uio/uio_dmabuf.c
-> > > > > >  create mode 100644 drivers/uio/uio_dmabuf.h
-> > > > > >  create mode 100644 include/uapi/linux/uio/uio.h
-> > > > > >
-> > > > > > diff --git a/drivers/uio/Makefile b/drivers/uio/Makefile
-> > > > > > index c285dd2..5da16c7 100644
-> > > > > > --- a/drivers/uio/Makefile
-> > > > > > +++ b/drivers/uio/Makefile
-> > > > > > @@ -1,5 +1,5 @@
-> > > > > >  # SPDX-License-Identifier: GPL-2.0
-> > > > > > -obj-$(CONFIG_UIO)    += uio.o
-> > > > > > +obj-$(CONFIG_UIO)    += uio.o uio_dmabuf.o
-> > > > > >  obj-$(CONFIG_UIO_CIF)        += uio_cif.o
-> > > > > >  obj-$(CONFIG_UIO_PDRV_GENIRQ)        += uio_pdrv_genirq.o
-> > > > > >  obj-$(CONFIG_UIO_DMEM_GENIRQ)        += uio_dmem_genirq.o
-> > > > > > diff --git a/drivers/uio/uio.c b/drivers/uio/uio.c
-> > > > > > index 1313422..6841f98 100644
-> > > > > > --- a/drivers/uio/uio.c
-> > > > > > +++ b/drivers/uio/uio.c
-> > > > > > @@ -24,6 +24,12 @@
-> > > > > >  #include <linux/kobject.h>
-> > > > > >  #include <linux/cdev.h>
-> > > > > >  #include <linux/uio_driver.h>
-> > > > > > +#include <linux/list.h>
-> > > > > > +#include <linux/mutex.h>
-> > > > > > +
-> > > > > > +#include <uapi/linux/uio/uio.h>
-> > > > > > +
-> > > > > > +#include "uio_dmabuf.h"
-> > > > > >
-> > > > > >  #define UIO_MAX_DEVICES              (1U << MINORBITS)
-> > > > > >
-> > > > > > @@ -454,6 +460,8 @@ static irqreturn_t uio_interrupt(int irq, void *dev_id)
-> > > > > >  struct uio_listener {
-> > > > > >       struct uio_device *dev;
-> > > > > >       s32 event_count;
-> > > > > > +     struct list_head dbufs;
-> > > > > > +     struct mutex dbufs_lock; /* protect @dbufs */
-> > > > > >  };
-> > > > > >
-> > > > > >  static int uio_open(struct inode *inode, struct file *filep)
-> > > > > > @@ -500,6 +508,9 @@ static int uio_open(struct inode *inode, struct file *filep)
-> > > > > >       if (ret)
-> > > > > >               goto err_infoopen;
-> > > > > >
-> > > > > > +     INIT_LIST_HEAD(&listener->dbufs);
-> > > > > > +     mutex_init(&listener->dbufs_lock);
-> > > > > > +
-> > > > > >       return 0;
-> > > > > >
-> > > > > >  err_infoopen:
-> > > > > > @@ -529,6 +540,10 @@ static int uio_release(struct inode *inode, struct file *filep)
-> > > > > >       struct uio_listener *listener = filep->private_data;
-> > > > > >       struct uio_device *idev = listener->dev;
-> > > > > >
-> > > > > > +     ret = uio_dmabuf_cleanup(idev, &listener->dbufs, &listener->dbufs_lock);
-> > > > > > +     if (ret)
-> > > > > > +             dev_err(&idev->dev, "failed to clean up the dma bufs\n");
-> > > > > > +
-> > > > > >       mutex_lock(&idev->info_lock);
-> > > > > >       if (idev->info && idev->info->release)
-> > > > > >               ret = idev->info->release(idev->info, inode);
-> > > > > > @@ -652,6 +667,33 @@ static ssize_t uio_write(struct file *filep, const char __user *buf,
-> > > > > >       return retval ? retval : sizeof(s32);
-> > > > > >  }
-> > > > > >
-> > > > > > +static long uio_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
-> > > > >
-> > > > > We have resisted adding a uio ioctl for a long time, can't you do this
-> > > > > through sysfs somehow?
-> > > > >
-> > > > > A meta-comment about your ioctl structure:
-> > > > >
-> > > > > > +#define UIO_DMABUF_DIR_BIDIR 1
-> > > > > > +#define UIO_DMABUF_DIR_TO_DEV        2
-> > > > > > +#define UIO_DMABUF_DIR_FROM_DEV      3
-> > > > > > +#define UIO_DMABUF_DIR_NONE  4
-> > > > >
-> > > > > enumerated type?
-> > > > >
-> > > > > > +
-> > > > > > +struct uio_dmabuf_args {
-> > > > > > +     __s32   dbuf_fd;
-> > > > > > +     __u64   dma_addr;
-> > > > > > +     __u64   size;
-> > > > > > +     __u32   dir;
-> > > > >
-> > > > > Why the odd alignment?  Are you sure this is the best packing for such a
-> > > > > structure?
-> > > > >
-> > > > > Why is dbuf_fd __s32?  dir can be __u8, right?
-> > > > >
-> > > > > I don't know that dma layer very well, it would be good to get some
-> > > > > review from others to see if this really is even a viable thing to do.
-> > > > > The fd handling seems a bit "odd" here, but maybe I just do not
-> > > > > understand it.
-> > > >
-> > > > Frankly looks like a ploy to sidestep review by graphics folks. We'd
-> > > > ask for the userspace first :-)
-> > >
-> > > Please refer to pull request [1].
-> > >
-> > > For any interest in more details, the libmetal is the abstraction layer
-> > > which provides platform independent APIs. The backend implementation
-> > > can be selected per different platforms: ex, rtos, linux,
-> > > standalone (xilinx),,,. For Linux, it supports UIO / vfio as of now.
-> > > The actual user space drivers sit on top of libmetal. Such drivers can be
-> > > found in [2]. This is why I try to avoid any device specific code in
-> > > Linux kernel.
-> > >
-> > > >
-> > > > Also, exporting dma_addr to userspace is considered a very bad idea.
-> > >
-> > > I agree, hence the RFC to pick some brains. :-) Would it make sense
-> > > if this call doesn't export the physicall address, but instead takes
-> > > only the dmabuf fd and register offsets to be programmed?
-> > >
-> > > > If you want to do this properly, you need a minimal in-kernel memory
-> > > > manager, and those tend to be based on top of drm_gem.c and merged
-> > > > through the gpu tree. The last place where we accidentally leaked a
-> > > > dma addr for gpu buffers was in the fbdev code, and we plugged that
-> > > > one with
-> > >
-> > > Could you please help me understand how having a in-kernel memory manager
-> > > helps? Isn't it just moving same dmabuf import / paddr export functionality
-> > > in different modules: kernel memory manager vs uio. In fact, Xilinx does have
-> > > such memory manager based on drm gem in downstream. But for this time we took
-> > > the approach of implementing this through generic dmabuf allocator, ION, and
-> > > enabling the import capability in the UIO infrastructure instead.
-> > 
-> > There's a group of people working on upstreaming a xilinx drm driver
-> > already. Which driver are we talking about? Can you pls provide a link
-> > to that xilinx drm driver?
-> > 
+> On Wed, Feb 13, 2019 at 8:04 PM Paul Kocialkowski
+> <paul.kocialkowski@bootlin.com> wrote:
+>>
+>> Hi,
+>>
+>> On Wed, 2019-02-13 at 10:57 +0100, Hans Verkuil wrote:
+>>> On 2/13/19 10:20 AM, Paul Kocialkowski wrote:
+>>>> Hi,
+>>>>
+>>>> On Wed, 2019-02-13 at 09:59 +0100, Hans Verkuil wrote:
+>>>>> On 2/13/19 6:58 AM, Alexandre Courbot wrote:
+>>>>>> On Wed, Feb 13, 2019 at 2:53 PM Alexandre Courbot <acourbot@chromium.org> wrote:
+>>>>>>> [snip]
+>>>>>>> +Buffers used as reference frames can be queued back to the ``CAPTURE`` queue as
+>>>>>>> +soon as all the frames they are affecting have been queued to the ``OUTPUT``
+>>>>>>> +queue. The driver will refrain from using the reference buffer as a decoding
+>>>>>>> +target until all the frames depending on it are decoded.
+>>>>>>
+>>>>>> Just want to highlight this part in order to make sure that this is
+>>>>>> indeed what we agreed on. The recent changes to vb2_find_timestamp()
+>>>>>> suggest this, but maybe I misunderstood the intent. It makes the
+>>>>>> kernel responsible for tracking referenced buffers and not using them
+>>>>>> until all the dependent frames are decoded, something the client could
+>>>>>> also do.
+>>>>>
+>>>>> I don't think this is quite right. Once this patch https://patchwork.linuxtv.org/patch/54275/
+>>>>> is in the vb2 core will track when a buffer can no longer be used as a
+>>>>> reference buffer because the underlying memory might have disappeared.
+>>>>>
+>>>>> The core does not check if it makes sense to use a buffer as a reference
+>>>>> frame, just that it is valid memory.
+>>>>>
+>>>>> So the driver has to check that the timestamp refers to an existing
+>>>>> buffer, but userspace has to check that it queues everything in the
+>>>>> right order and that the reference buffer won't be overwritten
+>>>>> before the last output buffer using that reference buffer has been
+>>>>> decoded.
+>>>>>
+>>>>> So I would say that the second sentence in your paragraph is wrong.
+>>>>>
+>>>>> The first sentence isn't quite right either, but I am not really sure how
+>>>>> to phrase it. It is possible to queue a reference buffer even if
+>>>>> not all output buffers referring to it have been decoded, provided
+>>>>> that by the time the driver starts to use this buffer this actually
+>>>>> has happened.
+>>>>
+>>>> Is there a way we can guarantee this? Looking at the rest of the spec,
+>>>> it says that capture buffers "are returned in decode order" but that
+>>>> doesn't imply that they are picked up in the order they are queued.
+>>>>
+>>>> It seems quite troublesome for the core to check whether each queued
+>>>> capture buffer is used as a reference for one of the queued requests to
+>>>> decide whether to pick it up or not.
+>>>
+>>> The core only checks that the timestamp points to a valid buffer.
+>>>
+>>> It is not up to the core or the driver to do anything else. If userspace
+>>> gives a reference to a wrong buffer or one that is already overwritten,
+>>> then you just get bad decoded video, but nothing crashes.
+>>
+>> Yes, that makes sense. My concern was mainly about cases where the
+>> capture buffers could be consumed by the driver in a different order
+>> than they are queued by userspace (which could lead to the reference
+>> buffer being reused too early). But thinking about it twice, I don't
+>> see a reason why this could happen.
 > 
-> The one I was pushing [1] is implemented purely for display, and not
-> intended for anything other than that as of now. What I'm refering to above
-> is part of Xilinx FPGA (acceleration) runtime [2]. As far as I know,
-> it's planned to be upstreamed, but not yet started. The Xilinx runtime
-> software has its own in-kernel memory manager based on drm_cma_gem with
-> its own ioctls [3].
+> Do we have a guarantee that it won't happen though? AFAICT the
+> behavior that CAPTURE buffers must be processed in queue order is not
+> documented anywhere, and not guaranteed by VB2 (even though
+> implementation-wise it may currently be the case). So with the current
+> state of the specification, the only safe wording I can use is "do not
+> queue a reference buffer back until all the frames depending on it
+> have been dequeued".
 > 
-> Thanks,
-> -hyun
-> 
-> [1] https://patchwork.kernel.org/patch/10513001/
-> [2] https://github.com/Xilinx/XRT
-> [3] https://github.com/Xilinx/XRT/tree/master/src/runtime_src/driver/zynq/drm
+> However, as Hans mentioned it would be nice to be able to assume that
+> the capture queue is FIFO and let user-space rely in that fact to
+> queue buffers containing reference frames earlier.
 
-I've done a very quick look only, and yes this is kinda what I'd expect.
-Doing a small drm gem driver for an fpga/accelarator that needs lots of
-memories is the right architecture, since at the low level of kernel
-interfaces a gpu really isn't anything else than an accelarater.
+I would not be opposed to adding a capability that explicitly states that
+the given vb2 queue is always ordered. It would always be true for drivers
+using the v4l2-mem2mem framework (and can be set there).
 
-And from a very cursory look the gem driver you mentioned (I only scrolled
-through the ioctl handler quickly) looks reasonable.
--Daniel
+Unordered queues make no sense for m2m devices, at least I cannot think
+of any use-case for it.
+
 > 
-> > Thanks, Daniel
-> > 
-> > > Thanks,
-> > > -hyun
-> > >
-> > > [1] https://github.com/OpenAMP/libmetal/pull/82/commits/951e2762bd487c98919ad12f2aa81773d8fe7859
-> > > [2] https://github.com/Xilinx/embeddedsw/tree/master/XilinxProcessorIPLib/drivers
-> > >
-> > > >
-> > > > commit 4be9bd10e22dfc7fc101c5cf5969ef2d3a042d8a (tag:
-> > > > drm-misc-next-fixes-2018-10-03)
-> > > > Author: Neil Armstrong <narmstrong@baylibre.com>
-> > > > Date:   Fri Sep 28 14:05:55 2018 +0200
-> > > >
-> > > >     drm/fb_helper: Allow leaking fbdev smem_start
-> > > >
-> > > > Together with cuse the above patch should be enough to implement a drm
-> > > > driver entirely in userspace at least.
-> > > >
-> > > > Cheers, Daniel
-> > > > --
-> > > > Daniel Vetter
-> > > > Software Engineer, Intel Corporation
-> > > > +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-> > 
-> > 
-> > 
-> > -- 
-> > Daniel Vetter
-> > Software Engineer, Intel Corporation
-> > +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+>>
+>>>>> But this is an optimization and theoretically it can depend on the
+>>>>> driver behavior. It is always safe to only queue a reference frame
+>>>>> when all frames depending on it have been decoded. So I am leaning
+>>>>> towards not complicating matters and keeping your first sentence
+>>>>> as-is.
+>>>>
+>>>> Yes, I believe it would be much simpler to require userspace to only
+>>>> queue capture buffers once they are no longer needed as references.
+>>>
+>>> I think that's what we should document, but in cases where you know
+>>> the hardware (i.e. an embedded system) it should be allowed to optimize
+>>> and have the application queue a capture buffer containing a reference
+>>> frame even if it is still in use by already queued output buffers.
+>>>
+>>> That way you can achieve optimal speed and memory usage.
+>>>
+>>> I think this is a desirable feature.
+>>
+>> Yes, definitely.
+> 
+> I guess the question comes down to "how can user-space know that the
+> hardware supports this"? Do we have a flag that we can return to
+> signal this behavior? Or can we just define the CAPTURE queue as being
+> FIFO for stateless codecs? The latter would make sense IMHO.
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+As far as I know all m2m devices are ordered today. As are all video
+output devices. For video capture devices I know of one driver that is unordered:
+cobalt. As far as I know all other video capture devices that use vb2 or the
+old videobuf are all ordered. A few very old drivers that do not use these frameworks
+would have to be reviewed to see if they do anything weird.
+
+I think the cobalt driver can be modified so that it is ordered as well.
+
+There are three options: add a V4L2_BUF_CAP_IS_ORDERED flag, add a
+V4L2_BUF_CAP_IS_UNORDERED flag, or just document and require that all v4l2 devices
+are ordered (nobody cares about the cobalt driver, it's Cisco internal hardware).
+
+I'm honestly not certain which of these options is the best, keeping in mind that
+we have no idea if reordering might be needed in the future.
+
+Regards,
+
+	Hans
