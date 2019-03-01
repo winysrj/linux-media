@@ -2,272 +2,372 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35B1CC43381
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:55:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A33CC43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 09:09:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E30C5218B0
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:55:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="EgI6t+UO"
+	by mail.kernel.org (Postfix) with ESMTP id 0B5EA2083D
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 09:09:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731683AbfCAIzK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 03:55:10 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:44030 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727052AbfCAIzJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 03:55:09 -0500
-Received: by mail-ed1-f67.google.com with SMTP id m35so19310475ede.10
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2019 00:55:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=sender:date:from:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=6JSj88hu2XntZH+r/9g9XYQars3muYppbN70BI4AiSM=;
-        b=EgI6t+UOodnsmhx5WYqEuMC1u7kkC44U30Dcdzcj24sqj0zU2mEjjjo6AjYaGVM73V
-         XsiqV3F7zVOZXRO93ZrJizFLf08JssaxOB+hFoUSc0+xgSnPete42XEvWw1uPoBd0dN/
-         TjUtGX27SFyfaL2R3rgR2HZTUPeHRGnCRAmz4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to:user-agent;
-        bh=6JSj88hu2XntZH+r/9g9XYQars3muYppbN70BI4AiSM=;
-        b=XTF6JmvDburRWn40bHChUDmPwG7PjgfYBbJnUTvZHAwys81e8ot8dC3Jg2JM96mx+o
-         fohD3UCRocNqGr/fkCEDS+QPvxm0zBXUzPQdl6RBxFeydRaHkltguWwkl25BM650CB9K
-         6e7wAzIUzSAj/QqaLb3rdNazPtsvohLVrQ6ksObarTtlYErzrMf0Xpj/dF7MyGlDIDE9
-         DIZWmBNPTCWZiLvP7rBerXoI/ujpENdLrEIUwCbR1b9JKwK5UADc0TAta/q+8HSkpAka
-         BxHaowBWwmSl5CdBcWoiL88s42Qk+/sgvamEgoY4qUcjKcYsW111T4mvlsw9U7L6VMO1
-         3z3Q==
-X-Gm-Message-State: APjAAAWbfFHVMzvovVinzaMsjMHLI0DJEfSezrD2L534ROAzyS6NUkDN
-        XFXPaq7B7BthVk/U83AFJQLvrA==
-X-Google-Smtp-Source: APXvYqwpKe4onHsyeu8lzM1whULTPhJ0l7teuN5TnDSTMEdUeUexIv2Rcp0Ei7uUDUwWyl0mpxNFPg==
-X-Received: by 2002:a50:b4e6:: with SMTP id x35mr3248822edd.123.1551430507212;
-        Fri, 01 Mar 2019 00:55:07 -0800 (PST)
-Received: from phenom.ffwll.local ([2a02:168:569e:0:3106:d637:d723:e855])
-        by smtp.gmail.com with ESMTPSA id a58sm5810068eda.91.2019.03.01.00.55.05
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 01 Mar 2019 00:55:05 -0800 (PST)
-Date:   Fri, 1 Mar 2019 09:55:03 +0100
-From:   Daniel Vetter <daniel@ffwll.ch>
-To:     Hyun Kwon <hyun.kwon@xilinx.com>
-Cc:     Daniel Vetter <daniel@ffwll.ch>, Hyun Kwon <hyunk@xilinx.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Stefano Stabellini <stefanos@xilinx.com>,
-        Sonal Santan <sonals@xilinx.com>,
-        Cyril Chemparathy <cyrilc@xilinx.com>,
-        Jiaying Liang <jliang@xilinx.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
-        <linaro-mm-sig@lists.linaro.org>,
-        Michal Simek <michals@xilinx.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK" 
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 1/1] uio: Add dma-buf import ioctls
-Message-ID: <20190301085503.GV2665@phenom.ffwll.local>
-Mail-Followup-To: Hyun Kwon <hyun.kwon@xilinx.com>,
-        Hyun Kwon <hyunk@xilinx.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Stefano Stabellini <stefanos@xilinx.com>,
-        Sonal Santan <sonals@xilinx.com>,
-        Cyril Chemparathy <cyrilc@xilinx.com>,
-        Jiaying Liang <jliang@xilinx.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" <linaro-mm-sig@lists.linaro.org>,
-        Michal Simek <michals@xilinx.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK" <linux-media@vger.kernel.org>
-References: <1550953697-7288-1-git-send-email-hyun.kwon@xilinx.com>
- <1550953697-7288-2-git-send-email-hyun.kwon@xilinx.com>
- <20190226115311.GA4094@kroah.com>
- <CAKMK7uE=dSyo5vdjtQf=k1rdoegiBgSozCOotXLSW2VAkz2Ldw@mail.gmail.com>
- <20190226221817.GB10631@smtp.xilinx.com>
- <CAKMK7uFay0mjHFhQqmQ7fneS2B0xNW_Nv4AWqp-FK1NnHVe5uw@mail.gmail.com>
- <20190228003606.GA1063@smtp.xilinx.com>
- <20190228100146.GK2665@phenom.ffwll.local>
- <20190301001856.GA20971@smtp.xilinx.com>
+        id S1733234AbfCAJJC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 04:09:02 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58546 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731040AbfCAJJC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Mar 2019 04:09:02 -0500
+Received: from [IPv6:2001:983:e9a7:1:28f6:efa6:3b03:d09a] ([IPv6:2001:983:e9a7:1:28f6:efa6:3b03:d09a])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id zeA7gLW52LMwIzeA8ghG8l; Fri, 01 Mar 2019 10:09:00 +0100
+Subject: Re: [v4l-utils PATCH v5 3/3] v4l2-ctl: Add implementation for the
+ stateless fwht decoder.
+To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
+Cc:     helen.koike@collabora.com
+References: <20190227070757.25092-1-dafna3@gmail.com>
+ <20190227070757.25092-4-dafna3@gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bf4951cb-293a-6b22-ec8a-2beb44f9746d@xs4all.nl>
+Date:   Fri, 1 Mar 2019 10:08:59 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190301001856.GA20971@smtp.xilinx.com>
-X-Operating-System: Linux phenom 4.19.0-1-amd64 
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190227070757.25092-4-dafna3@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfEQEXXTliOJnIKytzlYoJdyx8WU/bvBYlXJnyhNiVlZ2wEAETiJQPd0Vqz1MHYN0wjEurWrc7PLAu0WZUY2XE0t53r3qRjSS9s8gH3NNUxDEzGw4lC3J
+ rJ9oKUOU6hwRQiUzGmCJ3EmUVPRla73yKR18iMQLcSZoMe/nq7hvs1EqhRASmKFCkllDw0gdmBpfGIeDKLufUF8YYmNUzuoZN+zgAlpcBWdtAiGIObhh78R5
+ k1pfkrI4Xx5jRLRiF0WPtleMSSFD+OKWqIxDs7/2JgJNp7HeR/ruI4naRMoh9hFk3cdAYO3Eng/nzoG+MO6+GK07wGfNEBFMT8sFGnb83bM=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Feb 28, 2019 at 04:18:57PM -0800, Hyun Kwon wrote:
-> Hi Daniel,
+On 2/27/19 8:07 AM, Dafna Hirschfeld wrote:
+> Add code to support the stateless decoder
+> and the function 'stateless_m2m' that implements it.
 > 
-> On Thu, 2019-02-28 at 02:01:46 -0800, Daniel Vetter wrote:
-> > On Wed, Feb 27, 2019 at 04:36:06PM -0800, Hyun Kwon wrote:
-> > > Hi Daniel,
-> > > 
-> > > On Wed, 2019-02-27 at 06:13:45 -0800, Daniel Vetter wrote:
-> > > > On Tue, Feb 26, 2019 at 11:20 PM Hyun Kwon <hyun.kwon@xilinx.com> wrote:
-> > > > >
-> > > > > Hi Daniel,
-> > > > >
-> > > > > Thanks for the comment.
-> > > > >
-> > > > > On Tue, 2019-02-26 at 04:06:13 -0800, Daniel Vetter wrote:
-> > > > > > On Tue, Feb 26, 2019 at 12:53 PM Greg Kroah-Hartman
-> > > > > > <gregkh@linuxfoundation.org> wrote:
-> > > > > > >
-> > > > > > > On Sat, Feb 23, 2019 at 12:28:17PM -0800, Hyun Kwon wrote:
-> > > > > > > > Add the dmabuf map / unmap interfaces. This allows the user driver
-> > > > > > > > to be able to import the external dmabuf and use it from user space.
-> > > > > > > >
-> > > > > > > > Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-> > > > > > > > ---
-> > > > > > > >  drivers/uio/Makefile         |   2 +-
-> > > > > > > >  drivers/uio/uio.c            |  43 +++++++++
-> > > > > > > >  drivers/uio/uio_dmabuf.c     | 210 +++++++++++++++++++++++++++++++++++++++++++
-> > > > > > > >  drivers/uio/uio_dmabuf.h     |  26 ++++++
-> > > > > > > >  include/uapi/linux/uio/uio.h |  33 +++++++
-> > > > > > > >  5 files changed, 313 insertions(+), 1 deletion(-)
-> > > > > > > >  create mode 100644 drivers/uio/uio_dmabuf.c
-> > > > > > > >  create mode 100644 drivers/uio/uio_dmabuf.h
-> > > > > > > >  create mode 100644 include/uapi/linux/uio/uio.h
-> > > > > > > >
-> > > > > > > > diff --git a/drivers/uio/Makefile b/drivers/uio/Makefile
-> > > > > > > > index c285dd2..5da16c7 100644
-> > > > > > > > --- a/drivers/uio/Makefile
-> > > > > > > > +++ b/drivers/uio/Makefile
-> > > > > > > > @@ -1,5 +1,5 @@
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 234 +++++++++++++++++++++++++-
+>  1 file changed, 231 insertions(+), 3 deletions(-)
 > 
-> [snip]
-> 
-> > > > > > Frankly looks like a ploy to sidestep review by graphics folks. We'd
-> > > > > > ask for the userspace first :-)
-> > > > >
-> > > > > Please refer to pull request [1].
-> > > > >
-> > > > > For any interest in more details, the libmetal is the abstraction layer
-> > > > > which provides platform independent APIs. The backend implementation
-> > > > > can be selected per different platforms: ex, rtos, linux,
-> > > > > standalone (xilinx),,,. For Linux, it supports UIO / vfio as of now.
-> > > > > The actual user space drivers sit on top of libmetal. Such drivers can be
-> > > > > found in [2]. This is why I try to avoid any device specific code in
-> > > > > Linux kernel.
-> > > > >
-> > > > > >
-> > > > > > Also, exporting dma_addr to userspace is considered a very bad idea.
-> > > > >
-> > > > > I agree, hence the RFC to pick some brains. :-) Would it make sense
-> > > > > if this call doesn't export the physicall address, but instead takes
-> > > > > only the dmabuf fd and register offsets to be programmed?
-> > > > >
-> > > > > > If you want to do this properly, you need a minimal in-kernel memory
-> > > > > > manager, and those tend to be based on top of drm_gem.c and merged
-> > > > > > through the gpu tree. The last place where we accidentally leaked a
-> > > > > > dma addr for gpu buffers was in the fbdev code, and we plugged that
-> > > > > > one with
-> > > > >
-> > > > > Could you please help me understand how having a in-kernel memory manager
-> > > > > helps? Isn't it just moving same dmabuf import / paddr export functionality
-> > > > > in different modules: kernel memory manager vs uio. In fact, Xilinx does have
-> > > > > such memory manager based on drm gem in downstream. But for this time we took
-> > > > > the approach of implementing this through generic dmabuf allocator, ION, and
-> > > > > enabling the import capability in the UIO infrastructure instead.
-> > > > 
-> > > > There's a group of people working on upstreaming a xilinx drm driver
-> > > > already. Which driver are we talking about? Can you pls provide a link
-> > > > to that xilinx drm driver?
-> > > > 
-> > > 
-> > > The one I was pushing [1] is implemented purely for display, and not
-> > > intended for anything other than that as of now. What I'm refering to above
-> > > is part of Xilinx FPGA (acceleration) runtime [2]. As far as I know,
-> > > it's planned to be upstreamed, but not yet started. The Xilinx runtime
-> > > software has its own in-kernel memory manager based on drm_cma_gem with
-> > > its own ioctls [3].
-> > > 
-> > > Thanks,
-> > > -hyun
-> > > 
-> > > [1] https://patchwork.kernel.org/patch/10513001/
-> > > [2] https://github.com/Xilinx/XRT
-> > > [3] https://github.com/Xilinx/XRT/tree/master/src/runtime_src/driver/zynq/drm
-> > 
-> > I've done a very quick look only, and yes this is kinda what I'd expect.
-> > Doing a small drm gem driver for an fpga/accelarator that needs lots of
-> > memories is the right architecture, since at the low level of kernel
-> > interfaces a gpu really isn't anything else than an accelarater.
-> > 
-> > And from a very cursory look the gem driver you mentioned (I only scrolled
-> > through the ioctl handler quickly) looks reasonable.
-> 
-> Thanks for taking time to look and share input. But still I'd like to
-> understand why it's more reasonable if the similar ioctl exists with drm
-> than with uio. Is it because such drm ioctl is vendor specific?
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> index dd0eeef6..e279b0b5 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> @@ -1071,8 +1071,9 @@ restart:
+>  				return false;
+>  			}
+>  		}
+> -
+> -		if (support_out_crop && v4l2_fwht_find_pixfmt(fmt.g_pixelformat()))
+> +		if (q.g_capabilities() & V4L2_BUF_CAP_SUPPORTS_REQUESTS)
+> +			read_fwht_frame(fmt, (unsigned char *)buf, fin, sz, len);
 
-We do have quite a pile of shared infrastructure in drm beyond just the
-vendor specific ioctl. So putting accelerator drivers there makes sense,
-whether the programming is a GPU, some neural network folder, an FPGA or
-something else. The one issue is that we require open source userspace
-together with your driver, since just the accelerator shim in the kernel
-alone is fairly useless (both for review and for doing anything with it).
+This looks wrong. This should (I think) test if fmt.g_pixelformat() == V4L2_PIX_FMT_FWHT_STATELESS
+and only then call read_fwht_frame().
 
-But there's also some kernel maintainers who disagree and happily take
-drivers originally written for drm and then rewritten for non-drm for
-upstream to avoid the drm folks (or at least it very much looks like that,
-and happens fairly regularly).
+Right now it would also call this function for e.g. the cedrus driver, which is obviously
+wrong.
 
-Cheers, Daniel
+What is also inefficient is that read_fwht_frame first reads the header in the buffer,
+then reads the compressed data after the header. This means that you need to do a
+memmove as you do below.
 
+Why not read the header into a global struct fwht_cframe_hdr? Then you don't need a
+split_fwht_frame, which is very inefficient.
+
+> +		else if (support_out_crop && v4l2_fwht_find_pixfmt(fmt.g_pixelformat()))
+>  			read_write_padded_frame(fmt, (unsigned char *)buf, fin, sz, len, true);
+>  		else
+>  			sz = fread(buf, 1, len, fin);
+> @@ -1099,6 +1100,21 @@ restart:
+>  	return true;
+>  }
+>  
+> +static bool split_fwht_frame(u8 *frame, struct fwht_cframe_hdr *hdr, unsigned max_len)
+> +{
+> +	unsigned int len;
+> +	bool ret = true;
+> +
+> +	memcpy(hdr, frame, sizeof(struct fwht_cframe_hdr));
+> +	len = ntohl(hdr->size);
+> +	if (len > max_len) {
+> +		len = max_len;
+> +		ret = false;
+> +	}
+> +	memmove(frame, frame + sizeof(struct fwht_cframe_hdr), len);
+> +	return ret;
+> +}
+> +
+>  static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf)
+>  {
+>  	tpg_pixel_aspect aspect = TPG_PIXEL_ASPECT_SQUARE;
+> @@ -1203,6 +1219,33 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
+>  		if (fin && !fill_buffer_from_file(fd, q, buf, fmt, fin))
+>  			return -2;
+>  
+> +		struct fwht_cframe_hdr hdr;
+> +
+> +		if (q.g_capabilities() & V4L2_BUF_CAP_SUPPORTS_REQUESTS) {
+
+Same thing here, check against V4L2_PIX_FMT_FWHT_STATELESS instead. I won't repeat myself,
+so check and replace other occurrences of this.
+
+> +			int media_fd = mi_get_media_fd(fd.g_fd());
+> +
+> +			if (!split_fwht_frame((u8 *)q.g_dataptr(buf.g_index(), 0),
+> +					      &hdr, buf.g_length(0)))
+> +				fprintf(stderr, "%s: warning: size field in fwht header is larger than buf size\n",
+> +					__func__);
+> +
+> +			if (media_fd < 0) {
+> +				fprintf(stderr, "%s: mi_get_media_fd failed\n", __func__);
+> +				return media_fd;
+> +			}
+> +
+> +			if (alloc_fwht_req(media_fd, i))
+> +				return -1;
+> +			buf.s_request_fd(fwht_reqs[i].fd);
+> +			buf.or_flags(V4L2_BUF_FLAG_REQUEST_FD);
+> +
+> +			if (set_fwht_ext_ctrl(fd, &hdr, last_fwht_bf_ts,
+> +					      buf.g_request_fd())) {
+> +				fprintf(stderr, "%s: set_fwht_ext_ctrls failed on %dth buf: %s\n",
+> +					__func__, i, strerror(errno));
+> +				return -1;
+> +			}
+> +		}
+>  		if (qbuf) {
+>  			set_time_stamp(buf);
+>  			if (fd.qbuf(buf))
+> @@ -1212,6 +1255,16 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
+>  				fprintf(stderr, ">");
+>  			fflush(stderr);
+>  		}
+> +		if (q.g_capabilities() & V4L2_BUF_CAP_SUPPORTS_REQUESTS) {
+> +			set_fwht_req_by_idx(i, &hdr,
+> +					    last_fwht_bf_ts, get_ns_timestamp(buf));
+> +			last_fwht_bf_ts = get_ns_timestamp(buf);
+> +			if (ioctl(buf.g_request_fd(), MEDIA_REQUEST_IOC_QUEUE) < 0) {
+> +				fprintf(stderr, "Unable to queue media request: %s\n",
+> +					strerror(errno));
+> +				return -1;
+> +			}
+> +		}
+>  	}
+>  	if (qbuf)
+>  		output_field = field;
+> @@ -1450,12 +1503,48 @@ static int do_handle_out(cv4l_fd &fd, cv4l_queue &q, FILE *fin, cv4l_buffer *cap
+>  				       (u8 *)q.g_dataptr(buf.g_index(), j));
+>  	}
+>  
+> +	struct fwht_cframe_hdr hdr;
+> +
+> +	if (q.g_capabilities() & V4L2_BUF_CAP_SUPPORTS_REQUESTS) {
+> +		if (ioctl(buf.g_request_fd(), MEDIA_REQUEST_IOC_REINIT, NULL)) {
+> +			fprintf(stderr, "Unable to reinit media request: %s\n",
+> +				strerror(errno));
+> +			return -1;
+> +		}
+> +		if (!split_fwht_frame((u8 *)q.g_dataptr(buf.g_index(), 0), &hdr, buf.g_length(0)))
+> +			fprintf(stderr, "%s: warning: size field in fwht header is larger than buf size\n",
+> +					__func__);
+> +
+> +		if (set_fwht_ext_ctrl(fd, &hdr, last_fwht_bf_ts,
+> +				      buf.g_request_fd())) {
+> +			fprintf(stderr, "%s: set_fwht_ext_ctrls failed: %s\n",
+> +				__func__, strerror(errno));
+> +			return -1;
+> +		}
+> +	}
+> +
+>  	set_time_stamp(buf);
+>  
+>  	if (fd.qbuf(buf)) {
+>  		fprintf(stderr, "%s: failed: %s\n", "VIDIOC_QBUF", strerror(errno));
+>  		return -1;
+>  	}
+> +	if (q.g_capabilities() & V4L2_BUF_CAP_SUPPORTS_REQUESTS) {
+> +		if (!set_fwht_req_by_fd(&hdr, buf.g_request_fd(), last_fwht_bf_ts,
+> +					get_ns_timestamp(buf))) {
+> +			fprintf(stderr, "%s: request for fd %d does not exist\n",
+> +				__func__, buf.g_request_fd());
+> +			return -1;
+> +		}
+> +
+> +		last_fwht_bf_ts = get_ns_timestamp(buf);
+> +		if (ioctl(buf.g_request_fd(), MEDIA_REQUEST_IOC_QUEUE) < 0) {
+> +			fprintf(stderr, "Unable to queue media request: %s\n",
+> +				strerror(errno));
+> +			return -1;
+> +		}
+> +	}
+> +
+>  	tpg_update_mv_count(&tpg, V4L2_FIELD_HAS_T_OR_B(output_field));
+>  
+>  	if (!verbose)
+> @@ -2244,6 +2333,140 @@ static void stateful_m2m(cv4l_fd &fd, cv4l_queue &in, cv4l_queue &out,
+>  	tpg_free(&tpg);
+>  }
+>  
+> +static void stateless_m2m(cv4l_fd &fd, cv4l_queue &in, cv4l_queue &out,
+> +			  FILE *fin, FILE *fout, cv4l_fd *exp_fd_p)
+> +{
+> +	fps_timestamps fps_ts[2];
+> +	unsigned count[2] = { 0, 0 };
+> +	cv4l_fmt fmt[2];
+> +	int fd_flags = fcntl(fd.g_fd(), F_GETFL);
+> +
+> +	fd.g_fmt(fmt[OUT], out.g_type());
+> +	fd.g_fmt(fmt[CAP], in.g_type());
+> +
+> +	if (out.reqbufs(&fd, reqbufs_count_out)) {
+> +		fprintf(stderr, "%s: out.reqbufs failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (in.reqbufs(&fd, reqbufs_count_cap)) {
+> +		fprintf(stderr, "%s: in.reqbufs failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (exp_fd_p && in.export_bufs(exp_fd_p, exp_fd_p->g_type()))
+> +		return;
+> +
+> +	if (in.obtain_bufs(&fd)) {
+> +		fprintf(stderr, "%s: in.obtain_bufs error\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (do_setup_out_buffers(fd, out, fout, true) == -1) {
+> +		fprintf(stderr, "%s: do_setup_out_buffers failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (in.queue_all(&fd)) {
+> +		fprintf(stderr, "%s: in.queue_all failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (fd.streamon(out.g_type())) {
+> +		fprintf(stderr, "%s: streamon for out failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (fd.streamon(in.g_type())) {
+> +		fprintf(stderr, "%s: streamon for in failed\n", __func__);
+> +		return;
+> +	}
+> +	int index = 0;
+> +	bool queue_lst_buf = false;
+> +	cv4l_buffer last_in_buf;
+> +
+> +	fcntl(fd.g_fd(), F_SETFL, fd_flags | O_NONBLOCK);
+> +
+> +	while (true) {
+> +		fd_set except_fds;
+> +		int req_fd =fwht_reqs[index].fd;
+> +		struct timeval tv = { 2, 0 };
+> +
+> +		FD_ZERO(&except_fds);
+> +		FD_SET(req_fd, &except_fds);
+> +
+> +		int rc = select(req_fd + 1, NULL, NULL, &except_fds, &tv);
+> +
+> +		if (rc == 0) {
+> +			fprintf(stderr, "Timeout when waiting for media request\n");
+> +			return;
+> +		} else if (rc < 0) {
+> +			fprintf(stderr, "Unable to select media request: %s\n",
+> +				strerror(errno));
+> +			return;
+> +		}
+> +		/*
+> +		 * it is safe to queue back last cap buffer only after
+> +		 * the following request is done so that the buffer
+> +		 * is not needed anymore as a reference frame
+> +		 */
+> +		if (queue_lst_buf) {
+> +			if (fd.qbuf(last_in_buf) < 0) {
+> +				fprintf(stderr, "%s: qbuf failed\n", __func__);
+> +				return;
+> +			}
+> +		}
+> +		int buf_idx = -1;
+> +		  /*
+> +		   * fin is not sent to do_handle_cap since the capture buf is
+> +		   * written to the file in current function
+> +		   */
+> +		rc = do_handle_cap(fd, in, NULL, &buf_idx, count[CAP],
+> +				   fps_ts[CAP], fmt[CAP]);
+> +		if (rc) {
+> +			fprintf(stderr, "%s: do_handle_cap err\n", __func__);
+> +			return;
+> +		}
+> +		/*
+> +		 * in case of an error in the frame, set last ts to 0 as a mean
+> +		 * to recover so that next request will not use a
+> +		 * reference buffer. Otherwise the error flag will be set to
+> +		 * all the future capture buffers.
+> +		 */
+> +		if (buf_idx == -1) {
+> +			fprintf(stderr, "%s: frame returned with error\n", __func__);
+> +			last_fwht_bf_ts	= 0;
+> +		} else {
+> +			cv4l_buffer cap_buf(in, index);
+> +			if (fd.querybuf(cap_buf))
+> +				return;
+> +			last_in_buf = cap_buf;
+> +			queue_lst_buf = true;
+> +			if (fin && cap_buf.g_bytesused(0) &&
+> +			    !(cap_buf.g_flags() & V4L2_BUF_FLAG_ERROR)) {
+> +				int idx = get_fwht_req_by_ts(get_ns_timestamp(cap_buf));
+> +
+> +				if (idx < 0) {
+> +					fprintf(stderr, "%s: could not find request from buffer\n", __func__);
+> +					fprintf(stderr, "%s: ts = %llu\n", __func__, get_ns_timestamp(cap_buf));
+> +					return;
+> +				}
+> +				composed_width = fwht_reqs[idx].params.width;
+> +				composed_height = fwht_reqs[idx].params.height;
+> +				write_buffer_to_file(fd, in, cap_buf,
+> +						     fmt[CAP], fin);
+> +			}
+> +		}
+> +		rc = do_handle_out(fd, out, fout, NULL, count[OUT],
+> +				   fps_ts[OUT], fmt[OUT]);
+> +		if (rc) {
+> +			fprintf(stderr, "%s: output stream ended\n", __func__);
+> +			close(req_fd);
+> +		}
+> +		index = (index + 1) % out.g_buffers();
+> +	}
+> +}
+> +
+>  static void streaming_set_m2m(cv4l_fd &fd, cv4l_fd &exp_fd)
+>  {
+>  	cv4l_queue in(fd.g_type(), memory);
+> @@ -2280,7 +2503,12 @@ static void streaming_set_m2m(cv4l_fd &fd, cv4l_fd &exp_fd)
+>  		if (out.export_bufs(&exp_fd, exp_fd.g_type()))
+>  			return;
+>  	}
+> -	stateful_m2m(fd, in, out, file[CAP], file[OUT], exp_fd_p);
+> +	if (out.reqbufs(&fd, 0))
+> +		goto done;
+> +	if (out.g_capabilities() & V4L2_BUF_CAP_SUPPORTS_REQUESTS)
+> +		stateless_m2m(fd, in, out, file[CAP], file[OUT], exp_fd_p);
+> +	else
+> +		stateful_m2m(fd, in, out, file[CAP], file[OUT], exp_fd_p);
+>  done:
+>  	if (options[OptStreamDmaBuf] || options[OptStreamOutDmaBuf])
+>  		exp_q.close_exported_fds();
 > 
-> Thanks,
-> -hyun
-> 
-> > -Daniel
-> > > 
-> > > > Thanks, Daniel
-> > > > 
-> > > > > Thanks,
-> > > > > -hyun
-> > > > >
-> > > > > [1] https://github.com/OpenAMP/libmetal/pull/82/commits/951e2762bd487c98919ad12f2aa81773d8fe7859
-> > > > > [2] https://github.com/Xilinx/embeddedsw/tree/master/XilinxProcessorIPLib/drivers
-> > > > >
-> > > > > >
-> > > > > > commit 4be9bd10e22dfc7fc101c5cf5969ef2d3a042d8a (tag:
-> > > > > > drm-misc-next-fixes-2018-10-03)
-> > > > > > Author: Neil Armstrong <narmstrong@baylibre.com>
-> > > > > > Date:   Fri Sep 28 14:05:55 2018 +0200
-> > > > > >
-> > > > > >     drm/fb_helper: Allow leaking fbdev smem_start
-> > > > > >
-> > > > > > Together with cuse the above patch should be enough to implement a drm
-> > > > > > driver entirely in userspace at least.
-> > > > > >
-> > > > > > Cheers, Daniel
-> > > > > > --
-> > > > > > Daniel Vetter
-> > > > > > Software Engineer, Intel Corporation
-> > > > > > +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-> > > > 
-> > > > 
-> > > > 
-> > > > -- 
-> > > > Daniel Vetter
-> > > > Software Engineer, Intel Corporation
-> > > > +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-> > 
-> > -- 
-> > Daniel Vetter
-> > Software Engineer, Intel Corporation
-> > http://blog.ffwll.ch
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Regards,
+
+	Hans
