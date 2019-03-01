@@ -2,190 +2,145 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE1FFC10F03
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:22:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85E48C10F03
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:24:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC23620851
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:22:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=renesasgroup.onmicrosoft.com header.i=@renesasgroup.onmicrosoft.com header.b="uaOKpPgW"
+	by mail.kernel.org (Postfix) with ESMTP id 517C0218FE
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:24:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1551446672;
+	bh=GHlyWossnmhNHlfNjStqRCNy7VFXoSTAb/Avgu4iTrY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=crjrfzvD8Bwm7eXAoZ6/NTGqrXKpwO2bmswrvejJpCCM8e/6OABdBXRkqi98ojEkH
+	 +YpQnF4nBBLUhi2DcPlzVvnYWPqLMtCTvQkkhZsRmvrNrPtL3qrcZ3zDVHkkgcGGLa
+	 /UAxzbWEDyPMHAUW4Dx7bFaG07KLL8j5/GHhlPFo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387544AbfCANWC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 08:22:02 -0500
-Received: from mail-eopbgr1410120.outbound.protection.outlook.com ([40.107.141.120]:59952
-        "EHLO JPN01-OS2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727951AbfCANWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Mar 2019 08:22:01 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=renesasgroup.onmicrosoft.com; s=selector1-bp-renesas-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=83ZfaTPbwZc8O4Y2wJNfBDuhOjPGhd7syWvH9Pve66k=;
- b=uaOKpPgWmUyRD4A3qV1Ttbta9e7esWLqYmD89dH1tZY/NvAOvUM/vY8dCzfObwH8AirBZXLhgiiYEfAjgG+Ks6Pnv8vXFfJOVHkPetMHj6j5p4bm+Rno3a/iiAVXU8RxsPjHxjHEV9YccOWwMs5rocPbX/yynGo7u83eMeNMBwc=
-Received: from OSBPR01MB2103.jpnprd01.prod.outlook.com (52.134.242.17) by
- OSBPR01MB3031.jpnprd01.prod.outlook.com (52.134.252.78) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1665.17; Fri, 1 Mar 2019 13:21:54 +0000
-Received: from OSBPR01MB2103.jpnprd01.prod.outlook.com
- ([fe80::d5b0:ac4:6d54:6285]) by OSBPR01MB2103.jpnprd01.prod.outlook.com
- ([fe80::d5b0:ac4:6d54:6285%5]) with mapi id 15.20.1643.022; Fri, 1 Mar 2019
- 13:21:54 +0000
-From:   Biju Das <biju.das@bp.renesas.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-CC:     Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?utf-8?B?TmlrbGFzIFPDtmRlcmx1bmQ=?= 
-        <niklas.soderlund@ragnatech.se>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org" 
-        <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms@verge.net.au>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: RE: [PATCH 1/5] media: dt-bindings: media: rcar-csi2: Add r8a774a1
- support
-Thread-Topic: [PATCH 1/5] media: dt-bindings: media: rcar-csi2: Add r8a774a1
- support
-Thread-Index: AQHUSRPkl3NtQmcXZ0CHMGvDpVFZWaX3vTWAgAAM14CAAACzgIAAAukAgAAAKZCAAAKxAIAAAADg
-Date:   Fri, 1 Mar 2019 13:21:54 +0000
-Message-ID: <OSBPR01MB2103BF5BE70662BFE16DF5B1B8760@OSBPR01MB2103.jpnprd01.prod.outlook.com>
-References: <1536589878-26218-1-git-send-email-biju.das@bp.renesas.com>
- <1536589878-26218-2-git-send-email-biju.das@bp.renesas.com>
- <TYXPR01MB1775F18270FB477D010C180EC0760@TYXPR01MB1775.jpnprd01.prod.outlook.com>
- <8a5429a0-b4c5-a208-3e56-406bd031b01b@xs4all.nl>
- <CAMuHMdXOcFaQiLUNiuUS_p5H0r3ZWMrWd09m5xZk4qitvLS25g@mail.gmail.com>
- <3b702231-8d50-8434-177c-716203dac7b2@xs4all.nl>
- <OSBPR01MB21034BCCB73E585F2BC8C03CB8760@OSBPR01MB2103.jpnprd01.prod.outlook.com>
- <f6a3e336-9d44-aa06-5f92-e08398b6e992@xs4all.nl>
-In-Reply-To: <f6a3e336-9d44-aa06-5f92-e08398b6e992@xs4all.nl>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=biju.das@bp.renesas.com; 
-x-originating-ip: [193.141.220.21]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 610264fb-d166-4b36-b8fe-08d69e48dfaa
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600127)(711020)(4605104)(4618075)(2017052603328)(7153060)(7193020);SRVR:OSBPR01MB3031;
-x-ms-traffictypediagnostic: OSBPR01MB3031:
-x-microsoft-exchange-diagnostics: 1;OSBPR01MB3031;20:mxcn8BNHONi//hNQDOXRbxjPcT9tiCRPpQ+62S9SokYgrZuqpm9NjUF2Qcb9E41oaxCStHTB3nC6P1hDM5qbW8jArfN0znKLRU8yS0oin9X1DhQqdrCE+4DEValKVwGbBR0KD/bEB4hDgbfV8bYYO//sUHqh2CE+fUVuy0a8P7U=
-x-microsoft-antispam-prvs: <OSBPR01MB3031EAC565F6FFBFB59E36D7B8760@OSBPR01MB3031.jpnprd01.prod.outlook.com>
-x-forefront-prvs: 09634B1196
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(39860400002)(396003)(376002)(346002)(366004)(136003)(189003)(199004)(51914003)(13464003)(93886005)(74316002)(86362001)(2906002)(97736004)(8676002)(81156014)(256004)(14454004)(7736002)(25786009)(11346002)(44832011)(486006)(81166006)(476003)(446003)(305945005)(7416002)(71200400001)(71190400001)(33656002)(4326008)(229853002)(6246003)(68736007)(53546011)(102836004)(6506007)(106356001)(53936002)(478600001)(52536013)(5660300002)(110136005)(54906003)(55016002)(66066001)(26005)(186003)(316002)(3846002)(6116002)(9686003)(8936002)(7696005)(99286004)(76176011)(105586002)(6436002);DIR:OUT;SFP:1102;SCL:1;SRVR:OSBPR01MB3031;H:OSBPR01MB2103.jpnprd01.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:0;
-received-spf: None (protection.outlook.com: bp.renesas.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: FY4x9eLVuugOX3IAzAfYfSVKcPOdijRx6Phl3ThTGPacHzMKb6VaEE7OQlM0KGu+sj/ZBSFx4N7uwybSpxn0A/pSKnSsuhgv1fYEb6o04dybo+Px+hr49vkBl6JMIK5fPNSCQ6rzWp1VJiSJVzVzRixrj7C4bELByAlVEsXuCQ+VEvZz5BKw4BRDa2m80f1g7NcVGgvt6P6ONDsNDAvS1i/v7yRcGt8qoL1S+K0Mu7HKzdhtHP22MZjUbsH5IYPIlVVoIqrEGRH0Ji128PeGli0Y75PBAQSiquWoerJX/CoX4GZTzzI5HGVFKGqLzh4+k0qAf4uHsenlpEKn/M7VBpNbskumbyphCnMRR0ia2HE4oDRXpBDRD3AzKRaPVF16XiZRONHlFkYqKm2Kqmfl2sdcg5LbbFJHsWjXAr7HO9s=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        id S2387586AbfCANYb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 08:24:31 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:50538 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733255AbfCANYa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 08:24:30 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
+        Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=HdAOrrKQq4G6AGeh+JxepzrSNVzIO/5cEm4xowGAM6Q=; b=Ci28T2GN9pA7tlQ0ocEfQepES4
+        VdezuzVk/BWP+PjuF+UdE8G8+afeIOhZthYjAc0NPkM2deZbi8aLMTEt73z6dmN4SDiifXkyB8rFN
+        Mp7Euy4MsMU+CQfSWFmYwpmYvhLeG/R03+UXpsAAxg8jaLniLU+DZvb3bpKONfpQRaczoL2ONvUYT
+        LtTJ6+IHLaY2zLTF7yGxwrg5FnQJZCadB/r18L+Sm1voqwpkgG1NpRHtqnJN3wqghBRoS7jGkkfEa
+        v/6tXWggpYv4XICqCXnUI+TTJpCBn62G27viywAk/zcWnDsDvbxrXxzFHS1kxySvI6Xfy/LtHJ9Dr
+        E/+gED2w==;
+Received: from 177.41.113.159.dynamic.adsl.gvt.net.br ([177.41.113.159] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gzi9O-0003y5-2Q; Fri, 01 Mar 2019 13:24:30 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1gzi9L-0002Nm-W5; Fri, 01 Mar 2019 10:24:27 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 10/10] media: vim2m: speedup passthrough copy
+Date:   Fri,  1 Mar 2019 10:24:26 -0300
+Message-Id: <6f5f188f02ad43bd7b9b4affade082d84e1805ad.1551446121.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <cover.1551446121.git.mchehab+samsung@kernel.org>
+References: <cover.1551446121.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: bp.renesas.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 610264fb-d166-4b36-b8fe-08d69e48dfaa
-X-MS-Exchange-CrossTenant-originalarrivaltime: 01 Mar 2019 13:21:54.5824
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 53d82571-da19-47e4-9cb4-625a166a4a2a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSBPR01MB3031
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-SGkgSGFucywNCg0KWWVzLiBXaWxsIGRvLg0KDQpSZWdhcmRzLA0KQmlqdQ0KDQo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxs
-Lm5sPg0KPiBTZW50OiAwMSBNYXJjaCAyMDE5IDEzOjE5DQo+IFRvOiBCaWp1IERhcyA8YmlqdS5k
-YXNAYnAucmVuZXNhcy5jb20+OyBHZWVydCBVeXR0ZXJob2V2ZW4NCj4gPGdlZXJ0QGxpbnV4LW02
-OGsub3JnPg0KPiBDYzogRmFicml6aW8gQ2FzdHJvIDxmYWJyaXppby5jYXN0cm9AYnAucmVuZXNh
-cy5jb20+OyBNYXVybyBDYXJ2YWxobw0KPiBDaGVoYWIgPG1jaGVoYWJAa2VybmVsLm9yZz47IE5p
-a2xhcyBTw7ZkZXJsdW5kDQo+IDxuaWtsYXMuc29kZXJsdW5kQHJhZ25hdGVjaC5zZT47IGxpbnV4
-LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IHJlbmVzYXMtc29jQHZnZXIua2VybmVs
-Lm9yZzsgZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmc7IFNpbW9uIEhvcm1hbg0KPiA8aG9ybXNA
-dmVyZ2UubmV0LmF1PjsgR2VlcnQgVXl0dGVyaG9ldmVuIDxnZWVydCtyZW5lc2FzQGdsaWRlci5i
-ZT47DQo+IENocmlzIFBhdGVyc29uIDxDaHJpcy5QYXRlcnNvbjJAcmVuZXNhcy5jb20+OyBSb2Ig
-SGVycmluZw0KPiA8cm9iaCtkdEBrZXJuZWwub3JnPjsgTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxh
-bmRAYXJtLmNvbT47IExhdXJlbnQNCj4gUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNv
-bmJvYXJkLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAxLzVdIG1lZGlhOiBkdC1iaW5kaW5n
-czogbWVkaWE6IHJjYXItY3NpMjogQWRkIHI4YTc3NGExDQo+IHN1cHBvcnQNCj4NCj4gSGkgQmlq
-dSwNCj4NCj4gQ2FuIHlvdSBkbyB0aGUgZm9sbG93aW5nOg0KPg0KPiAxKSBmb3J3YXJkIGJvdGgg
-b2YgUm9iJ3MgcmVwbGllcyB3aXRoIGhpcyBSZXZpZXdlZC1ieSB0YWcgdG8gbGludXgtbWVkaWEs
-DQo+ICAgIHRoYXQgd2F5IEkgaGF2ZSBzZWVuIGl0Lg0KPiAyKSByZWJhc2UgdGhlIHBhdGNoIHNl
-cmllcyBhbmQgYWRkIGFsbCBSZXZpZXdlZC1ieSBldGMuIHRhZ3MgYW5kIHBvc3QgYXMNCj4gICAg
-YSB2Mi4gSSdsbCBwaWNrIGl0IHVwIGFuZCBtYWtlIHN1cmUgaXQgd2lsbCBnZXQgbWVyZ2VkLiBO
-b3Qgc3VyZSBpZiB3ZQ0KPiAgICBjYW4gbWFuYWdlIDUuMSwgYnV0IGl0IHdpbGwgY2VydGFpbmx5
-IGdldCBpbiA1LjIuDQo+DQo+IFJlZ2FyZHMsDQo+DQo+IEhhbnMNCj4NCj4gT24gMy8xLzE5IDI6
-MTIgUE0sIEJpanUgRGFzIHdyb3RlOg0KPiA+IEhpIEhhbnMsDQo+ID4NCj4gPiBUaGFua3MgZm9y
-IHRoZSBmZWVkYmFjay4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+
-PiBGcm9tOiBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4NCj4gPj4gU2VudDogMDEg
-TWFyY2ggMjAxOSAxMzowOQ0KPiA+PiBUbzogR2VlcnQgVXl0dGVyaG9ldmVuIDxnZWVydEBsaW51
-eC1tNjhrLm9yZz4NCj4gPj4gQ2M6IEZhYnJpemlvIENhc3RybyA8ZmFicml6aW8uY2FzdHJvQGJw
-LnJlbmVzYXMuY29tPjsgTWF1cm8gQ2FydmFsaG8NCj4gPj4gQ2hlaGFiIDxtY2hlaGFiQGtlcm5l
-bC5vcmc+OyBCaWp1IERhcyA8YmlqdS5kYXNAYnAucmVuZXNhcy5jb20+Ow0KPiA+PiBOaWtsYXMg
-U8O2ZGVybHVuZCA8bmlrbGFzLnNvZGVybHVuZEByYWduYXRlY2guc2U+OyBsaW51eC0NCj4gPj4g
-bWVkaWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1yZW5lc2FzLXNvY0B2Z2VyLmtlcm5lbC5vcmc7
-DQo+ID4+IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnOyBTaW1vbiBIb3JtYW4gPGhvcm1zQHZl
-cmdlLm5ldC5hdT47DQo+IEdlZXJ0DQo+ID4+IFV5dHRlcmhvZXZlbiA8Z2VlcnQrcmVuZXNhc0Bn
-bGlkZXIuYmU+OyBDaHJpcyBQYXRlcnNvbg0KPiA+PiA8Q2hyaXMuUGF0ZXJzb24yQHJlbmVzYXMu
-Y29tPjsgUm9iIEhlcnJpbmcgPHJvYmgrZHRAa2VybmVsLm9yZz47DQo+IE1hcmsNCj4gPj4gUnV0
-bGFuZCA8bWFyay5ydXRsYW5kQGFybS5jb20+OyBMYXVyZW50IFBpbmNoYXJ0DQo+ID4+IDxsYXVy
-ZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
-MS81XSBtZWRpYTogZHQtYmluZGluZ3M6IG1lZGlhOiByY2FyLWNzaTI6IEFkZA0KPiA+PiByOGE3
-NzRhMSBzdXBwb3J0DQo+ID4+DQo+ID4+IE9uIDMvMS8xOSAxOjU4IFBNLCBHZWVydCBVeXR0ZXJo
-b2V2ZW4gd3JvdGU6DQo+ID4+PiBIaSBIYW5zLA0KPiA+Pj4NCj4gPj4+IE9uIEZyaSwgTWFyIDEs
-IDIwMTkgYXQgMTo1NSBQTSBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gd3JvdGU6
-DQo+ID4+Pj4gSXQgbG9va3MgbGlrZSB0aGlzIHNlcmllcyBmZWxsIHRocm91Z2ggdGhlIGNyYWNr
-cy4NCj4gPj4+Pg0KPiA+Pj4+IEkgbG9va2VkIGF0IGl0IGFuZCB0aGUgbWFpbiBwcm9ibGVtIGlz
-IHRoYXQgaXQgaXMgbWlzc2luZyBhDQo+ID4+Pj4gUmV2aWV3ZWQtYnkgZnJvbSBSb2IgSGVycmlu
-ZyAoZGV2aWNldHJlZSBtYWludGFpbmVyKS4gSXQncyBhIGJpdA0KPiA+Pj4+IHN1cnByaXNpbmcg
-c2luY2UgaGUgaXMgdXN1YWxseSBmYWlybHkgcHJvbXB0Lg0KPiA+Pj4NCj4gPj4+IEhlIGFjdHVh
-bGx5IGRpZCBwcm92aWRlIGhpcyBSYiBvbiBTZXAgMTcuDQo+ID4+DQo+ID4+IEhtbSwgSSBkb24n
-dCBzZWUgYW55dGhpbmcgYWJvdXQgdGhhdCBpbiBteSBsaW51eC1tZWRpYSBhcmNoaXZlLCBhbmQN
-Cj4gPj4gcGF0Y2h3b3JrIGRpZG4ndCBwaWNrIHRoYXQgdXAgZWl0aGVyLg0KPiA+Pg0KPiA+PiBX
-YXMgbGludXgtbWVkaWEgaW4gdGhlIENDIGxpc3Qgb2YgUm9iJ3MgcmVwbHk/DQo+ID4NCj4gPiBZ
-ZXMuIFBsZWFzZSBzZWUgYmVsb3cuDQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0NCj4gPj4gRnJvbTogUm9iIEhlcnJpbmcgPHJvYmhAa2VybmVsLm9yZz4NCj4gPj4gU2VudDog
-MTcgU2VwdGVtYmVyIDIwMTggMDY6NDUNCj4gPj4gVG86IEJpanUgRGFzIDxiaWp1LmRhc0BicC5y
-ZW5lc2FzLmNvbT4NCj4gPj4gQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkBrZXJu
-ZWwub3JnPjsgTWFyayBSdXRsYW5kDQo+ID4+IDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT47IEJpanUg
-RGFzIDxiaWp1LmRhc0BicC5yZW5lc2FzLmNvbT47IE5pa2xhcw0KPiA+PiBTw7ZkZXJsdW5kIDxu
-aWtsYXMuc29kZXJsdW5kQHJhZ25hdGVjaC5zZT47DQo+ID4+IGxpbnV4LW1lZGlhQHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgtcmVuZXNhcy1zb2NAdmdlci5rZXJuZWwub3JnOw0KPiA+PiBkZXZpY2V0
-cmVlQHZnZXIua2VybmVsLm9yZzsgU2ltb24gSG9ybWFuIDxob3Jtc0B2ZXJnZS5uZXQuYXU+Ow0K
-PiBHZWVydA0KPiA+PiBVeXR0ZXJob2V2ZW4gPGdlZXJ0K3JlbmVzYXNAZ2xpZGVyLmJlPjsgQ2hy
-aXMgUGF0ZXJzb24NCj4gPj4gPENocmlzLlBhdGVyc29uMkByZW5lc2FzLmNvbT47IEZhYnJpemlv
-IENhc3Rybw0KPiA+PiA8ZmFicml6aW8uY2FzdHJvQGJwLnJlbmVzYXMuY29tPg0KPiA+PiBTdWJq
-ZWN0OiBSZTogW1BBVENIIDEvNV0gbWVkaWE6IGR0LWJpbmRpbmdzOiBtZWRpYTogcmNhci1jc2ky
-OiBBZGQNCj4gPj4gcjhhNzc0YTEgc3VwcG9ydA0KPiA+Pg0KPiA+PiBPbiBNb24sIDEwIFNlcCAy
-MDE4IDE1OjMxOjE0ICswMTAwLCBCaWp1IERhcyB3cm90ZToNCj4gPj4+IERvY3VtZW50IFJaL0cy
-TSAoUjhBNzc0QTEpIFNvQyBiaW5kaW5ncy4NCj4gPj4+DQo+ID4+PiBUaGUgUlovRzJNIFNvQyBp
-cyBzaW1pbGFyIHRvIFItQ2FyIE0zLVcgKFI4QTc3OTYpLg0KPiA+Pj4NCj4gPj4+IFNpZ25lZC1v
-ZmYtYnk6IEJpanUgRGFzIDxiaWp1LmRhc0BicC5yZW5lc2FzLmNvbT4NCj4gPj4+IFJldmlld2Vk
-LWJ5OiBGYWJyaXppbyBDYXN0cm8gPGZhYnJpemlvLmNhc3Ryb0BicC5yZW5lc2FzLmNvbT4NCj4g
-Pj4+IC0tLQ0KPiA+Pj4gIERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9y
-ZW5lc2FzLHJjYXItY3NpMi50eHQgfCA1DQo+ID4+PiArKystLQ0KPiA+Pj4gIDEgZmlsZSBjaGFu
-Z2VkLCAzIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+ID4+Pg0KPiA+Pg0KPiA+PiBS
-ZXZpZXdlZC1ieTogUm9iIEhlcnJpbmcgPHJvYmhAa2VybmVsLm9yZz4NCj4gPg0KPiA+IFJlZ2Fy
-ZHMsDQo+ID4gQmlqdQ0KPiA+DQo+ID4NCj4gPiBSZW5lc2FzIEVsZWN0cm9uaWNzIEV1cm9wZSBH
-bWJILEdlc2NoYWVmdHNmdWVocmVyL1ByZXNpZGVudCA6IE1pY2hhZWwNCj4gPiBIYW5uYXdhbGQs
-IFNpdHogZGVyIEdlc2VsbHNjaGFmdC9SZWdpc3RlcmVkIG9mZmljZTogRHVlc3NlbGRvcmYsDQo+
-ID4gQXJjYWRpYXN0cmFzc2UgMTAsIDQwNDcyIER1ZXNzZWxkb3JmLA0KPiA+IEdlcm1hbnksSGFu
-ZGVsc3JlZ2lzdGVyL0NvbW1lcmNpYWwgUmVnaXN0ZXI6IER1ZXNzZWxkb3JmLCBIUkIgMzcwOA0K
-PiA+IFVTdC1JRE5yLi9UYXggaWRlbnRpZmljYXRpb24gbm8uOiBERSAxMTkzNTM0MDYgV0VFRS1S
-ZWcuLU5yLi9XRUVFIHJlZy4NCj4gPiBuby46IERFIDE0OTc4NjQ3DQo+ID4NCg0KDQoNClJlbmVz
-YXMgRWxlY3Ryb25pY3MgRXVyb3BlIEdtYkgsR2VzY2hhZWZ0c2Z1ZWhyZXIvUHJlc2lkZW50IDog
-TWljaGFlbCBIYW5uYXdhbGQsIFNpdHogZGVyIEdlc2VsbHNjaGFmdC9SZWdpc3RlcmVkIG9mZmlj
-ZTogRHVlc3NlbGRvcmYsIEFyY2FkaWFzdHJhc3NlIDEwLCA0MDQ3MiBEdWVzc2VsZG9yZiwgR2Vy
-bWFueSxIYW5kZWxzcmVnaXN0ZXIvQ29tbWVyY2lhbCBSZWdpc3RlcjogRHVlc3NlbGRvcmYsIEhS
-QiAzNzA4IFVTdC1JRE5yLi9UYXggaWRlbnRpZmljYXRpb24gbm8uOiBERSAxMTkzNTM0MDYgV0VF
-RS1SZWcuLU5yLi9XRUVFIHJlZy4gbm8uOiBERSAxNDk3ODY0Nw0K
+When in passthrough mode, copy the entire line at once, in
+order to make it faster (if not HFLIP).
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/platform/vim2m.c | 37 ++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 6bcc0c9f9910..e98dc8f99e3e 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -267,25 +267,22 @@ static const char *type_name(enum v4l2_buf_type type)
+ #define CLIP(__color) \
+ 	(u8)(((__color) > 0xff) ? 0xff : (((__color) < 0) ? 0 : (__color)))
+ 
+-static void fast_copy_two_pixels(struct vim2m_q_data *q_data_in,
+-				 struct vim2m_q_data *q_data_out,
+-				 u8 **src, u8 **dst, bool reverse)
++static void copy_line(struct vim2m_q_data *q_data_out,
++		      u8 *src, u8 *dst, bool reverse)
+ {
+-	int depth = q_data_out->fmt->depth >> 3;
++	int x, depth = q_data_out->fmt->depth >> 3;
+ 
+ 	if (!reverse) {
+-		memcpy(*dst, *src, depth << 1);
+-		*src += depth << 1;
+-		*dst += depth << 1;
++		memcpy(dst, src, q_data_out->width * depth);
++	} else {
++		for (x = 0; x < q_data_out->width >> 1; x++) {
++			memcpy(dst, src, depth);
++			memcpy(dst + depth, src - depth, depth);
++			src -= depth << 1;
++			dst += depth << 1;
++		}
+ 		return;
+ 	}
+-
+-	/* copy RGB formats in reverse order */
+-	memcpy(*dst, *src, depth);
+-	memcpy(*dst + depth, *src - depth, depth);
+-	*src -= depth << 1;
+-	*dst += depth << 1;
+-	return;
+ }
+ 
+ static void copy_two_pixels(struct vim2m_q_data *q_data_in,
+@@ -491,7 +488,7 @@ static int device_process(struct vim2m_ctx *ctx,
+ 	}
+ 	y_out = 0;
+ 
+-	/* Faster copy logic,  when format and resolution are identical */
++	/* When format and resolution are identical, we can use a faster copy logic */
+ 	if (q_data_in->fmt->fourcc == q_data_out->fmt->fourcc &&
+ 	    q_data_in->width == q_data_out->width &&
+ 	    q_data_in->height == q_data_out->height) {
+@@ -500,15 +497,15 @@ static int device_process(struct vim2m_ctx *ctx,
+ 			if (ctx->mode & MEM2MEM_HFLIP)
+ 				p += bytesperline - (q_data_in->fmt->depth >> 3);
+ 
+-			for (x = 0; x < width >> 1; x++)
+-				fast_copy_two_pixels(q_data_in, q_data_out,
+-						     &p, &p_out,
+-						     ctx->mode & MEM2MEM_HFLIP);
++			copy_line(q_data_out, p, p_out,
++				  ctx->mode & MEM2MEM_HFLIP);
++
++			p_out += bytesperline;
+ 		}
+ 		return 0;
+ 	}
+ 
+-	/* Slower algorithm with format conversion and scaler */
++	/* Slower algorithm with format conversion, hflip, vflip and scaler */
+ 
+ 	/* To speed scaler up, use Bresenham for X dimension */
+ 	x_int = q_data_in->width / q_data_out->width;
+-- 
+2.20.1
+
