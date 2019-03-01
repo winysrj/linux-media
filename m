@@ -2,31 +2,32 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F110C43381
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:19:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B010EC43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:19:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03D6E2186A
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:19:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BE772186A
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:19:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727299AbfCAITl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 03:19:41 -0500
+        id S1727418AbfCAITq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 03:19:46 -0500
 Received: from mga04.intel.com ([192.55.52.120]:53525 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726226AbfCAITl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Mar 2019 03:19:41 -0500
+        id S1726226AbfCAITp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Mar 2019 03:19:45 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 01 Mar 2019 00:19:41 -0800
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 01 Mar 2019 00:19:45 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.58,426,1544515200"; 
-   d="scan'208";a="130339887"
+   d="scan'208";a="130339902"
 Received: from genxfsim-shark-bay-client-platform.iind.intel.com ([10.223.25.3])
-  by orsmga003.jf.intel.com with ESMTP; 01 Mar 2019 00:19:36 -0800
+  by orsmga003.jf.intel.com with ESMTP; 01 Mar 2019 00:19:41 -0800
 From:   swati2.sharma@intel.com
 To:     dri-devel@lists.freedesktop.org
 Cc:     linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
@@ -36,65 +37,45 @@ Cc:     linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
         maarten.lankhorst@linux.intel.com, stanislav.lisovskiy@intel.com,
         daniel.vetter@ffwll.ch, ville.syrjala@linux.intel.com,
         Swati Sharma <swati2.sharma@intel.com>
-Subject: [PATCH 0/6] Enable P0xx (planar), Y2xx/Y4xx (packed) pixel formats
-Date:   Fri,  1 Mar 2019 13:46:21 +0530
-Message-Id: <1551428187-12535-1-git-send-email-swati2.sharma@intel.com>
+Subject: [PATCH 1/6] drm/i915: Add P010, P012, P016 plane control definitions
+Date:   Fri,  1 Mar 2019 13:46:22 +0530
+Message-Id: <1551428187-12535-2-git-send-email-swati2.sharma@intel.com>
 X-Mailer: git-send-email 1.9.1
+In-Reply-To: <1551428187-12535-1-git-send-email-swati2.sharma@intel.com>
+References: <1551428187-12535-1-git-send-email-swati2.sharma@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Swati Sharma <swati2.sharma@intel.com>
+From: Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>
 
-This patch series is for enabling P0xx, Y2xx and Y4xx pixel formats for
-intel's i915 driver.
+Add needed plane control flag definitions for P010, P012 and
+P016 formats.
 
-In this patch series, Juha Pekka's patch series Gen10+ P0xx formats
-https://patchwork.freedesktop.org/series/56053/ is combined with Swati's
-https://patchwork.freedesktop.org/series/55035/ for Gen11+ pixel formats
-(Y2xx and Y4xx).
+Signed-off-by: Juha-Pekka Heikkila <juhapekka.heikkila@gmail.com>
+Signed-off-by: Swati Sharma <swati2.sharma@intel.com>
+Reviewed-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+---
+ drivers/gpu/drm/i915/i915_reg.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-P0xx pixel formats are enabled from GLK whereas Y2xx and Y4xx are enabled
-from ICL platform.
-
-These patches enable planar formats YUV420-P010, P012 and  P016
-(Intial 3 patches of Juha) for GLK+ platform and packed format YUV422-Y210,
-Y212 and Y216 and YUV444-Y410, Y412, Y416 for 10, 12 and 16 bits for ICL+
-platforms.
-
-IGT validating all these pixel formats is written by Maarten Lankhorst 
-https://patchwork.freedesktop.org/patch/284508/
-
-IGT needs libraries for pixman and cairo to support more than 8bpc. Need 
-cairo >= 1.17.2 and pixman-1 >= 0.36.0.
-
-Tested with custom cairo and pixman. P0xx and Y2xx successfully validated for
-HDR planes, SDR planes having CRC mismatch (known bug for all YUV formats).
-
-Juha-Pekka Heikkila (3):
-  drm/i915: Add P010, P012, P016 plane control definitions
-  drm/i915: Preparations for enabling P010, P012, P016 formats
-  drm/i915: Enable P010, P012, P016 formats for primary and sprite
-    planes
-
-Swati Sharma (3):
-  drm: Add Y2xx and Y4xx (xx:10/12/16) format definitions and fourcc
-  drm/i915/icl: Add Y2xx and Y4xx (xx:10/12/16) plane control
-    definitions
-  drm/i915/icl: Enabling Y2xx and Y4xx (xx:10/12/16) formats for
-    universal planes
-
- drivers/gpu/drm/drm_fourcc.c              |   6 ++
- drivers/gpu/drm/i915/i915_reg.h           |   9 +++
- drivers/gpu/drm/i915/intel_atomic_plane.c |   2 +-
- drivers/gpu/drm/i915/intel_display.c      |  57 ++++++++++++++--
- drivers/gpu/drm/i915/intel_drv.h          |   1 +
- drivers/gpu/drm/i915/intel_pm.c           |  14 ++--
- drivers/gpu/drm/i915/intel_sprite.c       | 108 ++++++++++++++++++++++++++++--
- include/uapi/drm/drm_fourcc.h             |  18 ++++-
- 8 files changed, 195 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index c9b482b..ce4ad20 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -6602,8 +6602,11 @@ enum {
+ #define   PLANE_CTL_FORMAT_YUV422		(0 << 24)
+ #define   PLANE_CTL_FORMAT_NV12			(1 << 24)
+ #define   PLANE_CTL_FORMAT_XRGB_2101010		(2 << 24)
++#define   PLANE_CTL_FORMAT_P010			(3 << 24)
+ #define   PLANE_CTL_FORMAT_XRGB_8888		(4 << 24)
++#define   PLANE_CTL_FORMAT_P012			(5 << 24)
+ #define   PLANE_CTL_FORMAT_XRGB_16161616F	(6 << 24)
++#define   PLANE_CTL_FORMAT_P016			(7 << 24)
+ #define   PLANE_CTL_FORMAT_AYUV			(8 << 24)
+ #define   PLANE_CTL_FORMAT_INDEXED		(12 << 24)
+ #define   PLANE_CTL_FORMAT_RGB_565		(14 << 24)
 -- 
 1.9.1
 
