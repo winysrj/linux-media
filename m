@@ -6,49 +6,48 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 083F8C43381
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 10:27:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54FEDC43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 10:52:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CAE842087E
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 10:27:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29103218AE
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 10:52:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727782AbfCAK1E (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 05:27:04 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:50533 "EHLO
+        id S1727318AbfCAKwm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 05:52:42 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:60575 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725978AbfCAK1D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 05:27:03 -0500
+        with ESMTP id S1726170AbfCAKwm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 05:52:42 -0500
 Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
         by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <mfe@pengutronix.de>)
-        id 1gzfNS-00089e-Sf; Fri, 01 Mar 2019 11:26:50 +0100
+        id 1gzfmO-0002Aa-20; Fri, 01 Mar 2019 11:52:36 +0100
 Received: from mfe by pty.hi.pengutronix.de with local (Exim 4.89)
         (envelope-from <mfe@pengutronix.de>)
-        id 1gzfNQ-00007z-PP; Fri, 01 Mar 2019 11:26:48 +0100
-Date:   Fri, 1 Mar 2019 11:26:48 +0100
+        id 1gzfmN-0000jo-Gc; Fri, 01 Mar 2019 11:52:35 +0100
+Date:   Fri, 1 Mar 2019 11:52:35 +0100
 From:   Marco Felsch <m.felsch@pengutronix.de>
-To:     Jacopo Mondi <jacopo@jmondi.org>
-Cc:     hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        graphics@pengutronix.de
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org,
+        mark.rutland@arm.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, graphics@pengutronix.de
 Subject: Re: [PATCH 1/3] media: dt-bindings: add bindings for Toshiba TC358746
-Message-ID: <20190301102648.aim4h3632tuuras6@pengutronix.de>
+Message-ID: <20190301105235.a23jwiwmxejuv2yf@pengutronix.de>
 References: <20181218141240.3056-1-m.felsch@pengutronix.de>
  <20181218141240.3056-2-m.felsch@pengutronix.de>
- <20190213175648.l3x2zeych4qj7km7@uno.localdomain>
+ <20190218100333.qvptfllrd4pyhsyb@paasikivi.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190213175648.l3x2zeych4qj7km7@uno.localdomain>
+In-Reply-To: <20190218100333.qvptfllrd4pyhsyb@paasikivi.fi.intel.com>
 X-Sent-From: Pengutronix Hildesheim
 X-URL:  http://www.pengutronix.de/
 X-IRC:  #ptxdist @freenode
 X-Accept-Language: de,en
 X-Accept-Content-Type: text/plain
-X-Uptime: 08:51:34 up 41 days, 12:33, 49 users,  load average: 0.02, 0.01,
- 0.00
+X-Uptime: 11:37:22 up 41 days, 15:19, 49 users,  load average: 0.11, 0.08,
+ 0.03
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
 X-SA-Exim-Mail-From: mfe@pengutronix.de
@@ -59,27 +58,26 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 19-02-13 18:57, Jacopo Mondi wrote:
+Hi Sakari,
+
+On 19-02-18 12:03, Sakari Ailus wrote:
 > Hi Marco,
->     thanks for the patch.
 > 
-> I have some comments, which I hope might get the ball rolling...
+> My apologies for reviewing this so late. You've received good comments
+> already. I have a few more.
 
-Hi Jacopo,
+Thanks for your review for the other patches as well =) Sorry for my
+delayed response.
 
-thanks for your review and sorry for the late response. My schedule was
-a bit filled.
-
-> 
 > On Tue, Dec 18, 2018 at 03:12:38PM +0100, Marco Felsch wrote:
 > > Add corresponding dt-bindings for the Toshiba tc358746 device.
-> >
+> > 
 > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 > > ---
 > >  .../bindings/media/i2c/toshiba,tc358746.txt   | 80 +++++++++++++++++++
 > >  1 file changed, 80 insertions(+)
 > >  create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,tc358746.txt
-> >
+> > 
 > > diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,tc358746.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,tc358746.txt
 > > new file mode 100644
 > > index 000000000000..499733df744a
@@ -89,115 +87,49 @@ a bit filled.
 > > +* Toshiba TC358746 Parallel to MIPI CSI2-TX or MIPI CSI2-RX to Parallel Bridge
 > > +
 > > +The Toshiba TC358746 is a bridge that converts a Parallel-in stream to MIPI CSI-2 TX
-> 
-> nit:
-> s/is a bridge that/is a bridge device that/
-> or drop is a bridge completely?
-
-You're right, I will drop this statement.
-
-> 
 > > +or a MIPI CSI-2 RX stream into a Parallel-out. It is programmable through I2C.
 > 
-> From the thin public available datasheet, it seems to support SPI as
-> programming interface, but only when doing Parallel->CSI-2. I would
-> mention that.
+> This is interesting. The driver somehow needs to figure out the direction
+> of the data flow if it does not originate from DT. I guess it shouldn't as
+> it's not the property of an individual device, albeit in practice in all
+> hardware I've seen the direction of the pipeline is determinable and this
+> is visible in the kAPI as well. So I'm suggesting no changes due to this in
+> bindings, likely we'll need to address it somehow elsewhere going forward.
 
-You're right, the SPI interface is only supported in that mode.
+What did you mean with "... and this is visible in the kAPI as well"?
+I'm relative new in the linux-media world but I never saw a device which
+supports two directions. Our customer which uses that chip use it
+only in parallel-in/csi-out mode. To be flexible the switching should be
+done by a subdev-ioctl but it is also reasonable to define a default value
+within the DT.
 
-Should I add something like:
-It is programmable trough I2C and SPI. The SPI interface is only
-supported in parallel-in -> csi-out mode.
- 
 > > +
 > > +Required Properties:
 > > +
 > > +- compatible: should be "toshiba,tc358746"
 > > +- reg: should be <0x0e>
-> 
-> nit: s/should/shall
-
-Okay.
-
 > > +- clocks: should contain a phandle link to the reference clock source
-> 
-> just "phandle to the reference clock source" ?
-
-Okay.
-
 > > +- clock-names: the clock input is named "refclk".
-> 
-> According to the clock bindings this is optional, and since you have
-> a single clock I would drop it.
-
-Yes it's optional, but the device can also act as clock provider (not
-now, patches in my personal queue for rework). So I won't drop it since
-I never linked the generic clock-bindings.
-
 > > +
 > > +Optional Properties:
 > > +
 > > +- reset-gpios: gpio phandle GPIO connected to the reset pin
-> 
-> would you drop one of the two "gpio" here. Like ": phandle to the GPIO
-> connected to the reset input pin"
-
-Okay.
-
 > > +
 > > +Parallel Endpoint:
-> 
-> Here I got confused. The chip supports 2 inputs (parallel and CSI-2)
-> and two outputs (parallel and CSI-2 again). You mention endpoints
-> propery only here, but it seems from the example you want two ports,
-> with one endpoint child-node each.
-
-Nope, the device has one CSI and one Parallel interface. These
-interfaces can be configured as receiver or as transmitter (according to
-the selected mode). I got you but I remember also the discussion with
-Mauro, Hans, Sakari about the TVP5150 ports. The result of that
-discussion was "don't introduce 'virtual' ports". If I got you right
-your Idea will introduce virtual ports too:
-
-/* Parallel */
-port@0{
-	port@0 { ... }; /* input case */
-	port@1 { ... }; /* output case */
-};
-
-/* CSI */
-port@1{
-	port@0 { ... }; /* input case */
-	port@1 { ... }; /* output case */
-};
-
-> Even if the driver does not support CSI-2->Parallel at the moment,
-> bindings should be future-proof, so I would reserve the first two
-> ports for the inputs, and the last two for the output, or, considering
-> that the two input-output combinations are mutually exclusive, provide
-> one "input" port with two optional endpoints, and one "output" port with
-> two optional endpoints.
-
-I wouldn't map the combinations to the device tree since it is the
-hw-abstraction and the signals still routed to the same pads. The only
-difference in the CSI-2->Parallel case is the timing calculation which
-is out of scope for the dt.
-
-> In both cases only one input and one output at the time could be
-> described in DT. Up to you, maybe others have different ideas as
-> well...
-> 
 > > +
 > > +Required Properties:
+> 
+> It'd be nice if the relation between these sections would be somehow
+> apparent. E.g. using different underlining, such as in
+> Documentation/devicetree/bindings/media/ti,omap3isp.txt .
+
+Thats a really good example thanks.
+
+> 
 > > +
 > > +- reg: should be <0>
 > > +- bus-width: the data bus width e.g. <8> for eight bit bus, or <16>
 > > +	     for sixteen bit wide bus.
-> 
-> The chip seems to support up to 24 bits of data bus width
-
-You're right, I will change that.
-
 > > +
 > > +MIPI CSI-2 Endpoint:
 > > +
@@ -207,38 +139,9 @@ You're right, I will change that.
 > > +- data-lanes: should be <1 2 3 4> for four-lane operation,
 > > +	      or <1 2> for two-lane operation
 > > +- clock-lanes: should be <0>
-> 
-> Can this be changed? If the chip does not allow lane re-ordering you
-> could drop this.
-
-Nope it can't. Only the data-lanes can be disabled seperatly so I added
-the data-lanes property to determine that number and for the sake of
-completeness I added the clock-lanes property.
-
-> 
 > > +- link-frequencies: List of allowed link frequencies in Hz. Each frequency is
 > > +		    expressed as a 64-bit big-endian integer. The frequency
 > > +		    is half of the bps per lane due to DDR transmission.
-> 
-> Does the chip supports a limited set of bus frequencies, or are this
-> "hints" ? I admit this property actually puzzles me, so I might got it
-> wrong..
-
-That's not that easy to answer. The user can add different link-freq.
-the driver can choose. This is relevant for the Parallel-in --> CSI-out.
-If the external pclk is to slow (due to dyn. fps change) and the link-freq.
-is to fast the internally pixel buffer throws underrun interrupts. The
-user notice that by green pixel artifacts. If the user adds more
-possible link-freq. the driver will switch to that one wich full fill
-the timings to avoid a fifo underrun.
-
-> 
-> Thanks
->    j
-
-Regards,
-Marco
-
 > > +
 > > +Optional Properties:
 > > +
@@ -252,6 +155,14 @@ Marco
 > > +
 > > +&i2c {
 > > +	tc358746: tc358746@0e {
+> 
+> The node name should be a generic name of the type of the device, not the
+> name of the specific device as such. A similar Cadence device uses
+> "csi-bridge".
+
+Okay, I will change that.
+
+> 
 > > +		reg = <0x0e>;
 > > +		compatible = "toshiba,tc358746";
 > > +		pinctrl-names = "default";
@@ -284,11 +195,13 @@ Marco
 > > +		};
 > > +	};
 > > +};
-> > --
-> > 2.19.1
-> >
-
-
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+> 
 
 -- 
 Pengutronix e.K.                           |                             |
