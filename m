@@ -2,156 +2,99 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08FC4C10F03
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 16:52:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAB07C10F03
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 17:09:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC1582087E
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 16:52:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551459139;
-	bh=yiQO6TDLnt00EJVOlsKuAnYGOtQwpIArPXnbDmlh3ZU=;
-	h=From:Cc:Subject:Date:To:List-ID:From;
-	b=PY5sRARuG39MdzmONL2djo1MFZLDkm3Ru11PbWNwxJF/GTyalvJv7/zURu0ksgpYj
-	 keG3dUQTEIjY0v9+RHpxQHJibDcpqjOXylGbWx0TBGDO9/5L9fieSYezmHPqSKMZVI
-	 f7YpiFCoyqdSwTzp1YYyzUTfwW/TrN93CFxRkHhM=
+	by mail.kernel.org (Postfix) with ESMTP id A9D4D20857
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 17:09:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="OsD31j+e"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389120AbfCAQwS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 11:52:18 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:46610 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728489AbfCAQwS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 11:52:18 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=yRnly+cdLkl45FmP15BZOI6YLvVS6ooybqGznHZ9v+0=; b=AoCXAG2cVaUZwxl2MLJF+2NgP
-        0a/sWWN6xMhsaQk/XRZgIyc14G635d8ho8y7kX3wv9sZcNA4eHIEbETicaKGKDzEVcMzsTlxXf1oI
-        Bic1n+toBgy+kGeNNph1aTrRS3hKlvlw0cnWSed/3i7geku0kBXvXS2E1D/fTX0WS+XWDjWxrfx2U
-        /HVgwbkBudr5yjiDcAAJlTRggg6SJ1CIaEx9OCwbgrDVMNaAVCSGqAWVGURbVYqwRWxNUFMvkXpwr
-        BKKaTpxHqPbaM5HtbKwYQvFYky2Auw0cPLMirOY/9OScRxoSMQGEaGFky5pHkY9m6mFCUQrHgaIf3
-        B4t/7ngaQ==;
-Received: from 177.41.113.159.dynamic.adsl.gvt.net.br ([177.41.113.159] helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gzlOT-00029R-UP; Fri, 01 Mar 2019 16:52:17 +0000
-Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
-        (envelope-from <mchehab@bombadil.infradead.org>)
-        id 1gzlOP-0002l0-JH; Fri, 01 Mar 2019 11:52:13 -0500
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 1/2] media: vim2m: don't use BUG()
-Date:   Fri,  1 Mar 2019 11:52:12 -0500
-Message-Id: <971d62ddd23eb07b6cbad858f9b004342efa6ee1.1551459127.git.mchehab+samsung@kernel.org>
-X-Mailer: git-send-email 2.20.1
+        id S2389355AbfCARJA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 12:09:00 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:45338 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389295AbfCARI7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 12:08:59 -0500
+Received: from localhost.localdomain (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 233F349;
+        Fri,  1 Mar 2019 18:08:57 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1551460137;
+        bh=ZU9Fuw13XkqLKY7V4fdC/0o7EwcKg0+0EIiN0YrrU9c=;
+        h=From:To:Cc:Subject:Date:From;
+        b=OsD31j+ev8zcalb7gNkYuLDBldio0Fng/4rw5t8Uey9FUU4+JKskAozTZ0OymQHqu
+         wtzfhK3lhWAPq8p8aVRqws3YkySx+KR1uBVbIDr1hUlKyX3sDGFLEmN6y4f2nXaYXK
+         9ewBkPz8b7qRoXHUSiEk0wc3u3vSvXTtp7tOWfD4=
+From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [RFC PATCH v2 0/5] media: vsp1: Partition phased overlap support
+Date:   Fri,  1 Mar 2019 17:08:43 +0000
+Message-Id: <20190301170848.6598-1-kieran.bingham@ideasonboard.com>
+X-Mailer: git-send-email 2.19.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-There's no reason why this driver should use BUG(). Instead,
-just properly handle issue, returning an error code where
-pertinent.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/platform/vim2m.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+The UDS and SRU (and SHP) require expanded partition windows to support
+overlapping partition windows as a means of discarding discontinous pixel data,
+due to repeated pixels in their input filters.
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 631e79b89ce9..eff4eff858fe 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0+
- /*
-  * A virtual v4l2-mem2mem example device.
-  *
-@@ -247,9 +248,8 @@ static struct vim2m_q_data *get_q_data(struct vim2m_ctx *ctx,
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		return &ctx->q_data[V4L2_M2M_DST];
- 	default:
--		BUG();
-+		return NULL;
- 	}
--	return NULL;
- }
- 
- static const char *type_name(enum v4l2_buf_type type)
-@@ -451,10 +451,14 @@ static int device_process(struct vim2m_ctx *ctx,
- 	int start, end, step;
- 
- 	q_data_in = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+	if (!q_data_in)
-+		return 0;
- 	bytesperline = (q_data_in->width * q_data_in->fmt->depth) >> 3;
- 	bytes_per_pixel = q_data_in->fmt->depth >> 3;
- 
- 	q_data_out = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+	if (!q_data_out)
-+		return 0;
- 
- 	/* As we're doing scaling, use the output dimensions here */
- 	height = q_data_out->height;
-@@ -468,8 +472,7 @@ static int device_process(struct vim2m_ctx *ctx,
- 		return -EFAULT;
- 	}
- 
--	out_vb->sequence = get_q_data(ctx,
--				      V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
-+	out_vb->sequence = q_data_out->sequence++;
- 	in_vb->sequence = q_data_in->sequence++;
- 	v4l2_m2m_buf_copy_metadata(in_vb, out_vb, true);
- 
-@@ -732,6 +735,8 @@ static int vidioc_g_fmt(struct vim2m_ctx *ctx, struct v4l2_format *f)
- 		return -EINVAL;
- 
- 	q_data = get_q_data(ctx, f->type);
-+	if (!q_data)
-+		return -EINVAL;
- 
- 	f->fmt.pix.width	= q_data->width;
- 	f->fmt.pix.height	= q_data->height;
-@@ -986,6 +991,8 @@ static int vim2m_queue_setup(struct vb2_queue *vq,
- 	unsigned int size, count = *nbuffers;
- 
- 	q_data = get_q_data(ctx, vq->type);
-+	if (!q_data)
-+		return -EINVAL;
- 
- 	size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
- 
-@@ -1028,6 +1035,8 @@ static int vim2m_buf_prepare(struct vb2_buffer *vb)
- 	dprintk(ctx->dev, 2, "type: %s\n", type_name(vb->vb2_queue->type));
- 
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
-+	if (!q_data)
-+		return -EINVAL;
- 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
- 		dprintk(ctx->dev, 1,
- 			"%s data will not fit into plane (%lu < %lu)\n",
-@@ -1054,6 +1063,9 @@ static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
- 	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
- 	struct vim2m_q_data *q_data = get_q_data(ctx, q->type);
- 
-+	if (!q_data)
-+		return -EINVAL;
-+
- 	q_data->sequence = 0;
- 	return 0;
- }
+The first four patches are clean ups and helpers to facilitate the
+implementation of an updated procedure for calculating the partition windows.
+
+The entities are iterated first backwards through the pipeline allowing them to
+request an expanded input window if needed to satisfy their required output.
+
+Then, as only the WPF can support clipping on the left edge, (though the UDS
+can clip on it's right edge) the partition window is then propagated forwards
+through the entity list allowing them to update any offset which will mark left
+pixels to be discarded by the WPF.
+
+Any expanded pixels to the right edge will automatically be clipped by the WPF
+as it's partition window will remain fixed.
+
+TODO:
+
+There is one component left in this patch which is still to be completed. The
+UDS calculation for the left input pixel position requires the output position
+to be a multiple of the mp prefilter multiplier.
+
+Getting the right correction to pull back the left window for this is still a
+work in progress, and may be posted separately.
+
+This series is posted as an RFC to get some review coverage (I'm looking at you
+Laurent of course) while I continue to investigate the pull-back factor.
+
+
+Kieran Bingham (5):
+  media: vsp1: Define partition algorithm helper
+  media: vsp1: Initialise partition windows
+  media: vsp1: Document partition algorithm in code header
+  media: vsp1: Split out pre-filter multiplier
+  media: vsp1: Provide partition overlap algorithm
+
+ drivers/media/platform/vsp1/vsp1_entity.h |   2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  48 +++++-
+ drivers/media/platform/vsp1/vsp1_pipe.h   |   7 +
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  10 +-
+ drivers/media/platform/vsp1/vsp1_sru.c    |  37 ++++-
+ drivers/media/platform/vsp1/vsp1_uds.c    | 173 ++++++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_video.c  |  13 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  16 +-
+ 8 files changed, 276 insertions(+), 30 deletions(-)
+
 -- 
-2.20.1
+2.19.1
 
