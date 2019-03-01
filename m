@@ -2,137 +2,165 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D451C10F03
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 14:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F730C43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 15:03:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C75CC20851
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 14:52:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=renesasgroup.onmicrosoft.com header.i=@renesasgroup.onmicrosoft.com header.b="HPyrbg3J"
+	by mail.kernel.org (Postfix) with ESMTP id 39C1A2085A
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 15:03:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1551452630;
+	bh=XkPme69z3wUiGU0WDXR43yjbm/S242JUrCZlWAPi/gY=;
+	h=From:Cc:Subject:Date:To:List-ID:From;
+	b=gaYX3YsFIKoknnyd6F61pUY7kjgxBIe2c+k7YfN3g88UT7OOAHBTF1iaUNAe7zkUd
+	 g+JN0g/p6qOu4JrC72r6Re8PpUq+crWeC0ebcSQBRr9yGTqDFZrGcsWyiYxIgK87FG
+	 EtsoWaGTl+RacVuvf4NDdyuLSzcA9In1QQ0OHMOs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388631AbfCAOw7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 09:52:59 -0500
-Received: from mail-eopbgr1400111.outbound.protection.outlook.com ([40.107.140.111]:15552
-        "EHLO JPN01-TY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728300AbfCAOw6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Mar 2019 09:52:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=renesasgroup.onmicrosoft.com; s=selector1-bp-renesas-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ENTkYF4OxW8k/mjXm/6O/UWfyzoJuvtM4sfKGhfbyRs=;
- b=HPyrbg3Ju5/lk0QvatQamBsiW8yQxz9+PfPeD1JWTj1MRv6UKTOg3uIgmfNIrLk2eik1Iaj+NzrXEvmu6Iw7ySykbTtGC6uYkYRhbQfjn1KYOSAI8+db/Qa9NzWP8kJCFoQMaGIn3jubbGl9AgWHCuf4l1bnDezlwp1JRRdzjA4=
-Received: from OSBPR01MB2103.jpnprd01.prod.outlook.com (52.134.242.17) by
- OSBPR01MB2887.jpnprd01.prod.outlook.com (52.134.255.139) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1665.16; Fri, 1 Mar 2019 14:52:52 +0000
-Received: from OSBPR01MB2103.jpnprd01.prod.outlook.com
- ([fe80::d5b0:ac4:6d54:6285]) by OSBPR01MB2103.jpnprd01.prod.outlook.com
- ([fe80::d5b0:ac4:6d54:6285%5]) with mapi id 15.20.1643.022; Fri, 1 Mar 2019
- 14:52:52 +0000
-From:   Biju Das <biju.das@bp.renesas.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC:     =?utf-8?B?TmlrbGFzIFPDtmRlcmx1bmQ=?= 
-        <niklas.soderlund@ragnatech.se>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org" 
-        <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms@verge.net.au>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: RE: [PATCH RESEND v2 1/2] media: dt-bindings: media: rcar-csi2: Add
- r8a774a1 support
-Thread-Topic: [PATCH RESEND v2 1/2] media: dt-bindings: media: rcar-csi2: Add
- r8a774a1 support
-Thread-Index: AQHU0Ds/TzDRnrLOkkeECrlssPMigKX213EAgAADyGA=
-Date:   Fri, 1 Mar 2019 14:52:51 +0000
-Message-ID: <OSBPR01MB2103FC038B64247EE41AE256B8760@OSBPR01MB2103.jpnprd01.prod.outlook.com>
-References: <1551450253-63390-1-git-send-email-biju.das@bp.renesas.com>
- <615b0c46-5939-bdce-e975-8572d42bdbe8@xs4all.nl>
-In-Reply-To: <615b0c46-5939-bdce-e975-8572d42bdbe8@xs4all.nl>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [193.141.220.21]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: efa439b9-d2e3-40d9-b3ef-08d69e559489
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600127)(711020)(4605104)(4618075)(2017052603328)(7153060)(7193020);SRVR:OSBPR01MB2887;
-x-ms-traffictypediagnostic: OSBPR01MB2887:
-x-microsoft-exchange-diagnostics: 1;OSBPR01MB2887;20:MSxgd3Qz1YkEdfhPEIL44joRy/At9BwN2dIIcO+ASKpXFJVKT6ibwxhIJQri6q4TRRrFRnyZBtxVM/nRdp3wYq6sqBMeLzqaSraI9vU0Dhzj7ZOvr/cQc0EOiaKjooUFElNSNnpAOMOrB/oNGdEuhcq4uDNP0M7Yt9JYxAV+sbE=
-x-microsoft-antispam-prvs: <OSBPR01MB2887E1C5CCE6A87571E50684B8760@OSBPR01MB2887.jpnprd01.prod.outlook.com>
-x-forefront-prvs: 09634B1196
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(366004)(376002)(346002)(136003)(39860400002)(396003)(189003)(199004)(51914003)(256004)(3846002)(68736007)(6116002)(97736004)(8936002)(5660300002)(229853002)(6436002)(7416002)(33656002)(14454004)(478600001)(71190400001)(71200400001)(7696005)(99286004)(6346003)(102836004)(26005)(52536013)(6506007)(53546011)(76176011)(2906002)(6246003)(55016002)(105586002)(106356001)(81156014)(107886003)(9686003)(316002)(66066001)(25786009)(8676002)(81166006)(186003)(446003)(44832011)(305945005)(74316002)(476003)(11346002)(7736002)(486006)(4326008)(54906003)(110136005)(53936002)(86362001);DIR:OUT;SFP:1102;SCL:1;SRVR:OSBPR01MB2887;H:OSBPR01MB2103.jpnprd01.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:0;
-received-spf: None (protection.outlook.com: bp.renesas.com does not designate
- permitted sender hosts)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=biju.das@bp.renesas.com; 
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: k26uzbXwFk7RtqwpjQep1ZTqFeKFVX4ZptK5tGDoOrIt5B6+p/IHQBGkstAqUrR5ooovmsReSMwIPzr6oH3ZPKfVIDKiYS1pPc8xN9t8reKq1BSAwQIe47GaF7cGJOiQyEilAFUL1m8A1kHu4CSy1sA4iiEi6qRCRUqL7JMIAqEOACWYxKMcW0SnK4VT784EK3UQsyp/CX+4lLf+COECKyd4XaReuWXiS3p4237lMyfbVbHv0/K4YWaBgQjOJddjpH1ySZQJWaXPkH4inluoqvqFmfiOIdmbwlAR8oZpNt2kIVMmwHIONPyPpvxMFcy6isX+e6HpJB7q1Hm9PHUn+l1Djy3Z4mNaGHYh8reE4NIVcNhN0IE9cHf83SQh2nUvYaUID+foSJ9HAHwHigGkv2mN/UIDRL7E7+bFTWQMtXM=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        id S1728313AbfCAPDt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 10:03:49 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:57048 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727492AbfCAPDt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 10:03:49 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=fWfguWhWAx0UCjN5UtA+Si57nYTV0ESGRMLSgO5psbw=; b=SNM6VnkWLqg/ZQmtrINKXGjb8
+        erIcnxaN/JrhLJfgQn9S9D14zSZ6eZfTuedDsW4l1o5QdaNVjD9vG889mufpyClBVOQiHQAqmcYtD
+        rUNLs9ufqin/sb7kS95vwl9ZqNu1jDucRWNIN98x0+VamliglC5MQV2VpizMUf6gapbvUh3Udw1w1
+        bRYy2DdgjvRG8A3FHHz+X+ZCHtITZfz4RM8sizcIBEhp83IRo1HOsjNUoche6pNfVWih3ZGAFj/uO
+        yHisHbDHczfqqrLL5gt2FqeRMntpI21sY1CT43H+FICAITC/WylZBnUgU8tz6UMjpvlTFv0kK9tbj
+        zXtuj6qAw==;
+Received: from 177.41.113.159.dynamic.adsl.gvt.net.br ([177.41.113.159] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gzjhT-0001u5-EO; Fri, 01 Mar 2019 15:03:47 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1gzjhQ-0002Hi-Mo; Fri, 01 Mar 2019 10:03:44 -0500
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Benoit Parrot <bparrot@ti.com>,
+        Rui Miguel Silva <rmfrfs@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] media: a few more typos at staging, pci, platform, radio and usb
+Date:   Fri,  1 Mar 2019 10:03:44 -0500
+Message-Id: <26b190053ec0db030697e2e19a8f8f13550b9ff7.1551452616.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-X-OriginatorOrg: bp.renesas.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: efa439b9-d2e3-40d9-b3ef-08d69e559489
-X-MS-Exchange-CrossTenant-originalarrivaltime: 01 Mar 2019 14:52:51.8213
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 53d82571-da19-47e4-9cb4-625a166a4a2a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSBPR01MB2887
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-SGkgSGFucywNCg0KVGhhbmtzIGZvciB0aGUgZmVlZGJhY2suDQoNCj4gU3ViamVjdDogUmU6IFtQ
-QVRDSCBSRVNFTkQgdjIgMS8yXSBtZWRpYTogZHQtYmluZGluZ3M6IG1lZGlhOiByY2FyLWNzaTI6
-IEFkZA0KPiByOGE3NzRhMSBzdXBwb3J0DQo+DQo+IE9uIDMvMS8xOSAzOjI0IFBNLCBCaWp1IERh
-cyB3cm90ZToNCj4gPiBEb2N1bWVudCBSWi9HMk0gKFI4QTc3NEExKSBTb0MgYmluZGluZ3MuDQo+
-DQo+IFBsZWFzZSByZXNlbmQgdGhlIHdob2xlIHNlcmllcywgbm90IGp1c3QgdGhlIGR0LWJpbmRp
-bmdzIHBhdGNoZXMuDQo+DQo+IEFsc28gbm90ZSB0aGF0IHRoZSBvcmlnaW5hbCB2MSBzZXJpZXMg
-c2FpZCB0aGF0IHRoZXJlIHdlcmUgNSBwYXRjaGVzIGluIHRoZQ0KPiBzZXJpZXMsIGJ1dCBvbmx5
-IHRoZSBmaXJzdCA0IHdlcmUgcmVjZWl2ZWQgb24gbGludXgtbWVkaWEuIFNvIEkgaGF2ZSBubyBp
-ZGVhDQo+IHdoYXQgdGhlIDV0aCBwYXRjaCB3YXMgKGR0cyBjaGFuZ2UgcGVyaGFwcz8pLg0KDQpZ
-ZXMsICBJdCBpcyBkdHMgcGF0Y2gNCg0KPiBIYXZpbmcgYSBuZXdseSBwb3N0ZWQgcGF0Y2ggc2Vy
-aWVzIGF2b2lkcyBjb25mdXNpb24uDQoNCk9LLiBXaWxsIHNlbmQgdGhlIHdob2xlIHNlcmllcyBh
-Z2Fpbi4uDQoNClJlZ2FyZHMsDQpCaWp1DQoNCj4gPg0KPiA+IFRoZSBSWi9HMk0gU29DIGlzIHNp
-bWlsYXIgdG8gUi1DYXIgTTMtVyAoUjhBNzc5NikuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBC
-aWp1IERhcyA8YmlqdS5kYXNAYnAucmVuZXNhcy5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IEZhYnJp
-emlvIENhc3RybyA8ZmFicml6aW8uY2FzdHJvQGJwLnJlbmVzYXMuY29tPg0KPiA+IEFja2VkLWJ5
-OiBOaWtsYXMgU8O2ZGVybHVuZCA8bmlrbGFzLnNvZGVybHVuZCtyZW5lc2FzQHJhZ25hdGVjaC5z
-ZT4NCj4gPiBSZXZpZXdlZC1ieTogU2ltb24gSG9ybWFuIDxob3JtcytyZW5lc2FzQHZlcmdlLm5l
-dC5hdT4NCj4gPiBSZXZpZXdlZC1ieTogUm9iIEhlcnJpbmcgPHJvYmhAa2VybmVsLm9yZz4NCj4g
-PiAtLS0NCj4gPiBWMS0+VjINCj4gPiAgICAqIE5vIGNoYW5nZQ0KPiA+IC0tLQ0KPiA+ICBEb2N1
-bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvcmVuZXNhcyxyY2FyLWNzaTIudHh0
-IHwgMSArDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQ0KPiA+DQo+ID4gZGlm
-ZiAtLWdpdA0KPiA+IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3Jl
-bmVzYXMscmNhci1jc2kyLnR4dA0KPiA+IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRp
-bmdzL21lZGlhL3JlbmVzYXMscmNhci1jc2kyLnR4dA0KPiA+IGluZGV4IGQ2MzI3NWUuLjk5MzI0
-NTggMTAwNjQ0DQo+ID4gLS0tIGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21l
-ZGlhL3JlbmVzYXMscmNhci1jc2kyLnR4dA0KPiA+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9tZWRpYS9yZW5lc2FzLHJjYXItY3NpMi50eHQNCj4gPiBAQCAtOCw2ICs4
-LDcgQEAgUi1DYXIgVklOIG1vZHVsZSwgd2hpY2ggcHJvdmlkZXMgdGhlIHZpZGVvIGNhcHR1cmUN
-Cj4gY2FwYWJpbGl0aWVzLg0KPiA+ICBNYW5kYXRvcnkgcHJvcGVydGllcw0KPiA+ICAtLS0tLS0t
-LS0tLS0tLS0tLS0tLQ0KPiA+ICAgLSBjb21wYXRpYmxlOiBNdXN0IGJlIG9uZSBvciBtb3JlIG9m
-IHRoZSBmb2xsb3dpbmcNCj4gPiArICAgLSAicmVuZXNhcyxyOGE3NzRhMS1jc2kyIiBmb3IgdGhl
-IFI4QTc3NEExIGRldmljZS4NCj4gPiAgICAgLSAicmVuZXNhcyxyOGE3NzRjMC1jc2kyIiBmb3Ig
-dGhlIFI4QTc3NEMwIGRldmljZS4NCj4gPiAgICAgLSAicmVuZXNhcyxyOGE3Nzk1LWNzaTIiIGZv
-ciB0aGUgUjhBNzc5NSBkZXZpY2UuDQo+ID4gICAgIC0gInJlbmVzYXMscjhhNzc5Ni1jc2kyIiBm
-b3IgdGhlIFI4QTc3OTYgZGV2aWNlLg0KPiA+DQoNCg0KDQpSZW5lc2FzIEVsZWN0cm9uaWNzIEV1
-cm9wZSBHbWJILEdlc2NoYWVmdHNmdWVocmVyL1ByZXNpZGVudCA6IE1pY2hhZWwgSGFubmF3YWxk
-LCBTaXR6IGRlciBHZXNlbGxzY2hhZnQvUmVnaXN0ZXJlZCBvZmZpY2U6IER1ZXNzZWxkb3JmLCBB
-cmNhZGlhc3RyYXNzZSAxMCwgNDA0NzIgRHVlc3NlbGRvcmYsIEdlcm1hbnksSGFuZGVsc3JlZ2lz
-dGVyL0NvbW1lcmNpYWwgUmVnaXN0ZXI6IER1ZXNzZWxkb3JmLCBIUkIgMzcwOCBVU3QtSUROci4v
-VGF4IGlkZW50aWZpY2F0aW9uIG5vLjogREUgMTE5MzUzNDA2IFdFRUUtUmVnLi1Oci4vV0VFRSBy
-ZWcuIG5vLjogREUgMTQ5Nzg2NDcNCg==
+Those typos were left over from codespell check, on
+my first pass or belong to code added after the time I
+ran it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/pci/cx18/cx18-dvb.c          | 2 +-
+ drivers/media/pci/saa7164/saa7164-dvb.c    | 2 +-
+ drivers/media/platform/ti-vpe/vpdma.c      | 2 +-
+ drivers/media/radio/wl128x/fmdrv_common.c  | 2 +-
+ drivers/media/usb/au0828/au0828-dvb.c      | 2 +-
+ drivers/staging/media/imx/imx7-mipi-csis.c | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/pci/cx18/cx18-dvb.c b/drivers/media/pci/cx18/cx18-dvb.c
+index 51ecbe350d0e..61452c50a9c3 100644
+--- a/drivers/media/pci/cx18/cx18-dvb.c
++++ b/drivers/media/pci/cx18/cx18-dvb.c
+@@ -458,7 +458,7 @@ void cx18_dvb_unregister(struct cx18_stream *stream)
+ 	dvb_unregister_adapter(dvb_adapter);
+ }
+ 
+-/* All the DVB attach calls go here, this function get's modified
++/* All the DVB attach calls go here, this function gets modified
+  * for each new card. cx18_dvb_start_feed() will also need changes.
+  */
+ static int dvb_register(struct cx18_stream *stream)
+diff --git a/drivers/media/pci/saa7164/saa7164-dvb.c b/drivers/media/pci/saa7164/saa7164-dvb.c
+index dfb118d7d1ec..3e73cb3c7e88 100644
+--- a/drivers/media/pci/saa7164/saa7164-dvb.c
++++ b/drivers/media/pci/saa7164/saa7164-dvb.c
+@@ -529,7 +529,7 @@ int saa7164_dvb_unregister(struct saa7164_port *port)
+ 	return 0;
+ }
+ 
+-/* All the DVB attach calls go here, this function get's modified
++/* All the DVB attach calls go here, this function gets modified
+  * for each new card.
+  */
+ int saa7164_dvb_register(struct saa7164_port *port)
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 1da2cb3aaf0c..78d716c93649 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -1008,7 +1008,7 @@ unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num)
+ }
+ EXPORT_SYMBOL(vpdma_get_list_mask);
+ 
+-/* clear previously occurred list interupts in the LIST_STAT register */
++/* clear previously occurred list interrupts in the LIST_STAT register */
+ void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
+ 			   int list_num)
+ {
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index e1c218b23d9e..3c8987af3772 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -1047,7 +1047,7 @@ static void fm_irq_handle_intmsk_cmd_resp(struct fmdev *fmdev)
+ 		clear_bit(FM_INTTASK_RUNNING, &fmdev->flag);
+ }
+ 
+-/* Returns availability of RDS data in internel buffer */
++/* Returns availability of RDS data in internal buffer */
+ int fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
+ 				struct poll_table_struct *pts)
+ {
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index d9093a3c57c5..6e43028112d1 100644
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -566,7 +566,7 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
+ 	dvb->frontend = NULL;
+ }
+ 
+-/* All the DVB attach calls go here, this function get's modified
++/* All the DVB attach calls go here, this function gets modified
+  * for each new card. No other function in this file needs
+  * to change.
+  */
+diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c b/drivers/staging/media/imx/imx7-mipi-csis.c
+index 75b904d36621..2ddcc42ab8ff 100644
+--- a/drivers/staging/media/imx/imx7-mipi-csis.c
++++ b/drivers/staging/media/imx/imx7-mipi-csis.c
+@@ -822,7 +822,7 @@ static int mipi_csis_parse_dt(struct platform_device *pdev,
+ 	if (IS_ERR(state->mrst))
+ 		return PTR_ERR(state->mrst);
+ 
+-	/* Get MIPI CSI-2 bus configration from the endpoint node. */
++	/* Get MIPI CSI-2 bus configuration from the endpoint node. */
+ 	of_property_read_u32(node, "fsl,csis-hs-settle", &state->hs_settle);
+ 
+ 	return 0;
+-- 
+2.20.1
+
