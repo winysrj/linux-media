@@ -2,213 +2,259 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E294C43381
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 16:07:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3C25C43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 16:52:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7A8E2084F
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 16:07:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pGr/XMaH"
+	by mail.kernel.org (Postfix) with ESMTP id 6655E2087E
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 16:52:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1551459139;
+	bh=sI+D2yADRDyG021QODsO375SGHKtpb0VXym6v6WgcI8=;
+	h=From:Cc:Subject:Date:In-Reply-To:References:To:List-ID:From;
+	b=HavfWo9WTxiQgVlRrqhwxcXg7pNukeIfIOb6g4PxKNq5O0dqNDJymKz8fCkYapbzS
+	 kkqFDjT/SWX2Ga8ihi7KwmpCEmaYFn5h96WkP+P3c9iunzlW+LqqAwnf12DuYuZoFY
+	 U2eOuELNXu1gFBiWSx3Ny+vHW21aPEOzLNiCpmus=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388923AbfCAQHj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 11:07:39 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:42381 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727952AbfCAQHj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 11:07:39 -0500
-Received: by mail-wr1-f65.google.com with SMTP id r5so26429900wrg.9
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2019 08:07:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=references:user-agent:from:to:cc:subject:in-reply-to:date
-         :message-id:mime-version;
-        bh=6pGFBwvSuAW7TbPdViVFsz7s1Ui1Sf71K4ZcQ+PlUto=;
-        b=pGr/XMaHIXCx6U2k7+GqiUuNYuFxJ+kuro9gY5WyyOZB7htJQrE2zpH38HhRadjHA2
-         3zITT84Eob3H1EeM72sAOuPk3dtClOzTzyNLbVn+epI3belUi597tMj/oKuOUAVKuer8
-         rEdVgg6q8hfs3imuzMl1hwd/KRVlG08JS0N1RSNeoKxJLQqQLG8XX9VIlQFY5Djl6AgJ
-         oiXvi7muTiU5MHkrw8AL16hqMRFXUW0InS6jbhDSSLhqjIX9cwXvSaJsagwEOc6ZEEd/
-         tiYPUOtyOcrNGM212thGDrhElxeYVE45piIApvShEkBcJHcyctEIHJNJsFM8f3u5kPWA
-         JdNw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:references:user-agent:from:to:cc:subject
-         :in-reply-to:date:message-id:mime-version;
-        bh=6pGFBwvSuAW7TbPdViVFsz7s1Ui1Sf71K4ZcQ+PlUto=;
-        b=NEBatTX3ENDM/xIiVu2TCYDDutSWofifR/g/nJwh+bAh83NbUHkDTsuNDY8TNxWVJp
-         6vnD4I9KX+xP86uc3MlgXl4IRRY/v6KNynwR9MhPSf575yyQPiJAbLftpgG+dnTNW5RP
-         xpG0sND6uzFdM+XEWnWt8r1/yEKYhZlxe4KWJGwk35AKHLQXGO7pcKUyTLpAf8rgYuTU
-         fvXb0tWkydk7tY07l2S+Ip6C/WiB9cWV/Yk1jSCuNSuhG/jNJHy7q2qYzUhbc2cOFZYP
-         Um95+ICQY9fO09VABIvX6aHNJXOLSn268cLnHEriFEJtfpETuQCU2Re6YpVFP1gP0279
-         mg6Q==
-X-Gm-Message-State: APjAAAVjIRR5SamTWXQM8CzL4t8Quesqn5W3k6V3PsnBxjOyV4V2WwtV
-        Xaa1QZIAukv9ZiDfT2mVsUjax/CTOXM=
-X-Google-Smtp-Source: APXvYqyn1Z3K5z3yz4HxChmyO0osk5DzjVUFEIf60OQaciYsuZa4+jZWzQK0kSXr5plJ9tY/z40+Dg==
-X-Received: by 2002:a5d:6107:: with SMTP id v7mr4159899wrt.78.1551456456697;
-        Fri, 01 Mar 2019 08:07:36 -0800 (PST)
-Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id z17sm21411022wrs.75.2019.03.01.08.07.35
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 01 Mar 2019 08:07:36 -0800 (PST)
-References: <26b190053ec0db030697e2e19a8f8f13550b9ff7.1551452616.git.mchehab+samsung@kernel.org>
-User-agent: mu4e 1.0; emacs 27.0.50
-From:   Rui Miguel Silva <rmfrfs@gmail.com>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        id S2388984AbfCAQwS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 11:52:18 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:46614 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388692AbfCAQwS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 11:52:18 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
+        Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=KKsMst+4qRWVHf6zWojJwJgps/gEd9MvH5NSzubJ7a0=; b=LZbSZQDHwuBAULXma4G711ON/X
+        t89CjuRT2NeRROT8j0+kb92AhyJbxskl/VBOs8KR5oGUkfXbKCiBPwP8WsPNNqtHO7+5QiFzz0nQP
+        MGBWFltFe18CYVngf838H8y25B7lN9/b6XRXUwS3TsFTkzxsBanYJPY5OLsnAvSgyHEsB/Y+biJfJ
+        DyuZ2wOKTywdg8gjR/VtOGbNdWRN2sEMK2TdPVuYrf9+/iF1QGgS069Xqeid4GuCXPDq+vYjGqcMd
+        GmDyh1og4L0AcPFTV8J10/6l5RmoyXNR5BgWHe6x76ZVXkNr+3q7LtScddF5hhXU5gEcrwQ7f/1UU
+        12RKMMBA==;
+Received: from 177.41.113.159.dynamic.adsl.gvt.net.br ([177.41.113.159] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gzlOT-00029Q-VJ; Fri, 01 Mar 2019 16:52:17 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1gzlOP-0002l3-K0; Fri, 01 Mar 2019 11:52:13 -0500
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        Benoit Parrot <bparrot@ti.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH] media: a few more typos at staging, pci, platform, radio and usb
-In-reply-to: <26b190053ec0db030697e2e19a8f8f13550b9ff7.1551452616.git.mchehab+samsung@kernel.org>
-Date:   Fri, 01 Mar 2019 16:07:34 +0000
-Message-ID: <m3d0nay3w9.fsf@gmail.com>
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 2/2] media: vim2m: Address some coding style issues
+Date:   Fri,  1 Mar 2019 11:52:13 -0500
+Message-Id: <c310d1f97c94f68eb4b3860933b2e977c6b0cf5b.1551459127.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <971d62ddd23eb07b6cbad858f9b004342efa6ee1.1551459127.git.mchehab+samsung@kernel.org>
+References: <971d62ddd23eb07b6cbad858f9b004342efa6ee1.1551459127.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mauro,
-On Fri 01 Mar 2019 at 15:03, Mauro Carvalho Chehab wrote:
-> Those typos were left over from codespell check, on
-> my first pass or belong to code added after the time I
-> ran it.
->
-> Signed-off-by: Mauro Carvalho Chehab 
-> <mchehab+samsung@kernel.org>
+As we did lots of change at vim2m driver, let's take the
+opportunity and make checkpatch happier, addressing the
+errors/warnings that makes sense.
 
-For the imx7 part:
-Acked-by: Rui Miguel Silva <rmfrfs@gmail.com>
+While here, increment driver's version.
 
-Thanks.
+No functional changes.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
-Cheers,
-	Rui
+ drivers/media/platform/vim2m.c | 52 ++++++++++++++++++----------------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
 
-
-> ---
->  drivers/media/pci/cx18/cx18-dvb.c          | 2 +-
->  drivers/media/pci/saa7164/saa7164-dvb.c    | 2 +-
->  drivers/media/platform/ti-vpe/vpdma.c      | 2 +-
->  drivers/media/radio/wl128x/fmdrv_common.c  | 2 +-
->  drivers/media/usb/au0828/au0828-dvb.c      | 2 +-
->  drivers/staging/media/imx/imx7-mipi-csis.c | 2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/pci/cx18/cx18-dvb.c 
-> b/drivers/media/pci/cx18/cx18-dvb.c
-> index 51ecbe350d0e..61452c50a9c3 100644
-> --- a/drivers/media/pci/cx18/cx18-dvb.c
-> +++ b/drivers/media/pci/cx18/cx18-dvb.c
-> @@ -458,7 +458,7 @@ void cx18_dvb_unregister(struct cx18_stream 
-> *stream)
->  	dvb_unregister_adapter(dvb_adapter);
->  }
->  
-> -/* All the DVB attach calls go here, this function get's 
-> modified
-> +/* All the DVB attach calls go here, this function gets 
-> modified
->   * for each new card. cx18_dvb_start_feed() will also need 
->   changes.
->   */
->  static int dvb_register(struct cx18_stream *stream)
-> diff --git a/drivers/media/pci/saa7164/saa7164-dvb.c 
-> b/drivers/media/pci/saa7164/saa7164-dvb.c
-> index dfb118d7d1ec..3e73cb3c7e88 100644
-> --- a/drivers/media/pci/saa7164/saa7164-dvb.c
-> +++ b/drivers/media/pci/saa7164/saa7164-dvb.c
-> @@ -529,7 +529,7 @@ int saa7164_dvb_unregister(struct 
-> saa7164_port *port)
->  	return 0;
->  }
->  
-> -/* All the DVB attach calls go here, this function get's 
-> modified
-> +/* All the DVB attach calls go here, this function gets 
-> modified
->   * for each new card.
->   */
->  int saa7164_dvb_register(struct saa7164_port *port)
-> diff --git a/drivers/media/platform/ti-vpe/vpdma.c 
-> b/drivers/media/platform/ti-vpe/vpdma.c
-> index 1da2cb3aaf0c..78d716c93649 100644
-> --- a/drivers/media/platform/ti-vpe/vpdma.c
-> +++ b/drivers/media/platform/ti-vpe/vpdma.c
-> @@ -1008,7 +1008,7 @@ unsigned int vpdma_get_list_mask(struct 
-> vpdma_data *vpdma, int irq_num)
->  }
->  EXPORT_SYMBOL(vpdma_get_list_mask);
->  
-> -/* clear previously occurred list interupts in the LIST_STAT 
-> register */
-> +/* clear previously occurred list interrupts in the LIST_STAT 
-> register */
->  void vpdma_clear_list_stat(struct vpdma_data *vpdma, int 
->  irq_num,
->  			   int list_num)
->  {
-> diff --git a/drivers/media/radio/wl128x/fmdrv_common.c 
-> b/drivers/media/radio/wl128x/fmdrv_common.c
-> index e1c218b23d9e..3c8987af3772 100644
-> --- a/drivers/media/radio/wl128x/fmdrv_common.c
-> +++ b/drivers/media/radio/wl128x/fmdrv_common.c
-> @@ -1047,7 +1047,7 @@ static void 
-> fm_irq_handle_intmsk_cmd_resp(struct fmdev *fmdev)
->  		clear_bit(FM_INTTASK_RUNNING, &fmdev->flag);
->  }
->  
-> -/* Returns availability of RDS data in internel buffer */
-> +/* Returns availability of RDS data in internal buffer */
->  int fmc_is_rds_data_available(struct fmdev *fmdev, struct file 
->  *file,
->  				struct poll_table_struct *pts)
->  {
-> diff --git a/drivers/media/usb/au0828/au0828-dvb.c 
-> b/drivers/media/usb/au0828/au0828-dvb.c
-> index d9093a3c57c5..6e43028112d1 100644
-> --- a/drivers/media/usb/au0828/au0828-dvb.c
-> +++ b/drivers/media/usb/au0828/au0828-dvb.c
-> @@ -566,7 +566,7 @@ void au0828_dvb_unregister(struct au0828_dev 
-> *dev)
->  	dvb->frontend = NULL;
->  }
->  
-> -/* All the DVB attach calls go here, this function get's 
-> modified
-> +/* All the DVB attach calls go here, this function gets 
-> modified
->   * for each new card. No other function in this file needs
->   * to change.
->   */
-> diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c 
-> b/drivers/staging/media/imx/imx7-mipi-csis.c
-> index 75b904d36621..2ddcc42ab8ff 100644
-> --- a/drivers/staging/media/imx/imx7-mipi-csis.c
-> +++ b/drivers/staging/media/imx/imx7-mipi-csis.c
-> @@ -822,7 +822,7 @@ static int mipi_csis_parse_dt(struct 
-> platform_device *pdev,
->  	if (IS_ERR(state->mrst))
->  		return PTR_ERR(state->mrst);
->  
-> -	/* Get MIPI CSI-2 bus configration from the endpoint node. 
-> */
-> +	/* Get MIPI CSI-2 bus configuration from the endpoint 
-> node. */
->  	of_property_read_u32(node, "fsl,csis-hs-settle", 
->  &state->hs_settle);
->  
->  	return 0;
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index eff4eff858fe..34dcaca45d8b 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -35,10 +35,10 @@
+ MODULE_DESCRIPTION("Virtual device for mem2mem framework testing");
+ MODULE_AUTHOR("Pawel Osciak, <pawel@osciak.com>");
+ MODULE_LICENSE("GPL");
+-MODULE_VERSION("0.1.1");
++MODULE_VERSION("0.2");
+ MODULE_ALIAS("mem2mem_testdev");
+ 
+-static unsigned debug;
++static unsigned int debug;
+ module_param(debug, uint, 0644);
+ MODULE_PARM_DESC(debug, "debug level");
+ 
+@@ -61,8 +61,8 @@ MODULE_PARM_DESC(default_transtime, "default transaction time in ms");
+ #define BAYER_HEIGHT_ALIGN 2
+ 
+ /* Flags that indicate a format can be used for capture/output */
+-#define MEM2MEM_CAPTURE	(1 << 0)
+-#define MEM2MEM_OUTPUT	(1 << 1)
++#define MEM2MEM_CAPTURE	BIT(0)
++#define MEM2MEM_OUTPUT	BIT(1)
+ 
+ #define MEM2MEM_NAME		"vim2m"
+ 
+@@ -72,13 +72,12 @@ MODULE_PARM_DESC(default_transtime, "default transaction time in ms");
+ #define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
+ 
+ /* Flags that indicate processing mode */
+-#define MEM2MEM_HFLIP	(1 << 0)
+-#define MEM2MEM_VFLIP	(1 << 1)
++#define MEM2MEM_HFLIP	BIT(0)
++#define MEM2MEM_VFLIP	BIT(1)
+ 
+ #define dprintk(dev, lvl, fmt, arg...) \
+ 	v4l2_dbg(lvl, debug, &(dev)->v4l2_dev, "%s: " fmt, __func__, ## arg)
+ 
+-
+ static void vim2m_dev_release(struct device *dev)
+ {}
+ 
+@@ -240,7 +239,7 @@ static inline struct vim2m_ctx *file2ctx(struct file *file)
+ }
+ 
+ static struct vim2m_q_data *get_q_data(struct vim2m_ctx *ctx,
+-					 enum v4l2_buf_type type)
++				       enum v4l2_buf_type type)
+ {
+ 	switch (type) {
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+@@ -487,7 +486,10 @@ static int device_process(struct vim2m_ctx *ctx,
+ 	}
+ 	y_out = 0;
+ 
+-	/* When format and resolution are identical, we can use a faster copy logic */
++	/*
++	 * When format and resolution are identical,
++	 * we can use a faster copy logic
++	 */
+ 	if (q_data_in->fmt->fourcc == q_data_out->fmt->fourcc &&
+ 	    q_data_in->width == q_data_out->width &&
+ 	    q_data_in->height == q_data_out->height) {
+@@ -550,7 +552,6 @@ static int device_process(struct vim2m_ctx *ctx,
+ 			else
+ 				p_in_x[0] = p_line + x_offset * bytes_per_pixel;
+ 		}
+-
+ 	}
+ 
+ 	return 0;
+@@ -621,7 +622,7 @@ static void device_work(struct work_struct *w)
+ 
+ 	curr_ctx = container_of(w, struct vim2m_ctx, work_run.work);
+ 
+-	if (NULL == curr_ctx) {
++	if (!curr_ctx) {
+ 		pr_err("Instance released before the end of transaction\n");
+ 		return;
+ 	}
+@@ -657,7 +658,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+-			"platform:%s", MEM2MEM_NAME);
++		 "platform:%s", MEM2MEM_NAME);
+ 	return 0;
+ }
+ 
+@@ -767,8 +768,10 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ static int vidioc_try_fmt(struct v4l2_format *f, struct vim2m_fmt *fmt)
+ {
+ 	int walign, halign;
+-	/* V4L2 specification suggests the driver corrects the format struct
+-	 * if any of the dimensions is unsupported */
++	/*
++	 * V4L2 specification specifies the driver corrects the
++	 * format struct if any of the dimensions is unsupported
++	 */
+ 	if (f->fmt.pix.height < MIN_H)
+ 		f->fmt.pix.height = MIN_H;
+ 	else if (f->fmt.pix.height > MAX_H)
+@@ -947,7 +950,6 @@ static const struct v4l2_ctrl_ops vim2m_ctrl_ops = {
+ 	.s_ctrl = vim2m_s_ctrl,
+ };
+ 
+-
+ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
+ 	.vidioc_querycap	= vidioc_querycap,
+ 
+@@ -977,14 +979,15 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-
+ /*
+  * Queue operations
+  */
+ 
+ static int vim2m_queue_setup(struct vb2_queue *vq,
+-				unsigned int *nbuffers, unsigned int *nplanes,
+-				unsigned int sizes[], struct device *alloc_devs[])
++			     unsigned int *nbuffers,
++			     unsigned int *nplanes,
++			     unsigned int sizes[],
++			     struct device *alloc_devs[])
+ {
+ 	struct vim2m_ctx *ctx = vb2_get_drv_priv(vq);
+ 	struct vim2m_q_data *q_data;
+@@ -1058,7 +1061,7 @@ static void vim2m_buf_queue(struct vb2_buffer *vb)
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ }
+ 
+-static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
++static int vim2m_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
+ 	struct vim2m_q_data *q_data = get_q_data(ctx, q->type);
+@@ -1083,7 +1086,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 		else
+ 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-		if (vbuf == NULL)
++		if (!vbuf)
+ 			return;
+ 		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
+ 					   &ctx->hdl);
+@@ -1112,7 +1115,8 @@ static const struct vb2_ops vim2m_qops = {
+ 	.buf_request_complete = vim2m_buf_request_complete,
+ };
+ 
+-static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
++static int queue_init(void *priv, struct vb2_queue *src_vq,
++		      struct vb2_queue *dst_vq)
+ {
+ 	struct vim2m_ctx *ctx = priv;
+ 	int ret;
+@@ -1318,7 +1322,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 
+ 	video_set_drvdata(vfd, dev);
+ 	v4l2_info(&dev->v4l2_dev,
+-			"Device registered as /dev/video%d\n", vfd->num);
++		  "Device registered as /dev/video%d\n", vfd->num);
+ 
+ 	platform_set_drvdata(pdev, dev);
+ 
+@@ -1338,8 +1342,8 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	dev->mdev.ops = &m2m_media_ops;
+ 	dev->v4l2_dev.mdev = &dev->mdev;
+ 
+-	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
+-			vfd, MEDIA_ENT_F_PROC_VIDEO_SCALER);
++	ret = v4l2_m2m_register_media_controller(dev->m2m_dev, vfd,
++						 MEDIA_ENT_F_PROC_VIDEO_SCALER);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
+ 		goto unreg_m2m;
+-- 
+2.20.1
 
