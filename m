@@ -2,149 +2,99 @@ Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75B39C43381
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 04:49:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F110C43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:19:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 45F492087E
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 04:49:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03D6E2186A
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 08:19:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726189AbfCAEtQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 28 Feb 2019 23:49:16 -0500
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33475 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725978AbfCAEtQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Feb 2019 23:49:16 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:28f6:efa6:3b03:d09a])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id za6jgVaS0I8AWza6kglpKo; Fri, 01 Mar 2019 05:49:14 +0100
-Message-ID: <e321bdc71f2e3bd1a47e8d747a486524@smtp-cloud9.xs4all.net>
-Date:   Fri, 01 Mar 2019 05:49:12 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfNM7imNAJGMD2VEiOZzPhLJ2wEC1x75aiAiFGoFyxyXzc77MxAQ62c8qETYhNgQDDsIXYKSv9OMyuncdXk3flT/bhDtehDh9PbfDsZ1iXlZd9eO9M0mn
- l9AVRkPwuuZaMAoYKuqGX7uBIkSRHC1QUbRB/7tbHaML6eiyBhmQJb/gzMd/D1TczpGagIDdo8gHiosHo0gI3rBocrTpIGPccccfpUcPfM0FUIiiEPQAdTL0
+        id S1727299AbfCAITl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 03:19:41 -0500
+Received: from mga04.intel.com ([192.55.52.120]:53525 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726226AbfCAITl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Mar 2019 03:19:41 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 01 Mar 2019 00:19:41 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,426,1544515200"; 
+   d="scan'208";a="130339887"
+Received: from genxfsim-shark-bay-client-platform.iind.intel.com ([10.223.25.3])
+  by orsmga003.jf.intel.com with ESMTP; 01 Mar 2019 00:19:36 -0800
+From:   swati2.sharma@intel.com
+To:     dri-devel@lists.freedesktop.org
+Cc:     linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        narmstrong@baylibre.com, clinton.a.taylor@intel.com,
+        ayaka@soulik.info, ayan.halder@arm.com, maxime.ripard@bootlin.com,
+        daniel@fooishbar.org, juhapekka.heikkila@gmail.com,
+        maarten.lankhorst@linux.intel.com, stanislav.lisovskiy@intel.com,
+        daniel.vetter@ffwll.ch, ville.syrjala@linux.intel.com,
+        Swati Sharma <swati2.sharma@intel.com>
+Subject: [PATCH 0/6] Enable P0xx (planar), Y2xx/Y4xx (packed) pixel formats
+Date:   Fri,  1 Mar 2019 13:46:21 +0530
+Message-Id: <1551428187-12535-1-git-send-email-swati2.sharma@intel.com>
+X-Mailer: git-send-email 1.9.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Swati Sharma <swati2.sharma@intel.com>
 
-Results of the daily build of media_tree:
+This patch series is for enabling P0xx, Y2xx and Y4xx pixel formats for
+intel's i915 driver.
 
-date:			Fri Mar  1 05:00:11 CET 2019
-media-tree git hash:	9fabe1d108ca4755a880de43f751f1c054f8894d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	410942e345b889d09456f5f862ee6cd415d8ae59
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse version:		0.6.0
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+In this patch series, Juha Pekka's patch series Gen10+ P0xx formats
+https://patchwork.freedesktop.org/series/56053/ is combined with Swati's
+https://patchwork.freedesktop.org/series/55035/ for Gen11+ pixel formats
+(Y2xx and Y4xx).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 14
-sparse: WARNINGS
-smatch: ERRORS
+P0xx pixel formats are enabled from GLK whereas Y2xx and Y4xx are enabled
+from ICL platform.
 
-Detailed results are available here:
+These patches enable planar formats YUV420-P010, P012 and  P016
+(Intial 3 patches of Juha) for GLK+ platform and packed format YUV422-Y210,
+Y212 and Y216 and YUV444-Y410, Y412, Y416 for 10, 12 and 16 bits for ICL+
+platforms.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+IGT validating all these pixel formats is written by Maarten Lankhorst 
+https://patchwork.freedesktop.org/patch/284508/
 
-Detailed regression test results are available here:
+IGT needs libraries for pixman and cairo to support more than 8bpc. Need 
+cairo >= 1.17.2 and pixman-1 >= 0.36.0.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Friday-test-media-dmesg.log
+Tested with custom cairo and pixman. P0xx and Y2xx successfully validated for
+HDR planes, SDR planes having CRC mismatch (known bug for all YUV formats).
 
-Full logs are available here:
+Juha-Pekka Heikkila (3):
+  drm/i915: Add P010, P012, P016 plane control definitions
+  drm/i915: Preparations for enabling P010, P012, P016 formats
+  drm/i915: Enable P010, P012, P016 formats for primary and sprite
+    planes
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Swati Sharma (3):
+  drm: Add Y2xx and Y4xx (xx:10/12/16) format definitions and fourcc
+  drm/i915/icl: Add Y2xx and Y4xx (xx:10/12/16) plane control
+    definitions
+  drm/i915/icl: Enabling Y2xx and Y4xx (xx:10/12/16) formats for
+    universal planes
 
-The Media Infrastructure API from this daily build is here:
+ drivers/gpu/drm/drm_fourcc.c              |   6 ++
+ drivers/gpu/drm/i915/i915_reg.h           |   9 +++
+ drivers/gpu/drm/i915/intel_atomic_plane.c |   2 +-
+ drivers/gpu/drm/i915/intel_display.c      |  57 ++++++++++++++--
+ drivers/gpu/drm/i915/intel_drv.h          |   1 +
+ drivers/gpu/drm/i915/intel_pm.c           |  14 ++--
+ drivers/gpu/drm/i915/intel_sprite.c       | 108 ++++++++++++++++++++++++++++--
+ include/uapi/drm/drm_fourcc.h             |  18 ++++-
+ 8 files changed, 195 insertions(+), 20 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+1.9.1
+
