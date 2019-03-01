@@ -6,24 +6,24 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2176C10F03
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:24:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7193C43381
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:24:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B13E5218E0
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:24:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C04E218E0
+	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 13:24:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551446673;
-	bh=0yFgYnoMwV7PrNHmtbdrRSEUb+52I8W7RJWy906LhN8=;
+	s=default; t=1551446674;
+	bh=bn2zdE0WrmoZ7HyhG4WlP3DtrBL/riQvNVvV9YNR2go=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=G9b1qiyJKqwGlQREtNc7nmr8u0KVEYnN0YliW0WSudsO/6VqlHCfJMPAKpiMpdgvN
-	 Sm2TvHzle4HVAZtJ/TBo+WpsEsawVA8KBMWHGPVT/MpsgoCzE2OtvB3x4t3XJOXK5M
-	 QDNrkzPb2N5MQ7gPTgft0WyGHBVpvsI43LiWhRJI=
+	b=0lF2qspQMuFN0PLVRPNspVdkPXUuqyR4DhRk87cNgzxTYMr1cQa0ILXs75ysud/OY
+	 ljWcQInGJhIB+qCCfCCcs4uW5DE+az5DxSRhoU4Wnm0Pg2g2LLmLVeLihgOWzKz+0+
+	 83Yg+aFq15HqzJXxwaYqHLaILzvbzI/Nh4lBGACk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387600AbfCANYc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 08:24:32 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:50542 "EHLO
+        id S2387601AbfCANYd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 08:24:33 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:50534 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387518AbfCANYa (ORCPT
+        with ESMTP id S1732910AbfCANYa (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 08:24:30 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
@@ -31,27 +31,27 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=ZQL9nvcw/a6aK+gKT6rbweNSeFBeJyzcGcYPj7/uASk=; b=IfGeaOCWxpsTRcWyh8fTsU7Pkl
-        xjwhvO6pLYAcKWNcFc5rmpVeBzST6OUiB8c3m/TG8LTFlI9X9Nr+mYxUizfw+zudlNxYhRGAhEkri
-        4tRG222kg4w1mTltEvL29rf5/bzlSnW0jLVplYKPCn9YZ6B8tGpWTNRjUPkaN16FN6eGebHg8B2Cy
-        5Pg2QZWQvwaA6nyGRvX44gEQUl9x/amyz7NKK10kSuq1r+YjLpRzP+PanDRQWatLMsYlCyWotpeyY
-        m3qPSKA/Svr4hjs+OFf2QkaWN1ABo8zYIgWa/2OM065FiA4ABWarh31rB/sl6CPuEx2vp4bEVIHF/
-        ogcHcSzQ==;
+        bh=BHHrEQZI+5S4/LwUdO/s8e2FpWWYq4AOxIetfF7icw0=; b=Cx4Ital9N2dP3j067oN9A4Wxfy
+        DkwidvhlA167bsIBuXgKbxon9pnPjFqi5ze/DB4NGxUrVi8Onlk074Qn7Xpzb1CiFrPQo30JytqGe
+        QrMun5qXbI5tdmeHEhnXLO1vgJFzz7dxQZFuWoXbfo3aPB/Pg5GN1tUThpuv6/il9OPl9s87E+jTx
+        GdoWbqYwsbgHtxtbfdiCz/BimQVsgF7nl5f6l+xFcGLusYHz8zaW8YJedk1gMNlx7OmVXhXRVbU1I
+        hyvuhTsWKbpM66SySO44jzLOh7NTkyx0rTQBrjj9v2IaV6sTXLm6jEaB5lJ0L6oGz4WBGLufjT0du
+        jxuwNzvQ==;
 Received: from 177.41.113.159.dynamic.adsl.gvt.net.br ([177.41.113.159] helo=bombadil.infradead.org)
         by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gzi9O-0003y4-1I; Fri, 01 Mar 2019 13:24:30 +0000
+        id 1gzi9N-0003y1-VO; Fri, 01 Mar 2019 13:24:29 +0000
 Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
         (envelope-from <mchehab@bombadil.infradead.org>)
-        id 1gzi9L-0002Nh-Ut; Fri, 01 Mar 2019 10:24:27 -0300
+        id 1gzi9L-0002NS-SB; Fri, 01 Mar 2019 10:24:27 -0300
 From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To:     Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 09/10] media: vim2m: add an horizontal scaler
-Date:   Fri,  1 Mar 2019 10:24:25 -0300
-Message-Id: <4f7af5730361937a48557822050005d707a3762c.1551446121.git.mchehab+samsung@kernel.org>
+Subject: [PATCH 06/10] media: vim2m: better handle cap/out buffers with different sizes
+Date:   Fri,  1 Mar 2019 10:24:22 -0300
+Message-Id: <ce9d40dcf9cb861fa2472534add585be79102ed0.1551446121.git.mchehab+samsung@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.1551446121.git.mchehab+samsung@kernel.org>
 References: <cover.1551446121.git.mchehab+samsung@kernel.org>
@@ -62,186 +62,193 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add an horizontal linear scaler using Breseham algorithm in
-order to speep up its calculus.
+The vim2m driver doesn't enforce that the capture and output
+buffers would have the same size. Do the right thing if the
+buffers are different, zeroing the buffer before writing,
+ensuring that lines will be aligned and it won't write past
+the buffer area.
+
+This is a temporary fix.
+
+A proper fix is to either implement a simple scaler at vim2m,
+or to better define the behaviour of M2M transform drivers
+at V4L2 API with regards to its capability of scaling the
+image or not.
+
+In any case, such changes would deserve a separate patch
+anyway, as it would imply on some behavoral change.
+
+Also, as we have an actual bug of writing data at wrong
+places, let's fix this here, and add a mental note that
+we need to properly address it.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/platform/vim2m.c | 95 ++++++++++++++++++++--------------
- 1 file changed, 55 insertions(+), 40 deletions(-)
+ drivers/media/platform/vim2m.c | 117 +++++++++++++++++++++++----------
+ 1 file changed, 81 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index a0e52eb205e3..6bcc0c9f9910 100644
+index 5157a59aeb58..ec177de144b6 100644
 --- a/drivers/media/platform/vim2m.c
 +++ b/drivers/media/platform/vim2m.c
-@@ -290,12 +290,12 @@ static void fast_copy_two_pixels(struct vim2m_q_data *q_data_in,
+@@ -267,46 +267,66 @@ static const char *type_name(enum v4l2_buf_type type)
+ #define CLIP(__color) \
+ 	(u8)(((__color) > 0xff) ? 0xff : (((__color) < 0) ? 0 : (__color)))
  
- static void copy_two_pixels(struct vim2m_q_data *q_data_in,
- 			    struct vim2m_q_data *q_data_out,
--			    u8 **src, u8 **dst, int ypos, bool reverse)
-+			    u8 *src[2], u8 **dst, int ypos, bool reverse)
+-static void copy_two_pixels(struct vim2m_fmt *in, struct vim2m_fmt *out,
++static int fast_copy_two_pixels(struct vim2m_q_data *q_data_in,
++				 struct vim2m_q_data *q_data_out,
++				 u8 **src, u8 **dst, int ypos, bool reverse)
++{
++	int depth = q_data_out->fmt->depth >> 3;
++
++	/* Only do fast copy when format and resolution are identical */
++	if (q_data_in->fmt->fourcc != q_data_out->fmt->fourcc ||
++	    q_data_in->width != q_data_out->width ||
++	    q_data_in->height != q_data_out->height)
++		return 0;
++
++	if (!reverse) {
++		memcpy(*dst, *src, depth << 1);
++		*src += depth << 1;
++		*dst += depth << 1;
++		return 1;
++	}
++
++	/* Copy line at reverse order - YUYV format */
++	if (q_data_in->fmt->fourcc == V4L2_PIX_FMT_YUYV) {
++		int u, v, y, y1;
++
++		*src -= 2;
++
++		y1 = (*src)[0]; /* copy as second point */
++		u  = (*src)[1];
++		y  = (*src)[2]; /* copy as first point */
++		v  = (*src)[3];
++
++		*src -= 2;
++
++		*(*dst)++ = y;
++		*(*dst)++ = u;
++		*(*dst)++ = y1;
++		*(*dst)++ = v;
++		return 1;
++	}
++
++	/* copy RGB formats in reverse order */
++	memcpy(*dst, *src, depth);
++	memcpy(*dst + depth, *src - depth, depth);
++	*src -= depth << 1;
++	*dst += depth << 1;
++	return 1;
++}
++
++static void copy_two_pixels(struct vim2m_q_data *q_data_in,
++			    struct vim2m_q_data *q_data_out,
+ 			    u8 **src, u8 **dst, int ypos, bool reverse)
  {
- 	struct vim2m_fmt *out = q_data_out->fmt;
- 	struct vim2m_fmt *in = q_data_in->fmt;
++	struct vim2m_fmt *out = q_data_out->fmt;
++	struct vim2m_fmt *in = q_data_in->fmt;
  	u8 _r[2], _g[2], _b[2], *r, *g, *b;
--	int i, step;
-+	int i;
+ 	int i, step;
+ 
+ 	// If format is the same just copy the data, respecting the width
+-	if (in->fourcc == out->fourcc) {
+-		int depth = out->depth >> 3;
+-
+-		if (reverse) {
+-			if (in->fourcc == V4L2_PIX_FMT_YUYV) {
+-				int u, v, y, y1;
+-
+-				*src -= 2;
+-
+-				y1 = (*src)[0]; /* copy as second point */
+-				u  = (*src)[1];
+-				y  = (*src)[2]; /* copy as first point */
+-				v  = (*src)[3];
+-
+-				*src -= 2;
+-
+-				*(*dst)++ = y;
+-				*(*dst)++ = u;
+-				*(*dst)++ = y1;
+-				*(*dst)++ = v;
+-				return;
+-			}
+-
+-			memcpy(*dst, *src, depth);
+-			memcpy(*dst + depth, *src - depth, depth);
+-			*src -= depth << 1;
+-		} else {
+-			memcpy(*dst, *src, depth << 1);
+-			*src += depth << 1;
+-		}
+-		*dst += depth << 1;
+-		return;
+-	}
++	if (fast_copy_two_pixels(q_data_in, q_data_out,
++				 src, dst, ypos, reverse))
++	  return;
  
  	/* Step 1: read two consecutive pixels from src pointer */
  
-@@ -303,52 +303,39 @@ static void copy_two_pixels(struct vim2m_q_data *q_data_in,
- 	g = _g;
- 	b = _b;
- 
--	if (reverse)
--		step = -1;
--	else
--		step = 1;
--
- 	switch (in->fourcc) {
- 	case V4L2_PIX_FMT_RGB565: /* rrrrrggg gggbbbbb */
- 		for (i = 0; i < 2; i++) {
--			u16 pix = *(u16 *)*src;
-+			u16 pix = *(u16 *)(src[i]);
- 
- 			*r++ = (u8)(((pix & 0xf800) >> 11) << 3) | 0x07;
- 			*g++ = (u8)((((pix & 0x07e0) >> 5)) << 2) | 0x03;
- 			*b++ = (u8)((pix & 0x1f) << 3) | 0x07;
--
--			*src += step << 1;
- 		}
- 		break;
- 	case V4L2_PIX_FMT_RGB565X: /* gggbbbbb rrrrrggg */
- 		for (i = 0; i < 2; i++) {
--			u16 pix = *(u16 *)*src;
-+			u16 pix = *(u16 *)(src[i]);
- 
- 			*r++ = (u8)(((0x00f8 & pix) >> 3) << 3) | 0x07;
- 			*g++ = (u8)(((pix & 0x7) << 2) |
- 				    ((pix & 0xe000) >> 5)) | 0x03;
- 			*b++ = (u8)(((pix & 0x1f00) >> 8) << 3) | 0x07;
--
--			*src += step << 1;
- 		}
- 		break;
- 	default:
- 	case V4L2_PIX_FMT_RGB24:
- 		for (i = 0; i < 2; i++) {
--			*r++ = (*src)[0];
--			*g++ = (*src)[1];
--			*b++ = (*src)[2];
--
--			*src += step * 3;
-+			*r++ = src[i][0];
-+			*g++ = src[i][1];
-+			*b++ = src[i][2];
- 		}
- 		break;
- 	case V4L2_PIX_FMT_BGR24:
- 		for (i = 0; i < 2; i++) {
--			*b++ = (*src)[0];
--			*g++ = (*src)[1];
--			*r++ = (*src)[2];
--
--			*src += step * 3;
-+			*b++ = src[i][0];
-+			*g++ = src[i][1];
-+			*r++ = src[i][2];
- 		}
- 		break;
- 	}
-@@ -461,27 +448,24 @@ static int device_process(struct vim2m_ctx *ctx,
- {
+@@ -506,7 +526,9 @@ static int device_process(struct vim2m_ctx *ctx,
  	struct vim2m_dev *dev = ctx->dev;
  	struct vim2m_q_data *q_data_in, *q_data_out;
--	u8 *p_in, *p, *p_out;
--	unsigned int width, height, bytesperline, bytesperline_out;
--	unsigned int x, y, y_in, y_out;
-+	u8 *p_in, *p_line, *p_in_x[2], *p, *p_out;
-+	unsigned int width, height, bytesperline, bytesperline_out, bytes_per_pixel;
-+	unsigned int x, y, y_in, y_out, x_int, x_fract, x_err, x_offset;
- 	int start, end, step;
+ 	u8 *p_in, *p, *p_out;
+-	int width, height, bytesperline, x, y, y_out, start, end, step;
++	unsigned int width, height, bytesperline, bytesperline_out;
++	unsigned int x, y, y_out;
++	int start, end, step;
  	struct vim2m_fmt *in, *out;
  
  	q_data_in = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 	in = q_data_in->fmt;
+@@ -516,8 +538,15 @@ static int device_process(struct vim2m_ctx *ctx,
  	bytesperline = (q_data_in->width * q_data_in->fmt->depth) >> 3;
-+	bytes_per_pixel = q_data_in->fmt->depth >> 3;
  
  	q_data_out = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 	bytesperline_out = (q_data_out->width * q_data_out->fmt->depth) >> 3;
++	bytesperline_out = (q_data_out->width * q_data_out->fmt->depth) >> 3;
  	out = q_data_out->fmt;
  
--	/* As we're doing vertical scaling use the out height here */
-+	/* As we're doing scaling, use the output dimensions here */
- 	height = q_data_out->height;
--
--	/* Crop to the limits of the destination image */
--	width = q_data_in->width;
--	if (width > q_data_out->width)
--		width = q_data_out->width;
-+	width = q_data_out->width;
- 
++	/* Crop to the limits of the destination image */
++	if (width > q_data_out->width)
++		width = q_data_out->width;
++	if (height > q_data_out->height)
++		height = q_data_out->height;
++
  	p_in = vb2_plane_vaddr(&in_vb->vb2_buf, 0);
  	p_out = vb2_plane_vaddr(&out_vb->vb2_buf, 0);
-@@ -525,21 +509,52 @@ static int device_process(struct vim2m_ctx *ctx,
+ 	if (!p_in || !p_out) {
+@@ -526,6 +555,17 @@ static int device_process(struct vim2m_ctx *ctx,
+ 		return -EFAULT;
  	}
  
- 	/* Slower algorithm with format conversion and scaler */
++	/*
++	 * FIXME: instead of cropping the image and zeroing any
++	 * extra data, the proper behavior is to either scale the
++	 * data or report that scale is not supported (with depends
++	 * on some API for such purpose).
++	 */
 +
-+	/* To speed scaler up, use Bresenham for X dimension */
-+	x_int = q_data_in->width / q_data_out->width;
-+	x_fract = q_data_in->width % q_data_out->width;
-+
- 	for (y = start; y != end; y += step, y_out++) {
- 		y_in = (y * q_data_in->height) / q_data_out->height;
-+		x_offset = 0;
-+		x_err = 0;
++	/* Image size is different. Zero buffer first */
++	if (q_data_in->width  != q_data_out->width ||
++	    q_data_in->height != q_data_out->height)
++		memset(p_out, 0, q_data_out->sizeimage);
+ 	out_vb->sequence = get_q_data(ctx,
+ 				      V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
+ 	in_vb->sequence = q_data_in->sequence++;
+@@ -547,8 +587,13 @@ static int device_process(struct vim2m_ctx *ctx,
+ 			p += bytesperline - (q_data_in->fmt->depth >> 3);
  
--		p = p_in + (y_in * bytesperline);
-+		p_line = p_in + (y_in * bytesperline);
- 		if (ctx->mode & MEM2MEM_HFLIP)
--			p += bytesperline - (q_data_in->fmt->depth >> 3);
-+			p_line += bytesperline - (q_data_in->fmt->depth >> 3);
-+		p_in_x[0] = p_line;
- 
--		for (x = 0; x < width >> 1; x++)
--			copy_two_pixels(q_data_in, q_data_out, &p, &p_out, y_out,
-+		for (x = 0; x < width >> 1; x++) {
-+			x_offset += x_int;
-+			x_err += x_fract;
-+			if (x_err > width) {
-+				x_offset++;
-+				x_err -= width;
-+			}
-+
-+			if (ctx->mode & MEM2MEM_HFLIP)
-+				p_in_x[1] = p_line - x_offset * bytes_per_pixel;
-+			else
-+				p_in_x[1] = p_line + x_offset * bytes_per_pixel;
-+
-+			copy_two_pixels(q_data_in, q_data_out,
-+					p_in_x, &p_out, y_out,
+ 		for (x = 0; x < width >> 1; x++)
+-			copy_two_pixels(in, out, &p, &p_out, y_out,
++			copy_two_pixels(q_data_in, q_data_out, &p, &p_out, y_out,
  					ctx->mode & MEM2MEM_HFLIP);
- 
--		/* Go to the next line at the out buffer */
--		if (width < q_data_out->width)
--			p_out += ((q_data_out->width - width)
--				  * q_data_out->fmt->depth) >> 3;
-+			/* Calculate the next p_in_x0 */
-+			x_offset += x_int;
-+			x_err += x_fract;
-+			if (x_err > width) {
-+				x_offset++;
-+				x_err -= width;
-+			}
 +
-+			if (ctx->mode & MEM2MEM_HFLIP)
-+				p_in_x[0] = p_line - x_offset * bytes_per_pixel;
-+			else
-+				p_in_x[0] = p_line + x_offset * bytes_per_pixel;
-+		}
-+
++		/* Go to the next line at the out buffer */
++		if (width < q_data_out->width)
++			p_out += ((q_data_out->width - width)
++				  * q_data_out->fmt->depth) >> 3;
  	}
  
  	return 0;
