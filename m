@@ -1,99 +1,104 @@
-Return-Path: <SRS0=+Qw+=RE=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=8CHB=RF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 067F0C43381
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 23:27:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACCC6C43381
+	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 00:58:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA44B2083E
-	for <linux-media@archiver.kernel.org>; Fri,  1 Mar 2019 23:27:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 722FB2083E
+	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 00:58:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X9uoAXRf"
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="DXAPKXKl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726502AbfCAX11 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 18:27:27 -0500
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:35808 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725958AbfCAX11 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 18:27:27 -0500
-Received: by mail-pg1-f194.google.com with SMTP id e17so10093714pgd.2;
-        Fri, 01 Mar 2019 15:27:26 -0800 (PST)
+        id S1726693AbfCBA6Y (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Mar 2019 19:58:24 -0500
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:36293 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725996AbfCBA6X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2019 19:58:23 -0500
+Received: by mail-qt1-f195.google.com with SMTP id p25so30038563qtb.3
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2019 16:58:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=CxMSec5AAtG8cchuHxOJ8OypYLZfqDq4LNUDOOaJjUA=;
-        b=X9uoAXRfwenhnt8LTzzikS/SKYVE0drhKmZ7pka/+x2jl8s1SM2JZtrLEpdlpgJScn
-         Sx3Rq2uDsJY3NyyMcQcjDicPPFsknNYothU0A8b+wasMh/acgO/mn20MYLcifvaXrG90
-         v8/VQ/hJd9VwU8o54i8E51mBXyYRl3DQB11H+GmDc0hiKuBYpqTUQECLqj5ns+XiwhPV
-         Pxl+yavAl/BRelnaHBS1cwzHkwvU0sDCfjTdhaHinGN2XP21IXULGr4Y57gmw2+DVo2B
-         gaWX63qa9rL77FhoAlYOjKdFvdBp5pq38vAeNsG/rJThg1Poe+6ilTl7ugi8DVwG4lMl
-         /lbw==
+        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
+        h=message-id:subject:from:to:cc:date:in-reply-to:references
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=LvCny/GDFFdzo486Pbeic4NcFjL9suZt6f9wY9a4FQQ=;
+        b=DXAPKXKlQbEa0dGqTN76xsOxg/G+g1FXPSvISxinmN39aB+sybKve35J9fyDTg2ao7
+         N4CpQClvxGNoC5NkHHqv0tE+sSnuU/FLOTKyJaexaRNjWp0FhwF7910fcA8It96RdFFk
+         cn+oxbDN8ewbKnrd61EQUhSzS/UCwvsCxcOP4cA1crZaeh7nCFcRYi8j++P2wrg4tz0o
+         LVNfyA3KSo+x+jAbPZSPSvLCfaCDXjwUzYkgEedVs3bDjMpr2QVmDSDfNqFtqU4PsvTs
+         HYbeTIpt3QIOffm2/qLnqZsjPLUQ3cguRlJF0BmS8nqjgWXRAJi5hYY8AgtKuGo75kwo
+         6/9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=CxMSec5AAtG8cchuHxOJ8OypYLZfqDq4LNUDOOaJjUA=;
-        b=hWI7GFVglsj2fLqdtcTotjseb3ASLGBDVrXdQboOgjfVgnftpjCOn/fsooeQkKCzvU
-         /vQGdbip7cVMSYDOgQbdevVuWXTnP16JVBu3Z7U6sWK89z1IeUZXgFf2DTrSFxfuZaBn
-         pQLvOnZr6ejbXy//LP++oMaNRH0lRuvn4rYvwVL+TiIWdjUBHAYgAVugGFwko6hs4FGq
-         py2Iq2qSYg72Gl7yd7vigLDen2fa9M7hRhdbp+ESfCqyk2wYvyr5o8qWLEu807GrswhI
-         pMLHVae9+VjsONPAuNUA4aSp+I2K/R1LURSa1E7RLoWllO3+lntXEAOIWhh0Fv4l54mg
-         KtQQ==
-X-Gm-Message-State: AHQUAuaTmH73ONE0e8pcrsh8fjAgR6Gb/JK6adxP7CPfhneupFQgXAB4
-        WnUFmzXiZfKRzFBNtrYNXaiyLC0e
-X-Google-Smtp-Source: AHgI3IYnUExlCtfQo+7EuyNOsLopWhv9SZJpICuL6fJBoSM3Bh2DEo+aV9yh3Kk18iTZe8BDhOXI/Q==
-X-Received: by 2002:a62:bd09:: with SMTP id a9mr8119475pff.61.1551482845824;
-        Fri, 01 Mar 2019 15:27:25 -0800 (PST)
-Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
-        by smtp.googlemail.com with ESMTPSA id j197sm38618108pgc.76.2019.03.01.15.27.24
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 01 Mar 2019 15:27:24 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     Tim Harvey <tharvey@gateworks.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] media: imx: vdic: Fix wrong CSI group ID
-Date:   Fri,  1 Mar 2019 15:27:17 -0800
-Message-Id: <20190301232717.4125-1-slongerbeam@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=LvCny/GDFFdzo486Pbeic4NcFjL9suZt6f9wY9a4FQQ=;
+        b=ndL+qvtJ6Qvhbi+q+Ftu8hL2FDgmwQ/AbvfTDR8ndJa07jKhEB3I9b/P8URCAY8Es2
+         a7FIrtq1LjT+anahkfd1XMUxpLxpPkZ1uZu8zKG5r0hwbO1FCSVr8QUDqpGeiuwAzs9I
+         d+J/Nk2DSf6wm807KVoj17aywiaHlRvSs4oIWyrVHIyhsDa4O2wpSQ04y/erGkPWaJ1H
+         ETS8FXy6nZVDlH/Lvwd7uebtxQKaBdq5aYdS1jHHM8VUbyNvH6jy6r4ZLO07UACURYhp
+         6tx9pJfBjEb9Rc8kJ+uWbuoa4y8hqCT4doADOs1UaMyedext4GzPFsPKksHTomqMwrrC
+         F5TA==
+X-Gm-Message-State: APjAAAU102/FO6zlHdxLUa7Fhpon+pOPcPXgloiO+rHoFbrQcmqsHyf6
+        Qh7VRVCVEomfknmunNyUTBhKCK4eQXM=
+X-Google-Smtp-Source: APXvYqxJf0y7aoa9lJMZjVXBRw3bxiBdj8ry4VdZVNlb6a1df8pSnS5du75XBSE5e8XYFeNz2ODC4A==
+X-Received: by 2002:a0c:d2a5:: with SMTP id q34mr6200272qvh.102.1551488302442;
+        Fri, 01 Mar 2019 16:58:22 -0800 (PST)
+Received: from skullcanyon ([192.222.193.21])
+        by smtp.gmail.com with ESMTPSA id l129sm13615895qkb.44.2019.03.01.16.58.20
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 01 Mar 2019 16:58:21 -0800 (PST)
+Message-ID: <db785f414b3baa570aa798d84d46ba9f1d5ea93b.camel@ndufresne.ca>
+Subject: Re: [PATCH v2] media: vim2m: better handle cap/out buffers with
+ different sizes
+From:   Nicolas Dufresne <nicolas@ndufresne.ca>
+To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Date:   Fri, 01 Mar 2019 19:58:20 -0500
+In-Reply-To: <01f029cc-1e2b-524c-5db8-4cd87c18b669@xs4all.nl>
+References: <8d0a822ce02e1eb95f4a59cc9aabceb5a5661dda.1551202576.git.mchehab+samsung@kernel.org>
+         <84696204-2b3a-74ed-f470-52cc54fa201b@xs4all.nl>
+         <20190228110914.0b2613eb@coco.lan>
+         <4cc0d8e1-7e25-1b9d-8bfe-921716522909@xs4all.nl>
+         <20190228122139.6ac6c25d@coco.lan>
+         <170efbf2-794a-7314-179d-d5c4af4d7e57@xs4all.nl>
+         <20190228143124.3953adff@coco.lan>
+         <01f029cc-1e2b-524c-5db8-4cd87c18b669@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The i.MX7 capture support forgot to change the group ID for the CSI
-to the IPU CSI in VDIC sub-device, it was left at the i.MX7 CSI
-group ID.
+Le vendredi 01 mars 2019 à 11:19 +0100, Hans Verkuil a écrit :
+> > $ gst-launch-1.0 videotestsrc num-buffers=120 ! video/x-raw,format=RGB,width=322,height=200 ! v4l2video0convert disable-passthrough=1 ! video/x-raw,width=428,height=400 ! videoconvert ! xvimagesink
+> 
+> But you explicitly set different resolutions for source and sink.
+> What happens in gstreamer if the driver doesn't support scaling? Will
+> gstreamer continue with wrong values? Give an error?
 
-Fixes: 67673ed55084 ("media: staging/imx: rearrange group id to take in account IPU")
+It will post an error or type NOT_NEGOTIATED after failing to set the
+OUTPUT or CAPTURE format. It does assume your converter driver do
+scaling though, the caps negotiation is written in a way that it will
+first try to avoid it. So if it's unavoidable, and your driver does not
+support scaling, it's also unavoidable that negotiation will fail.
 
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
----
- drivers/staging/media/imx/imx-media-vdic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+In the case of this test pipeline, you cannot test scaling without
+forcing the width/height on both side of it. Because videotestsrc can
+produce frames at any raw video format mapped into GStreamer. Then
+xvimagesink does scaling, so it would accept any given videotestsrc
+resolution without the need for scaling.
 
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 2808662e2597..d36f6936c365 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -744,7 +744,7 @@ static int vdic_link_setup(struct media_entity *entity,
- 		remote_sd = media_entity_to_v4l2_subdev(remote->entity);
- 
- 		/* direct pad must connect to a CSI */
--		if (!(remote_sd->grp_id & IMX_MEDIA_GRP_ID_CSI) ||
-+		if (!(remote_sd->grp_id & IMX_MEDIA_GRP_ID_IPU_CSI) ||
- 		    remote->index != CSI_SRC_PAD_DIRECT) {
- 			ret = -EINVAL;
- 			goto out;
--- 
-2.17.1
+Nicolas
 
