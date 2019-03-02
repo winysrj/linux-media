@@ -2,148 +2,124 @@ Return-Path: <SRS0=8CHB=RF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 883C1C43381
-	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 04:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D3BC00319
+	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 10:09:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 516F520836
-	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 04:48:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 639A02085A
+	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 10:09:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="YZwUFT18"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727354AbfCBEsG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Mar 2019 23:48:06 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52401 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727124AbfCBEsG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Mar 2019 23:48:06 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:e06f:53e3:ca47:5e48])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id zwZ9gxb904HFnzwZAga2VP; Sat, 02 Mar 2019 05:48:04 +0100
-Message-ID: <c23012bdc39d0677873ac43264dd2572@smtp-cloud8.xs4all.net>
-Date:   Sat, 02 Mar 2019 05:48:03 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfNvEwSoL2R5mMaMehhWAPu0bVHlfjAZllHuulJaiLrqYV8KErx9zxCrS+tHh5ccS33Hy8HvxJoQayJtSyfzEyB1RnrpN5GqfW48JuHLc6LODjwoyhjzG
- R1Z3LgDUy5OPAJI+kIySPp15n+/7EpqNCKeuQgaEtHegkHEw/HIY5jJuU3Co5dUeirtupOdX7fM8eLveZwiL0a6+uMWNClisuHIRkgPASz+b6tHO+biqmA8S
+        id S1726336AbfCBKJt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Mar 2019 05:09:49 -0500
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:37963 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726049AbfCBKJs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2019 05:09:48 -0500
+Received: by mail-lj1-f195.google.com with SMTP id 199so268984ljj.5
+        for <linux-media@vger.kernel.org>; Sat, 02 Mar 2019 02:09:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=+iBatvjaf4sg/oaZIbHUcz990bNVnRaiH6QKXbxAb6k=;
+        b=YZwUFT18EJT2egd5emM7BDgsR+Yw8Ow3Z7LfJl1zpZiuaT5yEiaNYYW3Jxc/6uVV+X
+         QMJzONCatlOpSr0lPeJbKRqaVwnC54AyN3mWRYV+58uZ57ySryFUoC4nXEjqQ2cIKmsh
+         +YluNfYg4x/g158FBKBMPzuinGCyFWBVm9sDJ1fNsF//mKuN3Cm5i39j54YSswqV7HLE
+         Jc8jONZ5DgQANawI+3Ct7bOP2pZh5t7l8g09XUHkx/AHCgtW+r0KODGcxrEZTJgJwPDC
+         sCmGtxcvoB1vbA2g9hnWKqG6c6pXv6OLM7e6MwbXX2PVMHVSVT3eH/SJwYWQdiumgL56
+         lEvQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=+iBatvjaf4sg/oaZIbHUcz990bNVnRaiH6QKXbxAb6k=;
+        b=meakP7/ue+G5ZbH5UQOVtplXD34br1SKtoT2ZXo11ggeKnlNfk8YapRkzkvQPvBScR
+         KEc/a+H+EYqtegfOIPhwLSAPVixIVnWqYTdj+mpCEt0RU8S48gdxU5fTCR/lKLdKf48b
+         ZTWTGC+y0vo2A+LKDT0LogJBw46rkTyzJuLC+6kJ9DGuiaB/+RXmj2gRHmkz1n7d3QA7
+         I3IPBbqyFxylYFI9IxT3OUIs50ohs9kn8dPZIp34YT1m8KzpQn84S8Tf1mZXyptUIvJG
+         nl5rAjuyHChpVC5RQ9FckCFmcyachInY2uNHpqLhbpx3eiBQ4/jH8j1dzZtqYIaS3q0A
+         8XWg==
+X-Gm-Message-State: APjAAAXT9wwGzk915pfFxGpk8M5rBf3Zwo7Kisa0SAiOJJVSNoeJBYKX
+        bLILPPgyjTcQCV+/bxDRQTCXXg==
+X-Google-Smtp-Source: APXvYqxiWcU613zIKPpdD6Lf40WvKzfN4lc2bs5poD+yDbEVzkQyVLDMa8hpzR1KXUe5rnPWEy8Raw==
+X-Received: by 2002:a2e:6a18:: with SMTP id f24mr5572628ljc.97.1551521386423;
+        Sat, 02 Mar 2019 02:09:46 -0800 (PST)
+Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
+        by smtp.gmail.com with ESMTPSA id a18sm111457lfj.35.2019.03.02.02.09.44
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Sat, 02 Mar 2019 02:09:45 -0800 (PST)
+Date:   Sat, 2 Mar 2019 11:09:44 +0100
+From:   Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund@ragnatech.se>
+To:     Geert Uytterhoeven <geert+renesas@glider.be>
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2] media: rcar_drif: Remove devm_ioremap_resource()
+ error printing
+Message-ID: <20190302100944.GA22550@bigcity.dyn.berto.se>
+References: <20190301093831.11106-1-geert+renesas@glider.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190301093831.11106-1-geert+renesas@glider.be>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Geert,
 
-Results of the daily build of media_tree:
+Thanks for your patch.
 
-date:			Sat Mar  2 05:00:12 CET 2019
-media-tree git hash:	26b190053ec0db030697e2e19a8f8f13550b9ff7
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	604e01c8cedbc0e26ccb5a27522ed072bb39cf6f
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse version:		0.6.0
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+On 2019-03-01 10:38:31 +0100, Geert Uytterhoeven wrote:
+> devm_ioremap_resource() already prints an error message on failure, so
+> there is no need to repeat that.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 14
-sparse: OK
-smatch: ERRORS
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Detailed results are available here:
+> ---
+> v2:
+>   - Drop assignment to ret.
+> ---
+>  drivers/media/platform/rcar_drif.c | 8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+> index c417ff8f6fe548f3..608e5217ccd50a1b 100644
+> --- a/drivers/media/platform/rcar_drif.c
+> +++ b/drivers/media/platform/rcar_drif.c
+> @@ -1405,11 +1405,9 @@ static int rcar_drif_probe(struct platform_device *pdev)
+>  	/* Register map */
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	ch->base = devm_ioremap_resource(&pdev->dev, res);
+> -	if (IS_ERR(ch->base)) {
+> -		ret = PTR_ERR(ch->base);
+> -		dev_err(&pdev->dev, "ioremap failed (%d)\n", ret);
+> -		return ret;
+> -	}
+> +	if (IS_ERR(ch->base))
+> +		return PTR_ERR(ch->base);
+> +
+>  	ch->start = res->start;
+>  	platform_set_drvdata(pdev, ch);
+>  
+> -- 
+> 2.17.1
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Detailed regression test results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media-dmesg.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Regards,
+Niklas Söderlund
