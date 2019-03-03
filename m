@@ -1,98 +1,149 @@
-Return-Path: <SRS0=8CHB=RF=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=tbWQ=RG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 630CEC43381
-	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 22:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E174DC43381
+	for <linux-media@archiver.kernel.org>; Sun,  3 Mar 2019 04:47:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3636420836
-	for <linux-media@archiver.kernel.org>; Sat,  2 Mar 2019 22:29:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A974A20823
+	for <linux-media@archiver.kernel.org>; Sun,  3 Mar 2019 04:47:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726827AbfCBW32 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 2 Mar 2019 17:29:28 -0500
-Received: from rio.cs.utah.edu ([155.98.64.241]:45923 "EHLO
-        mail-svr1.cs.utah.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726577AbfCBW32 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2019 17:29:28 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by mail-svr1.cs.utah.edu (Postfix) with ESMTP id 07CE36500B9;
-        Sat,  2 Mar 2019 15:29:27 -0700 (MST)
-Received: from mail-svr1.cs.utah.edu ([127.0.0.1])
-        by localhost (mail-svr1.cs.utah.edu [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id lVp4Ozt-uIYa; Sat,  2 Mar 2019 15:29:26 -0700 (MST)
-Received: from [192.168.3.5] (dhcp-155-97-238-209.usahousing.utah.edu [155.97.238.209])
-        by smtps.cs.utah.edu (Postfix) with ESMTPSA id 83BE56500B5;
-        Sat,  2 Mar 2019 15:29:26 -0700 (MST)
-Subject: Re: Question about drivers/media/usb/uvc/uvc_v4l2.c
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     linux-media@vger.kernel.org
-References: <8479deae-dedb-b7d2-58b7-8ff91f265eab@cs.utah.edu>
- <20190302214308.GI4682@pendragon.ideasonboard.com>
-From:   Shaobo He <shaobo@cs.utah.edu>
-Message-ID: <3bfdd00d-abff-8683-6e25-1010cc568702@cs.utah.edu>
-Date:   Sat, 2 Mar 2019 15:29:25 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.0
-MIME-Version: 1.0
-In-Reply-To: <20190302214308.GI4682@pendragon.ideasonboard.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S1725877AbfCCEru (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Mar 2019 23:47:50 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46542 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725854AbfCCEru (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Mar 2019 23:47:50 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:2977:432d:8e69:75a0])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id 0J2Qh5R7L4HFn0J2ShcfTq; Sun, 03 Mar 2019 05:47:48 +0100
+Message-ID: <9e3d2925a38a3c0e5853376c9c3cfa57@smtp-cloud8.xs4all.net>
+Date:   Sun, 03 Mar 2019 05:47:46 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfNwkmX2oJ5MKtbqWG56MXpg/tGPnsVAHHIGOkcX9LWU9RNXboAdBzyhhhpPO9FlXiH+F9H9RsZNummhuCQ08CIo0oPwBwPhXkpTD09XYe9Zt50YT7qtj
+ fYwb25V4pMK5xIZ9rm/D2/ZwUN+Q2FluW5dquyZKAv0m5N913g5pMiX66lFhLdl5GIsuPJhQJ8ataIjk9X53l/pk807hH/CdfwYrQZDvfi/EDW3GTsHIM4i5
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you very much for your reply. This is what I thought, too. It seems that 
-there's an implicit order of execution that is not clearly implied in the code, 
-meaning `uvc_parse_streaming` is called before `uvc_v4l2_try_format`.
+Results of the daily build of media_tree:
 
-That being said, I was wondering maybe a better practice to write the loop in 
-`uvc_v4l2_try_format` would be like the following,
+date:			Sun Mar  3 05:00:10 CET 2019
+media-tree git hash:	26b190053ec0db030697e2e19a8f8f13550b9ff7
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	604e01c8cedbc0e26ccb5a27522ed072bb39cf6f
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.3.0
+sparse version:		0.6.0
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-2-amd64
 
-```
-format=NULL;
-...
-for (i = 0; i < stream->nformats; ++i) {
-		format = &stream->format[i];
-		if (format->fcc == fmt->fmt.pix.pixelformat)
-			break;
-}
-// dereferencing format
-```
-to
-```
-// just declaration
-format;
-i=0;
-do {
-		format = &stream->format[i];
-		if (format->fcc == fmt->fmt.pix.pixelformat)
-			break;
-		++i;
-} while (i<stream->nformats)
-// dereferencing format
-```
-I mean you can save one initialization, provided compiler does it and one branch.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+virtme: OK: Final Summary: 1983, Succeeded: 1983, Failed: 0, Warnings: 14
+sparse: WARNINGS
+smatch: ERRORS
 
-Shaobo
-On 2019/3/2 14:43, Laurent Pinchart wrote:
-> Hi Shaobo,
-> 
-> On Sat, Mar 02, 2019 at 01:22:49PM -0700, Shaobo He wrote:
->> Hello everyone,
->>
->> This is Shaobo from Utah again. I've been bugging the mailing list with my
->> patches. I have a quick question about a function in
->> `drivers/media/usb/uvc/uvc_v4l2.c`. In `uvc_v4l2_try_format`, can
->> `stream->nformats` be 0? I saw that in other files, this field could be zero
->> which is considered as error cases. I was wondering if it's true for this
->> function, too.
-> 
-> The uvc_parse_streaming() function should answer this question :-)
-> 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Detailed regression test results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday-test-media.log
+http://www.xs4all.nl/~hverkuil/logs/Sunday-test-media-dmesg.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
