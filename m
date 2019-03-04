@@ -2,98 +2,91 @@ Return-Path: <SRS0=0You=RH=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0116BC43381
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 18:18:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A049C43381
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 18:49:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C5F6C2070B
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 18:18:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 629BE206BA
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 18:49:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727720AbfCDSST (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Mar 2019 13:18:19 -0500
-Received: from mga07.intel.com ([134.134.136.100]:24035 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726111AbfCDSSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Mar 2019 13:18:17 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Mar 2019 10:18:16 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,440,1544515200"; 
-   d="scan'208";a="148496605"
-Received: from schmiger-mobl3.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.249.45.12])
-  by fmsmga002.fm.intel.com with ESMTP; 04 Mar 2019 10:18:14 -0800
-Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
-        id 5CC7B21E9B; Mon,  4 Mar 2019 20:18:11 +0200 (EET)
-Date:   Mon, 4 Mar 2019 20:18:11 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Marco Felsch <m.felsch@pengutronix.de>
-Cc:     hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org,
-        mark.rutland@arm.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, graphics@pengutronix.de
-Subject: Re: [PATCH 3/3] media: tc358746: update MAINTAINERS file
-Message-ID: <20190304181810.2eyjkn4e2g6ntngb@kekkonen.localdomain>
-References: <20181218141240.3056-1-m.felsch@pengutronix.de>
- <20181218141240.3056-4-m.felsch@pengutronix.de>
- <20190218114608.qvoeyxlaw4yjrnnh@paasikivi.fi.intel.com>
- <20190304173151.zwrwuwrepzeegfa3@pengutronix.de>
+        id S1726794AbfCDSt0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Mar 2019 13:49:26 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:50176 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726217AbfCDSt0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2019 13:49:26 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: ezequiel)
+        with ESMTPSA id 106F2275683
+Message-ID: <4aac6476ffe6a6be021c69a708f19d5da30a79e4.camel@collabora.com>
+Subject: Re: [PATCH v4 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
+From:   Ezequiel Garcia <ezequiel@collabora.com>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>, hans.verkuil@cisco.com,
+        acourbot@chromium.org, sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     tfiga@chromium.org, posciak@chromium.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
+        jernej.skrabec@gmail.com, jonas@kwiboo.se,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Date:   Mon, 04 Mar 2019 15:49:11 -0300
+In-Reply-To: <9817c9875638ed2484d61e6e128e2551cf3bda4c.1550672228.git-series.maxime.ripard@bootlin.com>
+References: <cover.1862a43851950ddee041d53669f8979aba863c38.1550672228.git-series.maxime.ripard@bootlin.com>
+         <9817c9875638ed2484d61e6e128e2551cf3bda4c.1550672228.git-series.maxime.ripard@bootlin.com>
+Organization: Collabora
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.5-1 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190304173151.zwrwuwrepzeegfa3@pengutronix.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Mar 04, 2019 at 06:31:51PM +0100, Marco Felsch wrote:
-> Hi Sakari,
+On Wed, 2019-02-20 at 15:17 +0100, Maxime Ripard wrote:
+> From: Pawel Osciak <posciak@chromium.org>
 > 
-> On 19-02-18 13:46, Sakari Ailus wrote:
-> > Hi Marco,
-> > 
-> > On Tue, Dec 18, 2018 at 03:12:40PM +0100, Marco Felsch wrote:
-> > > Add me as partial maintainer, others are welcome too.
-> > > 
-> > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > > ---
-> > >  MAINTAINERS | 7 +++++++
-> > >  1 file changed, 7 insertions(+)
-> > > 
-> > > diff --git a/MAINTAINERS b/MAINTAINERS
-> > > index 546f8d936589..f97dedbe545c 100644
-> > > --- a/MAINTAINERS
-> > > +++ b/MAINTAINERS
-> > > @@ -15230,6 +15230,13 @@ S:	Maintained
-> > >  F:	drivers/media/i2c/tc358743*
-> > >  F:	include/media/i2c/tc358743.h
-> > >  
-> > > +TOSHIBA TC358746 DRIVER
-> > > +M:	Marco Felsch <kernel@pengutronix.de>
-> > > +L:	linux-media@vger.kernel.org
-> > > +S:	Odd Fixes
-> > > +F:	drivers/media/i2c/tc358746*
-> > > +F:	Documentation/devicetree/bindings/media/i2c/toshiba,tc358746.txt
-> > > +
-> > >  TOSHIBA WMI HOTKEYS DRIVER
-> > >  M:	Azael Avalos <coproscefalo@gmail.com>
-> > >  L:	platform-driver-x86@vger.kernel.org
-> > 
-> > This should go together with the DT bindings, in the same patch.
-> > 
-> > I'd expect a new driver to be listed as "Maintained". "Odd Fixes" suggests
-> > no-one is particularly looking after it, and it's not nice if a new driver
-> > starts off like that. :-I
+> Stateless video codecs will require both the H264 metadata and slices in
+> order to be able to decode frames.
 > 
-> Okay, I will squash it in the v2 and set the status to "Maintained".
+> This introduces the definitions for a new pixel format for H264 slices that
+> have been parsed, as well as the structures used to pass the metadata from
+> the userspace to the kernel.
+> 
+> Co-Developped-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Guenter Roeck <groeck@chromium.org>
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  Documentation/media/uapi/v4l/biblio.rst            |   9 +-
+>  Documentation/media/uapi/v4l/extended-controls.rst | 547 ++++++++++++++-
 
-Thanks!
+It seems Hans splitted the documentation and so this should now
+go to Documentation/media/uapi/v4l/ext-ctrls-codec.rst.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+[..]
+> 
+> +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* H264 parsed slices */
+>  #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
+>  #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
+>  #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
+
+I haven't seen any objections to renaming this to V4L2_PIX_FMT_H264_SLICE_RAW,
+so if you could be so kind to push v5 with this rename (or similar), and also
+rebasing to the master branch, I could then submit the H264 decoder support for
+the Rockchip VPU.
+
+There is still the question brought up by Tomasz, about moving this pixel format
+to a non-public header. Perhaps someone has some ideas on this?
+
+Thanks a lot!
+Ezequiel
+
