@@ -2,25 +2,26 @@ Return-Path: <SRS0=0You=RH=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B595C43381
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 19:27:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27AC8C43381
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 19:27:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F2192070B
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 19:27:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F13CA2070B
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 19:27:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726118AbfCDT1B (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Mar 2019 14:27:01 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50354 "EHLO
+        id S1726170AbfCDT1D (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Mar 2019 14:27:03 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:50366 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726054AbfCDT1B (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2019 14:27:01 -0500
+        with ESMTP id S1726054AbfCDT1D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2019 14:27:03 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: ezequiel)
-        with ESMTPSA id 13D4D2822C6
+        with ESMTPSA id 7A524276DFA
 From:   Ezequiel Garcia <ezequiel@collabora.com>
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
@@ -30,9 +31,9 @@ Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
         Heiko Stuebner <heiko@sntech.de>,
         Jonas Karlman <jonas@kwiboo.se>,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v2 07/11] rockchip/vpu: Open-code media controller register
-Date:   Mon,  4 Mar 2019 16:25:25 -0300
-Message-Id: <20190304192529.14200-8-ezequiel@collabora.com>
+Subject: [PATCH v2 08/11] rockchip/vpu: Support the Request API
+Date:   Mon,  4 Mar 2019 16:25:26 -0300
+Message-Id: <20190304192529.14200-9-ezequiel@collabora.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190304192529.14200-1-ezequiel@collabora.com>
 References: <20190304192529.14200-1-ezequiel@collabora.com>
@@ -43,302 +44,160 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-In preparation to support decoders, using a single memory-to-memory
-device, we need to roll our own media controller entities registration.
+Introduce support for the Request API. Although the JPEG encoder
+does not mandate using the Request API, it's perfectly possible to
+use it, if the application wants to.
+
+In addition, add helpers that will be used by video decoders.
 
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- .../staging/media/rockchip/vpu/rockchip_vpu.h |  35 ++++
- .../media/rockchip/vpu/rockchip_vpu_drv.c     | 181 ++++++++++++++++--
- 2 files changed, 204 insertions(+), 12 deletions(-)
+ .../rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c     |  6 ++++
+ .../media/rockchip/vpu/rockchip_vpu_common.h  |  3 ++
+ .../media/rockchip/vpu/rockchip_vpu_drv.c     | 29 ++++++++++++++++++-
+ .../media/rockchip/vpu/rockchip_vpu_enc.c     | 18 ++++++++++++
+ 4 files changed, 55 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/rockchip/vpu/rockchip_vpu.h b/drivers/staging/media/rockchip/vpu/rockchip_vpu.h
-index 76ee24abc141..084f58cadda1 100644
---- a/drivers/staging/media/rockchip/vpu/rockchip_vpu.h
-+++ b/drivers/staging/media/rockchip/vpu/rockchip_vpu.h
-@@ -71,6 +71,38 @@ enum rockchip_vpu_codec_mode {
- 	RK_VPU_MODE_JPEG_ENC,
- };
+diff --git a/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c b/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
+index fe92c40d0a84..e11ee152b8ce 100644
+--- a/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
++++ b/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
+@@ -113,11 +113,15 @@ void rk3399_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
+ 	struct rockchip_vpu_dev *vpu = ctx->dev;
+ 	struct vb2_v4l2_buffer *src_buf, *dst_buf;
+ 	struct rockchip_vpu_jpeg_ctx jpeg_ctx;
++	struct media_request *src_req;
+ 	u32 reg;
  
-+/*
-+ * struct rockchip_vpu_mc - media controller data
-+ *
-+ * @source:		&struct media_entity pointer with the source entity
-+ *			Used only when the M2M device is registered via
-+ *			v4l2_m2m_unregister_media_controller().
-+ * @source_pad:		&struct media_pad with the source pad.
-+ *			Used only when the M2M device is registered via
-+ *			v4l2_m2m_unregister_media_controller().
-+ * @sink:		&struct media_entity pointer with the sink entity
-+ *			Used only when the M2M device is registered via
-+ *			v4l2_m2m_unregister_media_controller().
-+ * @sink_pad:		&struct media_pad with the sink pad.
-+ *			Used only when the M2M device is registered via
-+ *			v4l2_m2m_unregister_media_controller().
-+ * @proc:		&struct media_entity pointer with the M2M device itself.
-+ * @proc_pads:		&struct media_pad with the @proc pads.
-+ *			Used only when the M2M device is registered via
-+ *			v4l2_m2m_unregister_media_controller().
-+ * @intf_devnode:	&struct media_intf devnode pointer with the interface
-+ *			with controls the M2M device.
-+ */
-+struct rockchip_vpu_mc {
-+	struct media_entity	*source;
-+	struct media_pad	source_pad;
-+	struct media_entity	sink;
-+	struct media_pad	sink_pad;
-+	struct media_entity	proc;
-+	struct media_pad	proc_pads[2];
-+	struct media_intf_devnode *intf_devnode;
-+};
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 
++	src_req = src_buf->vb2_buf.req_obj.req;
++	v4l2_ctrl_request_setup(src_req, &ctx->ctrl_handler);
 +
- /**
-  * struct rockchip_vpu_dev - driver data
-  * @v4l2_dev:		V4L2 device to register video devices for.
-@@ -78,6 +110,8 @@ enum rockchip_vpu_codec_mode {
-  * @mdev:		media device associated to this device.
-  * @vfd_enc:		Video device for encoder.
-  * @pdev:		Pointer to VPU platform device.
-+ * @mc:			Array of media controller topology structs
-+ *			for encoder and decoder.
-  * @dev:		Pointer to device for convenient logging using
-  *			dev_ macros.
-  * @clocks:		Array of clock handles.
-@@ -95,6 +129,7 @@ struct rockchip_vpu_dev {
- 	struct media_device mdev;
- 	struct video_device *vfd_enc;
- 	struct platform_device *pdev;
-+	struct rockchip_vpu_mc mc[2];
- 	struct device *dev;
- 	struct clk_bulk_data clocks[ROCKCHIP_VPU_MAX_CLOCKS];
- 	void __iomem *base;
+ 	memset(&jpeg_ctx, 0, sizeof(jpeg_ctx));
+ 	jpeg_ctx.buffer = vb2_plane_vaddr(&dst_buf->vb2_buf, 0);
+ 	jpeg_ctx.width = ctx->dst_fmt.width;
+@@ -153,6 +157,8 @@ void rk3399_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
+ 		| VEPU_REG_ENCODE_FORMAT_JPEG
+ 		| VEPU_REG_ENCODE_ENABLE;
+ 
++	v4l2_ctrl_request_complete(src_req, &ctx->ctrl_handler);
++
+ 	/* Kick the watchdog and start encoding */
+ 	schedule_delayed_work(&vpu->watchdog_work, msecs_to_jiffies(2000));
+ 	vepu_write(vpu, reg, VEPU_REG_ENCODE_START);
+diff --git a/drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h b/drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
+index ca77668d9579..ac018136a7bc 100644
+--- a/drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
++++ b/drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
+@@ -26,4 +26,7 @@ void rockchip_vpu_enc_reset_src_fmt(struct rockchip_vpu_dev *vpu,
+ void rockchip_vpu_enc_reset_dst_fmt(struct rockchip_vpu_dev *vpu,
+ 				    struct rockchip_vpu_ctx *ctx);
+ 
++void *rockchip_vpu_get_ctrl(struct rockchip_vpu_ctx *ctx, u32 id);
++dma_addr_t rockchip_vpu_get_ref(struct vb2_queue *q, u64 ts);
++
+ #endif /* ROCKCHIP_VPU_COMMON_H_ */
 diff --git a/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c b/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
-index 1a6dd36c71ab..af2481ca2228 100644
+index af2481ca2228..937e9cfb4568 100644
 --- a/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
 +++ b/drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
-@@ -332,7 +332,7 @@ static int rockchip_vpu_video_device_register(struct rockchip_vpu_dev *vpu)
+@@ -36,6 +36,24 @@ module_param_named(debug, rockchip_vpu_debug, int, 0644);
+ MODULE_PARM_DESC(debug,
+ 		 "Debug level - higher value produces more verbose messages");
+ 
++void *rockchip_vpu_get_ctrl(struct rockchip_vpu_ctx *ctx, u32 id)
++{
++	struct v4l2_ctrl *ctrl;
++
++	ctrl = v4l2_ctrl_find(&ctx->ctrl_handler, id);
++	return ctrl ? ctrl->p_cur.p : NULL;
++}
++
++dma_addr_t rockchip_vpu_get_ref(struct vb2_queue *q, u64 ts)
++{
++	int index;
++
++	index = vb2_find_timestamp(q, ts, 0);
++	if (index >= 0)
++		return vb2_dma_contig_plane_dma_addr(q->bufs[index], 0);
++	return 0;
++}
++
+ static void rockchip_vpu_job_finish(struct rockchip_vpu_dev *vpu,
+ 				    struct rockchip_vpu_ctx *ctx,
+ 				    unsigned int bytesused,
+@@ -164,6 +182,7 @@ enc_queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->dev->vpu_mutex;
+ 	src_vq->dev = ctx->dev->v4l2_dev.dev;
++	src_vq->supports_requests = true;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -328,6 +347,11 @@ static const struct of_device_id of_rockchip_vpu_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, of_rockchip_vpu_match);
+ 
++static const struct media_device_ops rockchip_m2m_media_ops = {
++	.req_validate = vb2_request_validate,
++	.req_queue = v4l2_m2m_request_queue,
++};
++
+ static int rockchip_vpu_video_device_register(struct rockchip_vpu_dev *vpu)
  {
  	const struct of_device_id *match;
- 	struct video_device *vfd;
--	int function, ret;
-+	int ret;
- 
- 	match = of_match_node(of_rockchip_vpu_match, vpu->dev->of_node);
- 	vfd = video_device_alloc();
-@@ -359,21 +359,169 @@ static int rockchip_vpu_video_device_register(struct rockchip_vpu_dev *vpu)
+@@ -610,8 +634,11 @@ static int rockchip_vpu_probe(struct platform_device *pdev)
  	}
- 	v4l2_info(&vpu->v4l2_dev, "registered as /dev/video%d\n", vfd->num);
  
--	function = MEDIA_ENT_F_PROC_VIDEO_ENCODER;
--	ret = v4l2_m2m_register_media_controller(vpu->m2m_dev, vfd, function);
--	if (ret) {
--		v4l2_err(&vpu->v4l2_dev, "Failed to init mem2mem media controller\n");
--		goto err_unreg_video;
--	}
- 	return 0;
--
--err_unreg_video:
--	video_unregister_device(vfd);
- err_free_dev:
- 	video_device_release(vfd);
- 	return ret;
+ 	vpu->mdev.dev = vpu->dev;
+-	strlcpy(vpu->mdev.model, DRIVER_NAME, sizeof(vpu->mdev.model));
++	strscpy(vpu->mdev.model, DRIVER_NAME, sizeof(vpu->mdev.model));
++	strscpy(vpu->mdev.bus_info, "platform:" DRIVER_NAME,
++		sizeof(vpu->mdev.bus_info));
+ 	media_device_init(&vpu->mdev);
++	vpu->mdev.ops = &rockchip_m2m_media_ops;
+ 	vpu->v4l2_dev.mdev = &vpu->mdev;
+ 
+ 	ret = rockchip_vpu_video_device_register(vpu);
+diff --git a/drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c b/drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
+index 2b28403314bc..1b5a675ef24f 100644
+--- a/drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
++++ b/drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
+@@ -555,14 +555,32 @@ static void rockchip_vpu_stop_streaming(struct vb2_queue *q)
+ 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 		if (!vbuf)
+ 			break;
++		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req, &ctx->ctrl_handler);
+ 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+ 	}
  }
  
-+static int rockchip_vpu_register_entity(struct media_device *mdev,
-+	struct media_entity *entity, const char *entity_name,
-+	struct media_pad *pads, int num_pads, int function,
-+	struct video_device *vdev)
++static void rockchip_vpu_buf_request_complete(struct vb2_buffer *vb)
 +{
-+	unsigned int len;
-+	char *name;
-+	int ret;
++	struct rockchip_vpu_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
 +
-+	entity->obj_type = MEDIA_ENTITY_TYPE_BASE;
-+	if (function == MEDIA_ENT_F_IO_V4L) {
-+		entity->info.dev.major = VIDEO_MAJOR;
-+		entity->info.dev.minor = vdev->minor;
-+	}
-+	len = strlen(vdev->name) + 2 + strlen(entity_name);
-+	name = kmalloc(len, GFP_KERNEL);
-+	if (!name)
-+		return -ENOMEM;
-+	snprintf(name, len, "%s-%s", vdev->name, entity_name);
-+	entity->name = name;
-+	entity->function = function;
++	v4l2_ctrl_request_complete(vb->req_obj.req, &ctx->ctrl_handler);
++}
 +
-+	ret = media_entity_pads_init(entity, num_pads, pads);
-+	if (ret)
-+		return ret;
-+	ret = media_device_register_entity(mdev, entity);
-+	if (ret)
-+		return ret;
++static int rockchip_vpu_buf_out_validate(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 +
++	vbuf->field = V4L2_FIELD_NONE;
 +	return 0;
 +}
 +
-+static int rockchip_register_mc(struct media_device *mdev,
-+				struct rockchip_vpu_mc *mc,
-+				struct video_device *vdev,
-+				int function)
-+{
-+	struct media_link *link;
-+	int ret;
-+
-+	/* Create the three encoder entities with their pads */
-+	mc->source = &vdev->entity;
-+	mc->source_pad.flags = MEDIA_PAD_FL_SOURCE;
-+	ret = rockchip_vpu_register_entity(mdev, mc->source,
-+			"source", &mc->source_pad, 1, MEDIA_ENT_F_IO_V4L, vdev);
-+	if (ret)
-+		return ret;
-+
-+	mc->proc_pads[0].flags = MEDIA_PAD_FL_SINK;
-+	mc->proc_pads[1].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = rockchip_vpu_register_entity(mdev, &mc->proc,
-+			"proc", mc->proc_pads, 2, function, vdev);
-+	if (ret)
-+		goto err_rel_entity0;
-+
-+	mc->sink_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = rockchip_vpu_register_entity(mdev, &mc->sink,
-+			"sink", &mc->sink_pad, 1, MEDIA_ENT_F_IO_V4L, vdev);
-+	if (ret)
-+		goto err_rel_entity1;
-+
-+	/* Connect the three entities */
-+	ret = media_create_pad_link(mc->source, 0, &mc->proc, 1,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		goto err_rel_entity2;
-+
-+	ret = media_create_pad_link(&mc->proc, 0, &mc->sink, 0,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		goto err_rm_links0;
-+
-+	/* Create video interface */
-+	mc->intf_devnode = media_devnode_create(mdev,
-+			MEDIA_INTF_T_V4L_VIDEO, 0,
-+			VIDEO_MAJOR, vdev->minor);
-+	if (!mc->intf_devnode) {
-+		ret = -ENOMEM;
-+		goto err_rm_links1;
-+	}
-+
-+	/* Connect the two DMA engines to the interface */
-+	link = media_create_intf_link(mc->source,
-+			&mc->intf_devnode->intf,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (!link) {
-+		ret = -ENOMEM;
-+		goto err_rm_devnode;
-+	}
-+
-+	link = media_create_intf_link(&mc->sink,
-+			&mc->intf_devnode->intf,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (!link) {
-+		ret = -ENOMEM;
-+		goto err_rm_intf_link;
-+	}
-+	return 0;
-+
-+err_rm_intf_link:
-+	media_remove_intf_links(&mc->intf_devnode->intf);
-+err_rm_devnode:
-+	media_devnode_remove(mc->intf_devnode);
-+err_rm_links1:
-+	media_entity_remove_links(&mc->sink);
-+err_rm_links0:
-+	media_entity_remove_links(&mc->proc);
-+	media_entity_remove_links(mc->source);
-+err_rel_entity2:
-+	media_device_unregister_entity(&mc->proc);
-+	kfree(mc->proc.name);
-+err_rel_entity1:
-+	media_device_unregister_entity(&mc->sink);
-+	kfree(mc->sink.name);
-+err_rel_entity0:
-+	media_device_unregister_entity(mc->source);
-+	kfree(mc->source->name);
-+	return ret;
-+}
-+
-+static void rockchip_unregister_mc(struct rockchip_vpu_mc *mc)
-+{
-+	media_remove_intf_links(&mc->intf_devnode->intf);
-+	media_devnode_remove(mc->intf_devnode);
-+	media_entity_remove_links(mc->source);
-+	media_entity_remove_links(&mc->sink);
-+	media_entity_remove_links(&mc->proc);
-+	media_device_unregister_entity(mc->source);
-+	media_device_unregister_entity(&mc->sink);
-+	media_device_unregister_entity(&mc->proc);
-+	kfree(mc->source->name);
-+	kfree(mc->sink.name);
-+	kfree(mc->proc.name);
-+}
-+
-+static int rockchip_register_media_controller(struct rockchip_vpu_dev *vpu)
-+{
-+	int ret;
-+
-+	/* We have one memory-to-memory device, to hold a single queue
-+	 * of memory-to-memory serialized jobs.
-+	 * There is a set of pads and processing entities for the encoder,
-+	 * and another set for the decoder.
-+	 * Also, there are two V4L interface, one for each set of entities.
-+	 */
-+
-+	if (vpu->vfd_enc) {
-+		ret = rockchip_register_mc(&vpu->mdev, &vpu->mc[0],
-+					   vpu->vfd_enc,
-+					   MEDIA_ENT_F_PROC_VIDEO_ENCODER);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int rockchip_vpu_probe(struct platform_device *pdev)
- {
- 	const struct of_device_id *match;
-@@ -472,12 +620,21 @@ static int rockchip_vpu_probe(struct platform_device *pdev)
- 		goto err_m2m_rel;
- 	}
- 
-+	ret = rockchip_register_media_controller(vpu);
-+	if (ret) {
-+		v4l2_err(&vpu->v4l2_dev, "Failed to register media controller\n");
-+		goto err_video_dev_unreg;
-+	}
-+
- 	ret = media_device_register(&vpu->mdev);
- 	if (ret) {
- 		v4l2_err(&vpu->v4l2_dev, "Failed to register mem2mem media device\n");
--		goto err_video_dev_unreg;
-+		goto err_mc_unreg;
- 	}
- 	return 0;
-+err_mc_unreg:
-+	if (vpu->vfd_enc)
-+		rockchip_unregister_mc(&vpu->mc[0]);
- err_video_dev_unreg:
- 	if (vpu->vfd_enc) {
- 		video_unregister_device(vpu->vfd_enc);
-@@ -500,10 +657,10 @@ static int rockchip_vpu_remove(struct platform_device *pdev)
- 	v4l2_info(&vpu->v4l2_dev, "Removing %s\n", pdev->name);
- 
- 	media_device_unregister(&vpu->mdev);
--	v4l2_m2m_unregister_media_controller(vpu->m2m_dev);
- 	v4l2_m2m_release(vpu->m2m_dev);
- 	media_device_cleanup(&vpu->mdev);
- 	if (vpu->vfd_enc) {
-+		rockchip_unregister_mc(&vpu->mc[0]);
- 		video_unregister_device(vpu->vfd_enc);
- 		video_device_release(vpu->vfd_enc);
- 	}
+ const struct vb2_ops rockchip_vpu_enc_queue_ops = {
+ 	.queue_setup = rockchip_vpu_queue_setup,
+ 	.buf_prepare = rockchip_vpu_buf_prepare,
+ 	.buf_queue = rockchip_vpu_buf_queue,
++	.buf_out_validate = rockchip_vpu_buf_out_validate,
++	.buf_request_complete = rockchip_vpu_buf_request_complete,
+ 	.start_streaming = rockchip_vpu_start_streaming,
+ 	.stop_streaming = rockchip_vpu_stop_streaming,
+ 	.wait_prepare = vb2_ops_wait_prepare,
 -- 
 2.20.1
 
