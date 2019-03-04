@@ -3,102 +3,133 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93C77C43381
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 20:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E992C43381
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 20:45:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68DA120823
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 20:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4803B20830
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 20:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726473AbfCDUaL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Mar 2019 15:30:11 -0500
-Received: from mout.kundenserver.de ([217.72.192.75]:55397 "EHLO
+        id S1726414AbfCDUpk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Mar 2019 15:45:40 -0500
+Received: from mout.kundenserver.de ([212.227.17.24]:39135 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726328AbfCDUaL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2019 15:30:11 -0500
+        with ESMTP id S1726127AbfCDUpk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2019 15:45:40 -0500
 Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
- (mreue108 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1MO9vD-1gcViX2feL-00OXfP; Mon, 04 Mar 2019 21:30:04 +0100
+ (mreue109 [212.227.15.145]) with ESMTPA (Nemesis) id
+ 1MTznQ-1gbA6M1Szq-00QywR; Mon, 04 Mar 2019 21:45:28 +0100
 From:   Arnd Bergmann <arnd@arndb.de>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Robin Murphy <robin.murphy@arm.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: staging: davinci_vpfe: disallow building with COMPILE_TEST
-Date:   Mon,  4 Mar 2019 21:29:44 +0100
-Message-Id: <20190304203003.1862052-1-arnd@arndb.de>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Wolfgang Rohdewald <wolfgang@rohdewald.de>,
+        stable@vger.kernel.org, Akihiro Tsukada <tskd08@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [RESEND] media: don't drop front-end reference count for ->detach
+Date:   Mon,  4 Mar 2019 21:45:07 +0100
+Message-Id: <20190304204525.2283399-1-arnd@arndb.de>
 X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:4c01V9w91qzHHbFccpQVbOJQYftH7MrRuBv6+LwmYEj9BS8INWB
- m+T9va+Fhp5T1pSG0D1lpQJ2kVh4AiLcAp4h0b9XBNe8zEoUX/0RWXR42MWohCET9NHfya8
- KGiDOPd2xmH8Lx3WVPJf9TZFEmBG8xyLV9J0wR1mMMfLsHfHJr6lNq7OW4ZpEC933xxdFZi
- yzH0nUrc8KhwG/B8DYQXA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:vxuy1xkf1dk=:tJJpdk/VtQ/BWUDAQLtAfo
- wnffDZufoo7SokJvFeAySPMcM9srF1tWPHIAZ7CYMyPhA60Srgi6FKmukV6SZgKKYnhEPkwya
- c1II9kXUAjeiMTjzEAjj4JWmby5zIMP19R2+GxVWU2q1l5SZwz1n7IVczAOIYQyyrphhi9SES
- 45wf9+3JueLnNkXXCbquJb5iDDLK0b9rNUCiW3w/zuBLgqA5ZzjEKCZ/LQFN2XyAlY3f7hlG4
- fQl2O2iQy4tCsbncp/DTE2XbgNdWWK9QY6YCWQQqOn24PmTv0ATpND87oczCal0QJKxotIYk6
- kXeoVC4jA4nZ33LUEos2EfM3I1u2O+ppev9stWbrq0mGPBh3VPSjJaR67ZJ6tiTAOhFk4It1D
- 51rMxUU5VQa20SC6rEC+f6BELWJpLXet2cm3Pf+hbbYEbyTQvi5KcqnaW35KISbCiprR2mjOS
- p82jNDcdw9U/kPcEiE9ayteTblzlBEFyuuglCqIo92kRUSgKwTytxfw8YZCnHBB402FUStuhF
- ECfxz2iwzNVX68vabB79ndOLvG9sKOPrVrMYoBeMwFW9yIGJD4p67O7xC9ObU4HIqV9n7D4ga
- zRuNfHqN7tSicXDmg2o/rbkuTg6iQCFNyAutyiHRhw7lIczo+HjhqJ576Ap/ULBIv7rs5mINh
- rqYgQ1WQBVgQGqWZVWyE699yoqJOtiATl3/dlvcf9ZUG/pvtgiz16Shl7Z/KedV6Ik2qRmdhT
- yg0uqT8hffyhWgedXsmL1Kh9FMPH3YRRS7X8Lg==
+X-Provags-ID: V03:K1:iI74MnyTBaXWF8tbrf+pNC1Oojm3y2POdwWl4TEPZLyoh5CmnTP
+ Nruwx81FdKEr7tPiQUdTLiorqdtpDshY82RJko3tC6QX1RrPkxgON9SSySfZx0g+bGk6v2W
+ EaZzbVxlolwwhoQgU1dShBaNO+vdFEKUGUMaseLEVs24TtCcicAw+AjU3nAgNfkub4N6CI2
+ YrFcGI4Na/RqzEZBHjGfA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:ZtKn1Z0UpbU=:He3v2Sb2TeeN/7q4AkRnn1
+ HHBPkv00h9vt/m7fbMgZH5yoirS6b1+CLRioRn89JApFOIl+yzUSrKLTdHU8oRBjAQU7YXCGe
+ w/nQdVZjd3nywv+hbfdWVMbBGhGYkmi8L9MSbDiB/0PwTW4XV3n1pIoj7fcdmaWdkmpxh5ehy
+ AwERIwynB1nVSvp+sbSu9KCEpj2keVN37PtjmaEmkgQVZYu47Nf1Lr2nD4rnjPIms4jpo66XK
+ pXF0x8tMb4qw692PH90jXLrFwYwoZTaFNH0290WafyQ2fuBk2IaHCZM8jIYKTCilDKEwfjhD7
+ MGnfkbbV9MRTUCwhA/SjBOIVbEYcJDGxnUEkrWu1kmwZK4mNCvi7HzQWXA2gksvMxIwMSF4Em
+ ijERTOgZuexGltM+nIIprSJJ7Lwh+0P0k4rkTsGokb2NXdrs00K1es9QlhyzMShg0DxEJztwo
+ WMm+yA/Aa1CSUHhuRozpZIuaRBbSRKufYsHhCaEFg05Aleq1IhOqKMQb8pnBmhwLhtRISu9Mb
+ c1E1eYS+geT9p7NhJyzrB0PY+tPxOw9TKKaNB0tuLOaUvFtGP02tolTDdacnhRbi3SD1hYlUt
+ KqRlYgJyro4jho4P26b6EhGge299eIw5eldXCFRx5QKpDbVGg3aFxMyKkVlV+ko2AiomiuJTk
+ YyEgte0B8K1Kw7gzqyjZ6MQwvK2aA/3ofrPSiDgK8jLG8wiYpihd/ICEhkQ54QSTPUNBVHgUb
+ 5gZWT0xPRNvFYPOLnUYstXxs2EsfDUrvnFolfw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The driver should really call dm365_isif_setup_pinmux() through a callback,
-but it runs platform specific code by itself, which never actually compiled:
+A bugfix introduce a link failure in configurations without CONFIG_MODULES:
 
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2028:2: error: implicit declaration of function 'davinci_cfg_reg' [-Werror,-Wimplicit-function-declaration]
-        davinci_cfg_reg(DM365_VIN_CAM_WEN);
-        ^
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2028:2: error: this function declaration is not a prototype [-Werror,-Wstrict-prototypes]
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2028:18: error: use of undeclared identifier 'DM365_VIN_CAM_WEN'
-        davinci_cfg_reg(DM365_VIN_CAM_WEN);
-                        ^
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2029:18: error: use of undeclared identifier 'DM365_VIN_CAM_VD'
-        davinci_cfg_reg(DM365_VIN_CAM_VD);
-                        ^
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2030:18: error: use of undeclared identifier 'DM365_VIN_CAM_HD'
-        davinci_cfg_reg(DM365_VIN_CAM_HD);
-                        ^
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2031:18: error: use of undeclared identifier 'DM365_VIN_YIN4_7_EN'
-        davinci_cfg_reg(DM365_VIN_YIN4_7_EN);
-                        ^
-/git/arm-soc/drivers/staging/media/davinci_vpfe/dm365_isif.c:2032:18: error: use of undeclared identifier 'DM365_VIN_YIN0_3_EN'
-        davinci_cfg_reg(DM365_VIN_YIN0_3_EN);
-                        ^
-7 errors generated.
+In file included from drivers/media/usb/dvb-usb/pctv452e.c:20:0:
+drivers/media/usb/dvb-usb/pctv452e.c: In function 'pctv452e_frontend_attach':
+drivers/media/dvb-frontends/stb0899_drv.h:151:36: error: weak declaration of 'stb0899_attach' being applied to a already existing, static definition
 
-Fixes: 4907c73deefe ("media: staging: davinci_vpfe: allow building with COMPILE_TEST")
+The problem is that the !IS_REACHABLE() declaration of stb0899_attach()
+is a 'static inline' definition that clashes with the weak definition.
+
+I further observed that the bugfix was only done for one of the five users
+of stb0899_attach(), the other four still have the problem.  This reverts
+the bugfix and instead addresses the problem by not dropping the reference
+count when calling '->detach()', instead we call this function directly
+in dvb_frontend_put() before dropping the kref on the front-end.
+
+I first submitted this in early 2018, and after some discussion it
+was apparently discarded.  While there is a long-term plan in place,
+that plan is obviously not nearing completion yet, and the current
+kernel is still broken unless this patch is applied.
+
+Cc: Max Kellermann <max.kellermann@gmail.com>
+Cc: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+Cc: stable@vger.kernel.org
+Fixes: f686c14364ad ("[media] stb0899: move code to "detach" callback")
+Fixes: 6cdeaed3b142 ("media: dvb_usb_pctv452e: module refcount changes were unbalanced")
+Link: https://patchwork.kernel.org/patch/10140175/
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/staging/media/davinci_vpfe/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-core/dvb_frontend.c | 4 +++-
+ drivers/media/usb/dvb-usb/pctv452e.c  | 8 --------
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
-index aea449a8dbf8..84ac6b9e1767 100644
---- a/drivers/staging/media/davinci_vpfe/Kconfig
-+++ b/drivers/staging/media/davinci_vpfe/Kconfig
-@@ -1,7 +1,7 @@
- config VIDEO_DM365_VPFE
- 	tristate "DM365 VPFE Media Controller Capture Driver"
- 	depends on VIDEO_V4L2
--	depends on (ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF) || COMPILE_TEST
-+	depends on (ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF)
- 	depends on VIDEO_V4L2_SUBDEV_API
- 	depends on VIDEO_DAVINCI_VPBE_DISPLAY
- 	select VIDEOBUF2_DMA_CONTIG
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index fbdb4ecc7c50..eb5da50ff95e 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -164,6 +164,9 @@ static void dvb_frontend_free(struct kref *ref)
+ 
+ static void dvb_frontend_put(struct dvb_frontend *fe)
+ {
++	/* call detach before dropping the reference count */
++	if (fe->ops.detach)
++		fe->ops.detach(fe);
+ 	/*
+ 	 * Check if the frontend was registered, as otherwise
+ 	 * kref was not initialized yet.
+@@ -3038,7 +3041,6 @@ void dvb_frontend_detach(struct dvb_frontend *fe)
+ 	dvb_frontend_invoke_release(fe, fe->ops.release_sec);
+ 	dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release);
+ 	dvb_frontend_invoke_release(fe, fe->ops.analog_ops.release);
+-	dvb_frontend_invoke_release(fe, fe->ops.detach);
+ 	dvb_frontend_put(fe);
+ }
+ EXPORT_SYMBOL(dvb_frontend_detach);
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index 150081128196..5c653b660272 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -913,14 +913,6 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
+ 						&a->dev->i2c_adap);
+ 	if (!a->fe_adap[0].fe)
+ 		return -ENODEV;
+-
+-	/*
+-	 * dvb_frontend will call dvb_detach for both stb0899_detach
+-	 * and stb0899_release but we only do dvb_attach(stb0899_attach).
+-	 * Increment the module refcount instead.
+-	 */
+-	symbol_get(stb0899_attach);
+-
+ 	if ((dvb_attach(lnbp22_attach, a->fe_adap[0].fe,
+ 					&a->dev->i2c_adap)) == NULL)
+ 		err("Cannot attach lnbp22\n");
 -- 
 2.20.0
 
