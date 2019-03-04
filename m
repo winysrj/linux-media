@@ -3,194 +3,147 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 750F5C43381
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 12:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B0B3C43381
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 12:36:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 502032070B
-	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 12:35:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3197F2070B
+	for <linux-media@archiver.kernel.org>; Mon,  4 Mar 2019 12:36:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726522AbfCDMfM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Mar 2019 07:35:12 -0500
-Received: from relay11.mail.gandi.net ([217.70.178.231]:59125 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726095AbfCDMfM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2019 07:35:12 -0500
-Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay11.mail.gandi.net (Postfix) with ESMTPSA id 2DA0810000A;
-        Mon,  4 Mar 2019 12:35:08 +0000 (UTC)
-Date:   Mon, 4 Mar 2019 13:35:36 +0100
-From:   Jacopo Mondi <jacopo@jmondi.org>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Niklas =?utf-8?Q?S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 09/30] media: entity: Swap pads if route is checked
- from source to sink
-Message-ID: <20190304123520.et24vsesfulyzybs@uno.localdomain>
-References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-10-niklas.soderlund+renesas@ragnatech.se>
- <20190115225743.GH28397@pendragon.ideasonboard.com>
- <20190122151506.fnlfvwtoq7qunz45@paasikivi.fi.intel.com>
- <20190122152030.GB11461@pendragon.ideasonboard.com>
- <20190218092107.omddljghnv3l2ss6@uno.localdomain>
- <20190222121811.GU3522@pendragon.ideasonboard.com>
+        id S1726423AbfCDMf7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Mar 2019 07:35:59 -0500
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:33948 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726095AbfCDMf5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Mar 2019 07:35:57 -0500
+Received: from pps.filterd (m0046668.ppops.net [127.0.0.1])
+        by mx07-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x24CQgsd020023;
+        Mon, 4 Mar 2019 13:35:51 +0100
+Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
+        by mx07-00178001.pphosted.com with ESMTP id 2r0ju8m17a-1
+        (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT);
+        Mon, 04 Mar 2019 13:35:51 +0100
+Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
+        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id B30E031;
+        Mon,  4 Mar 2019 12:35:50 +0000 (GMT)
+Received: from Webmail-eu.st.com (Safex1hubcas23.st.com [10.75.90.46])
+        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 91B822A3C;
+        Mon,  4 Mar 2019 12:35:50 +0000 (GMT)
+Received: from SAFEX1HUBCAS22.st.com (10.75.90.93) by SAFEX1HUBCAS23.st.com
+ (10.75.90.46) with Microsoft SMTP Server (TLS) id 14.3.361.1; Mon, 4 Mar 2019
+ 13:35:50 +0100
+Received: from localhost (10.201.23.19) by Webmail-ga.st.com (10.75.90.48)
+ with Microsoft SMTP Server (TLS) id 14.3.361.1; Mon, 4 Mar 2019 13:35:49
+ +0100
+From:   Hugues Fruchet <hugues.fruchet@st.com>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC:     <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        "Hugues Fruchet" <hugues.fruchet@st.com>
+Subject: [PATCH] media: uvcvideo: Read support
+Date:   Mon, 4 Mar 2019 13:35:25 +0100
+Message-ID: <1551702925-7739-2-git-send-email-hugues.fruchet@st.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1551702925-7739-1-git-send-email-hugues.fruchet@st.com>
+References: <1551702925-7739-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="d5f4xeuz34cicmdj"
-Content-Disposition: inline
-In-Reply-To: <20190222121811.GU3522@pendragon.ideasonboard.com>
-User-Agent: NeoMutt/20180716
+Content-Type: text/plain
+X-Originating-IP: [10.201.23.19]
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-03-04_05:,,
+ signatures=0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Add support of read() call from userspace by implementing
+uvc_v4l2_read() with vb2_read() helper.
 
---d5f4xeuz34cicmdj
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c | 15 ++++++++++++++-
+ drivers/media/usb/uvc/uvc_v4l2.c  | 11 ++++++++---
+ drivers/media/usb/uvc/uvcvideo.h  |  2 ++
+ 3 files changed, 24 insertions(+), 4 deletions(-)
 
-Hi Laurent,
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 682698e..0c8a0a8 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -227,7 +227,7 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+ 	int ret;
+ 
+ 	queue->queue.type = type;
+-	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
++	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+ 	queue->queue.drv_priv = queue;
+ 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+ 	queue->queue.mem_ops = &vb2_vmalloc_memops;
+@@ -361,6 +361,19 @@ int uvc_queue_streamoff(struct uvc_video_queue *queue, enum v4l2_buf_type type)
+ 	return ret;
+ }
+ 
++ssize_t uvc_queue_read(struct uvc_video_queue *queue, struct file *file,
++		       char __user *buf, size_t count, loff_t *ppos)
++{
++	ssize_t ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_read(&queue->queue, buf, count, ppos,
++		       file->f_flags & O_NONBLOCK);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
+ int uvc_queue_mmap(struct uvc_video_queue *queue, struct vm_area_struct *vma)
+ {
+ 	return vb2_mmap(&queue->queue, vma);
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 84be596..3866832 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -594,7 +594,8 @@ static int uvc_ioctl_querycap(struct file *file, void *fh,
+ 	strscpy(cap->driver, "uvcvideo", sizeof(cap->driver));
+ 	strscpy(cap->card, vdev->name, sizeof(cap->card));
+ 	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
++	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING |
++			    V4L2_CAP_READWRITE
+ 			  | chain->caps;
+ 
+ 	return 0;
+@@ -1434,8 +1435,12 @@ static long uvc_v4l2_compat_ioctl32(struct file *file,
+ static ssize_t uvc_v4l2_read(struct file *file, char __user *data,
+ 		    size_t count, loff_t *ppos)
+ {
+-	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_read: not implemented.\n");
+-	return -EINVAL;
++	struct uvc_fh *handle = file->private_data;
++	struct uvc_streaming *stream = handle->stream;
++
++	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_read\n");
++
++	return uvc_queue_read(&stream->queue, file, data, count, ppos);
+ }
+ 
+ static int uvc_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index c7c1baa..5d0515c 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -766,6 +766,8 @@ struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 					 struct uvc_buffer *buf);
+ struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
+ void uvc_queue_buffer_release(struct uvc_buffer *buf);
++ssize_t uvc_queue_read(struct uvc_video_queue *queue, struct file *file,
++		       char __user *buf, size_t count, loff_t *ppos);
+ int uvc_queue_mmap(struct uvc_video_queue *queue,
+ 		   struct vm_area_struct *vma);
+ __poll_t uvc_queue_poll(struct uvc_video_queue *queue, struct file *file,
+-- 
+2.7.4
 
-On Fri, Feb 22, 2019 at 02:18:11PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> On Mon, Feb 18, 2019 at 10:21:07AM +0100, Jacopo Mondi wrote:
-> > On Tue, Jan 22, 2019 at 05:20:30PM +0200, Laurent Pinchart wrote:
-> > > On Tue, Jan 22, 2019 at 05:15:06PM +0200, Sakari Ailus wrote:
-> > >> On Wed, Jan 16, 2019 at 12:57:43AM +0200, Laurent Pinchart wrote:
-> > >>>>
-> > >>>> This way the pads are always passed to the has_route() op sink pad=
- first.
-> > >>>> Makes sense.
-> > >>>
-> > >>> Is there anything in the API that mandates one pad to be a sink and=
- the
-> > >>> other pad to the a source ? I had designed the operation to allow
-> > >>> sink-sink and source-source connections to be checked too.
-> > >>
-> > >> Do you have a use case in mind for sink--sink or source--source rout=
-es? The
-> > >> routes are about flows of data, so I'd presume only source--sink or
-> > >> sink--source routes are meaningful.
-> > >>
-> > >> If you did, then the driver would have to handle that by itself. Thi=
-s still
-> > >> simplifies the implementation for drivers that do not.
-> > >
-> > > I don't have use cases for such routes, but we use the has_route
-> > > operation when traversing pipelines, and at that point we need to get
-> > > all the internally connected pads. In another patch in this series you
-> > > implement a helper function that handles this, but its implementation
-> > > isn't complete. I explained in my review of that patch that I fear a
-> > > correct generic implementation would become quite complex, while the
-> > > complexity should be easy to handle on the driver side as the code can
-> > > then be specialized for the case at hand.
-> > >
-> >
-> > As a compromise, in v3 I'm thinking of maintaining support for the
-> > most common case of two sources connected to the same sink, as
-> > Sakari's patch does, but let more complex cases be handled by the
-> > driver implementation of has_route().
-> >
-> > Ack?
->
-> I fear this will be confusing for subdevs, as they would have to
-> implement part of the operation.
->
-> Could it be that the subdev has_route operation isn't the best API for
-> the job, if it gets that complex ? I wonder if it would be easier to
-> create another operation that takes a pad index as argument, and returns
-> the list of pads (possibly as a bitmask ?) or connected pads.
-> media_entity_has_route() could easily be implemented on top of that, and
-> these new semantics may be easier for subdevs to implement.
->
-
-I see, but if subdevs can easily elaborate that list, they could as
-well easily check if the pad provided as argument is on that list.
-
-> > >>> If your goal is to simplify the implementation of the .has_route()
-> > >>> operation in drivers, I would instead sort pad0 and pad1 by value.
-> > >>
-> > >> That'd be another option to make the order deterministic for the dri=
-ver.
-> > >> I'm fine with that as well.
-> >
-> > In v3 I have taken both suggestions in: try the "sink then source" order
-> > first, then order by index in case the pads are of the same time. This
-> > needs to be documented in has_route() operation definition though.
-> >
-> > Would that be fine with you?
->
-> I think that's the worst of both worlds from a subdev point of view :-)
->
-
-Possibly :)
-
-Should we drop completely the sink-source ordering in favour of
-ordering by value, and drop [15/30] that adds support for trivial
-indirect routes?
-
-Let's reach consensus so I could send v3.
-
-Thanks
-   j
-
-> > >>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > >>>> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragna=
-tech.se>
-> > >>>> ---
-> > >>>>  drivers/media/media-entity.c | 4 ++++
-> > >>>>  1 file changed, 4 insertions(+)
-> > >>>>
-> > >>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-en=
-tity.c
-> > >>>> index 3c0e7425c8983b45..33f00e35ccd92c6f 100644
-> > >>>> --- a/drivers/media/media-entity.c
-> > >>>> +++ b/drivers/media/media-entity.c
-> > >>>> @@ -249,6 +249,10 @@ bool media_entity_has_route(struct media_enti=
-ty *entity, unsigned int pad0,
-> > >>>>  	if (!entity->ops || !entity->ops->has_route)
-> > >>>>  		return true;
-> > >>>>
-> > >>>> +	if (entity->pads[pad0].flags & MEDIA_PAD_FL_SOURCE
-> > >>>> +	    && entity->pads[pad1].flags & MEDIA_PAD_FL_SINK)
-> > >>>> +		swap(pad0, pad1);
-> > >>>> +
-> > >>>>  	return entity->ops->has_route(entity, pad0, pad1);
-> > >>>>  }
-> > >>>>  EXPORT_SYMBOL_GPL(media_entity_has_route);
->
-> --
-> Regards,
->
-> Laurent Pinchart
-
---d5f4xeuz34cicmdj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlx9G5gACgkQcjQGjxah
-VjxLLw//ejXwfmvprHk3gxtWoNUVLCrA/yfwwKAHJJ/sV5d8MsNTbgg9Wxp4XuDo
-5O41j+ibrjErGeRnAtfaZxQHrF5r/lH53xiVSpJRVdg3ENo+LOyxfMMpG4JVC3m8
-gj6bXmIXF72oLCaC4aMh3WHUU77UQJxfeRaLYQeO+AjRGltzBBAyTSFN2vPif2QM
-6l4czV7Nt5zLfNtL5QZYKsPaDPNcMts3fD5i94EcS+SNBr1onYc9G7JEPuX+9RbB
-sKF4b3BPUkIBfh9sTShVQsPqqkyaQOV6LJfu8sVwh/A/ZjAHwbzRhIQWAgWWa36Z
-k4WA3LbKzBQ4KDDqABcBk3NFXcupRFw+HcFBuUJKx3ccfpT90K65b0Jj2121TXR/
-vCSEP5NWvN5j9Hkx2uWSXLEyZ1nbA4Q+/Ey9dOtBaQU1FPd/XXLdq5Qdp0WM3pcT
-sHDmiceDOl2xdImGR8ragV9f1Db612GOdg4g7Z/W6xLXGRA3QgWhbbpytZFT22rb
-LJo0YVY4uftltRVAgo63RqYT9XTu0zpVzWsxxEFcCZaDSBtjb+sgq6Bi6WCp1eSy
-Bpbkz65i7TcuHF5ngac3YuzZ0stTC+hcFFl6BnVveaRqsX722FcIXSmTy5z0wep8
-0OMo4fAZN9+bfnJajaqLWScqGp86LVSwg1QujC5hBZ59kzqtLnM=
-=Wo+J
------END PGP SIGNATURE-----
-
---d5f4xeuz34cicmdj--
