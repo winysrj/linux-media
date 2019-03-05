@@ -3,33 +3,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25765C00319
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12FADC43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0268D208E4
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0AC821019
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728322AbfCESwI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 13:52:08 -0500
+        id S1728793AbfCESwM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 13:52:12 -0500
 Received: from relay12.mail.gandi.net ([217.70.178.232]:49199 "EHLO
         relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727536AbfCESwE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 13:52:04 -0500
+        with ESMTP id S1728789AbfCESwK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 13:52:10 -0500
 Received: from uno.lan (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
         (Authenticated sender: jacopo@jmondi.org)
-        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 4FA30200012;
-        Tue,  5 Mar 2019 18:52:02 +0000 (UTC)
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id D922F20000D;
+        Tue,  5 Mar 2019 18:52:07 +0000 (UTC)
 From:   Jacopo Mondi <jacopo+renesas@jmondi.org>
 To:     sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se
 Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 25/31] adv748x: csi2: describe the multiplexed stream
-Date:   Tue,  5 Mar 2019 19:51:44 +0100
-Message-Id: <20190305185150.20776-26-jacopo+renesas@jmondi.org>
+Subject: [PATCH v3 29/31] rcar-csi2: use frame description information to configure CSI-2 bus
+Date:   Tue,  5 Mar 2019 19:51:48 +0100
+Message-Id: <20190305185150.20776-30-jacopo+renesas@jmondi.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
 References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
@@ -43,82 +43,265 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-The adv748x CSI-2 transmitter can only transmit one stream over the
-CSI-2 link, however it can choose which virtual channel is used. This
-choice effects the CSI-2 receiver and needs to be captured in the frame
-descriptor information, solve this by implementing .get_frame_desc().
+The driver can now access frame descriptor information, use it when
+configuring the CSI-2 bus. Only enable the virtual channels which are
+described in the frame descriptor and calculate the link based on all
+enabled streams.
+
+With multiplexed stream supported it's now meaningful to have different
+formats on the different source pads. Make source formats independent
+off each other and disallowing a format on the multiplexed sink pad.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/i2c/adv748x/adv748x-csi2.c | 31 +++++++++++++++++++++++-
- drivers/media/i2c/adv748x/adv748x.h      |  1 +
- 2 files changed, 31 insertions(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-csi2.c | 134 ++++++++++++++------
+ 1 file changed, 96 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 1abe34183d7d..d8f7cbee86e7 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -226,9 +226,37 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
- 	return ret;
+diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+index f64528d2be3c..f9cc99ba00bc 100644
+--- a/drivers/media/platform/rcar-vin/rcar-csi2.c
++++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -304,25 +304,21 @@ static const struct rcsi2_mbps_reg hsfreqrange_m3w_h3es1[] = {
+ #define CSI0CLKFREQRANGE(n)		((n & 0x3f) << 16)
+ 
+ struct rcar_csi2_format {
+-	u32 code;
+ 	unsigned int datatype;
+ 	unsigned int bpp;
+ };
+ 
+ static const struct rcar_csi2_format rcar_csi2_formats[] = {
+-	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24 },
+-	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 16 },
+-	{ .code = MEDIA_BUS_FMT_YUYV8_1X16,	.datatype = 0x1e, .bpp = 16 },
+-	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 16 },
+-	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 20 },
++	{ .datatype = 0x1e, .bpp = 16 },
++	{ .datatype = 0x24, .bpp = 24 },
+ };
+ 
+-static const struct rcar_csi2_format *rcsi2_code_to_fmt(unsigned int code)
++static const struct rcar_csi2_format *rcsi2_datatype_to_fmt(unsigned int dt)
+ {
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
+-		if (rcar_csi2_formats[i].code == code)
++		if (rcar_csi2_formats[i].datatype == dt)
+ 			return &rcar_csi2_formats[i];
+ 
+ 	return NULL;
+@@ -337,6 +333,14 @@ enum rcar_csi2_pads {
+ 	NR_OF_RCAR_CSI2_PAD,
+ };
+ 
++static int rcsi2_pad_to_vc(unsigned int pad)
++{
++	if (pad < RCAR_CSI2_SOURCE_VC0 || pad > RCAR_CSI2_SOURCE_VC3)
++		return -EINVAL;
++
++	return pad - RCAR_CSI2_SOURCE_VC0;
++}
++
+ struct rcar_csi2_info {
+ 	int (*init_phtw)(struct rcar_csi2 *priv, unsigned int mbps);
+ 	int (*confirm_start)(struct rcar_csi2 *priv);
+@@ -358,7 +362,7 @@ struct rcar_csi2 {
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *remote;
+ 
+-	struct v4l2_mbus_framefmt mf;
++	struct v4l2_mbus_framefmt mf[4];
+ 
+ 	struct mutex lock;
+ 	int stream_count;
+@@ -394,6 +398,32 @@ static void rcsi2_reset(struct rcar_csi2 *priv)
+ 	rcsi2_write(priv, SRST_REG, 0);
  }
  
-+static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++static int rcsi2_get_remote_frame_desc(struct rcar_csi2 *priv,
 +				       struct v4l2_mbus_frame_desc *fd)
 +{
-+	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
++	struct media_pad *pad;
++	int ret;
 +
-+	memset(fd, 0, sizeof(*fd));
++	if (!priv->remote)
++		return -ENODEV;
 +
-+	if (pad != ADV748X_CSI2_SOURCE)
++	pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
++	if (!pad)
++		return -ENODEV;
++
++	ret = v4l2_subdev_call(priv->remote, pad, get_frame_desc,
++			       pad->index, fd);
++	if (ret)
++		return -ENODEV;
++
++	if (fd->type != V4L2_MBUS_FRAME_DESC_TYPE_CSI2) {
++		dev_err(priv->dev, "Frame desc do not describe CSI-2 link");
 +		return -EINVAL;
-+
-+	mbusformat = adv748x_csi2_get_pad_format(sd, NULL, ADV748X_CSI2_SINK,
-+						 V4L2_SUBDEV_FORMAT_ACTIVE);
-+	if (!mbusformat)
-+		return -EINVAL;
-+
-+	fd->entry->stream = tx->vc;
-+	fd->entry->bus.csi2.channel = tx->vc;
-+	fd->entry->bus.csi2.data_type =
-+		adv748x_csi2_code_to_datatype(mbusformat->code);
-+
-+	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
-+	fd->num_entries = 1;
++	}
 +
 +	return 0;
 +}
 +
- static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
- 	.get_fmt = adv748x_csi2_get_format,
- 	.set_fmt = adv748x_csi2_set_format,
-+	.get_frame_desc = adv748x_csi2_get_frame_desc,
- };
+ static int rcsi2_wait_phy_start(struct rcar_csi2 *priv)
+ {
+ 	unsigned int timeout;
+@@ -432,10 +462,12 @@ static int rcsi2_set_phypll(struct rcar_csi2 *priv, unsigned int mbps)
+ 	return 0;
+ }
  
- /* -----------------------------------------------------------------------------
-@@ -295,7 +323,8 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
- 		return 0;
+-static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
++static int rcsi2_calc_mbps(struct rcar_csi2 *priv,
++			   struct v4l2_mbus_frame_desc *fd)
+ {
+ 	struct v4l2_subdev *source;
+ 	struct v4l2_ctrl *ctrl;
++	unsigned int i, bpp = 0;
+ 	u64 mbps;
  
- 	/* Initialise the virtual channel */
--	adv748x_csi2_set_virtual_channel(tx, 0);
-+	tx->vc = 0;
-+	adv748x_csi2_set_virtual_channel(tx, tx->vc);
+ 	if (!priv->remote)
+@@ -451,6 +483,20 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
+ 		return -EINVAL;
+ 	}
  
- 	adv748x_subdev_init(&tx->sd, state, &adv748x_csi2_ops,
- 			    MEDIA_ENT_F_VID_IF_BRIDGE,
-diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-index 5042f9e94aee..4a5a6445604f 100644
---- a/drivers/media/i2c/adv748x/adv748x.h
-+++ b/drivers/media/i2c/adv748x/adv748x.h
-@@ -75,6 +75,7 @@ enum adv748x_csi2_pads {
++	/* Calculate total bpp */
++	for (i = 0; i < fd->num_entries; i++) {
++		const struct rcar_csi2_format *format;
++
++		format = rcsi2_datatype_to_fmt(fd->entry[i].bus.csi2.data_type);
++		if (!format) {
++			dev_err(priv->dev, "Unknown data type: %d\n",
++				fd->entry[i].bus.csi2.data_type);
++			return -EINVAL;
++		}
++
++		bpp += format->bpp;
++	}
++
+ 	/*
+ 	 * Calculate the phypll in mbps.
+ 	 * link_freq = (pixel_rate * bits_per_sample) / (2 * nr_of_lanes)
+@@ -464,43 +510,40 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
  
- struct adv748x_csi2 {
- 	struct adv748x_state *state;
-+	unsigned int vc;
- 	struct v4l2_mbus_framefmt format;
- 	unsigned int page;
- 	unsigned int port;
+ static int rcsi2_start(struct rcar_csi2 *priv)
+ {
+-	const struct rcar_csi2_format *format;
+ 	u32 phycnt, vcdt = 0, vcdt2 = 0;
++	struct v4l2_mbus_frame_desc fd;
+ 	unsigned int i;
+ 	int mbps, ret;
+ 
+-	dev_dbg(priv->dev, "Input size (%ux%u%c)\n",
+-		priv->mf.width, priv->mf.height,
+-		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
+-
+-	/* Code is validated in set_fmt. */
+-	format = rcsi2_code_to_fmt(priv->mf.code);
++	/* Get information about multiplexed link. */
++	ret = rcsi2_get_remote_frame_desc(priv, &fd);
++	if (ret)
++		return ret;
+ 
+-	/*
+-	 * Enable all supported CSI-2 channels with virtual channel and
+-	 * data type matching.
+-	 *
+-	 * NOTE: It's not possible to get individual datatype for each
+-	 *       source virtual channel. Once this is possible in V4L2
+-	 *       it should be used here.
+-	 */
+-	for (i = 0; i < priv->info->num_channels; i++) {
++	for (i = 0; i < fd.num_entries; i++) {
++		struct v4l2_mbus_frame_desc_entry *entry = &fd.entry[i];
+ 		u32 vcdt_part;
+ 
+-		vcdt_part = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
+-			VCDT_SEL_DT(format->datatype);
++		vcdt_part = VCDT_SEL_VC(entry->bus.csi2.channel) |
++			VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
++			VCDT_SEL_DT(entry->bus.csi2.data_type);
+ 
+ 		/* Store in correct reg and offset. */
+-		if (i < 2)
+-			vcdt |= vcdt_part << ((i % 2) * 16);
++		if (entry->bus.csi2.channel < 2)
++			vcdt |= vcdt_part <<
++				((entry->bus.csi2.channel % 2) * 16);
+ 		else
+-			vcdt2 |= vcdt_part << ((i % 2) * 16);
++			vcdt2 |= vcdt_part <<
++				((entry->bus.csi2.channel % 2) * 16);
++
++		dev_dbg(priv->dev, "VC%d datatype: 0x%x\n",
++			entry->bus.csi2.channel, entry->bus.csi2.data_type);
+ 	}
+ 
+ 	phycnt = PHYCNT_ENABLECLK;
+ 	phycnt |= (1 << priv->lanes) - 1;
+ 
+-	mbps = rcsi2_calc_mbps(priv, format->bpp);
++	mbps = rcsi2_calc_mbps(priv, &fd);
+ 	if (mbps < 0)
+ 		return mbps;
+ 
+@@ -622,14 +665,16 @@ static int rcsi2_set_pad_format(struct v4l2_subdev *sd,
+ {
+ 	struct rcar_csi2 *priv = sd_to_csi2(sd);
+ 	struct v4l2_mbus_framefmt *framefmt;
++	int vc;
+ 
+-	if (!rcsi2_code_to_fmt(format->format.code))
+-		format->format.code = rcar_csi2_formats[0].code;
++	vc = rcsi2_pad_to_vc(format->pad);
++	if (vc < 0)
++		return vc;
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+-		priv->mf = format->format;
++		priv->mf[vc] = format->format;
+ 	} else {
+-		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
++		framefmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
+ 		*framefmt = format->format;
+ 	}
+ 
+@@ -641,11 +686,17 @@ static int rcsi2_get_pad_format(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_format *format)
+ {
+ 	struct rcar_csi2 *priv = sd_to_csi2(sd);
++	int vc;
++
++	vc = rcsi2_pad_to_vc(format->pad);
++	if (vc < 0)
++		return vc;
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		format->format = priv->mf;
++		format->format = priv->mf[vc];
+ 	else
+-		format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
++		format->format = *v4l2_subdev_get_try_format(sd, cfg,
++							     format->pad);
+ 
+ 	return 0;
+ }
+@@ -675,6 +726,13 @@ static int rcsi2_notify_bound(struct v4l2_async_notifier *notifier,
+ 	struct rcar_csi2 *priv = notifier_to_csi2(notifier);
+ 	int pad;
+ 
++	if (!v4l2_subdev_has_op(subdev, pad, get_frame_desc)) {
++		dev_err(priv->dev,
++			"Failed as '%s' do not support frame descriptors\n",
++			subdev->name);
++		return -EINVAL;
++	}
++
+ 	pad = media_entity_get_fwnode_pad(&subdev->entity, asd->match.fwnode,
+ 					  MEDIA_PAD_FL_SOURCE);
+ 	if (pad < 0) {
 -- 
 2.20.1
 
