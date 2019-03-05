@@ -2,124 +2,93 @@ Return-Path: <SRS0=h5dj=RI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC198C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 20:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5ABDC4360F
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 21:17:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD85D2075B
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 20:48:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90E13205F4
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 21:17:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726794AbfCEUst (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 15:48:49 -0500
-Received: from mga04.intel.com ([192.55.52.120]:4296 "EHLO mga04.intel.com"
+        id S1728737AbfCEVRq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 16:17:46 -0500
+Received: from gofer.mess.org ([88.97.38.141]:42821 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726296AbfCEUst (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Mar 2019 15:48:49 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Mar 2019 12:48:49 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,445,1544515200"; 
-   d="scan'208";a="138321679"
-Received: from schmiger-mobl3.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.249.45.12])
-  by FMSMGA003.fm.intel.com with ESMTP; 05 Mar 2019 12:48:47 -0800
-Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
-        id A712F21E54; Tue,  5 Mar 2019 22:48:44 +0200 (EET)
-Date:   Tue, 5 Mar 2019 22:48:44 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Benoit Parrot <bparrot@ti.com>
-Cc:     linux-media@vger.kernel.org, akinobu.mita@gmail.com,
-        robert.jarzmik@free.fr, hverkuil@xs4all.nl
-Subject: Re: [PATCH v1.1 4/4] ti-vpe: Parse local endpoint for properties,
- not the remote one
-Message-ID: <20190305204844.pkusug2b37oxw7fm@kekkonen.localdomain>
-References: <20190305135602.24199-5-sakari.ailus@linux.intel.com>
- <20190305140224.25889-1-sakari.ailus@linux.intel.com>
- <20190305143409.yzmusyvuaab5ap4w@ti.com>
- <20190305163239.23qfa3o4utolln6f@kekkonen.localdomain>
- <20190305173842.fiwxqaujxlvybbty@ti.com>
+        id S1726277AbfCEVRp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Mar 2019 16:17:45 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id 0DA9560E4D; Tue,  5 Mar 2019 21:17:44 +0000 (GMT)
+Date:   Tue, 5 Mar 2019 21:17:43 +0000
+From:   Sean Young <sean@mess.org>
+To:     Matthias Schwarzott <zzam@gentoo.org>
+Cc:     Kangjie Lu <kjlu@umn.edu>, pakki001@umn.edu,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] media: si2165: fix a missing check of return value
+Message-ID: <20190305211743.vi6zksuw2eltusif@gofer.mess.org>
+References: <20181221045403.59303-1-kjlu@umn.edu>
+ <7a5d505d-692b-f067-51f6-815787cffba3@gentoo.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190305173842.fiwxqaujxlvybbty@ti.com>
+In-Reply-To: <7a5d505d-692b-f067-51f6-815787cffba3@gentoo.org>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Mar 05, 2019 at 11:38:42AM -0600, Benoit Parrot wrote:
-> Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 18:32:40 +0200]:
-> > Hi Benoit,
+On Fri, Dec 21, 2018 at 09:24:46AM +0100, Matthias Schwarzott wrote:
+> Am 21.12.18 um 05:54 schrieb Kangjie Lu:
+> > si2165_readreg8() may fail. Looking into si2165_readreg8(), we will find
+> > that "val_tmp" will be an uninitialized value when regmap_read() fails.
+> > "val_tmp" is then assigned to "val". So if si2165_readreg8() fails,
+> > "val" will be a random value. Further use will lead to undefined
+> > behaviors. The fix checks if si2165_readreg8() fails, and if so, returns
+> > its error code upstream.
 > > 
-> > On Tue, Mar 05, 2019 at 08:34:09AM -0600, Benoit Parrot wrote:
-> > > Sakari,
-> > > 
-> > > Thank you for the patch.
-> > > 
-> > > Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 16:02:24 +0200]:
-> > > > ti-vpe driver parsed the remote endpoints for properties but ignored the
-> > > > local ones. Fix this by parsing the local endpoint properties instead.
-> > > 
-> > > I am not sure I understand the logic here.  For CSI2 sensor as far as I
-> > > understand the lane mapping (clock and data) is driven from the sensor
-> > > side. The bridge driver (in this case CAL) needs to setup the receiver side
-> > > based on what the sensor (aka remote endpoint) can provide.
-> > > 
-> > > I failed to see how this fixes things here.
-> > > 
-> > > Are you suggesting that sensor relevant properties be set (and effectively
-> > > duplicated) on the bridge/receiver side?
-> > 
-> > Yes. The endpoint configuration in general is local to the device and
-> > should not be accessed from other device drivers.
-> > 
-> > The lane mapping, for instance, is specific to a given device --- and may
-> > differ even between for two connected endpoints. It's used to reorder the
-> > PHY lanes (if the device supports that). Same goes for the clock lane.
+> > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 > 
-> I did not see omap3isp having lane reorder capability, but I guess it would
-> be possible for instance, that a sensor uses clock lane 0 and data lane 1
-> & 2 but the way it is wired on the board makes it that the receiver would see
-> sensor lane 0 on device lane 2 and so on... Not sure why you would wire it
-> up that way but who knows...
+> Reviewed-by: Matthias Schwarzott <zzam@gentoo.org>
 
-I presume the feature is there to ease PCB design.
+Unless it is tested on the actual hardware we can't apply this. This could
+introduce regressions.
+
+Sean
 
 > 
+> > ---
+> >  drivers/media/dvb-frontends/si2165.c | 8 +++++---
+> >  1 file changed, 5 insertions(+), 3 deletions(-)
 > > 
-> > See e.g. arch/arm/boot/dts/omap3-n9.dts .
-
-	     ^
-
-There it is.
-
+> > diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+> > index feacd8da421d..d55d8f169dca 100644
+> > --- a/drivers/media/dvb-frontends/si2165.c
+> > +++ b/drivers/media/dvb-frontends/si2165.c
+> > @@ -275,18 +275,20 @@ static u32 si2165_get_fe_clk(struct si2165_state *state)
+> >  
+> >  static int si2165_wait_init_done(struct si2165_state *state)
+> >  {
+> > -	int ret = -EINVAL;
+> > +	int ret;
+> >  	u8 val = 0;
+> >  	int i;
+> >  
+> >  	for (i = 0; i < 3; ++i) {
+> > -		si2165_readreg8(state, REG_INIT_DONE, &val);
+> > +		ret = si2165_readreg8(state, REG_INIT_DONE, &val);
+> > +		if (ret < 0)
+> > +			return ret;
+> >  		if (val == 0x01)
+> >  			return 0;
+> >  		usleep_range(1000, 50000);
+> >  	}
+> >  	dev_err(&state->client->dev, "init_done was not set\n");
+> > -	return ret;
+> > +	return -EINVAL;
+> >  }
+> >  
+> >  static int si2165_upload_firmware_block(struct si2165_state *state,
 > > 
-> > > 
-> > > Some sensor can and do handle multiple data lanes configuration so the
-> > > sensor driver also needs to use those properties at probe time, duplicating
-> > > the lane data is just asking for a mismatch to happen, no?
-> > 
-> > It's a different configuration on the sensor side. We currently have no
-> > checks in place to verify that the two would match. I haven't heard of this
-> > would have really been a problem though.
-> 
-> I had just never thought about this cases, to me a single source of
-> information is better than 2. But anyhow I guess I'll have to update all of
-> my relevant dts files in the near future.
-
-Do you have in-kernel dts files using this? I presume the driver should
-then figure out whether the local endpoint has a configuration and if it
-doesn't, then look it up from the remote one. Otherwise old dts binaries
-will break. :-(
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
