@@ -2,132 +2,162 @@ Return-Path: <SRS0=h5dj=RI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86AC1C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 17:42:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28F72C43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 463FD20842
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 17:42:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="AQuMCFZf"
+	by mail.kernel.org (Postfix) with ESMTP id F338820645
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728895AbfCERmY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 12:42:24 -0500
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:40366 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728108AbfCERmY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 12:42:24 -0500
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id x25HgI2F118223;
-        Tue, 5 Mar 2019 11:42:18 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1551807738;
-        bh=rUMhExXIQ4qZN0kalC3Px4UzrPG1vQhkDhB7AOcPnpQ=;
-        h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=AQuMCFZfFZ9Nbw0x56Xs/lGn4OfQlYB4uDxXOzfBmjQCnD57YRhynQAY4kTj2modJ
-         pNFtKvpkC2c/5L0/4N/PqjLPKneOB7UI7GljV3D4P3WHCwLHPdyxpd2yjilaAAezh2
-         xYEdHrJ05CNY7srD5wR5aY96IrlR+ymhEfk/BpZk=
-Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id x25HgIIG031811
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 5 Mar 2019 11:42:18 -0600
-Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1591.10; Tue, 5
- Mar 2019 11:42:17 -0600
-Received: from dflp33.itg.ti.com (10.64.6.16) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_0,
- cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.1.1591.10 via Frontend Transport;
- Tue, 5 Mar 2019 11:42:17 -0600
-Received: from ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by dflp33.itg.ti.com (8.14.3/8.13.8) with SMTP id x25HgH06025483;
-        Tue, 5 Mar 2019 11:42:17 -0600
-Date:   Tue, 5 Mar 2019 11:38:42 -0600
-From:   Benoit Parrot <bparrot@ti.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-CC:     <linux-media@vger.kernel.org>, <akinobu.mita@gmail.com>,
-        <robert.jarzmik@free.fr>, <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v1.1 4/4] ti-vpe: Parse local endpoint for properties,
- not the remote one
-Message-ID: <20190305173842.fiwxqaujxlvybbty@ti.com>
-References: <20190305135602.24199-5-sakari.ailus@linux.intel.com>
- <20190305140224.25889-1-sakari.ailus@linux.intel.com>
- <20190305143409.yzmusyvuaab5ap4w@ti.com>
- <20190305163239.23qfa3o4utolln6f@kekkonen.localdomain>
+        id S1728735AbfCESOc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 13:14:32 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:36511 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728640AbfCESOb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 13:14:31 -0500
+Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1h1Ea5-00042o-Ry; Tue, 05 Mar 2019 19:14:21 +0100
+Received: from mfe by pty.hi.pengutronix.de with local (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1h1Ea3-00051v-GR; Tue, 05 Mar 2019 19:14:19 +0100
+Date:   Tue, 5 Mar 2019 19:14:19 +0100
+From:   Marco Felsch <m.felsch@pengutronix.de>
+To:     Jacopo Mondi <jacopo@jmondi.org>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Ian Arkver <ian.arkver.dev@gmail.com>, hans.verkuil@cisco.com,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        graphics@pengutronix.de
+Subject: Re: [PATCH 1/3] media: dt-bindings: add bindings for Toshiba TC358746
+Message-ID: <20190305181419.kqdaqnjte3v7663f@pengutronix.de>
+References: <20181218141240.3056-1-m.felsch@pengutronix.de>
+ <20181218141240.3056-2-m.felsch@pengutronix.de>
+ <20190218100333.qvptfllrd4pyhsyb@paasikivi.fi.intel.com>
+ <20190301105235.a23jwiwmxejuv2yf@pengutronix.de>
+ <a51ecc47-df19-a48b-3d82-01b21d03972c@gmail.com>
+ <20190301130118.jy57g5wcsn7mqclk@pengutronix.de>
+ <20190304123621.l3ocvdiya5z5wzal@paasikivi.fi.intel.com>
+ <20190304165528.n4sqxjhfsplmt5km@pengutronix.de>
+ <20190304181747.ax7nvbvhdul4vtna@kekkonen.localdomain>
+ <20190305084902.vzaqr53q77oy2o7r@uno.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190305163239.23qfa3o4utolln6f@kekkonen.localdomain>
-User-Agent: NeoMutt/20171215
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+In-Reply-To: <20190305084902.vzaqr53q77oy2o7r@uno.localdomain>
+X-Sent-From: Pengutronix Hildesheim
+X-URL:  http://www.pengutronix.de/
+X-IRC:  #ptxdist @freenode
+X-Accept-Language: de,en
+X-Accept-Content-Type: text/plain
+X-Uptime: 19:04:09 up 45 days, 22:46, 50 users,  load average: 0.02, 0.05,
+ 0.02
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
+X-SA-Exim-Mail-From: mfe@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 18:32:40 +0200]:
-> Hi Benoit,
-> 
-> On Tue, Mar 05, 2019 at 08:34:09AM -0600, Benoit Parrot wrote:
-> > Sakari,
-> > 
-> > Thank you for the patch.
-> > 
-> > Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 16:02:24 +0200]:
-> > > ti-vpe driver parsed the remote endpoints for properties but ignored the
-> > > local ones. Fix this by parsing the local endpoint properties instead.
-> > 
-> > I am not sure I understand the logic here.  For CSI2 sensor as far as I
-> > understand the lane mapping (clock and data) is driven from the sensor
-> > side. The bridge driver (in this case CAL) needs to setup the receiver side
-> > based on what the sensor (aka remote endpoint) can provide.
-> > 
-> > I failed to see how this fixes things here.
-> > 
-> > Are you suggesting that sensor relevant properties be set (and effectively
-> > duplicated) on the bridge/receiver side?
-> 
-> Yes. The endpoint configuration in general is local to the device and
-> should not be accessed from other device drivers.
-> 
-> The lane mapping, for instance, is specific to a given device --- and may
-> differ even between for two connected endpoints. It's used to reorder the
-> PHY lanes (if the device supports that). Same goes for the clock lane.
+Hi Rob,
 
-I did not see omap3isp having lane reorder capability, but I guess it would
-be possible for instance, that a sensor uses clock lane 0 and data lane 1
-& 2 but the way it is wired on the board makes it that the receiver would see
-sensor lane 0 on device lane 2 and so on... Not sure why you would wire it
-up that way but who knows...
+I think you didn't followed the discussion in detail so I will ask you
+personal. In short the tc358746 can act as parallel-in -> csi-out or as
+csi->in -> parallel-out device. The phyiscal pins are always the same
+only the internal timings are different. So we have two ports with two
+endpoints.
 
-> 
-> See e.g. arch/arm/boot/dts/omap3-n9.dts .
-> 
-> > 
-> > Some sensor can and do handle multiple data lanes configuration so the
-> > sensor driver also needs to use those properties at probe time, duplicating
-> > the lane data is just asking for a mismatch to happen, no?
-> 
-> It's a different configuration on the sensor side. We currently have no
-> checks in place to verify that the two would match. I haven't heard of this
-> would have really been a problem though.
+Now the question is how we determine the mode. We have two approaches:
+1)
+  port@0 -> input port
+  port@1 -> output port
 
-I had just never thought about this cases, to me a single source of
-information is better than 2. But anyhow I guess I'll have to update all of
-my relevant dts files in the near future.
+  pro:
+  + no extra vendor specific binding is needed to determine the mode
 
-Benoit
+  con:
+  - input/output endpoint can be parallel or mipi-csi2.
 
+2)
+  port@0 -> parallel port
+  port@1 -> mipi-csi2 port
+
+  pro:
+  + input/output endpoint are fixed to parallel or mipi
+
+  con:
+  - vendor specific binding is needed to determine the mode
+
+Thanks for your comments :)
+
+Regards,
+Marco
+
+On 19-03-05 09:49, Jacopo Mondi wrote:
+> Hi Sakari, Marco,
 > 
-> The frame descriptors should be used for runtime configuration. Niklas and
-> more recently Jacopo have been working on that.
+> On Mon, Mar 04, 2019 at 08:17:48PM +0200, Sakari Ailus wrote:
+> > Hi Marco,
+> >
+> > On Mon, Mar 04, 2019 at 05:55:28PM +0100, Marco Felsch wrote:
+> > > > > (more device specific)
+> > > > > tc358746,default-mode = <CSI-Tx> /* Parallel-in -> CSI-out */
+> > > > > tc358746,default-mode = <CSI-Rx> /* CSI-in -> Parallel-out */
+> > > > >
+> > > > > or
+> > > > >
+> > > > > (more generic)
+> > > > > tc358746,default-dir = <PARALLEL_TO_CSI2>
+> > > > > tc358746,default-dir = <CSI2_TO_PARALLEL>
+> > > >
+> > > > The prefix for Toshiba is "toshiba". What would you think of
+> > > > "toshiba,csi2-direction" with values of either "rx" or "tx"? Or
+> > > > "toshiba,csi2-mode" with either "master" or "slave", which would be a
+> > > > little bit more generic, but could be slightly more probable to get wrong
+> > > > as well.
+> > >
+> > > You're right mixed the prefix with the device.. If we need to introduce
+> > > a property I would prefer the "toshiba,csi2-direction" one. I said if
+> > > because as Jacopo mentioned we can avoid the property by define port@0
+> > > as input and port@1 as output. I tink that's the best solution, since we
+> > > can avoid device specific bindings and it's common to use the last port
+> > > as output (e.g. video-mux).
+> >
+> > The ports represent hardware and I think I would avoid reordering them. I
+> > wonder what would the DT folks prefer.
+> >
 > 
-> -- 
-> Kind regards,
+> I might have missed why you mention re-ordering? :)
 > 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+> > The device specific property is to the point at least: it describes an
+> > orthogonal part of the device configuration. That's why I'd pick that if I
+> > were to choose. But I'll let Rob to comment on this.
+> 
+> That's true indeed. Let's wait for inputs from DT people, I'm fine
+> with both approaches.
+> 
+> Thanks
+>    j
+> 
+> >
+> > --
+> > Regards,
+> >
+> > Sakari Ailus
+> > sakari.ailus@linux.intel.com
+
+
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
