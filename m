@@ -2,97 +2,74 @@ Return-Path: <SRS0=h5dj=RI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8911C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 14:02:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E398C43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 14:17:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A1D7020842
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 14:02:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78EF4206DD
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 14:17:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726657AbfCEOC1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 09:02:27 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49566 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726250AbfCEOC1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Mar 2019 09:02:27 -0500
-Received: from lanttu.localdomain (lanttu.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::c1:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id CD14A634C7B;
-        Tue,  5 Mar 2019 16:01:25 +0200 (EET)
+        id S1728113AbfCEORW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 09:17:22 -0500
+Received: from mga05.intel.com ([192.55.52.43]:2902 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727659AbfCEORW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Mar 2019 09:17:22 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Mar 2019 06:17:21 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,444,1544515200"; 
+   d="scan'208";a="131412466"
+Received: from schmiger-mobl3.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.249.45.12])
+  by orsmga003.jf.intel.com with ESMTP; 05 Mar 2019 06:17:18 -0800
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id C12C621E54; Tue,  5 Mar 2019 16:17:15 +0200 (EET)
+Date:   Tue, 5 Mar 2019 16:17:15 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     linux-media@vger.kernel.org
-Cc:     akinobu.mita@gmail.com, robert.jarzmik@free.fr, hverkuil@xs4all.nl,
-        bparrot@ti.com
-Subject: [PATCH v1.1 4/4] ti-vpe: Parse local endpoint for properties, not the remote one
-Date:   Tue,  5 Mar 2019 16:02:24 +0200
-Message-Id: <20190305140224.25889-1-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190305135602.24199-5-sakari.ailus@linux.intel.com>
-References: <20190305135602.24199-5-sakari.ailus@linux.intel.com>
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [v2] media: staging/intel-ipu3: reduce kernel stack usage
+Message-ID: <20190305141714.u7tj46cvacnmmg4d@kekkonen.localdomain>
+References: <20190305132924.3889416-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190305132924.3889416-1-arnd@arndb.de>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-ti-vpe driver parsed the remote endpoints for properties but ignored the
-local ones. Fix this by parsing the local endpoint properties instead.
+On Tue, Mar 05, 2019 at 02:26:29PM +0100, Arnd Bergmann wrote:
+> The imgu_css_queue structure is too large to be put on the kernel
+> stack, as we can see in 32-bit builds:
+> 
+> drivers/staging/media/ipu3/ipu3-css.c: In function 'imgu_css_fmt_try':
+> drivers/staging/media/ipu3/ipu3-css.c:1863:1: error: the frame size of 1172 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
+> 
+> By dynamically allocating this array, the stack usage goes down to an
+> acceptable 140 bytes for the same x86-32 configuration.
+> 
+> Fixes: f5f2e4273518 ("media: staging/intel-ipu3: Add css pipeline programming")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> v2: restructure to use 'return -ENOMEM' instead of goto for failed
+>     allocation.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v1:
+Thanks, Arnd! All three applied.
 
-- Remove of_node_put(remote_ep) as well, the only remaining reference to it.
-
- drivers/media/platform/ti-vpe/cal.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index fc3c212b96e1..8d075683e448 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -1643,8 +1643,7 @@ of_get_next_endpoint(const struct device_node *parent,
- static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
- {
- 	struct platform_device *pdev = ctx->dev->pdev;
--	struct device_node *ep_node, *port, *remote_ep,
--			*sensor_node, *parent;
-+	struct device_node *ep_node, *port, *sensor_node, *parent;
- 	struct v4l2_fwnode_endpoint *endpoint;
- 	struct v4l2_async_subdev *asd;
- 	u32 regval = 0;
-@@ -1657,7 +1656,6 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
- 
- 	ep_node = NULL;
- 	port = NULL;
--	remote_ep = NULL;
- 	sensor_node = NULL;
- 	ret = -EINVAL;
- 
-@@ -1703,12 +1701,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
- 	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
- 	asd->match.fwnode = of_fwnode_handle(sensor_node);
- 
--	remote_ep = of_graph_get_remote_endpoint(ep_node);
--	if (!remote_ep) {
--		ctx_dbg(3, ctx, "can't get remote-endpoint\n");
--		goto cleanup_exit;
--	}
--	v4l2_fwnode_endpoint_parse(of_fwnode_handle(remote_ep), endpoint);
-+	v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep_node), endpoint);
- 
- 	if (endpoint->bus_type != V4L2_MBUS_CSI2_DPHY) {
- 		ctx_err(ctx, "Port:%d sub-device %pOFn is not a CSI2 device\n",
-@@ -1759,7 +1752,6 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
- 	sensor_node = NULL;
- 
- cleanup_exit:
--	of_node_put(remote_ep);
- 	of_node_put(sensor_node);
- 	of_node_put(ep_node);
- 	of_node_put(port);
 -- 
-2.11.0
-
+Sakari Ailus
+sakari.ailus@linux.intel.com
