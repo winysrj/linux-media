@@ -2,201 +2,148 @@ Return-Path: <SRS0=h5dj=RI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71732C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 00:25:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9033BC43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 04:45:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4549D206DD
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 00:25:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DD07206DD
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 04:45:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726170AbfCEAZx convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Mar 2019 19:25:53 -0500
-Received: from mga04.intel.com ([192.55.52.120]:58216 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726066AbfCEAZw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Mar 2019 19:25:52 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Mar 2019 16:25:52 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,441,1544515200"; 
-   d="scan'208";a="148586669"
-Received: from fmsmsx106.amr.corp.intel.com ([10.18.124.204])
-  by fmsmga002.fm.intel.com with ESMTP; 04 Mar 2019 16:25:52 -0800
-Received: from fmsmsx112.amr.corp.intel.com (10.18.116.6) by
- FMSMSX106.amr.corp.intel.com (10.18.124.204) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 4 Mar 2019 16:25:51 -0800
-Received: from shsmsx151.ccr.corp.intel.com (10.239.6.50) by
- FMSMSX112.amr.corp.intel.com (10.18.116.6) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 4 Mar 2019 16:25:51 -0800
-Received: from shsmsx104.ccr.corp.intel.com ([169.254.5.74]) by
- SHSMSX151.ccr.corp.intel.com ([169.254.3.26]) with mapi id 14.03.0415.000;
- Tue, 5 Mar 2019 08:25:19 +0800
-From:   "Cao, Bingbu" <bingbu.cao@intel.com>
-To:     Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC:     "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH] media: staging/intel-ipu3: reduce kernel stack usage
-Thread-Topic: [PATCH] media: staging/intel-ipu3: reduce kernel stack usage
-Thread-Index: AQHU0sjI/9ys7oMm70KxNpya8bdOOaX8LDeg
-Date:   Tue, 5 Mar 2019 00:25:18 +0000
-Message-ID: <EE45BB6704246A4E914B70E8B61FB42A15C131D5@SHSMSX104.ccr.corp.intel.com>
-References: <20190304202758.1802417-1-arnd@arndb.de>
-In-Reply-To: <20190304202758.1802417-1-arnd@arndb.de>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMzM2ZjM5Y2ItNmNhOC00ZTFmLWFmMGQtMzUwOTZkMzUyZDcyIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiVVBTMHBvVGdaN1F4ZVpxM0JBRWxDeGcwR1l4VmVzczNoOVQ3MGI4K2lMeDZ2eTdVVnMzMXdzVEYrVTQ2bkd2SiJ9
-x-ctpclassification: CTP_NT
-dlp-product: dlpe-windows
-dlp-version: 11.0.400.15
-dlp-reaction: no-action
-x-originating-ip: [10.239.127.40]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S1727007AbfCEEpg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Mar 2019 23:45:36 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:40699 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726522AbfCEEpg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Mar 2019 23:45:36 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:f12e:b1e9:7459:1fd3])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id 11xNhpaNzLMwI11xOhqmGz; Tue, 05 Mar 2019 05:45:34 +0100
+Message-ID: <876928c2d4785285da9370a2439b8a72@smtp-cloud7.xs4all.net>
+Date:   Tue, 05 Mar 2019 05:45:33 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfLB3KSVN2UNAGR9bLMTDtBXq07IU+WaFGy6nF81ppKAzl7S8Od452UYbWDN5xESODMxBaMtF4E5tT/CTpuVwhhhrbEdh2kLrPsxtT5Micw5dETq+V36f
+ d3ah0FobrjpVU1JzPSP9d3MOa/GkgrMbL3+1kc9nOruZ19c9TK3/4I2eNFWD9UggnY7lBtawcQK6FqhiXeC+W0Q9x5YJFsepaNlbdGoEUlRka9J6jVGgXtHN
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-__________________________
-BRs,
-Cao, Bingbu
+date:			Tue Mar  5 05:00:11 CET 2019
+media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	604e01c8cedbc0e26ccb5a27522ed072bb39cf6f
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.3.0
+sparse version:		0.6.0
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+virtme: OK: Final Summary: 1906, Succeeded: 1906, Failed: 0, Warnings: 14
+sparse: OK
+smatch: ERRORS
 
+Detailed results are available here:
 
-> -----Original Message-----
-> From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: Tuesday, March 5, 2019 4:28 AM
-> To: Sakari Ailus <sakari.ailus@linux.intel.com>; Mauro Carvalho Chehab
-> <mchehab@kernel.org>; Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>; Zhi, Yong <yong.zhi@intel.com>; Cao,
-> Bingbu <bingbu.cao@intel.com>; linux-media@vger.kernel.org;
-> devel@driverdev.osuosl.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH] media: staging/intel-ipu3: reduce kernel stack usage
-> 
-> The imgu_css_queue structure is too large to be put on the kernel stack,
-> as we can see in 32-bit builds:
-> 
-> drivers/staging/media/ipu3/ipu3-css.c: In function 'imgu_css_fmt_try':
-> drivers/staging/media/ipu3/ipu3-css.c:1863:1: error: the frame size of
-> 1172 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
-> 
-> By dynamically allocating this array, the stack usage goes down to an
-> acceptable 140 bytes for the same x86-32 configuration.
-> 
-> Fixes: f5f2e4273518 ("media: staging/intel-ipu3: Add css pipeline
-> programming")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/staging/media/ipu3/ipu3-css.c | 25 +++++++++++++++++++------
->  1 file changed, 19 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/staging/media/ipu3/ipu3-css.c
-> b/drivers/staging/media/ipu3/ipu3-css.c
-> index 15ab77e4b766..664c14b7a518 100644
-> --- a/drivers/staging/media/ipu3/ipu3-css.c
-> +++ b/drivers/staging/media/ipu3/ipu3-css.c
-> @@ -3,6 +3,7 @@
-> 
->  #include <linux/device.h>
->  #include <linux/iopoll.h>
-> +#include <linux/slab.h>
-> 
->  #include "ipu3-css.h"
->  #include "ipu3-css-fw.h"
-> @@ -1744,7 +1745,7 @@ int imgu_css_fmt_try(struct imgu_css *css,
->  	struct v4l2_rect *const bds = &r[IPU3_CSS_RECT_BDS];
->  	struct v4l2_rect *const env = &r[IPU3_CSS_RECT_ENVELOPE];
->  	struct v4l2_rect *const gdc = &r[IPU3_CSS_RECT_GDC];
-> -	struct imgu_css_queue q[IPU3_CSS_QUEUES];
-> +	struct imgu_css_queue *q = kcalloc(IPU3_CSS_QUEUES, sizeof(struct
-> +imgu_css_queue), GFP_KERNEL);
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Could you use the devm_kcalloc()? 
->  	struct v4l2_pix_format_mplane *const in =
->  					&q[IPU3_CSS_QUEUE_IN].fmt.mpix;
->  	struct v4l2_pix_format_mplane *const out = @@ -1753,6 +1754,11 @@
-> int imgu_css_fmt_try(struct imgu_css *css,
->  					&q[IPU3_CSS_QUEUE_VF].fmt.mpix;
->  	int i, s, ret;
-> 
-> +	if (!q) {
-> +		ret = -ENOMEM;
-> +		goto out;
-> +	}
-[Cao, Bingbu] 
-The goto here is wrong, you can just report an error, and I prefer it is next to the alloc.
-> +
->  	/* Adjust all formats, get statistics buffer sizes and formats */
->  	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
->  		if (fmts[i])
-> @@ -1766,7 +1772,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
->  					IPU3_CSS_QUEUE_TO_FLAGS(i))) {
->  			dev_notice(css->dev, "can not initialize queue %s\n",
->  				   qnames[i]);
-> -			return -EINVAL;
-> +			ret = -EINVAL;
-> +			goto out;
->  		}
->  	}
->  	for (i = 0; i < IPU3_CSS_RECTS; i++) { @@ -1788,7 +1795,8 @@ int
-> imgu_css_fmt_try(struct imgu_css *css,
->  	if (!imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_IN]) ||
->  	    !imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) {
->  		dev_warn(css->dev, "required queues are disabled\n");
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto out;
->  	}
-> 
->  	if (!imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) { @@ -1829,7
-> +1837,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
->  	ret = imgu_css_find_binary(css, pipe, q, r);
->  	if (ret < 0) {
->  		dev_err(css->dev, "failed to find suitable binary\n");
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto out;
->  	}
->  	css->pipes[pipe].bindex = ret;
-> 
-> @@ -1843,7 +1852,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
->  						IPU3_CSS_QUEUE_TO_FLAGS(i))) {
->  				dev_err(css->dev,
->  					"final resolution adjustment failed\n");
-> -				return -EINVAL;
-> +				ret = -EINVAL;
-> +				goto out;
->  			}
->  			*fmts[i] = q[i].fmt.mpix;
->  		}
-> @@ -1859,7 +1869,10 @@ int imgu_css_fmt_try(struct imgu_css *css,
->  		 bds->width, bds->height, gdc->width, gdc->height,
->  		 out->width, out->height, vf->width, vf->height);
-> 
-> -	return 0;
-> +	ret = 0;
-> +out:
-> +	kfree(q);
-> +	return ret;
->  }
-> 
->  int imgu_css_fmt_set(struct imgu_css *css,
-> --
-> 2.20.0
+Detailed regression test results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday-test-media.log
+http://www.xs4all.nl/~hverkuil/logs/Tuesday-test-media-dmesg.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
