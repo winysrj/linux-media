@@ -2,277 +2,200 @@ Return-Path: <SRS0=h5dj=RI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0372CC43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 11:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 068CEC43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 12:41:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C620E208E4
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 11:16:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C19C020842
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 12:41:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="VFrZTI1s"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727698AbfCELQc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 06:16:32 -0500
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:57133 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727424AbfCELQb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 06:16:31 -0500
-X-Originating-IP: 90.88.147.150
-Received: from localhost (aaubervilliers-681-1-27-150.w90-88.abo.wanadoo.fr [90.88.147.150])
-        (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay2-d.mail.gandi.net (Postfix) with ESMTPSA id DEFFD4000E;
-        Tue,  5 Mar 2019 11:16:25 +0000 (UTC)
-Date:   Tue, 5 Mar 2019 12:16:25 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        jenskuske@gmail.com, Jernej Skrabec <jernej.skrabec@gmail.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Guenter Roeck <groeck@chromium.org>
-Subject: Re: [PATCH v4 1/2] media: uapi: Add H264 low-level decoder API
- compound controls.
-Message-ID: <20190305111625.or44y4k7or25v44s@flea>
-References: <cover.1862a43851950ddee041d53669f8979aba863c38.1550672228.git-series.maxime.ripard@bootlin.com>
- <9817c9875638ed2484d61e6e128e2551cf3bda4c.1550672228.git-series.maxime.ripard@bootlin.com>
- <CAAFQd5D3CVQQDkP3uKM6dYkmfsLohXcdjG0wMMLukFf-D=TCsw@mail.gmail.com>
+        id S1728191AbfCEMlx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 07:41:53 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33304 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728152AbfCEMlw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 07:41:52 -0500
+Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id DA75A24A;
+        Tue,  5 Mar 2019 13:41:49 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1551789710;
+        bh=Z31+AfwVSPGT7wCcqe92FZgfK2nO8xnTWoi0PIbqGjM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=VFrZTI1sGn8Jx2lIbLLiCHQJ7hgNAiWpsm3giVa7hQJVcPIkY36eX/9T0xivPfozu
+         YX9Kr6q2mXzDt+tgQRlilSy8yo1WtIH867qtkZppseHOwXt128uafhlJyZuLgO+eZC
+         3j1lWWLVnmTOMCEPgua8rtCVPwcAcD8LmIRvkabI=
+Date:   Tue, 5 Mar 2019 14:41:43 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Hugues FRUCHET <hugues.fruchet@st.com>
+Cc:     Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: uvcvideo: Read support
+Message-ID: <20190305124143.GA4949@pendragon.ideasonboard.com>
+References: <1551702925-7739-1-git-send-email-hugues.fruchet@st.com>
+ <1551702925-7739-2-git-send-email-hugues.fruchet@st.com>
+ <8ec96fe6-96af-c101-ff20-ab59d953ad6a@ideasonboard.com>
+ <20190304154458.GO6325@pendragon.ideasonboard.com>
+ <eb707933-4309-bb65-ad73-d933278a3c5d@st.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uuwvzyhdb64wixaa"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAAFQd5D3CVQQDkP3uKM6dYkmfsLohXcdjG0wMMLukFf-D=TCsw@mail.gmail.com>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <eb707933-4309-bb65-ad73-d933278a3c5d@st.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Hugues,
 
---uuwvzyhdb64wixaa
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Mar 05, 2019 at 10:24:15AM +0000, Hugues FRUCHET wrote:
+> On 3/4/19 4:44 PM, Laurent Pinchart wrote:
+> > On Mon, Mar 04, 2019 at 03:36:32PM +0000, Kieran Bingham wrote:
+> >> On 04/03/2019 12:35, Hugues Fruchet wrote:
+> >>> Add support of read() call from userspace by implementing
+> >>> uvc_v4l2_read() with vb2_read() helper.
+> >>
+> >> Just thinking out loud,
+> >>
+> >> This opens up UVC devices to read raw full frame images through this
+> >> interface as well.
+> >>
+> >> Due to the UVC protocol, there is /already/ a full memcpy to get these
+> >> images out of the URB packets, so using a read() interface would be
+> >> another full frame copy.
+> >>
+> >> I can perhaps see the usecase for reading compressed data through this
+> >> interface - but full frames don't seem appropriate. (not impossible of
+> >> course, just is it reasonable?)
+> >>
+> >> If this is to be enabled, should it be enabled for compressed formats
+> >> only? or would that complicate matters?
+> > 
+> > I've repeatedly refused read() support in uvcvideo for this reason, and
+> > also because read() doesn't carry framing information very well. It's
+> > just not a good API for capturing video frames from a webcam, and so far
+> > I haven't heard a compeling reason why it should be enabled. I thus
+> > haven't changed my mind :-)
+> 
+> For sure read() is not optimal, but is very common and pretty simple to 
+> use from userspace as explained in the cover letter with some examples.
+> 
+> Moreover, read() is enabled by many (all ?) camera interfaces:
+> 
+> drivers/media/platform/pxa_camera.c:	.read		= vb2_fop_read,
+> drivers/media/platform/atmel/atmel-isi.c:	.read	= vb2_fop_read,
+> drivers/media/platform/rcar-vin/rcar-v4l2.c:	.read	= vb2_fop_read,
+> drivers/media/platform/stm32/stm32-dcmi.c:	.read	= vb2_fop_read,
+> drivers/media/platform/vivid/vivid-core.c:	.read   = vb2_fop_read,
+> drivers/media/platform/vimc/vimc-capture.c:	.read   = vb2_fop_read,
+> drivers/media/platform/marvell-ccic/mcam-core.c:.read   = vb2_fop_read,
+> drivers/media/platform/qcom/camss/camss-video.c:.read	= vb2_fop_read,
 
-On Fri, Feb 22, 2019 at 04:46:17PM +0900, Tomasz Figa wrote:
-> Hi Maxime,
->=20
-> On Wed, Feb 20, 2019 at 11:17 PM Maxime Ripard
-> <maxime.ripard@bootlin.com> wrote:
-> >
-> > From: Pawel Osciak <posciak@chromium.org>
-> >
-> > Stateless video codecs will require both the H264 metadata and slices in
-> > order to be able to decode frames.
-> >
-> > This introduces the definitions for a new pixel format for H264 slices =
-that
-> > have been parsed, as well as the structures used to pass the metadata f=
-rom
-> > the userspace to the kernel.
-> >
-> > Co-Developped-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> > Signed-off-by: Guenter Roeck <groeck@chromium.org>
-> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
->=20
-> Thanks for the patch. Some comments inline.
->=20
-> [snip]
-> > +``V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS (struct)``
-> > +    Specifies the slice parameters (as extracted from the bitstream)
-> > +    for the associated H264 slice data. This includes the necessary
-> > +    parameters for configuring a stateless hardware decoding pipeline
-> > +    for H264.  The bitstream parameters are defined according to
-> > +    :ref:`h264`. Unless there's a specific comment, refer to the
-> > +    specification for the documentation of these fields, section 7.4.3
-> > +    "Slice Header Semantics".
->=20
-> Note that this is expected to be an array, with entries for all the
-> slices included in the bitstream buffer.
->=20
-> > +
-> > +    .. note::
-> > +
-> > +       This compound control is not yet part of the public kernel API =
-and
-> > +       it is expected to change.
-> > +
-> > +.. c:type:: v4l2_ctrl_h264_slice_param
-> > +
-> > +.. cssclass:: longtable
-> > +
-> > +.. flat-table:: struct v4l2_ctrl_h264_slice_param
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +    :widths:       1 1 2
-> > +
-> > +    * - __u32
-> > +      - ``size``
-> > +      -
-> > +    * - __u32
-> > +      - ``header_bit_size``
-> > +      -
-> > +    * - __u16
-> > +      - ``first_mb_in_slice``
-> > +      -
-> > +    * - __u8
-> > +      - ``slice_type``
-> > +      -
-> > +    * - __u8
-> > +      - ``pic_parameter_set_id``
-> > +      -
-> > +    * - __u8
-> > +      - ``colour_plane_id``
-> > +      -
-> > +    * - __u8
-> > +      - ``redundant_pic_cnt``
-> > +      -
-> > +    * - __u16
-> > +      - ``frame_num``
-> > +      -
-> > +    * - __u16
-> > +      - ``idr_pic_id``
-> > +      -
-> > +    * - __u16
-> > +      - ``pic_order_cnt_lsb``
-> > +      -
-> > +    * - __s32
-> > +      - ``delta_pic_order_cnt_bottom``
-> > +      -
-> > +    * - __s32
-> > +      - ``delta_pic_order_cnt0``
-> > +      -
-> > +    * - __s32
-> > +      - ``delta_pic_order_cnt1``
-> > +      -
-> > +    * - struct :c:type:`v4l2_h264_pred_weight_table`
-> > +      - ``pred_weight_table``
-> > +      -
-> > +    * - __u32
-> > +      - ``dec_ref_pic_marking_bit_size``
-> > +      -
-> > +    * - __u32
-> > +      - ``pic_order_cnt_bit_size``
-> > +      -
-> > +    * - __u8
-> > +      - ``cabac_init_idc``
-> > +      -
-> > +    * - __s8
-> > +      - ``slice_qp_delta``
-> > +      -
-> > +    * - __s8
-> > +      - ``slice_qs_delta``
-> > +      -
-> > +    * - __u8
-> > +      - ``disable_deblocking_filter_idc``
-> > +      -
-> > +    * - __s8
-> > +      - ``slice_alpha_c0_offset_div2``
-> > +      -
-> > +    * - __s8
-> > +      - ``slice_beta_offset_div2``
-> > +      -
-> > +    * - __u8
-> > +      - ``num_ref_idx_l0_active_minus1``
-> > +      -
-> > +    * - __u8
-> > +      - ``num_ref_idx_l1_active_minus1``
-> > +      -
-> > +    * - __u32
-> > +      - ``slice_group_change_cycle``
-> > +      -
-> > +    * - __u8
-> > +      - ``ref_pic_list0[32]``
-> > +      -
-> > +    * - __u8
-> > +      - ``ref_pic_list1[32]``
-> > +      -
->=20
-> Should we explicitly document that these are the lists after applying
-> the per-slice modifications, as opposed to the original order from
-> v4l2_ctrl_h264_decode_param?
->=20
-> [snip]
-> > +    * .. _V4L2-PIX-FMT-H264-SLICE:
-> > +
-> > +      - ``V4L2_PIX_FMT_H264_SLICE``
-> > +      - 'S264'
-> > +      - H264 parsed slice data, as extracted from the H264 bitstream.
-> > +       This format is adapted for stateless video decoders that
-> > +       implement an H264 pipeline (using the :ref:`codec` and
-> > +       :ref:`media-request-api`).  Metadata associated with the frame
-> > +       to decode are required to be passed through the
-> > +       ``V4L2_CID_MPEG_VIDEO_H264_SPS``,
-> > +       ``V4L2_CID_MPEG_VIDEO_H264_PPS``,
-> > +       ``V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS`` and
-> > +       ``V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAMS`` controls and
-> > +       scaling matrices can optionally be specified through the
-> > +       ``V4L2_CID_MPEG_VIDEO_H264_SCALING_MATRIX`` control.  See the
-> > +       :ref:`associated Codec Control IDs <v4l2-mpeg-h264>`.
-> > +       Exactly one output and one capture buffer must be provided for
-> > +       use with this pixel format. The output buffer must contain the
-> > +       appropriate number of macroblocks to decode a full
-> > +       corresponding frame to the matching capture buffer.
->=20
-> What does it mean that a control can be optionally specified? A
-> control always has a value, so how do we decide that it was specified
-> or not? Should we have another control (or flag) that selects whether
-> to use the control? How is it better than just having the control
-> initialized with the default scaling matrix and always using it?
+Cargo-cult doesn't mean we have to repear the same mistakes everywhere
+:-)
 
-Ok, I'll change it.
+> on my setup, this leads to have /dev/video0 (mapped on DCMI camera 
+> interface) supporting JPEG streaming through read() while /dev/video1 
+> (mapped on Hercule USB camera) fails with "invalid argument" error...
 
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videod=
-ev2.h
-> > index 9a920f071ff9..6443ae53597f 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -653,6 +653,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 =
-with start codes */
-> >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H26=
-4 without start codes */
-> >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 =
-MVC */
-> > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* H26=
-4 parsed slices */
->=20
-> Are we okay with adding here already, without going through staging first?
+Let's not encourage applications to use inefficient interfaces, when
+using streaming I/O wouldn't be that more difficult. I'd argue that
+supporting read() in the above drivers is part of the problem, not of
+the solution.
 
-This is what we did for MPEG-2 already (the format is public but the
-controls are not), so I'm not sure this is causing any issue.
+> >>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> >>> ---
+> >>>   drivers/media/usb/uvc/uvc_queue.c | 15 ++++++++++++++-
+> >>>   drivers/media/usb/uvc/uvc_v4l2.c  | 11 ++++++++---
+> >>>   drivers/media/usb/uvc/uvcvideo.h  |  2 ++
+> >>>   3 files changed, 24 insertions(+), 4 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+> >>> index 682698e..0c8a0a8 100644
+> >>> --- a/drivers/media/usb/uvc/uvc_queue.c
+> >>> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> >>> @@ -227,7 +227,7 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+> >>>   	int ret;
+> >>>   
+> >>>   	queue->queue.type = type;
+> >>> -	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
+> >>> +	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+> >>>   	queue->queue.drv_priv = queue;
+> >>>   	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+> >>>   	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> >>> @@ -361,6 +361,19 @@ int uvc_queue_streamoff(struct uvc_video_queue *queue, enum v4l2_buf_type type)
+> >>>   	return ret;
+> >>>   }
+> >>>   
+> >>> +ssize_t uvc_queue_read(struct uvc_video_queue *queue, struct file *file,
+> >>> +		       char __user *buf, size_t count, loff_t *ppos)
+> >>> +{
+> >>> +	ssize_t ret;
+> >>> +
+> >>> +	mutex_lock(&queue->mutex);
+> >>> +	ret = vb2_read(&queue->queue, buf, count, ppos,
+> >>> +		       file->f_flags & O_NONBLOCK);
+> >>> +	mutex_unlock(&queue->mutex);
+> >>> +
+> >>> +	return ret;
+> >>> +}
+> >>> +
+> >>>   int uvc_queue_mmap(struct uvc_video_queue *queue, struct vm_area_struct *vma)
+> >>>   {
+> >>>   	return vb2_mmap(&queue->queue, vma);
+> >>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> >>> index 84be596..3866832 100644
+> >>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> >>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> >>> @@ -594,7 +594,8 @@ static int uvc_ioctl_querycap(struct file *file, void *fh,
+> >>>   	strscpy(cap->driver, "uvcvideo", sizeof(cap->driver));
+> >>>   	strscpy(cap->card, vdev->name, sizeof(cap->card));
+> >>>   	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
+> >>> -	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+> >>> +	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING |
+> >>> +			    V4L2_CAP_READWRITE
+> >>>   			  | chain->caps;
+> >>>   
+> >>>   	return 0;
+> >>> @@ -1434,8 +1435,12 @@ static long uvc_v4l2_compat_ioctl32(struct file *file,
+> >>>   static ssize_t uvc_v4l2_read(struct file *file, char __user *data,
+> >>>   		    size_t count, loff_t *ppos)
+> >>>   {
+> >>> -	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_read: not implemented.\n");
+> >>> -	return -EINVAL;
+> >>> +	struct uvc_fh *handle = file->private_data;
+> >>> +	struct uvc_streaming *stream = handle->stream;
+> >>> +
+> >>> +	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_read\n");
+> >>> +
+> >>> +	return uvc_queue_read(&stream->queue, file, data, count, ppos);
+> >>>   }
+> >>>   
+> >>>   static int uvc_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
+> >>> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> >>> index c7c1baa..5d0515c 100644
+> >>> --- a/drivers/media/usb/uvc/uvcvideo.h
+> >>> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> >>> @@ -766,6 +766,8 @@ struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+> >>>   					 struct uvc_buffer *buf);
+> >>>   struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
+> >>>   void uvc_queue_buffer_release(struct uvc_buffer *buf);
+> >>> +ssize_t uvc_queue_read(struct uvc_video_queue *queue, struct file *file,
+> >>> +		       char __user *buf, size_t count, loff_t *ppos);
+> >>>   int uvc_queue_mmap(struct uvc_video_queue *queue,
+> >>>   		   struct vm_area_struct *vma);
+> >>>   __poll_t uvc_queue_poll(struct uvc_video_queue *queue, struct file *file,
 
-Thanks!
-Maxime
+-- 
+Regards,
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---uuwvzyhdb64wixaa
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXH5aiQAKCRDj7w1vZxhR
-xQaDAPwIoVWR1TeT+e5bf+LEb/U2rgJXDTwx9jFMhcytq2st5AEAmizIpWf0N2Yg
-FG30mptGQpK4Z+e3nj9EK8Z5VcL3Qwg=
-=mZv8
------END PGP SIGNATURE-----
-
---uuwvzyhdb64wixaa--
+Laurent Pinchart
