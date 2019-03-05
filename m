@@ -4,32 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07EC2C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 383EAC43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D2E4F208E4
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 139B7208E4
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 18:52:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728752AbfCESwF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 13:52:05 -0500
+        id S1728768AbfCESwH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 13:52:07 -0500
 Received: from relay12.mail.gandi.net ([217.70.178.232]:60353 "EHLO
         relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727211AbfCESwE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 13:52:04 -0500
+        with ESMTP id S1728749AbfCESwG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 13:52:06 -0500
 Received: from uno.lan (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
         (Authenticated sender: jacopo@jmondi.org)
-        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 135EE200002;
-        Tue,  5 Mar 2019 18:52:00 +0000 (UTC)
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id D753720000B;
+        Tue,  5 Mar 2019 18:52:03 +0000 (UTC)
 From:   Jacopo Mondi <jacopo+renesas@jmondi.org>
 To:     sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se
 Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 24/31] adv748x: csi2: only allow formats on sink pads
-Date:   Tue,  5 Mar 2019 19:51:43 +0100
-Message-Id: <20190305185150.20776-25-jacopo+renesas@jmondi.org>
+Subject: [PATCH v3 26/31] adv748x: csi2: add internal routing configuration
+Date:   Tue,  5 Mar 2019 19:51:45 +0100
+Message-Id: <20190305185150.20776-27-jacopo+renesas@jmondi.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
 References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
@@ -43,66 +43,105 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Once the CSI-2 subdevice of the ADV748X becomes aware of multiplexed
-streams the format of the source pad is of no value as it carries
-multiple streams. Prepare for this by explicitly denying setting a
-format on anything but the sink pad.
+Add support to get and set the internal routing between the adv748x
+CSI-2 transmitters sink pad and its multiplexed source pad. This routing
+includes which stream of the multiplexed pad to use, allowing the user
+to select which CSI-2 virtual channel to use when transmitting the
+stream.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 65 ++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
 diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 25798d723174..1abe34183d7d 100644
+index d8f7cbee86e7..13454af72c6e 100644
 --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
 +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -183,6 +183,9 @@ static int adv748x_csi2_get_format(struct v4l2_subdev *sd,
- 	struct adv748x_state *state = tx->state;
- 	struct v4l2_mbus_framefmt *mbusformat;
+@@ -14,6 +14,8 @@
  
-+	if (sdformat->pad != ADV748X_CSI2_SINK)
-+		return -EINVAL;
+ #include "adv748x.h"
+ 
++#define ADV748X_CSI2_ROUTES_MAX 4
 +
- 	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
- 						 sdformat->which);
- 	if (!mbusformat)
-@@ -206,6 +209,9 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
- 	struct v4l2_mbus_framefmt *mbusformat;
- 	int ret = 0;
+ struct adv748x_csi2_format {
+ 	unsigned int code;
+ 	unsigned int datatype;
+@@ -253,10 +255,73 @@ static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
+ 	return 0;
+ }
  
-+	if (sdformat->pad != ADV748X_CSI2_SINK)
-+		return -EINVAL;
++static int adv748x_csi2_get_routing(struct v4l2_subdev *sd,
++				    struct v4l2_subdev_krouting *routing)
++{
++	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
++	struct v4l2_subdev_route *r = routing->routes;
++	unsigned int vc;
 +
- 	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
- 						 sdformat->which);
- 	if (!mbusformat)
-@@ -213,24 +219,8 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
++	if (routing->num_routes < ADV748X_CSI2_ROUTES_MAX) {
++		routing->num_routes = ADV748X_CSI2_ROUTES_MAX;
++		return -ENOSPC;
++	}
++
++	routing->num_routes = ADV748X_CSI2_ROUTES_MAX;
++
++	for (vc = 0; vc < ADV748X_CSI2_ROUTES_MAX; vc++) {
++		r->sink_pad = ADV748X_CSI2_SINK;
++		r->sink_stream = 0;
++		r->source_pad = ADV748X_CSI2_SOURCE;
++		r->source_stream = vc;
++		r->flags = vc == tx->vc ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
++		r++;
++	}
++
++	return 0;
++}
++
++static int adv748x_csi2_set_routing(struct v4l2_subdev *sd,
++				    struct v4l2_subdev_krouting *routing)
++{
++	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
++	struct v4l2_subdev_route *r = routing->routes;
++	unsigned int i;
++	int vc = -1;
++
++	if (routing->num_routes > ADV748X_CSI2_ROUTES_MAX)
++		return -ENOSPC;
++
++	for (i = 0; i < routing->num_routes; i++) {
++		if (r->sink_pad != ADV748X_CSI2_SINK ||
++		    r->sink_stream != 0 ||
++		    r->source_pad != ADV748X_CSI2_SOURCE ||
++		    r->source_stream >= ADV748X_CSI2_ROUTES_MAX)
++			return -EINVAL;
++
++		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
++			if (vc != -1)
++				return -EMLINK;
++
++			vc = r->source_stream;
++		}
++		r++;
++	}
++
++	if (vc != -1)
++		tx->vc = vc;
++
++	adv748x_csi2_set_virtual_channel(tx, tx->vc);
++
++	return 0;
++}
++
+ static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
+ 	.get_fmt = adv748x_csi2_get_format,
+ 	.set_fmt = adv748x_csi2_set_format,
+ 	.get_frame_desc = adv748x_csi2_get_frame_desc,
++	.get_routing = adv748x_csi2_get_routing,
++	.set_routing = adv748x_csi2_set_routing,
+ };
  
- 	mutex_lock(&state->mutex);
- 
--	if (sdformat->pad == ADV748X_CSI2_SOURCE) {
--		const struct v4l2_mbus_framefmt *sink_fmt;
--
--		sink_fmt = adv748x_csi2_get_pad_format(sd, cfg,
--						       ADV748X_CSI2_SINK,
--						       sdformat->which);
--
--		if (!sink_fmt) {
--			ret = -EINVAL;
--			goto unlock;
--		}
--
--		sdformat->format = *sink_fmt;
--	}
--
- 	*mbusformat = sdformat->format;
- 
--unlock:
- 	mutex_unlock(&state->mutex);
- 
- 	return ret;
+ /* -----------------------------------------------------------------------------
 -- 
 2.20.1
 
