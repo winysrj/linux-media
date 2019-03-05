@@ -3,167 +3,108 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26CD5C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 13:29:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CDC3C43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 13:30:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F151C206DD
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 13:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2648B206DD
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 13:30:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727807AbfCEN3w (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 08:29:52 -0500
-Received: from mout.kundenserver.de ([212.227.17.10]:41229 "EHLO
+        id S1727958AbfCENaO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 08:30:14 -0500
+Received: from mout.kundenserver.de ([212.227.126.130]:43087 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727670AbfCEN3w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 08:29:52 -0500
+        with ESMTP id S1726098AbfCENaO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2019 08:30:14 -0500
 Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
- (mreue106 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1MpUlO-1hJwTb07J6-00prAc; Tue, 05 Mar 2019 14:29:27 +0100
+ (mreue011 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1N1x2P-1h83r31yvp-012IYJ; Tue, 05 Mar 2019 14:30:04 +0100
 From:   Arnd Bergmann <arnd@arndb.de>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Yong Zhi <yong.zhi@intel.com>,
-        Tian Shu Qiu <tian.shu.qiu@intel.com>,
-        Bingbu Cao <bingbu.cao@intel.com>, linux-media@vger.kernel.org,
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Brown <broonie@kernel.org>, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [v2] media: staging/intel-ipu3: reduce kernel stack usage
-Date:   Tue,  5 Mar 2019 14:26:29 +0100
-Message-Id: <20190305132924.3889416-1-arnd@arndb.de>
+Subject: [PATCH] [v2] media: staging: davinci_vpfe: disallow building with COMPILE_TEST
+Date:   Tue,  5 Mar 2019 14:29:48 +0100
+Message-Id: <20190305133001.3983736-1-arnd@arndb.de>
 X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:Lg/SskIDeHvGAyJNfeHro9IMUKhzdZuNTkJW4Kzls0ly1gshGfo
- BbuOZomN20K8hFMf3BKAY3ygAE2QD8iVW18O8eJJUOk/enUWdnFbQNK/Yra26UPJQMczD0Y
- 4UKw1YfrO/LBwE/QIbtTFDOsh1NZ5aOe+bAL/vk5WvfDTpjijbdOXxRxh4qiwWbllcqBby5
- Uc9XPSI8+rAum6g3SLfKw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:DrYNpH9E0Uk=:NVd1Yx8oK8bpALYp0HkTfm
- YpdO1mavC3d3YiC6CX8nkDtjc4JkWXBEp+1Yr7+fibnNPHRp9nxiAQfC8NYzQ0tYuYE7ihsw9
- qZh1YCRTXOxTq8eTkNzSmtWDyn3hJO5JGNYNc0PXKMxd9oecGICv1g4Plk8+JSTVG79MrsR2T
- t3zp33pxMH1xCLiG3inNhG1um2e6FfJO+42lvw1ccyAbmPcyglJykRiEohsl8mjXnbyZB+Jub
- Psk7UyRBXmvjISuTRI94gCQPFn8m6KvemnyDbbFhB63p7C+DJY6mhMVZicb+Sx2QsAqnQnyR+
- 1GxPLlpQmT60t59lFi5FawdAHZBn20Z63to9oNIc6gR447c5sqS12vlN4WmBPRbzI9o4iV46L
- 5XNADgz4Zb3TzgOb0CCdwTRpkrJQxoxOFMdWaejAVkXsBkMVz6AEYtD74wfkHHVej5v8/LZcB
- LOOyrTMk5HNbyIQqaHF0awLBDej5PDcLwYPtbRwnvnxvZf7mgGxV4JEyp5yIGdS9mcRCWOOUB
- BgE5hbf6G3gkdYLA+EweNM4ofDw9NsP3f4VOdjWX6wjyXpn3eVxTk+lSkFYq3pnC+4AOn1S9B
- ia9w9DLenwi0PP9JZV5aq0hy3UN5SIdNsQrVlc4lTaFv8Ur7GKpmpPHZhHhbpW+r3lrTKcAh6
- Kix3bRsM/Oeibm56TXOT/BfAdLkxMmNT1zsm65JvzUHhcFzgdsiwYkKEhG/ScRlkWNoGH8p7T
- AAmWF6qwn8fbnYJTu6YCULJDDsJPzKO7tlD24Q==
+X-Provags-ID: V03:K1:vCJtvYgS+ac79qPjsnK+jOKc+05zOCdmzYdMnEBlhr5fl4PhfjM
+ 3c3mxVxCfhuNG+jJarNu5XsfdXimkXu9yrTnHUam4cdzAryAV1GHyC1DiwHNudOeDSNx9HS
+ RqboLF6JVeDZUNMTf8MndYRzM/BDJLBaQF1NpkRTPXOgSA2yEH3OWeOWxfNtf5DqsBWosuZ
+ tun0sRwohd2p99RWytwBQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:rc0q0KBJbY4=:Yl1CjxZ7OCvgjtHXpvdqWw
+ YpUWtZUF6InriTzyIHBJu+BCvEoJUw/aPr9n8m6SVWVnCfoZlAwio5PPwb+zuTGrP8/GIWx8h
+ oPMX06mMXPMpV6oFCBmJQXtBmu59Nq7bAeqykJK1kGXyQB3VsiY7T246JbXBHmpIR4kFQ40Pm
+ 45Tgt7PFCCWJqOPQOmDZxsb5N+7JMo4iZ7vPzGT7L2poyCQPP3X53BcWj+PuBbo4kS6h9bDtx
+ 7gEvMdUESQ/aPTEbIDX4A8+w1Pdrp7ixioWTEWUhFLOxH8ej9HYLUR2gU37RX9EMT1ts5QDgY
+ ydijUHtJpDN69KsBEsuZ711H3oBh7sNufjwU5Wl70W5UM0tNacdsf/mNLLcb6x/bIfa6zUlR2
+ RlD1lUkCveOq4VSmkigiayhclEown6M8BpT0ib/wL4fvrc17ULCtPVsilsmPtl0U2J9Jw7Upt
+ vuavhiXcAl+QcTJLi2LWq9G7vW4qfyI638jh6PQ3w6eGZzrW9oUrhPvBH7Iu6fq2jO/UKI0Bx
+ c9BnTklTmLMx+0V6uVFBSB+ppbV/JjM2/khsi0A29NdcdjXBh6htQwQbqUc7gncwT3wU3FefH
+ cEk6jGApkzzwDG9vLmT32LFwNvsJc1lrHktynUWxpnUqJQxolPe2AjjbgHIDYasML+w4/i4a3
+ +16JHpF+YltoQ5+uHJtg7j8EzEywYKQfyN+zCjCSG8XEFzkpJfxk2JJc39bDEJf1NtLXPU0Wi
+ r+DhSOu0QNsi2zXDbw4M4rHIpL5orTjsQwjwrg==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The imgu_css_queue structure is too large to be put on the kernel
-stack, as we can see in 32-bit builds:
+The driver should really call dm365_isif_setup_pinmux() through a callback,
+but uses a hack to include a davinci specific machine header file when
+compile testing instead. This works almost everywhere, but not on the
+ARM omap1 platform, which has another header named mach/mux.h. This
+causes a build failure:
 
-drivers/staging/media/ipu3/ipu3-css.c: In function 'imgu_css_fmt_try':
-drivers/staging/media/ipu3/ipu3-css.c:1863:1: error: the frame size of 1172 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2028:2: error: implicit declaration of function 'davinci_cfg_reg' [-Werror,-Wimplicit-function-declaration]
+        davinci_cfg_reg(DM365_VIN_CAM_WEN);
+        ^
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2028:2: error: this function declaration is not a prototype [-Werror,-Wstrict-prototypes]
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2028:18: error: use of undeclared identifier 'DM365_VIN_CAM_WEN'
+        davinci_cfg_reg(DM365_VIN_CAM_WEN);
+                        ^
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2029:18: error: use of undeclared identifier 'DM365_VIN_CAM_VD'
+        davinci_cfg_reg(DM365_VIN_CAM_VD);
+                        ^
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2030:18: error: use of undeclared identifier 'DM365_VIN_CAM_HD'
+        davinci_cfg_reg(DM365_VIN_CAM_HD);
+                        ^
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2031:18: error: use of undeclared identifier 'DM365_VIN_YIN4_7_EN'
+        davinci_cfg_reg(DM365_VIN_YIN4_7_EN);
+                        ^
+drivers/staging/media/davinci_vpfe/dm365_isif.c:2032:18: error: use of undeclared identifier 'DM365_VIN_YIN0_3_EN'
+        davinci_cfg_reg(DM365_VIN_YIN0_3_EN);
+                        ^
+7 errors generated.
 
-By dynamically allocating this array, the stack usage goes down to an
-acceptable 140 bytes for the same x86-32 configuration.
+Exclude omap1 from compile-testing, under the assumption that all others
+still work.
 
-Fixes: f5f2e4273518 ("media: staging/intel-ipu3: Add css pipeline programming")
+Fixes: 4907c73deefe ("media: staging: davinci_vpfe: allow building with COMPILE_TEST")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
-v2: restructure to use 'return -ENOMEM' instead of goto for failed
-    allocation.
----
- drivers/staging/media/ipu3/ipu3-css.c | 35 ++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ drivers/staging/media/davinci_vpfe/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
-index 15ab77e4b766..e7f1898874fd 100644
---- a/drivers/staging/media/ipu3/ipu3-css.c
-+++ b/drivers/staging/media/ipu3/ipu3-css.c
-@@ -3,6 +3,7 @@
- 
- #include <linux/device.h>
- #include <linux/iopoll.h>
-+#include <linux/slab.h>
- 
- #include "ipu3-css.h"
- #include "ipu3-css-fw.h"
-@@ -1744,15 +1745,18 @@ int imgu_css_fmt_try(struct imgu_css *css,
- 	struct v4l2_rect *const bds = &r[IPU3_CSS_RECT_BDS];
- 	struct v4l2_rect *const env = &r[IPU3_CSS_RECT_ENVELOPE];
- 	struct v4l2_rect *const gdc = &r[IPU3_CSS_RECT_GDC];
--	struct imgu_css_queue q[IPU3_CSS_QUEUES];
--	struct v4l2_pix_format_mplane *const in =
--					&q[IPU3_CSS_QUEUE_IN].fmt.mpix;
--	struct v4l2_pix_format_mplane *const out =
--					&q[IPU3_CSS_QUEUE_OUT].fmt.mpix;
--	struct v4l2_pix_format_mplane *const vf =
--					&q[IPU3_CSS_QUEUE_VF].fmt.mpix;
-+	struct imgu_css_queue *q;
-+	struct v4l2_pix_format_mplane *in, *out, *vf;
- 	int i, s, ret;
- 
-+	q = kcalloc(IPU3_CSS_QUEUES, sizeof(struct imgu_css_queue), GFP_KERNEL);
-+	if (!q)
-+		return -ENOMEM;
-+
-+	in  = &q[IPU3_CSS_QUEUE_IN].fmt.mpix;
-+	out = &q[IPU3_CSS_QUEUE_OUT].fmt.mpix;
-+	vf  = &q[IPU3_CSS_QUEUE_VF].fmt.mpix;
-+
- 	/* Adjust all formats, get statistics buffer sizes and formats */
- 	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
- 		if (fmts[i])
-@@ -1766,7 +1770,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
- 					IPU3_CSS_QUEUE_TO_FLAGS(i))) {
- 			dev_notice(css->dev, "can not initialize queue %s\n",
- 				   qnames[i]);
--			return -EINVAL;
-+			ret = -EINVAL;
-+			goto out;
- 		}
- 	}
- 	for (i = 0; i < IPU3_CSS_RECTS; i++) {
-@@ -1788,7 +1793,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
- 	if (!imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_IN]) ||
- 	    !imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) {
- 		dev_warn(css->dev, "required queues are disabled\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out;
- 	}
- 
- 	if (!imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) {
-@@ -1829,7 +1835,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
- 	ret = imgu_css_find_binary(css, pipe, q, r);
- 	if (ret < 0) {
- 		dev_err(css->dev, "failed to find suitable binary\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out;
- 	}
- 	css->pipes[pipe].bindex = ret;
- 
-@@ -1843,7 +1850,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
- 						IPU3_CSS_QUEUE_TO_FLAGS(i))) {
- 				dev_err(css->dev,
- 					"final resolution adjustment failed\n");
--				return -EINVAL;
-+				ret = -EINVAL;
-+				goto out;
- 			}
- 			*fmts[i] = q[i].fmt.mpix;
- 		}
-@@ -1859,7 +1867,10 @@ int imgu_css_fmt_try(struct imgu_css *css,
- 		 bds->width, bds->height, gdc->width, gdc->height,
- 		 out->width, out->height, vf->width, vf->height);
- 
--	return 0;
-+	ret = 0;
-+out:
-+	kfree(q);
-+	return ret;
- }
- 
- int imgu_css_fmt_set(struct imgu_css *css,
+diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
+index aea449a8dbf8..76818cc48ddc 100644
+--- a/drivers/staging/media/davinci_vpfe/Kconfig
++++ b/drivers/staging/media/davinci_vpfe/Kconfig
+@@ -1,7 +1,7 @@
+ config VIDEO_DM365_VPFE
+ 	tristate "DM365 VPFE Media Controller Capture Driver"
+ 	depends on VIDEO_V4L2
+-	depends on (ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF) || COMPILE_TEST
++	depends on (ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF) || (COMPILE_TEST && !ARCH_OMAP1)
+ 	depends on VIDEO_V4L2_SUBDEV_API
+ 	depends on VIDEO_DAVINCI_VPBE_DISPLAY
+ 	select VIDEOBUF2_DMA_CONTIG
 -- 
 2.20.0
 
