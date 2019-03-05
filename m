@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CD8C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB639C4360F
 	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 09:58:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CE320206DD
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 09:58:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82B15206DD
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 09:58:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727620AbfCEJ64 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 04:58:56 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60058 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727498AbfCEJ6z (ORCPT
+        id S1727622AbfCEJ65 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 04:58:57 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57970 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727367AbfCEJ64 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Mar 2019 04:58:55 -0500
+        Tue, 5 Mar 2019 04:58:56 -0500
 Received: from test-no.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id 16qVhtdVBLMwI16qahrctZ; Tue, 05 Mar 2019 10:58:53 +0100
+        id 16qVhtdVBLMwI16qbhrcts; Tue, 05 Mar 2019 10:58:53 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv2 5/9] vim2m: replace devm_kzalloc by kzalloc
-Date:   Tue,  5 Mar 2019 10:58:43 +0100
-Message-Id: <20190305095847.21428-6-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv2 7/9] v4l2-subdev: handle module refcounting here
+Date:   Tue,  5 Mar 2019 10:58:45 +0100
+Message-Id: <20190305095847.21428-8-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
 References: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
@@ -45,130 +45,192 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-It is not possible to use devm_kzalloc since that memory is
-freed immediately when the device instance is unbound.
+The module ownership refcounting was done in media_entity_get/put,
+but that was very confusing and it did not work either in case an
+application had a v4l-subdevX device open and the module was
+unbound. When the v4l-subdevX device was closed the media_entity_put
+was never called and the module refcount was left one too high, making
+it impossible to unload it.
 
-Various objects like the video device may still be in use
-since someone has the device node open, and when that is closed
-it expects the memory to be around.
+Since v4l2-subdev.c was the only place where media_entity_get/put was
+called, just move the functionality to v4l2-subdev.c and drop those
+confusing entity functions.
 
-So use kzalloc and release it at the appropriate time.
+Store the module in subdev_fh so module_put no longer depends on
+the media_entity struct.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/vim2m.c | 35 +++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ drivers/media/media-entity.c          | 28 ---------------------------
+ drivers/media/v4l2-core/v4l2-subdev.c | 22 +++++++++------------
+ include/media/media-entity.h          | 24 -----------------------
+ include/media/v4l2-subdev.h           |  1 +
+ 4 files changed, 10 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 34dcaca45d8b..dd47821fc661 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -1262,6 +1262,15 @@ static int vim2m_release(struct file *file)
- 	return 0;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 7b2a2cc95530..257f20d2fb8a 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -17,7 +17,6 @@
+  */
+ 
+ #include <linux/bitmap.h>
+-#include <linux/module.h>
+ #include <linux/property.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
+@@ -588,33 +587,6 @@ void media_pipeline_stop(struct media_entity *entity)
  }
+ EXPORT_SYMBOL_GPL(media_pipeline_stop);
  
-+static void vim2m_device_release(struct video_device *vdev)
-+{
-+	struct vim2m_dev *dev = container_of(vdev, struct vim2m_dev, vfd);
-+
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+	v4l2_m2m_release(dev->m2m_dev);
-+	kfree(dev);
-+}
-+
- static const struct v4l2_file_operations vim2m_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= vim2m_open,
-@@ -1277,7 +1286,7 @@ static const struct video_device vim2m_videodev = {
- 	.fops		= &vim2m_fops,
- 	.ioctl_ops	= &vim2m_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release_empty,
-+	.release	= vim2m_device_release,
- 	.device_caps	= V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING,
- };
+-/* -----------------------------------------------------------------------------
+- * Module use count
+- */
+-
+-struct media_entity *media_entity_get(struct media_entity *entity)
+-{
+-	if (entity == NULL)
+-		return NULL;
+-
+-	if (entity->graph_obj.mdev->dev &&
+-	    !try_module_get(entity->graph_obj.mdev->dev->driver->owner))
+-		return NULL;
+-
+-	return entity;
+-}
+-EXPORT_SYMBOL_GPL(media_entity_get);
+-
+-void media_entity_put(struct media_entity *entity)
+-{
+-	if (entity == NULL)
+-		return;
+-
+-	if (entity->graph_obj.mdev->dev)
+-		module_put(entity->graph_obj.mdev->dev->driver->owner);
+-}
+-EXPORT_SYMBOL_GPL(media_entity_put);
+-
+ /* -----------------------------------------------------------------------------
+  * Links management
+  */
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f5f0d71ec745..d75815ab0d7b 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -18,6 +18,7 @@
  
-@@ -1298,13 +1307,13 @@ static int vim2m_probe(struct platform_device *pdev)
- 	struct video_device *vfd;
+ #include <linux/ioctl.h>
+ #include <linux/mm.h>
++#include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+@@ -54,9 +55,6 @@ static int subdev_open(struct file *file)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_subdev_fh *subdev_fh;
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	struct media_entity *entity = NULL;
+-#endif
  	int ret;
  
--	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (!dev)
- 		return -ENOMEM;
- 
- 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
- 	if (ret)
--		return ret;
-+		goto error_free;
- 
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
-@@ -1317,7 +1326,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
--		goto unreg_v4l2;
-+		goto error_v4l2;
- 	}
- 
- 	video_set_drvdata(vfd, dev);
-@@ -1330,7 +1339,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	if (IS_ERR(dev->m2m_dev)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(dev->m2m_dev);
--		goto unreg_dev;
-+		goto error_dev;
- 	}
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
-@@ -1346,27 +1355,29 @@ static int vim2m_probe(struct platform_device *pdev)
- 						 MEDIA_ENT_F_PROC_VIDEO_SCALER);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
--		goto unreg_m2m;
-+		goto error_m2m;
- 	}
- 
- 	ret = media_device_register(&dev->mdev);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
--		goto unreg_m2m_mc;
-+		goto error_m2m_mc;
+ 	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
+@@ -73,12 +71,15 @@ static int subdev_open(struct file *file)
+ 	v4l2_fh_add(&subdev_fh->vfh);
+ 	file->private_data = &subdev_fh->vfh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (sd->v4l2_dev->mdev) {
+-		entity = media_entity_get(&sd->entity);
+-		if (!entity) {
++	if (sd->v4l2_dev->mdev && sd->entity.graph_obj.mdev->dev) {
++		struct module *owner;
++
++		owner = sd->entity.graph_obj.mdev->dev->driver->owner;
++		if (!try_module_get(owner)) {
+ 			ret = -EBUSY;
+ 			goto err;
+ 		}
++		subdev_fh->owner = owner;
  	}
  #endif
+ 
+@@ -91,9 +92,7 @@ static int subdev_open(struct file *file)
  	return 0;
  
- #ifdef CONFIG_MEDIA_CONTROLLER
--unreg_m2m_mc:
-+error_m2m_mc:
- 	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
--unreg_m2m:
-+error_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
- #endif
--unreg_dev:
-+error_dev:
- 	video_unregister_device(&dev->vfd);
--unreg_v4l2:
-+error_v4l2:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+error_free:
-+	kfree(dev);
+ err:
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	media_entity_put(entity);
+-#endif
++	module_put(subdev_fh->owner);
+ 	v4l2_fh_del(&subdev_fh->vfh);
+ 	v4l2_fh_exit(&subdev_fh->vfh);
+ 	subdev_fh_free(subdev_fh);
+@@ -111,10 +110,7 @@ static int subdev_close(struct file *file)
  
- 	return ret;
- }
-@@ -1382,9 +1393,7 @@ static int vim2m_remove(struct platform_device *pdev)
- 	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
- 	media_device_cleanup(&dev->mdev);
- #endif
--	v4l2_m2m_release(dev->m2m_dev);
- 	video_unregister_device(&dev->vfd);
--	v4l2_device_unregister(&dev->v4l2_dev);
+ 	if (sd->internal_ops && sd->internal_ops->close)
+ 		sd->internal_ops->close(sd, subdev_fh);
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (sd->v4l2_dev->mdev)
+-		media_entity_put(&sd->entity);
+-#endif
++	module_put(subdev_fh->owner);
+ 	v4l2_fh_del(vfh);
+ 	v4l2_fh_exit(vfh);
+ 	subdev_fh_free(subdev_fh);
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e5f6960d92f6..3cbad42e3693 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -864,19 +864,6 @@ struct media_link *media_entity_find_link(struct media_pad *source,
+  */
+ struct media_pad *media_entity_remote_pad(const struct media_pad *pad);
  
- 	return 0;
- }
+-/**
+- * media_entity_get - Get a reference to the parent module
+- *
+- * @entity: The entity
+- *
+- * Get a reference to the parent media device module.
+- *
+- * The function will return immediately if @entity is %NULL.
+- *
+- * Return: returns a pointer to the entity on success or %NULL on failure.
+- */
+-struct media_entity *media_entity_get(struct media_entity *entity);
+-
+ /**
+  * media_entity_get_fwnode_pad - Get pad number from fwnode
+  *
+@@ -916,17 +903,6 @@ __must_check int media_graph_walk_init(
+  */
+ void media_graph_walk_cleanup(struct media_graph *graph);
+ 
+-/**
+- * media_entity_put - Release the reference to the parent module
+- *
+- * @entity: The entity
+- *
+- * Release the reference count acquired by media_entity_get().
+- *
+- * The function will return immediately if @entity is %NULL.
+- */
+-void media_entity_put(struct media_entity *entity);
+-
+ /**
+  * media_graph_walk_start - Start walking the media graph at a
+  *	given entity
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 2f2d1c8947e6..33ba56f3dc1f 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -905,6 +905,7 @@ struct v4l2_subdev {
+  */
+ struct v4l2_subdev_fh {
+ 	struct v4l2_fh vfh;
++	struct module *owner;
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	struct v4l2_subdev_pad_config *pad;
+ #endif
 -- 
 2.20.1
 
