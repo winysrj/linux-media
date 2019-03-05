@@ -3,33 +3,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4FE8C43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 09:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E690C00319
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 09:58:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AC4D2206DD
+	by mail.kernel.org (Postfix) with ESMTP id E39FC20657
 	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 09:58:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727513AbfCEJ6x (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Mar 2019 04:58:53 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46429 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727352AbfCEJ6x (ORCPT
+        id S1727613AbfCEJ6y (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Mar 2019 04:58:54 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:40881 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727367AbfCEJ6x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 5 Mar 2019 04:58:53 -0500
 Received: from test-no.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id 16qVhtdVBLMwI16qahrcsp; Tue, 05 Mar 2019 10:58:52 +0100
+        id 16qVhtdVBLMwI16qZhrcse; Tue, 05 Mar 2019 10:58:52 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv2 2/9] media-devnode: fill in media chardev kobject to ease debugging
-Date:   Tue,  5 Mar 2019 10:58:40 +0100
-Message-Id: <20190305095847.21428-3-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv2 1/9] cec: fill in cec chardev kobject to ease debugging
+Date:   Tue,  5 Mar 2019 10:58:39 +0100
+Message-Id: <20190305095847.21428-2-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
 References: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
@@ -45,27 +45,27 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-The media chardev kobject has no name, which made it hard to
+The cec chardev kobject has no name, which made it hard to
 debug when kobject debugging is turned on.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/media-devnode.c | 1 +
+ drivers/media/cec/cec-core.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 6b87a721dc49..61dc05fcc55c 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -251,6 +251,7 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	/* Part 2: Initialize the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index cc875dabd765..f5d1578e256a 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -126,6 +126,7 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &cec_devnode_fops);
  	devnode->cdev.owner = owner;
-+	kobject_set_name(&devnode->cdev.kobj, "media%d", devnode->minor);
++	kobject_set_name(&devnode->cdev.kobj, "cec%d", devnode->minor);
  
- 	/* Part 3: Add the media and char device */
  	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
+ 	if (ret) {
 -- 
 2.20.1
 
