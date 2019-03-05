@@ -3,64 +3,61 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4996FC43381
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 00:09:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71732C43381
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 00:25:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2101720675
-	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 00:09:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4549D206DD
+	for <linux-media@archiver.kernel.org>; Tue,  5 Mar 2019 00:25:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726834AbfCEAJg convert rfc822-to-8bit (ORCPT
+        id S1726170AbfCEAZx convert rfc822-to-8bit (ORCPT
         <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Mar 2019 19:09:36 -0500
-Received: from mga03.intel.com ([134.134.136.65]:14865 "EHLO mga03.intel.com"
+        Mon, 4 Mar 2019 19:25:53 -0500
+Received: from mga04.intel.com ([192.55.52.120]:58216 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726683AbfCEAJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Mar 2019 19:09:36 -0500
+        id S1726066AbfCEAZw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Mar 2019 19:25:52 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Mar 2019 16:09:35 -0800
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Mar 2019 16:25:52 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.58,441,1544515200"; 
-   d="scan'208";a="279738418"
-Received: from fmsmsx104.amr.corp.intel.com ([10.18.124.202])
-  by orsmga004.jf.intel.com with ESMTP; 04 Mar 2019 16:09:33 -0800
-Received: from fmsmsx116.amr.corp.intel.com (10.18.116.20) by
- fmsmsx104.amr.corp.intel.com (10.18.124.202) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 4 Mar 2019 16:09:32 -0800
+   d="scan'208";a="148586669"
+Received: from fmsmsx106.amr.corp.intel.com ([10.18.124.204])
+  by fmsmga002.fm.intel.com with ESMTP; 04 Mar 2019 16:25:52 -0800
+Received: from fmsmsx112.amr.corp.intel.com (10.18.116.6) by
+ FMSMSX106.amr.corp.intel.com (10.18.124.204) with Microsoft SMTP Server (TLS)
+ id 14.3.408.0; Mon, 4 Mar 2019 16:25:51 -0800
 Received: from shsmsx151.ccr.corp.intel.com (10.239.6.50) by
- fmsmsx116.amr.corp.intel.com (10.18.116.20) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 4 Mar 2019 16:09:32 -0800
+ FMSMSX112.amr.corp.intel.com (10.18.116.6) with Microsoft SMTP Server (TLS)
+ id 14.3.408.0; Mon, 4 Mar 2019 16:25:51 -0800
 Received: from shsmsx104.ccr.corp.intel.com ([169.254.5.74]) by
  SHSMSX151.ccr.corp.intel.com ([169.254.3.26]) with mapi id 14.03.0415.000;
- Tue, 5 Mar 2019 08:09:30 +0800
+ Tue, 5 Mar 2019 08:25:19 +0800
 From:   "Cao, Bingbu" <bingbu.cao@intel.com>
 To:     Arnd Bergmann <arnd@arndb.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC:     "Zhi, Yong" <yong.zhi@intel.com>, Tomasz Figa <tfiga@chromium.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+CC:     "Zhi, Yong" <yong.zhi@intel.com>,
         "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
         "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH] media: staging/intel-ipu3: mark PM function as
- __maybe_unused
-Thread-Topic: [PATCH] media: staging/intel-ipu3: mark PM function as
- __maybe_unused
-Thread-Index: AQHU0skBhQ6EBfjbEE2shBfE7uTelaX8KELA
-Date:   Tue, 5 Mar 2019 00:09:30 +0000
-Message-ID: <EE45BB6704246A4E914B70E8B61FB42A15C13194@SHSMSX104.ccr.corp.intel.com>
-References: <20190304202920.1845797-1-arnd@arndb.de>
-In-Reply-To: <20190304202920.1845797-1-arnd@arndb.de>
+Subject: RE: [PATCH] media: staging/intel-ipu3: reduce kernel stack usage
+Thread-Topic: [PATCH] media: staging/intel-ipu3: reduce kernel stack usage
+Thread-Index: AQHU0sjI/9ys7oMm70KxNpya8bdOOaX8LDeg
+Date:   Tue, 5 Mar 2019 00:25:18 +0000
+Message-ID: <EE45BB6704246A4E914B70E8B61FB42A15C131D5@SHSMSX104.ccr.corp.intel.com>
+References: <20190304202758.1802417-1-arnd@arndb.de>
+In-Reply-To: <20190304202758.1802417-1-arnd@arndb.de>
 Accept-Language: zh-CN, en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiOWExOWY4ODEtZjk0MS00M2JhLTk0MWEtZWRjYzQ5MGI4NDk1IiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoibVZmbFE0S2NGajlkQjVLVXJqWlZhZStBY0Z6ZGlyVGJvZnE4eTA0bVkwMmRPMGhUZWRVejhzQjN6dDhUaUJvWCJ9
+x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMzM2ZjM5Y2ItNmNhOC00ZTFmLWFmMGQtMzUwOTZkMzUyZDcyIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiVVBTMHBvVGdaN1F4ZVpxM0JBRWxDeGcwR1l4VmVzczNoOVQ3MGI4K2lMeDZ2eTdVVnMzMXdzVEYrVTQ2bkd2SiJ9
 x-ctpclassification: CTP_NT
 dlp-product: dlpe-windows
 dlp-version: 11.0.400.15
@@ -74,61 +71,132 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi, Bergmann,
 
-Thanks for your patch.
-Reviewed-by: Cao, Bingbu <bingbu.cao@intel.com>
 
 __________________________
 BRs,
 Cao, Bingbu
 
 
+
 > -----Original Message-----
 > From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: Tuesday, March 5, 2019 4:29 AM
+> Sent: Tuesday, March 5, 2019 4:28 AM
 > To: Sakari Ailus <sakari.ailus@linux.intel.com>; Mauro Carvalho Chehab
 > <mchehab@kernel.org>; Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>; Zhi, Yong <yong.zhi@intel.com>;
-> Tomasz Figa <tfiga@chromium.org>; Qiu, Tian Shu
-> <tian.shu.qiu@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>; linux-
-> media@vger.kernel.org; devel@driverdev.osuosl.org; linux-
-> kernel@vger.kernel.org
-> Subject: [PATCH] media: staging/intel-ipu3: mark PM function as
-> __maybe_unused
+> Cc: Arnd Bergmann <arnd@arndb.de>; Zhi, Yong <yong.zhi@intel.com>; Cao,
+> Bingbu <bingbu.cao@intel.com>; linux-media@vger.kernel.org;
+> devel@driverdev.osuosl.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] media: staging/intel-ipu3: reduce kernel stack usage
 > 
-> The imgu_rpm_dummy_cb() looks like an API misuse that is explained in
-> the comment above it. Aside from that, it also causes a warning when
-> power management support is disabled:
+> The imgu_css_queue structure is too large to be put on the kernel stack,
+> as we can see in 32-bit builds:
 > 
-> drivers/staging/media/ipu3/ipu3.c:794:12: error: 'imgu_rpm_dummy_cb'
-> defined but not used [-Werror=unused-function]
+> drivers/staging/media/ipu3/ipu3-css.c: In function 'imgu_css_fmt_try':
+> drivers/staging/media/ipu3/ipu3-css.c:1863:1: error: the frame size of
+> 1172 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
 > 
-> The warning is at least easy to fix by marking the function as
-> __maybe_unused.
+> By dynamically allocating this array, the stack usage goes down to an
+> acceptable 140 bytes for the same x86-32 configuration.
 > 
-> Fixes: 7fc7af649ca7 ("media: staging/intel-ipu3: Add imgu top level pci
-> device driver")
+> Fixes: f5f2e4273518 ("media: staging/intel-ipu3: Add css pipeline
+> programming")
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/staging/media/ipu3/ipu3.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/staging/media/ipu3/ipu3-css.c | 25 +++++++++++++++++++------
+>  1 file changed, 19 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/staging/media/ipu3/ipu3.c
-> b/drivers/staging/media/ipu3/ipu3.c
-> index d575ac78c8f0..d00d26264c37 100644
-> --- a/drivers/staging/media/ipu3/ipu3.c
-> +++ b/drivers/staging/media/ipu3/ipu3.c
-> @@ -791,7 +791,7 @@ static int __maybe_unused imgu_resume(struct device
-> *dev)
->   * PCI rpm framework checks the existence of driver rpm callbacks.
->   * Place a dummy callback here to avoid rpm going into error state.
->   */
-> -static int imgu_rpm_dummy_cb(struct device *dev)
-> +static __maybe_unused int imgu_rpm_dummy_cb(struct device *dev)
->  {
->  	return 0;
+> diff --git a/drivers/staging/media/ipu3/ipu3-css.c
+> b/drivers/staging/media/ipu3/ipu3-css.c
+> index 15ab77e4b766..664c14b7a518 100644
+> --- a/drivers/staging/media/ipu3/ipu3-css.c
+> +++ b/drivers/staging/media/ipu3/ipu3-css.c
+> @@ -3,6 +3,7 @@
+> 
+>  #include <linux/device.h>
+>  #include <linux/iopoll.h>
+> +#include <linux/slab.h>
+> 
+>  #include "ipu3-css.h"
+>  #include "ipu3-css-fw.h"
+> @@ -1744,7 +1745,7 @@ int imgu_css_fmt_try(struct imgu_css *css,
+>  	struct v4l2_rect *const bds = &r[IPU3_CSS_RECT_BDS];
+>  	struct v4l2_rect *const env = &r[IPU3_CSS_RECT_ENVELOPE];
+>  	struct v4l2_rect *const gdc = &r[IPU3_CSS_RECT_GDC];
+> -	struct imgu_css_queue q[IPU3_CSS_QUEUES];
+> +	struct imgu_css_queue *q = kcalloc(IPU3_CSS_QUEUES, sizeof(struct
+> +imgu_css_queue), GFP_KERNEL);
+
+Could you use the devm_kcalloc()? 
+>  	struct v4l2_pix_format_mplane *const in =
+>  					&q[IPU3_CSS_QUEUE_IN].fmt.mpix;
+>  	struct v4l2_pix_format_mplane *const out = @@ -1753,6 +1754,11 @@
+> int imgu_css_fmt_try(struct imgu_css *css,
+>  					&q[IPU3_CSS_QUEUE_VF].fmt.mpix;
+>  	int i, s, ret;
+> 
+> +	if (!q) {
+> +		ret = -ENOMEM;
+> +		goto out;
+> +	}
+[Cao, Bingbu] 
+The goto here is wrong, you can just report an error, and I prefer it is next to the alloc.
+> +
+>  	/* Adjust all formats, get statistics buffer sizes and formats */
+>  	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
+>  		if (fmts[i])
+> @@ -1766,7 +1772,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
+>  					IPU3_CSS_QUEUE_TO_FLAGS(i))) {
+>  			dev_notice(css->dev, "can not initialize queue %s\n",
+>  				   qnames[i]);
+> -			return -EINVAL;
+> +			ret = -EINVAL;
+> +			goto out;
+>  		}
+>  	}
+>  	for (i = 0; i < IPU3_CSS_RECTS; i++) { @@ -1788,7 +1795,8 @@ int
+> imgu_css_fmt_try(struct imgu_css *css,
+>  	if (!imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_IN]) ||
+>  	    !imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) {
+>  		dev_warn(css->dev, "required queues are disabled\n");
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto out;
+>  	}
+> 
+>  	if (!imgu_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) { @@ -1829,7
+> +1837,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
+>  	ret = imgu_css_find_binary(css, pipe, q, r);
+>  	if (ret < 0) {
+>  		dev_err(css->dev, "failed to find suitable binary\n");
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto out;
+>  	}
+>  	css->pipes[pipe].bindex = ret;
+> 
+> @@ -1843,7 +1852,8 @@ int imgu_css_fmt_try(struct imgu_css *css,
+>  						IPU3_CSS_QUEUE_TO_FLAGS(i))) {
+>  				dev_err(css->dev,
+>  					"final resolution adjustment failed\n");
+> -				return -EINVAL;
+> +				ret = -EINVAL;
+> +				goto out;
+>  			}
+>  			*fmts[i] = q[i].fmt.mpix;
+>  		}
+> @@ -1859,7 +1869,10 @@ int imgu_css_fmt_try(struct imgu_css *css,
+>  		 bds->width, bds->height, gdc->width, gdc->height,
+>  		 out->width, out->height, vf->width, vf->height);
+> 
+> -	return 0;
+> +	ret = 0;
+> +out:
+> +	kfree(q);
+> +	return ret;
 >  }
+> 
+>  int imgu_css_fmt_set(struct imgu_css *css,
 > --
 > 2.20.0
 
