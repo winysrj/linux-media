@@ -2,106 +2,128 @@ Return-Path: <SRS0=KHCC=RJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19519C10F00
-	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 19:15:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07150C43381
+	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 21:14:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E352120661
-	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 19:15:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBA8120661
+	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 21:14:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="uoOMiBHt"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hbHy6pNt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726691AbfCFTPa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Mar 2019 14:15:30 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:41022 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726264AbfCFTP3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 14:15:29 -0500
-Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 05EFF242;
-        Wed,  6 Mar 2019 20:15:27 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1551899728;
-        bh=EYX97lC0nyQAK/XNAW7yCh9+61BXDQa/bGN9hQNsFlE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=uoOMiBHtshP3WNa9RUHYaOJaI2ahBWp1E9V6KGQO3zHP+S6fVGpL2By1n7xG7LGWj
-         t5cF2cuNCp1MILrmdRWwi7+siAfi29thuRPEiObNCPk9ERErkWkX8FBn1dnhUQtM8r
-         oJYMh9l5PnLivu4lRWMMWcK/JmzzGi49BoaMYWjc=
-Date:   Wed, 6 Mar 2019 21:15:21 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc:     niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: adv748x: Don't disable CSI-2 on link_setup
-Message-ID: <20190306191521.GE4791@pendragon.ideasonboard.com>
-References: <20190306112659.8310-1-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20190306112659.8310-1-jacopo+renesas@jmondi.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S1726264AbfCFVOC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Mar 2019 16:14:02 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:33210 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726613AbfCFVOB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 16:14:01 -0500
+Received: by mail-wr1-f65.google.com with SMTP id i12so15026315wrw.0
+        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2019 13:14:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=hWap7rP/y90IGcf8xH5HH6jQiE7p9TgXIVq+FOyiRKY=;
+        b=hbHy6pNtHC6V41GElnmwEj/yGuVCWh8k1/fMCVVuSvr6HT8wKlIouD/g/2kwvgeDLk
+         VXcN4XS5Y379GZjI/tWPXWYBVTPjrXhjt/3H8uUEhg3Y+D58Tq0qOgbT8HrfQOxQHp6h
+         73G6pAouXcIYYfkYAJO2xuxcDeRKIKjT0i31LThOZoEOS58HaUmgrfz3WeODkcQCnYYw
+         q8HRKDHu/URZGMXGCxHVr6acxDYeiAUThDESvKgcrVnS6v+LDawK7jDLOZJ9QTIbRjtZ
+         W6DlrIk1yfIHbWwM5TLIY1fVX6RPWzvB1YDk8gXFBH62RjDkhnLV635peHMRakDWlJDW
+         DlQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=hWap7rP/y90IGcf8xH5HH6jQiE7p9TgXIVq+FOyiRKY=;
+        b=Egmcug3d/T0mPhAjMALxgvOQYxxDdxmjfIVhu++ZdctI+rIMRGLQwA3xB9FrHvEpEI
+         x/rLMLCTNtY5pXChpdF4BUEGhwwB2E9R4hhvAdFWWYaLipQbpt308eV9A8JuzQAHcemS
+         33OdsVzBx+WsKbRKvJxsgIT/tAAfKwTrVIwzZe1Hv6crT0+pbQiMOD1fYJJm9TGb1AGj
+         RP6D329I5r1rUarlL2QWDIXZAzBO1FIw8PGmMzDWBEYOK97z5+uWu0fqg/i3GESA/oSr
+         KegkHtVlje3gmFU2v/EmEqvT35XKmOTRonnkbHY4dcsOKrtFqwUJ2pHqYFvLxElgB1Ay
+         kpnQ==
+X-Gm-Message-State: APjAAAXllBoIMRNHJfuTJQlSlcvqKvq5WHF3kFQLvTIk8Hl/wtN4i/a3
+        X/Fj5nuBv8mmq+QYn0/maQ8IGpO/TKg=
+X-Google-Smtp-Source: APXvYqwejKbXns4he7v798RCG2ibPb8ESlNcPjt4eJgYIr+S3T3lXUXACTA/gd9TkawGQnnetM3+8g==
+X-Received: by 2002:a5d:4412:: with SMTP id z18mr4298969wrq.111.1551906839478;
+        Wed, 06 Mar 2019 13:13:59 -0800 (PST)
+Received: from ubuntu.home ([77.124.117.239])
+        by smtp.gmail.com with ESMTPSA id a9sm1882126wmm.10.2019.03.06.13.13.57
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 06 Mar 2019 13:13:58 -0800 (PST)
+From:   Dafna Hirschfeld <dafna3@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [PATCH v5 00/23] support for stateless decoder
+Date:   Wed,  6 Mar 2019 13:13:20 -0800
+Message-Id: <20190306211343.15302-1-dafna3@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+Main Changes from v4:
+1. fixes according to the review
+2. two new patches:
+  0015-media-vicodec-Handle-the-case-that-the-reference-buf.patch
+  0023-media-vicodec-set-pixelformat-to-V4L2_PIX_FMT_FWHT_S.patch
 
-On Wed, Mar 06, 2019 at 12:26:59PM +0100, Jacopo Mondi wrote:
-> When both the media links between AFE and HDMI and the two TX CSI-2 outputs
-> gets disabled, the routing register ADV748X_IO_10 gets zeroed causing both
-> TXA and TXB output to get disabled.
-> 
-> This causes some HDMI transmitters to stop working after both AFE and
-> HDMI links are disabled.
+Dafna Hirschfeld (20):
+  media: vicodec: selection api should only check single buffer types
+  media: vicodec: upon release, call m2m release before freeing ctrl
+    handler
+  media: v4l2-ctrl: v4l2_ctrl_request_setup returns with error upon
+    failure
+  media: vicodec: change variable name for the return value of
+    v4l2_fwht_encode
+  media: vicodec: bugfix - call v4l2_m2m_buf_copy_metadata also if
+    decoding fails
+  media: vicodec: bugfix: free compressed_frame upon device release
+  media: vicodec: Move raw frame preparation code to a function
+  media: vicodec: add field 'buf' to fwht_raw_frame
+  media: vicodec: keep the ref frame according to the format in decoder
+  media: vicodec: Validate version dependent header values in a separate
+    function
+  media: vicodec: rename v4l2_fwht_default_fmt to v4l2_fwht_find_nth_fmt
+  media: vicodec: Handle the case that the reference buffer is NULL
+  media: vicodec: add struct for encoder/decoder instance
+  media: vicodec: add documentation to V4L2_CID_FWHT_I/P_FRAME_QP
+  media: vicodec: add documentation to V4L2_CID_MPEG_VIDEO_FWHT_PARAMS
+  media: vicodec: add documentation to V4L2_PIX_FMT_FWHT_STATELESS
+  media: vicodec: Introducing stateless fwht defs and structs
+  media: vicodec: Register another node for stateless decoder
+  media: vicodec: Add support for stateless decoder.
+  media: vicodec: set pixelformat to V4L2_PIX_FMT_FWHT_STATELESS for
+    stateless decoder
 
-Could you elaborate on why this would be the case ? By HDMI transmitter,
-I assume you mean the device connected to the HDMI input of the ADV748x.
-Why makes it fail (and how ?) when the TXA and TXB are both disabled ?
+Hans Verkuil (3):
+  vb2: add requires_requests bit for stateless codecs
+  videodev2.h: add V4L2_BUF_CAP_REQUIRES_REQUESTS
+  cedrus: set requires_requests
 
-> Fix this by preventing writing 0 to
-> ADV748X_IO_10 register, which gets only updated when links are enabled
-> again.
-> 
-> Fixes: 9423ca350df7 ("media: adv748x: Implement TX link_setup callback")
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
-> The issue presents itself only on some HDMI transmitters, and went unnoticed
-> during the development of:
-> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
-> 
-> Patch intended to be applied on top of latest media-master, where the
-> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
-> series is applied.
-> 
-> The patch reports a "Fixes" tag, but should actually be merged with the above
-> mentioned series.
-> 
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index f57cd77a32fa..0e5a75eb6d75 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -354,6 +354,9 @@ static int adv748x_link_setup(struct media_entity *entity,
-> 
->  	tx->src = enable ? rsd : NULL;
-> 
-> +	if (!enable)
-> +		return 0;
-> +
->  	if (state->afe.tx) {
->  		/* AFE Requires TXA enabled, even when output to TXB */
->  		io10 |= ADV748X_IO_10_CSI4_EN;
+ .../media/uapi/v4l/ext-ctrls-codec.rst        | 130 ++++
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   6 +
+ .../media/uapi/v4l/vidioc-reqbufs.rst         |   4 +
+ .../media/common/videobuf2/videobuf2-core.c   |   5 +-
+ .../media/common/videobuf2/videobuf2-v4l2.c   |   6 +
+ drivers/media/platform/vicodec/codec-fwht.c   |  92 ++-
+ drivers/media/platform/vicodec/codec-fwht.h   |  12 +-
+ .../media/platform/vicodec/codec-v4l2-fwht.c  | 431 ++++-------
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |   7 +-
+ drivers/media/platform/vicodec/vicodec-core.c | 731 +++++++++++++-----
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  30 +-
+ .../staging/media/sunxi/cedrus/cedrus_video.c |   1 +
+ include/media/fwht-ctrls.h                    |  31 +
+ include/media/v4l2-ctrls.h                    |   7 +-
+ include/media/videobuf2-core.h                |   3 +
+ include/uapi/linux/v4l2-controls.h            |   4 +
+ include/uapi/linux/videodev2.h                |   2 +
+ 17 files changed, 940 insertions(+), 562 deletions(-)
+ create mode 100644 include/media/fwht-ctrls.h
 
 -- 
-Regards,
+2.17.1
 
-Laurent Pinchart
