@@ -2,503 +2,226 @@ Return-Path: <SRS0=KHCC=RJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACB2AC43381
-	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 08:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FD2BC10F00
+	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 08:29:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 66B40206DD
-	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 08:00:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="oTEOVvFx"
+	by mail.kernel.org (Postfix) with ESMTP id 41CAD20661
+	for <linux-media@archiver.kernel.org>; Wed,  6 Mar 2019 08:29:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728975AbfCFIAc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Mar 2019 03:00:32 -0500
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:35097 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727808AbfCFIAc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 03:00:32 -0500
-Received: by mail-pf1-f193.google.com with SMTP id j5so7926314pfa.2
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2019 00:00:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=X14nKKeduIXCQs1ZDEWDFOE4reshiu+SMpj9MQuWbCk=;
-        b=oTEOVvFxu2g4YibBkJwwF3CoHWyG+dxAbHoim4hQcVKO38UlqwoIfEFe/p1sSBkx7X
-         63eV0AbV08p73ZPoPx+Ad5ynSFYytO9VaLYVJASgVGI3UMdztqg1DNhN97foUCzv8dZV
-         UDOqluyd/DicKM8QQpf7a9h7ltrLy1OUPe1Ug=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=X14nKKeduIXCQs1ZDEWDFOE4reshiu+SMpj9MQuWbCk=;
-        b=n1uo5zv08fHrxGWU+FEyaeVrRTJhcvVlEtmOWFjHdd7rde5DFM3rI8i+tYIgDY4d00
-         S4qRWzcIROLt9nbF4Gl3jQWt7Zwqz/5IjyOrakZzO18ijJpd7G9rSw3D4zdetIPU6WB/
-         UcK8Zv3zgNwcR6VBcM40qHOu4Vqx5Whtg+y954UGQfPsXCoZqGjbnozW5TMj6kiZm2LC
-         yVBCghhgY3FWBNQaqtl2s/+H1yOKSZJDCnG03h8/X5+9EaUCYRuhjkRlyrRXm/k5/8A0
-         6ZwloT21mFqYbdYylvH7fL5+xLrRkb3rHfZG/QoZiEVEpqTh+ttXEDP2KND3c2+CFdpX
-         Ckkw==
-X-Gm-Message-State: APjAAAWLOspm6Wtcc2RVZU2A59UfqZpbZHASca7q+RiHeMpz4Y67WAJZ
-        E5sId7emF2QDTgXs0reyy2Xldw==
-X-Google-Smtp-Source: APXvYqzfLg9WR6lXOvGH+Xx6TdwiacLTQG50wvRvvG+TS9po0A29Y58RDY/MVloV4/+VhRAaXwkxww==
-X-Received: by 2002:a17:902:1029:: with SMTP id b38mr5592084pla.204.1551859230759;
-        Wed, 06 Mar 2019 00:00:30 -0800 (PST)
-Received: from acourbot.tok.corp.google.com ([2401:fa00:4:4:9712:8cf1:d0f:7d33])
-        by smtp.gmail.com with ESMTPSA id z18sm3351662pfl.164.2019.03.06.00.00.27
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 06 Mar 2019 00:00:29 -0800 (PST)
-From:   Alexandre Courbot <acourbot@chromium.org>
-To:     Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Dafna Hirschfeld <dafna3@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc:     linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [PATCH v4] media: docs-rst: Document m2m stateless video decoder interface
-Date:   Wed,  6 Mar 2019 17:00:19 +0900
-Message-Id: <20190306080019.159676-1-acourbot@chromium.org>
-X-Mailer: git-send-email 2.21.0.352.gf09ad66450-goog
+        id S1728866AbfCFI3T (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Mar 2019 03:29:19 -0500
+Received: from relay10.mail.gandi.net ([217.70.178.230]:54847 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726535AbfCFI3T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 03:29:19 -0500
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id DB5E8240007;
+        Wed,  6 Mar 2019 08:29:13 +0000 (UTC)
+Date:   Wed, 6 Mar 2019 09:29:46 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 09/30] media: entity: Swap pads if route is checked
+ from source to sink
+Message-ID: <20190306082946.bxcf6jnl52nrc6q3@uno.localdomain>
+References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181101233144.31507-10-niklas.soderlund+renesas@ragnatech.se>
+ <20190115225743.GH28397@pendragon.ideasonboard.com>
+ <20190122151506.fnlfvwtoq7qunz45@paasikivi.fi.intel.com>
+ <20190122152030.GB11461@pendragon.ideasonboard.com>
+ <20190218092107.omddljghnv3l2ss6@uno.localdomain>
+ <20190222121811.GU3522@pendragon.ideasonboard.com>
+ <20190304123520.et24vsesfulyzybs@uno.localdomain>
+ <20190305200458.GK14928@pendragon.ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ujeqxfwldlxyvs2i"
+Content-Disposition: inline
+In-Reply-To: <20190305200458.GK14928@pendragon.ideasonboard.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Documents the protocol that user-space should follow when
-communicating with stateless video decoders.
 
-The stateless video decoding API makes use of the new request and tags
-APIs. While it has been implemented with the Cedrus driver so far, it
-should probably still be considered staging for a short while.
+--ujeqxfwldlxyvs2i
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
-Changes since v3:
+HI Laurent,
 
-* Rephrased the conditions under which reference buffers must be queued
-  back (hopefully) more accurately.
+On Tue, Mar 05, 2019 at 10:04:58PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+>
+> On Mon, Mar 04, 2019 at 01:35:36PM +0100, Jacopo Mondi wrote:
+> > On Fri, Feb 22, 2019 at 02:18:11PM +0200, Laurent Pinchart wrote:
+> > > On Mon, Feb 18, 2019 at 10:21:07AM +0100, Jacopo Mondi wrote:
+> > >> On Tue, Jan 22, 2019 at 05:20:30PM +0200, Laurent Pinchart wrote:
+> > >>> On Tue, Jan 22, 2019 at 05:15:06PM +0200, Sakari Ailus wrote:
+> > >>>> On Wed, Jan 16, 2019 at 12:57:43AM +0200, Laurent Pinchart wrote:
+> > >>>>>>
+> > >>>>>> This way the pads are always passed to the has_route() op sink p=
+ad first.
+> > >>>>>> Makes sense.
+> > >>>>>
+> > >>>>> Is there anything in the API that mandates one pad to be a sink a=
+nd the
+> > >>>>> other pad to the a source ? I had designed the operation to allow
+> > >>>>> sink-sink and source-source connections to be checked too.
+> > >>>>
+> > >>>> Do you have a use case in mind for sink--sink or source--source ro=
+utes? The
+> > >>>> routes are about flows of data, so I'd presume only source--sink or
+> > >>>> sink--source routes are meaningful.
+> > >>>>
+> > >>>> If you did, then the driver would have to handle that by itself. T=
+his still
+> > >>>> simplifies the implementation for drivers that do not.
+> > >>>
+> > >>> I don't have use cases for such routes, but we use the has_route
+> > >>> operation when traversing pipelines, and at that point we need to g=
+et
+> > >>> all the internally connected pads. In another patch in this series =
+you
+> > >>> implement a helper function that handles this, but its implementati=
+on
+> > >>> isn't complete. I explained in my review of that patch that I fear a
+> > >>> correct generic implementation would become quite complex, while the
+> > >>> complexity should be easy to handle on the driver side as the code =
+can
+> > >>> then be specialized for the case at hand.
+> > >>>
+> > >>
+> > >> As a compromise, in v3 I'm thinking of maintaining support for the
+> > >> most common case of two sources connected to the same sink, as
+> > >> Sakari's patch does, but let more complex cases be handled by the
+> > >> driver implementation of has_route().
+> > >>
+> > >> Ack?
+> > >
+> > > I fear this will be confusing for subdevs, as they would have to
+> > > implement part of the operation.
+> > >
+> > > Could it be that the subdev has_route operation isn't the best API for
+> > > the job, if it gets that complex ? I wonder if it would be easier to
+> > > create another operation that takes a pad index as argument, and retu=
+rns
+> > > the list of pads (possibly as a bitmask ?) or connected pads.
+> > > media_entity_has_route() could easily be implemented on top of that, =
+and
+> > > these new semantics may be easier for subdevs to implement.
+> > >
+> >
+> > I see, but if subdevs can easily elaborate that list, they could as
+> > well easily check if the pad provided as argument is on that list.
+>
+> Possibly. In any case, if we keep this operation as-is, I wouldn't try
+> to split the logic between the subdev drivers and the core, that would
+> be asking for trouble. If it gets too complex to implement for subdev
+> drivers, then we need a different operation with a different logic in
+> the subdev API, and a helper that wraps around it.
 
- Documentation/media/uapi/v4l/dev-mem2mem.rst  |   5 +
- .../media/uapi/v4l/dev-stateless-decoder.rst  | 386 ++++++++++++++++++
- 2 files changed, 391 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/dev-stateless-decoder.rst
+In v3 I have removed support for indirect routes from the framework
+part. It's all on the subdevice driver for now.
+>
+> > >>>>> If your goal is to simplify the implementation of the .has_route()
+> > >>>>> operation in drivers, I would instead sort pad0 and pad1 by value.
+> > >>>>
+> > >>>> That'd be another option to make the order deterministic for the d=
+river.
+> > >>>> I'm fine with that as well.
+> > >>
+> > >> In v3 I have taken both suggestions in: try the "sink then source" o=
+rder
+> > >> first, then order by index in case the pads are of the same time. Th=
+is
+> > >> needs to be documented in has_route() operation definition though.
+> > >>
+> > >> Would that be fine with you?
+> > >
+> > > I think that's the worst of both worlds from a subdev point of view :=
+-)
+> >
+> > Possibly :)
+> >
+> > Should we drop completely the sink-source ordering in favour of
+> > ordering by value, and drop [15/30] that adds support for trivial
+> > indirect routes?
+> >
+> > Let's reach consensus so I could send v3.
+>
+> I would certainly drop 15/30, and I don't think ordering by value would
+> help subdev drivers much.
 
-diff --git a/Documentation/media/uapi/v4l/dev-mem2mem.rst b/Documentation/media/uapi/v4l/dev-mem2mem.rst
-index 67a980818dc8..db6f4efc458d 100644
---- a/Documentation/media/uapi/v4l/dev-mem2mem.rst
-+++ b/Documentation/media/uapi/v4l/dev-mem2mem.rst
-@@ -13,6 +13,11 @@
- Video Memory-To-Memory Interface
- ********************************
- 
-+.. toctree::
-+    :maxdepth: 1
-+
-+    dev-stateless-decoder
-+
- A V4L2 memory-to-memory device can compress, decompress, transform, or
- otherwise convert video data from one format into another format, in memory.
- Such memory-to-memory devices set the ``V4L2_CAP_VIDEO_M2M`` or
-diff --git a/Documentation/media/uapi/v4l/dev-stateless-decoder.rst b/Documentation/media/uapi/v4l/dev-stateless-decoder.rst
-new file mode 100644
-index 000000000000..861fd2662886
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/dev-stateless-decoder.rst
-@@ -0,0 +1,386 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+.. _stateless_decoder:
-+
-+**************************************************
-+Memory-to-memory Stateless Video Decoder Interface
-+**************************************************
-+
-+A stateless decoder is a decoder that works without retaining any kind of state
-+between processed frames. This means that each frame is decoded independently
-+of any previous and future frames, and that the client is responsible for
-+maintaining the decoding state and providing it to the decoder with each
-+decoding request. This is in contrast to the stateful video decoder interface,
-+where the hardware and driver maintain the decoding state and all the client
-+has to do is to provide the raw encoded stream and dequeue decoded frames in
-+display order.
-+
-+This section describes how user-space ("the client") is expected to communicate
-+with stateless decoders in order to successfully decode an encoded stream.
-+Compared to stateful codecs, the decoder/client sequence is simpler, but the
-+cost of this simplicity is extra complexity in the client which must maintain a
-+consistent decoding state.
-+
-+Stateless decoders make use of the request API. A stateless decoder must expose
-+the ``V4L2_BUF_CAP_SUPPORTS_REQUESTS`` capability on its ``OUTPUT`` queue when
-+:c:func:`VIDIOC_REQBUFS` or :c:func:`VIDIOC_CREATE_BUFS` are invoked.
-+
-+Querying capabilities
-+=====================
-+
-+1. To enumerate the set of coded formats supported by the decoder, the client
-+   calls :c:func:`VIDIOC_ENUM_FMT` on the ``OUTPUT`` queue.
-+
-+   * The driver must always return the full set of supported ``OUTPUT`` formats,
-+     irrespective of the format currently set on the ``CAPTURE`` queue.
-+
-+   * Simultaneously, the driver must restrain the set of values returned by
-+     codec-specific capability controls (such as H.264 profiles) to the set
-+     actually supported by the hardware.
-+
-+2. To enumerate the set of supported raw formats, the client calls
-+   :c:func:`VIDIOC_ENUM_FMT` on the ``CAPTURE`` queue.
-+
-+   * The driver must return only the formats supported for the format currently
-+     active on the ``OUTPUT`` queue.
-+
-+   * Depending on the currently set ``OUTPUT`` format, the set of supported raw
-+     formats may depend on the value of some controls (e.g. parsed format
-+     headers) which are codec-dependent. The client is responsible for making
-+     sure that these controls are set before querying the ``CAPTURE`` queue.
-+     Failure to do so will result in the default values for these controls being
-+     used, and a returned set of formats that may not be usable for the media
-+     the client is trying to decode.
-+
-+3. The client may use :c:func:`VIDIOC_ENUM_FRAMESIZES` to detect supported
-+   resolutions for a given format, passing desired pixel format in
-+   :c:type:`v4l2_frmsizeenum`'s ``pixel_format``.
-+
-+4. Supported profiles and levels for the current ``OUTPUT`` format, if
-+   applicable, may be queried using their respective controls via
-+   :c:func:`VIDIOC_QUERYCTRL`.
-+
-+Initialization
-+==============
-+
-+1. Set the coded format on the ``OUTPUT`` queue via :c:func:`VIDIOC_S_FMT`.
-+
-+   * **Required fields:**
-+
-+     ``type``
-+         a ``V4L2_BUF_TYPE_*`` enum appropriate for ``OUTPUT``.
-+
-+     ``pixelformat``
-+         a coded pixel format.
-+
-+     ``width``, ``height``
-+         coded width and height parsed from the stream.
-+
-+     other fields
-+         follow standard semantics.
-+
-+   .. note::
-+
-+      Changing the ``OUTPUT`` format may change the currently set ``CAPTURE``
-+      format. The driver will derive a new ``CAPTURE`` format from the
-+      ``OUTPUT`` format being set, including resolution, colorimetry
-+      parameters, etc. If the client needs a specific ``CAPTURE`` format,
-+      it must adjust it afterwards.
-+
-+2. Call :c:func:`VIDIOC_S_EXT_CTRLS` to set all the controls (parsed headers,
-+   etc.) required by the ``OUTPUT`` format to enumerate the ``CAPTURE`` formats.
-+
-+3. Call :c:func:`VIDIOC_G_FMT` for ``CAPTURE`` queue to get the format for the
-+   destination buffers parsed/decoded from the bitstream.
-+
-+   * **Required fields:**
-+
-+     ``type``
-+         a ``V4L2_BUF_TYPE_*`` enum appropriate for ``CAPTURE``.
-+
-+   * **Returned fields:**
-+
-+     ``width``, ``height``
-+         frame buffer resolution for the decoded frames.
-+
-+     ``pixelformat``
-+         pixel format for decoded frames.
-+
-+     ``num_planes`` (for _MPLANE ``type`` only)
-+         number of planes for pixelformat.
-+
-+     ``sizeimage``, ``bytesperline``
-+         as per standard semantics; matching frame buffer format.
-+
-+   .. note::
-+
-+      The value of ``pixelformat`` may be any pixel format supported for the
-+      ``OUTPUT`` format, based on the hardware capabilities. It is suggested
-+      that driver chooses the preferred/optimal format for the current
-+      configuration. For example, a YUV format may be preferred over an RGB
-+      format, if an additional conversion step would be required for RGB.
-+
-+4. *[optional]* Enumerate ``CAPTURE`` formats via :c:func:`VIDIOC_ENUM_FMT` on
-+   the ``CAPTURE`` queue. The client may use this ioctl to discover which
-+   alternative raw formats are supported for the current ``OUTPUT`` format and
-+   select one of them via :c:func:`VIDIOC_S_FMT`.
-+
-+   .. note::
-+
-+      The driver will return only formats supported for the currently selected
-+      ``OUTPUT`` format, even if more formats may be supported by the decoder in
-+      general.
-+
-+      For example, a decoder may support YUV and RGB formats for
-+      resolutions 1920x1088 and lower, but only YUV for higher resolutions (due
-+      to hardware limitations). After setting a resolution of 1920x1088 or lower
-+      as the ``OUTPUT`` format, :c:func:`VIDIOC_ENUM_FMT` may return a set of
-+      YUV and RGB pixel formats, but after setting a resolution higher than
-+      1920x1088, the driver will not return RGB pixel formats, since they are
-+      unsupported for this resolution.
-+
-+5. *[optional]* Choose a different ``CAPTURE`` format than suggested via
-+   :c:func:`VIDIOC_S_FMT` on ``CAPTURE`` queue. It is possible for the client to
-+   choose a different format than selected/suggested by the driver in
-+   :c:func:`VIDIOC_G_FMT`.
-+
-+    * **Required fields:**
-+
-+      ``type``
-+          a ``V4L2_BUF_TYPE_*`` enum appropriate for ``CAPTURE``.
-+
-+      ``pixelformat``
-+          a raw pixel format.
-+
-+6. Allocate source (bitstream) buffers via :c:func:`VIDIOC_REQBUFS` on
-+   ``OUTPUT`` queue.
-+
-+    * **Required fields:**
-+
-+      ``count``
-+          requested number of buffers to allocate; greater than zero.
-+
-+      ``type``
-+          a ``V4L2_BUF_TYPE_*`` enum appropriate for ``OUTPUT``.
-+
-+      ``memory``
-+          follows standard semantics.
-+
-+    * **Return fields:**
-+
-+      ``count``
-+          actual number of buffers allocated.
-+
-+    * If required, the driver will adjust ``count`` to be equal or bigger to the
-+      minimum of required number of ``OUTPUT`` buffers for the given format and
-+      requested count. The client must check this value after the ioctl returns
-+      to get the actual number of buffers allocated.
-+
-+7. Allocate destination (raw format) buffers via :c:func:`VIDIOC_REQBUFS` on the
-+   ``CAPTURE`` queue.
-+
-+    * **Required fields:**
-+
-+      ``count``
-+          requested number of buffers to allocate; greater than zero. The client
-+          is responsible for deducing the minimum number of buffers required
-+          for the stream to be properly decoded (taking e.g. reference frames
-+          into account) and pass an equal or bigger number.
-+
-+      ``type``
-+          a ``V4L2_BUF_TYPE_*`` enum appropriate for ``CAPTURE``.
-+
-+      ``memory``
-+          follows standard semantics. ``V4L2_MEMORY_USERPTR`` is not supported
-+          for ``CAPTURE`` buffers.
-+
-+    * **Return fields:**
-+
-+      ``count``
-+          adjusted to allocated number of buffers, in case the codec requires
-+          more buffers than requested.
-+
-+    * The driver must adjust count to the minimum of required number of
-+      ``CAPTURE`` buffers for the current format, stream configuration and
-+      requested count. The client must check this value after the ioctl
-+      returns to get the number of buffers allocated.
-+
-+8. Allocate requests (likely one per ``OUTPUT`` buffer) via
-+    :c:func:`MEDIA_IOC_REQUEST_ALLOC` on the media device.
-+
-+9. Start streaming on both ``OUTPUT`` and ``CAPTURE`` queues via
-+    :c:func:`VIDIOC_STREAMON`.
-+
-+Decoding
-+========
-+
-+For each frame, the client is responsible for submitting at least one request to
-+which the following is attached:
-+
-+* The amount of encoded data expected by the codec for its current
-+  configuration, as a buffer submitted to the ``OUTPUT`` queue. Typically, this
-+  corresponds to one frame worth of encoded data, but some formats may allow (or
-+  require) different amounts per unit.
-+* All the metadata needed to decode the submitted encoded data, in the form of
-+  controls relevant to the format being decoded.
-+
-+The amount and contents of the source ``OUTPUT`` buffer, as well as the controls
-+that must be set on the request, depend on the active coded pixel format and
-+might be affected by codec-specific extended controls, as stated in
-+documentation of each format.
-+
-+A typical frame would thus be decoded using the following sequence:
-+
-+1. Queue an ``OUTPUT`` buffer containing one unit of encoded bitstream data for
-+   the decoding request, using :c:func:`VIDIOC_QBUF`.
-+
-+    * **Required fields:**
-+
-+      ``index``
-+          index of the buffer being queued.
-+
-+      ``type``
-+          type of the buffer.
-+
-+      ``bytesused``
-+          number of bytes taken by the encoded data frame in the buffer.
-+
-+      ``flags``
-+          the ``V4L2_BUF_FLAG_REQUEST_FD`` flag must be set.
-+
-+      ``request_fd``
-+          must be set to the file descriptor of the decoding request.
-+
-+      ``timestamp``
-+          must be set to a unique value per frame. This value will be propagated
-+          into the decoded frame's buffer and can also be used to use this frame
-+          as the reference of another.
-+
-+2. Set the codec-specific controls for the decoding request, using
-+   :c:func:`VIDIOC_S_EXT_CTRLS`.
-+
-+    * **Required fields:**
-+
-+      ``which``
-+          must be ``V4L2_CTRL_WHICH_REQUEST_VAL``.
-+
-+      ``request_fd``
-+          must be set to the file descriptor of the decoding request.
-+
-+      other fields
-+          other fields are set as usual when setting controls. The ``controls``
-+          array must contain all the codec-specific controls required to decode
-+          a frame.
-+
-+   .. note::
-+
-+      It is possible to specify the controls in different invocations of
-+      :c:func:`VIDIOC_S_EXT_CTRLS`, or to overwrite a previously set control, as
-+      long as ``request_fd`` and ``which`` are properly set. The controls state
-+      at the moment of request submission is the one that will be considered.
-+
-+   .. note::
-+
-+      The order in which steps 1 and 2 take place is interchangeable.
-+
-+3. Submit the request by invoking :c:func:`MEDIA_REQUEST_IOC_QUEUE` on the
-+   request FD.
-+
-+    If the request is submitted without an ``OUTPUT`` buffer, or if some of the
-+    required controls are missing from the request, then
-+    :c:func:`MEDIA_REQUEST_IOC_QUEUE` will return ``-ENOENT``. If more than one
-+    ``OUTPUT`` buffer is queued, then it will return ``-EINVAL``.
-+    :c:func:`MEDIA_REQUEST_IOC_QUEUE` returning non-zero means that no
-+    ``CAPTURE`` buffer will be produced for this request.
-+
-+``CAPTURE`` buffers must not be part of the request, and are queued
-+independently. They are returned in decode order (i.e. the same order as coded
-+frames were submitted to the ``OUTPUT`` queue).
-+
-+Runtime decoding errors are signaled by the dequeued ``CAPTURE`` buffers
-+carrying the ``V4L2_BUF_FLAG_ERROR`` flag. If a decoded reference frame has an
-+error, then all following decoded frames that refer to it also have the
-+``V4L2_BUF_FLAG_ERROR`` flag set, although the decoder will still try to
-+produce a (likely corrupted) frame.
-+
-+Buffer management while decoding
-+================================
-+Contrary to stateful decoders, a stateless decoder does not perform any kind of
-+buffer management: it only guarantees that dequeued ``CAPTURE`` buffers can be
-+used by the client for as long as they are not queued again. "Used" here
-+encompasses using the buffer for compositing or display.
-+
-+A dequeued capture buffer can also be used as the reference frame of another
-+buffer.
-+
-+A frame is specified as reference by converting its timestamp into nanoseconds,
-+and storing it into the relevant member of a codec-dependent control structure.
-+The :c:func:`v4l2_timeval_to_ns` function must be used to perform that
-+conversion. The timestamp of a frame can be used to reference it as soon as all
-+its units of encoded data are successfully submitted to the ``OUTPUT`` queue.
-+
-+A decoded buffer containing a reference frame must not be reused as a decoding
-+target until all the frames referencing it have been decoded. The safest way to
-+achieve this is to refrain from queueing a reference buffer until all the
-+decoded frames referencing it have been dequeued. However, if the driver can
-+guarantee that buffer queued to the ``CAPTURE`` queue will be used in queued
-+order, then user-space can take advantage of this guarantee and queue a
-+reference buffer when the following conditions are met:
-+
-+1. All the requests for frames affected by the reference frame have been
-+   queued, and
-+
-+2. A sufficient number of ``CAPTURE`` buffers to cover all the decoded
-+   referencing frames have been queued.
-+
-+When queuing a decoding request, the driver will increase the reference count of
-+all the resources associated with reference frames. This means that the client
-+can e.g. close the DMABUF file descriptors of reference frame buffers if it
-+won't need them afterwards.
-+
-+Seeking
-+=======
-+In order to seek, the client just needs to submit requests using input buffers
-+corresponding to the new stream position. It must however be aware that
-+resolution may have changed and follow the dynamic resolution change sequence in
-+that case. Also depending on the codec used, picture parameters (e.g. SPS/PPS
-+for H.264) may have changed and the client is responsible for making sure that a
-+valid state is sent to the decoder.
-+
-+The client is then free to ignore any returned ``CAPTURE`` buffer that comes
-+from the pre-seek position.
-+
-+Pause
-+=====
-+
-+In order to pause, the client can just cease queuing buffers onto the ``OUTPUT``
-+queue. Without source bitstream data, there is no data to process and the codec
-+will remain idle.
-+
-+Dynamic resolution change
-+=========================
-+
-+If the client detects a resolution change in the stream, it will need to perform
-+the initialization sequence again with the new resolution:
-+
-+1. Wait until all submitted requests have completed and dequeue the
-+   corresponding output buffers.
-+
-+2. Call :c:func:`VIDIOC_STREAMOFF` on both the ``OUTPUT`` and ``CAPTURE``
-+   queues.
-+
-+3. Free all ``CAPTURE`` buffers by calling :c:func:`VIDIOC_REQBUFS` on the
-+   ``CAPTURE`` queue with a buffer count of zero.
-+
-+4. Perform the initialization sequence again (minus the allocation of
-+   ``OUTPUT`` buffers), with the new resolution set on the ``OUTPUT`` queue.
-+   Note that due to resolution constraints, a different format may need to be
-+   picked on the ``CAPTURE`` queue.
-+
-+Drain
-+=====
-+
-+In order to drain the stream on a stateless decoder, the client just needs to
-+wait until all the submitted requests are completed. There is no need to send a
-+``V4L2_DEC_CMD_STOP`` command since requests are processed sequentially by the
-+decoder.
--- 
-2.21.0.352.gf09ad66450-goog
+Yes, but sorting by index makes it easier to deal with the sink-sink
+and source-source use cases, if the subdevice supports indirect
+routes.
 
+I have dropped 15/30 and specified pads are passed by index in v3.
+
+Thanks
+  j
+
+>
+> > >>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >>>>>> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@rag=
+natech.se>
+> > >>>>>> ---
+> > >>>>>>  drivers/media/media-entity.c | 4 ++++
+> > >>>>>>  1 file changed, 4 insertions(+)
+> > >>>>>>
+> > >>>>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-=
+entity.c
+> > >>>>>> index 3c0e7425c8983b45..33f00e35ccd92c6f 100644
+> > >>>>>> --- a/drivers/media/media-entity.c
+> > >>>>>> +++ b/drivers/media/media-entity.c
+> > >>>>>> @@ -249,6 +249,10 @@ bool media_entity_has_route(struct media_en=
+tity *entity, unsigned int pad0,
+> > >>>>>>  	if (!entity->ops || !entity->ops->has_route)
+> > >>>>>>  		return true;
+> > >>>>>>
+> > >>>>>> +	if (entity->pads[pad0].flags & MEDIA_PAD_FL_SOURCE
+> > >>>>>> +	    && entity->pads[pad1].flags & MEDIA_PAD_FL_SINK)
+> > >>>>>> +		swap(pad0, pad1);
+> > >>>>>> +
+> > >>>>>>  	return entity->ops->has_route(entity, pad0, pad1);
+> > >>>>>>  }
+> > >>>>>>  EXPORT_SYMBOL_GPL(media_entity_has_route);
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+
+--ujeqxfwldlxyvs2i
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlx/hPoACgkQcjQGjxah
+VjwKhRAAl/CBce5OfACH8HpLqI5AkPxanpKk1bnigbjvrlC38sUTNe1EXz6Ea3Cl
+tiABEhvZHd8LUi7vMOT/EvcpySo/fW4906ZQRHCv8it0ySTxfH65HLiwhrM6Bm+C
+Afo5ef0+JyRGpC3mWi+1numYuyGAx5SbeCfI7VxPSF5gs/WZg2uoz2pkfcJyLftz
+GbqYqGh2fnMXJr0s7R1QLNEClLOk/WwDbgY/AMqLsc05bdeSt3pvy/OmCXOVBqFd
+b3J6pLZ6Xv6+3JNQcysSj+AaxxNmc6rijO+hKHOXHkiGtyIg/UO1xwtdvTT6bjTI
+yLIbTuUR8yGRi/1Hu98qSAA2eAlLFwXR722wiWotQC/qQNsf57ukpxMYpIPt3WuR
+Ok0icY+3U8vUKxGBQ/lCFJovjsFhI/ZUxeL8TS+qjfeT6864MsSWZfcdmRd/YkV/
+krIOGoX2iOJEcnhcY8O+70EY4HVtHu37xddGidTqvhlC7rymG1ceOlKX16M8lcwB
+DincX1cpoXGq8hGFBt/gA41DOI07p/RAX55ebdabKQ6WwO6w1RbrD6vjydfk3oVX
+xWSzr8P2UdpXJGEtTSyaCOKRxzurhCFZSddX6e1nGw3vpULBPH1D9gc0xoKcc6bf
+otKxul5HhHujagVHuI5nM9kDPRX7W8YfE+0M1n6nHaAZoiR2VLA=
+=D110
+-----END PGP SIGNATURE-----
+
+--ujeqxfwldlxyvs2i--
