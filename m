@@ -2,121 +2,159 @@ Return-Path: <SRS0=yxRx=RK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81ED1C4360F
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:09:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EB7DC43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:10:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 597C820835
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:09:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 086B320835
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:10:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726131AbfCGKJ2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 05:09:28 -0500
-Received: from mga18.intel.com ([134.134.136.126]:33721 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726101AbfCGKJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Mar 2019 05:09:28 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Mar 2019 02:09:27 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,451,1544515200"; 
-   d="scan'208";a="129584438"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga008.fm.intel.com with ESMTP; 07 Mar 2019 02:09:26 -0800
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 07442204CC; Thu,  7 Mar 2019 12:09:24 +0200 (EET)
-Date:   Thu, 7 Mar 2019 12:09:24 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc:     laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 12/31] media: entity: Add an iterator helper for
- connected pads
-Message-ID: <20190307100924.4iuabzet67ttgk2p@paasikivi.fi.intel.com>
-References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
- <20190305185150.20776-13-jacopo+renesas@jmondi.org>
+        id S1726395AbfCGKKH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 05:10:07 -0500
+Received: from regular1.263xmail.com ([211.150.99.136]:48098 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726148AbfCGKKF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2019 05:10:05 -0500
+Received: from randy.li?rock-chips.com (unknown [192.168.167.139])
+        by regular1.263xmail.com (Postfix) with ESMTP id 4166C48E;
+        Thu,  7 Mar 2019 18:03:27 +0800 (CST)
+X-263anti-spam: KSV:0;
+X-MAIL-GRAY: 0
+X-MAIL-DELIVERY: 1
+X-KSVirus-check: 0
+X-ABS-CHECKED: 4
+Received: from randy-pc.lan (unknown [58.22.7.114])
+        by smtp.263.net (postfix) whith ESMTP id P17008T140071111993088S1551952999924990_;
+        Thu, 07 Mar 2019 18:03:27 +0800 (CST)
+X-IP-DOMAINF: 1
+X-UNIQUE-TAG: <f008dc88e6b82d623552a75b76084900>
+X-RL-SENDER: randy.li@rock-chips.com
+X-SENDER: randy.li@rock-chips.com
+X-LOGIN-NAME: randy.li@rock-chips.com
+X-FST-TO: linux-media@vger.kernel.org
+X-SENDER-IP: 58.22.7.114
+X-ATTACHMENT-NUM: 0
+X-DNS-TYPE: 0
+From:   Randy Li <randy.li@rock-chips.com>
+To:     linux-media@vger.kernel.org
+Cc:     Randy Li <randy.li@rock-chips.com>, ayaka@soulik.info,
+        hverkuil@xs4all.nl, maxime.ripard@bootlin.com, joro@8bytes.org,
+        linux-kernel@vger.kernel.org, jernej.skrabec@gmail.com,
+        nicolas@ndufresne.ca, paul.kocialkowski@bootlin.com,
+        linux-rockchip@lists.infradead.org, thomas.petazzoni@bootlin.com,
+        mchehab@kernel.org, ezequiel@collabora.com,
+        linux-arm-kernel@lists.infradead.org, posciak@chromium.org,
+        groeck@chromium.org
+Subject: [PATCH v2 0/6] [WIP]: rockchip mpp for v4l2 video deocder
+Date:   Thu,  7 Mar 2019 18:03:10 +0800
+Message-Id: <20190307100316.925-1-randy.li@rock-chips.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190305185150.20776-13-jacopo+renesas@jmondi.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+Although I really want to push those work after I added more codec
+supports, but I found it is more urge to do those in v4l2 core framework and
+userspace.
 
-On Tue, Mar 05, 2019 at 07:51:31PM +0100, Jacopo Mondi wrote:
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Add a helper macro for iterating over pads that are connected through
-> enabled routes. This can be used to find all the connected pads within an
-> entity, for instance starting from the pad which has been obtained during
-> the graph walk.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> - Make __media_entity_next_routed_pad() return NULL and adjust the
->   iterator to handle that
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  include/media/media-entity.h | 27 +++++++++++++++++++++++++++
->  1 file changed, 27 insertions(+)
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 205561545d7e..82f0bdf2a6d1 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -936,6 +936,33 @@ __must_check int media_graph_walk_init(
->  bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
->  			    unsigned int pad1);
->  
-> +static inline struct media_pad *__media_entity_next_routed_pad(
-> +	struct media_pad *start, struct media_pad *iter)
-> +{
-> +	struct media_entity *entity = start->entity;
-> +
-> +	while (iter < &entity->pads[entity->num_pads] &&
-> +	       !media_entity_has_route(entity, start->index, iter->index))
-> +		iter++;
-> +
-> +	return iter == &entity->pads[entity->num_pads] ? NULL : iter;
+I would use this driver to present the current problems, write down a
+summary here and I would reply to those threads later to push forward.
 
-Could you use iter <= ...?
+1. Slice construction is a bad idea. I think I have said my reason in
+the IRC and mail before, vp9 is always good example.
 
-It doesn't seem to matter here, but it'd seem safer to change the check.
+And it would request the driver to update QP table/CABAC table every
+slice.
 
-> +}
-> +
-> +/**
-> + * media_entity_for_each_routed_pad - Iterate over entity pads connected by routes
-> + *
-> + * @start: The stating pad
-> + * @iter: The iterator pad
-> + *
-> + * Iterate over all pads connected through routes from a given pad
-> + * within an entity. The iteration will include the starting pad itself.
-> + */
-> +#define media_entity_for_each_routed_pad(start, iter)			\
-> +	for (iter = __media_entity_next_routed_pad(			\
-> +		     start, (start)->entity->pads);			\
-> +	     iter != NULL;						\
-> +	     iter = __media_entity_next_routed_pad(start, iter + 1))
-> +
->  /**
->   * media_graph_walk_cleanup - Release resources used by graph walk.
->   *
+I would make something to describe a buffer with some addtional meta
+data.
+
+But the current request API limit a buffer with associated with
+an request buffer, which prevent sharing some sequence data, but it 
+still can solve some problems.
+
+2. Advantage DMA memory control.
+I think I need to do some work at v4l2 core.
+
+2.1 The DMA address of each planes. I have sent a mail before talked
+about why multiple planes is necessary for the rockchip platform. And
+it maybe required by the other platforms.
+
+2.2 IOMMU resume
+The most effective way to restore the decoder from critical error is
+doing a restting  by reset controller.
+Which would leading its slave IOMMU reset at the same time. Then none of
+those v4l2 buffers are mapping in the IOMMU.
+
+3. H.264 and HEVC header
+I still think those structure have some not necessary fileds in dpb or
+reference part, which I don't think hardware decoder would care about
+that or can be predict from the other information.
+
+I would join to talk later.
+
+4. The work flow of V4L2
+I need a method to prepare the register set before the device acutally
+begin the transaction. Which is necessary for those high frame rate usecase.
+
+Also it is useful for those device would share some hardware resources
+with the other device and it can save more power.
+
+I think I need to do some work at v4l2 core.
+
+Randy Li (6):
+  arm64: dts: rockchip: add power domain to iommu
+  staging: video: rockchip: add v4l2 decoder
+  [TEST]: rockchip: mpp: support qptable
+  staging: video: rockchip: add video codec
+  arm64: dts: rockchip: boost clocks for rk3328
+  arm64: dts: rockchip: add video codec for rk3328
+
+ .../arm64/boot/dts/rockchip/rk3328-rock64.dts |   32 +
+ arch/arm64/boot/dts/rockchip/rk3328.dtsi      |  116 +-
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi      |    2 +
+ drivers/staging/Kconfig                       |    2 +
+ drivers/staging/Makefile                      |    1 +
+ drivers/staging/rockchip-mpp/Kconfig          |   34 +
+ drivers/staging/rockchip-mpp/Makefile         |   10 +
+ drivers/staging/rockchip-mpp/mpp_debug.h      |   87 ++
+ drivers/staging/rockchip-mpp/mpp_dev_common.c | 1367 +++++++++++++++++
+ drivers/staging/rockchip-mpp/mpp_dev_common.h |  212 +++
+ drivers/staging/rockchip-mpp/mpp_dev_rkvdec.c |  997 ++++++++++++
+ drivers/staging/rockchip-mpp/mpp_dev_vdpu2.c  |  619 ++++++++
+ drivers/staging/rockchip-mpp/mpp_service.c    |  197 +++
+ drivers/staging/rockchip-mpp/mpp_service.h    |   38 +
+ drivers/staging/rockchip-mpp/rkvdec/hal.h     |   63 +
+ drivers/staging/rockchip-mpp/rkvdec/hevc.c    |  166 ++
+ drivers/staging/rockchip-mpp/rkvdec/regs.h    |  608 ++++++++
+ drivers/staging/rockchip-mpp/vdpu2/hal.h      |   52 +
+ drivers/staging/rockchip-mpp/vdpu2/mpeg2.c    |  277 ++++
+ drivers/staging/rockchip-mpp/vdpu2/regs.h     |  699 +++++++++
+ 20 files changed, 5575 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/staging/rockchip-mpp/Kconfig
+ create mode 100644 drivers/staging/rockchip-mpp/Makefile
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_debug.h
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_common.c
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_common.h
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_rkvdec.c
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_vdpu2.c
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_service.c
+ create mode 100644 drivers/staging/rockchip-mpp/mpp_service.h
+ create mode 100644 drivers/staging/rockchip-mpp/rkvdec/hal.h
+ create mode 100644 drivers/staging/rockchip-mpp/rkvdec/hevc.c
+ create mode 100644 drivers/staging/rockchip-mpp/rkvdec/regs.h
+ create mode 100644 drivers/staging/rockchip-mpp/vdpu2/hal.h
+ create mode 100644 drivers/staging/rockchip-mpp/vdpu2/mpeg2.c
+ create mode 100644 drivers/staging/rockchip-mpp/vdpu2/regs.h
 
 -- 
-Kind regards,
+2.20.1
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+
+
