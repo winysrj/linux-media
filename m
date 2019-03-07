@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 957B3C10F03
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF796C10F0C
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68BF020835
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89E3D20840
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726140AbfCGJaK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 04:30:10 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59795 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726057AbfCGJaJ (ORCPT
+        id S1726226AbfCGJaL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 04:30:11 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41557 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726150AbfCGJaJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 7 Mar 2019 04:30:09 -0500
 Received: from test-no.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id 1pLlh7xLdLMwI1pLrhxTCa; Thu, 07 Mar 2019 10:30:07 +0100
+        id 1pLlh7xLdLMwI1pLqhxTCQ; Thu, 07 Mar 2019 10:30:07 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv3 6/9] v4l2-subdev: add release() internal op
-Date:   Thu,  7 Mar 2019 10:29:58 +0100
-Message-Id: <20190307093001.30435-7-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv3 5/9] vim2m: replace devm_kzalloc by kzalloc
+Date:   Thu,  7 Mar 2019 10:29:57 +0100
+Message-Id: <20190307093001.30435-6-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
 References: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
@@ -45,92 +45,130 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-If the subdevice created a device node, then the v4l2_subdev cannot
-be freed until the last user of the device node closes it.
+It is not possible to use devm_kzalloc since that memory is
+freed immediately when the device instance is unbound.
 
-This means that we need a release() callback in v4l2_subdev_internal_ops
-that is called from the video_device release function so the subdevice
-driver can postpone freeing memory until the that callback is called.
+Various objects like the video device may still be in use
+since someone has the device node open, and when that is closed
+it expects the memory to be around.
 
-If no video device node was created then the release callback can
-be called immediately when the subdev is unregistered.
+So use kzalloc and release it at the appropriate time.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-device.c | 19 ++++++++++++++-----
- include/media/v4l2-subdev.h           | 13 ++++++++++++-
- 2 files changed, 26 insertions(+), 6 deletions(-)
+ drivers/media/platform/vim2m.c | 35 +++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index e0ddb9a52bd1..7cca0de1b730 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -216,10 +216,18 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 34dcaca45d8b..dd47821fc661 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -1262,6 +1262,15 @@ static int vim2m_release(struct file *file)
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
  
-+static void v4l2_subdev_release(struct v4l2_subdev *sd)
++static void vim2m_device_release(struct video_device *vdev)
 +{
-+	struct module *owner = !sd->owner_v4l2_dev ? sd->owner : NULL;
++	struct vim2m_dev *dev = container_of(vdev, struct vim2m_dev, vfd);
 +
-+	if (sd->internal_ops && sd->internal_ops->release)
-+		sd->internal_ops->release(sd);
-+	module_put(owner);
++	v4l2_device_unregister(&dev->v4l2_dev);
++	v4l2_m2m_release(dev->m2m_dev);
++	kfree(dev);
 +}
 +
- static void v4l2_device_release_subdev_node(struct video_device *vdev)
- {
--	struct v4l2_subdev *sd = video_get_drvdata(vdev);
--	sd->devnode = NULL;
-+	v4l2_subdev_release(video_get_drvdata(vdev));
- 	kfree(vdev);
- }
- 
-@@ -318,8 +326,9 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 		media_device_unregister_entity(&sd->entity);
- 	}
- #endif
--	video_unregister_device(sd->devnode);
--	if (!sd->owner_v4l2_dev)
--		module_put(sd->owner);
-+	if (sd->devnode)
-+		video_unregister_device(sd->devnode);
-+	else
-+		v4l2_subdev_release(sd);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 349e1c18cf48..0ee7ecd5ce77 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -755,7 +755,17 @@ struct v4l2_subdev_ops {
-  *
-  * @open: called when the subdev device node is opened by an application.
-  *
-- * @close: called when the subdev device node is closed.
-+ * @close: called when the subdev device node is closed. Please note that
-+ * 	it is possible for @close to be called after @unregistered!
-+ *
-+ * @release: called when the last user of the subdev device is gone. This
-+ *	happens after the @unregistered callback and when the last open
-+ *	filehandle to the v4l-subdevX device node was closed. If no device
-+ *	node was created for this sub-device, then the @release callback
-+ *	is called right after the @unregistered callback.
-+ *	The @release callback is typically used to free the memory containing
-+ *	the v4l2_subdev structure. It is almost certainly required for any
-+ *	sub-device that sets the V4L2_SUBDEV_FL_HAS_DEVNODE flag.
-  *
-  * .. note::
-  *	Never call this from drivers, only the v4l2 framework can call
-@@ -766,6 +776,7 @@ struct v4l2_subdev_internal_ops {
- 	void (*unregistered)(struct v4l2_subdev *sd);
- 	int (*open)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
- 	int (*close)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
-+	void (*release)(struct v4l2_subdev *sd);
+ static const struct v4l2_file_operations vim2m_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= vim2m_open,
+@@ -1277,7 +1286,7 @@ static const struct video_device vim2m_videodev = {
+ 	.fops		= &vim2m_fops,
+ 	.ioctl_ops	= &vim2m_ioctl_ops,
+ 	.minor		= -1,
+-	.release	= video_device_release_empty,
++	.release	= vim2m_device_release,
+ 	.device_caps	= V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING,
  };
  
- #define V4L2_SUBDEV_NAME_SIZE 32
+@@ -1298,13 +1307,13 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	struct video_device *vfd;
+ 	int ret;
+ 
+-	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+-		return ret;
++		goto error_free;
+ 
+ 	atomic_set(&dev->num_inst, 0);
+ 	mutex_init(&dev->dev_mutex);
+@@ -1317,7 +1326,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
+-		goto unreg_v4l2;
++		goto error_v4l2;
+ 	}
+ 
+ 	video_set_drvdata(vfd, dev);
+@@ -1330,7 +1339,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	if (IS_ERR(dev->m2m_dev)) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
+ 		ret = PTR_ERR(dev->m2m_dev);
+-		goto unreg_dev;
++		goto error_dev;
+ 	}
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+@@ -1346,27 +1355,29 @@ static int vim2m_probe(struct platform_device *pdev)
+ 						 MEDIA_ENT_F_PROC_VIDEO_SCALER);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
+-		goto unreg_m2m;
++		goto error_m2m;
+ 	}
+ 
+ 	ret = media_device_register(&dev->mdev);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
+-		goto unreg_m2m_mc;
++		goto error_m2m_mc;
+ 	}
+ #endif
+ 	return 0;
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-unreg_m2m_mc:
++error_m2m_mc:
+ 	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
+-unreg_m2m:
++error_m2m:
+ 	v4l2_m2m_release(dev->m2m_dev);
+ #endif
+-unreg_dev:
++error_dev:
+ 	video_unregister_device(&dev->vfd);
+-unreg_v4l2:
++error_v4l2:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
++error_free:
++	kfree(dev);
+ 
+ 	return ret;
+ }
+@@ -1382,9 +1393,7 @@ static int vim2m_remove(struct platform_device *pdev)
+ 	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
+ 	media_device_cleanup(&dev->mdev);
+ #endif
+-	v4l2_m2m_release(dev->m2m_dev);
+ 	video_unregister_device(&dev->vfd);
+-	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+ 	return 0;
+ }
 -- 
 2.20.1
 
