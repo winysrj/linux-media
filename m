@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A29C8C4360F
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E66C43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E96E20851
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1448F20835
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726233AbfCGJaM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 04:30:12 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:45312 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726216AbfCGJaK (ORCPT
+        id S1726224AbfCGJaL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 04:30:11 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43749 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726015AbfCGJaJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Mar 2019 04:30:10 -0500
+        Thu, 7 Mar 2019 04:30:09 -0500
 Received: from test-no.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id 1pLlh7xLdLMwI1pLrhxTD2; Thu, 07 Mar 2019 10:30:08 +0100
+        id 1pLlh7xLdLMwI1pLrhxTCi; Thu, 07 Mar 2019 10:30:07 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv3 9/9] vimc: use new release op
-Date:   Thu,  7 Mar 2019 10:30:01 +0100
-Message-Id: <20190307093001.30435-10-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv3 7/9] v4l2-subdev: handle module refcounting here
+Date:   Thu,  7 Mar 2019 10:29:59 +0100
+Message-Id: <20190307093001.30435-8-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
 References: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfKyGY2JhlEt62hSNaSe6vEd+MwasAyQnkBNVfBdZLmmTVKB7crKK3SpCyEWb4C78iCWIR76qtxjRpWfV622oUUEYp09goyalLkRksjXc00xlgvFre6PI
- d+yKwgVzJ3Yl/kbh1Jm2izVbmhh2d9bgzRzg8XmkU++tsdAO8SKeeBK02uUicYF0TvUrV3to5ChRMw35yOjrxuYNtM13DML1JUCmrK5F4z7Ocg6ai+jocQAh
- k72hyyM/2HVAGE7JF9jPdZbznNDGo4Dfz3urGJxmSXna1dNq/CObkiU8lDPRBFABl2dZQ8cF/BdTwUY+ttHKpQ==
+X-CMAE-Envelope: MS4wfN8kVqLfMSIe67KDjPWm7pSwY91BmLSoJhwI/fxub4/tZMqvd5NqVW/d123Y2Mx4LZSgDg6Cl4m1NXZSezslHhNvXQo+osxvyyiJn3u2CLqIFVtmLZbr
+ x+5ws6qHa8aOofg75DTFIi9/my+GrOL3I59aUC01miCMjpcN/dK3HlIevUQZW4cnCIaY9fTsky7vN7QtlqM1Fql/daJBcVfXHr101s7zr/pyfZ4KDwP0RWSG
+ LgvEWuFQMuwKwCtxRh8MG3z0lUk9RUSzk2TAx91mh+cc0wkdNoy5oqA3jMyBztYNfYAdjPh3UxK9P84U97FubQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -45,183 +45,197 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Use the new v4l2_subdev_internal_ops release op to free the
-subdev memory only once the last user closed the file handle.
+The module ownership refcounting was done in media_entity_get/put,
+but that was very confusing and it did not work either in case an
+application had a v4l-subdevX device open and the module was
+unbound. When the v4l-subdevX device was closed the media_entity_put
+was never called and the module refcount was left one too high, making
+it impossible to unload it.
+
+Since v4l2-subdev.c was the only place where media_entity_get/put was
+called, just move the functionality to v4l2-subdev.c and drop those
+confusing entity functions.
+
+Store the module in subdev_fh so module_put no longer depends on
+the media_entity struct.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/vimc/vimc-common.c  |  2 ++
- drivers/media/platform/vimc/vimc-common.h  |  2 ++
- drivers/media/platform/vimc/vimc-debayer.c | 15 +++++++++++++--
- drivers/media/platform/vimc/vimc-scaler.c  | 15 +++++++++++++--
- drivers/media/platform/vimc/vimc-sensor.c  | 19 +++++++++++++++----
- 5 files changed, 45 insertions(+), 8 deletions(-)
+ drivers/media/media-entity.c          | 28 ---------------------------
+ drivers/media/v4l2-core/v4l2-subdev.c | 22 +++++++++------------
+ include/media/media-entity.h          | 24 -----------------------
+ include/media/v4l2-subdev.h           |  2 ++
+ 4 files changed, 11 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-index c1a74bb2df58..0adbfd8fd26d 100644
---- a/drivers/media/platform/vimc/vimc-common.c
-+++ b/drivers/media/platform/vimc/vimc-common.c
-@@ -380,6 +380,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 			 u32 function,
- 			 u16 num_pads,
- 			 const unsigned long *pads_flag,
-+			 const struct v4l2_subdev_internal_ops *sd_int_ops,
- 			 const struct v4l2_subdev_ops *sd_ops)
- {
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 7b2a2cc95530..257f20d2fb8a 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -17,7 +17,6 @@
+  */
+ 
+ #include <linux/bitmap.h>
+-#include <linux/module.h>
+ #include <linux/property.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
+@@ -588,33 +587,6 @@ void media_pipeline_stop(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL_GPL(media_pipeline_stop);
+ 
+-/* -----------------------------------------------------------------------------
+- * Module use count
+- */
+-
+-struct media_entity *media_entity_get(struct media_entity *entity)
+-{
+-	if (entity == NULL)
+-		return NULL;
+-
+-	if (entity->graph_obj.mdev->dev &&
+-	    !try_module_get(entity->graph_obj.mdev->dev->driver->owner))
+-		return NULL;
+-
+-	return entity;
+-}
+-EXPORT_SYMBOL_GPL(media_entity_get);
+-
+-void media_entity_put(struct media_entity *entity)
+-{
+-	if (entity == NULL)
+-		return;
+-
+-	if (entity->graph_obj.mdev->dev)
+-		module_put(entity->graph_obj.mdev->dev->driver->owner);
+-}
+-EXPORT_SYMBOL_GPL(media_entity_put);
+-
+ /* -----------------------------------------------------------------------------
+  * Links management
+  */
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index f5f0d71ec745..d75815ab0d7b 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/ioctl.h>
+ #include <linux/mm.h>
++#include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+@@ -54,9 +55,6 @@ static int subdev_open(struct file *file)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_subdev_fh *subdev_fh;
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	struct media_entity *entity = NULL;
+-#endif
  	int ret;
-@@ -394,6 +395,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
  
- 	/* Initialize the subdev */
- 	v4l2_subdev_init(sd, sd_ops);
-+	sd->internal_ops = sd_int_ops;
- 	sd->entity.function = function;
- 	sd->entity.ops = &vimc_ent_sd_mops;
- 	sd->owner = THIS_MODULE;
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index 84539430b5e7..c439cbf2f030 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -187,6 +187,7 @@ const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat);
-  * @function:	media entity function defined by MEDIA_ENT_F_* macros
-  * @num_pads:	number of pads to initialize
-  * @pads_flag:	flags to use in each pad
-+ * @sd_int_ops:	pointer to &struct v4l2_subdev_internal_ops
-  * @sd_ops:	pointer to &struct v4l2_subdev_ops.
-  *
-  * Helper function initialize and register the struct vimc_ent_device and struct
-@@ -199,6 +200,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 			 u32 function,
- 			 u16 num_pads,
- 			 const unsigned long *pads_flag,
-+			 const struct v4l2_subdev_internal_ops *sd_int_ops,
- 			 const struct v4l2_subdev_ops *sd_ops);
+ 	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
+@@ -73,12 +71,15 @@ static int subdev_open(struct file *file)
+ 	v4l2_fh_add(&subdev_fh->vfh);
+ 	file->private_data = &subdev_fh->vfh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (sd->v4l2_dev->mdev) {
+-		entity = media_entity_get(&sd->entity);
+-		if (!entity) {
++	if (sd->v4l2_dev->mdev && sd->entity.graph_obj.mdev->dev) {
++		struct module *owner;
++
++		owner = sd->entity.graph_obj.mdev->dev->driver->owner;
++		if (!try_module_get(owner)) {
+ 			ret = -EBUSY;
+ 			goto err;
+ 		}
++		subdev_fh->owner = owner;
+ 	}
+ #endif
  
+@@ -91,9 +92,7 @@ static int subdev_open(struct file *file)
+ 	return 0;
+ 
+ err:
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	media_entity_put(entity);
+-#endif
++	module_put(subdev_fh->owner);
+ 	v4l2_fh_del(&subdev_fh->vfh);
+ 	v4l2_fh_exit(&subdev_fh->vfh);
+ 	subdev_fh_free(subdev_fh);
+@@ -111,10 +110,7 @@ static int subdev_close(struct file *file)
+ 
+ 	if (sd->internal_ops && sd->internal_ops->close)
+ 		sd->internal_ops->close(sd, subdev_fh);
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (sd->v4l2_dev->mdev)
+-		media_entity_put(&sd->entity);
+-#endif
++	module_put(subdev_fh->owner);
+ 	v4l2_fh_del(vfh);
+ 	v4l2_fh_exit(vfh);
+ 	subdev_fh_free(subdev_fh);
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e5f6960d92f6..3cbad42e3693 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -864,19 +864,6 @@ struct media_link *media_entity_find_link(struct media_pad *source,
+  */
+ struct media_pad *media_entity_remote_pad(const struct media_pad *pad);
+ 
+-/**
+- * media_entity_get - Get a reference to the parent module
+- *
+- * @entity: The entity
+- *
+- * Get a reference to the parent media device module.
+- *
+- * The function will return immediately if @entity is %NULL.
+- *
+- * Return: returns a pointer to the entity on success or %NULL on failure.
+- */
+-struct media_entity *media_entity_get(struct media_entity *entity);
+-
  /**
-diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-index 7d77c63b99d2..eaed4233ad1b 100644
---- a/drivers/media/platform/vimc/vimc-debayer.c
-+++ b/drivers/media/platform/vimc/vimc-debayer.c
-@@ -489,6 +489,18 @@ static void *vimc_deb_process_frame(struct vimc_ent_device *ved,
+  * media_entity_get_fwnode_pad - Get pad number from fwnode
+  *
+@@ -916,17 +903,6 @@ __must_check int media_graph_walk_init(
+  */
+ void media_graph_walk_cleanup(struct media_graph *graph);
  
- }
- 
-+static void vimc_deb_release(struct v4l2_subdev *sd)
-+{
-+	struct vimc_deb_device *vdeb =
-+				container_of(sd, struct vimc_deb_device, sd);
-+
-+	kfree(vdeb);
-+}
-+
-+static const struct v4l2_subdev_internal_ops vimc_deb_int_ops = {
-+	.release = vimc_deb_release,
-+};
-+
- static void vimc_deb_comp_unbind(struct device *comp, struct device *master,
- 				 void *master_data)
- {
-@@ -497,7 +509,6 @@ static void vimc_deb_comp_unbind(struct device *comp, struct device *master,
- 						    ved);
- 
- 	vimc_ent_sd_unregister(ved, &vdeb->sd);
--	kfree(vdeb);
- }
- 
- static int vimc_deb_comp_bind(struct device *comp, struct device *master,
-@@ -519,7 +530,7 @@ static int vimc_deb_comp_bind(struct device *comp, struct device *master,
- 				   MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV, 2,
- 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
- 				   MEDIA_PAD_FL_SOURCE},
--				   &vimc_deb_ops);
-+				   &vimc_deb_int_ops, &vimc_deb_ops);
- 	if (ret) {
- 		kfree(vdeb);
- 		return ret;
-diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-index 39b2a73dfcc1..2028afa4ef7a 100644
---- a/drivers/media/platform/vimc/vimc-scaler.c
-+++ b/drivers/media/platform/vimc/vimc-scaler.c
-@@ -348,6 +348,18 @@ static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
- 	return vsca->src_frame;
- };
- 
-+static void vimc_sca_release(struct v4l2_subdev *sd)
-+{
-+	struct vimc_sca_device *vsca =
-+				container_of(sd, struct vimc_sca_device, sd);
-+
-+	kfree(vsca);
-+}
-+
-+static const struct v4l2_subdev_internal_ops vimc_sca_int_ops = {
-+	.release = vimc_sca_release,
-+};
-+
- static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
- 				 void *master_data)
- {
-@@ -356,7 +368,6 @@ static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
- 						    ved);
- 
- 	vimc_ent_sd_unregister(ved, &vsca->sd);
--	kfree(vsca);
- }
- 
- 
-@@ -379,7 +390,7 @@ static int vimc_sca_comp_bind(struct device *comp, struct device *master,
- 				   MEDIA_ENT_F_PROC_VIDEO_SCALER, 2,
- 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
- 				   MEDIA_PAD_FL_SOURCE},
--				   &vimc_sca_ops);
-+				   &vimc_sca_int_ops, &vimc_sca_ops);
- 	if (ret) {
- 		kfree(vsca);
- 		return ret;
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 59195f262623..d7891d3bbeaa 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -301,6 +301,20 @@ static const struct v4l2_ctrl_ops vimc_sen_ctrl_ops = {
- 	.s_ctrl = vimc_sen_s_ctrl,
- };
- 
-+static void vimc_sen_release(struct v4l2_subdev *sd)
-+{
-+	struct vimc_sen_device *vsen =
-+				container_of(sd, struct vimc_sen_device, sd);
-+
-+	v4l2_ctrl_handler_free(&vsen->hdl);
-+	tpg_free(&vsen->tpg);
-+	kfree(vsen);
-+}
-+
-+static const struct v4l2_subdev_internal_ops vimc_sen_int_ops = {
-+	.release = vimc_sen_release,
-+};
-+
- static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
- 				 void *master_data)
- {
-@@ -309,9 +323,6 @@ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
- 				container_of(ved, struct vimc_sen_device, ved);
- 
- 	vimc_ent_sd_unregister(ved, &vsen->sd);
--	v4l2_ctrl_handler_free(&vsen->hdl);
--	tpg_free(&vsen->tpg);
--	kfree(vsen);
- }
- 
- /* Image Processing Controls */
-@@ -371,7 +382,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
- 				   pdata->entity_name,
- 				   MEDIA_ENT_F_CAM_SENSOR, 1,
- 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
--				   &vimc_sen_ops);
-+				   &vimc_sen_int_ops, &vimc_sen_ops);
- 	if (ret)
- 		goto err_free_hdl;
- 
+-/**
+- * media_entity_put - Release the reference to the parent module
+- *
+- * @entity: The entity
+- *
+- * Release the reference count acquired by media_entity_get().
+- *
+- * The function will return immediately if @entity is %NULL.
+- */
+-void media_entity_put(struct media_entity *entity);
+-
+ /**
+  * media_graph_walk_start - Start walking the media graph at a
+  *	given entity
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ee7ecd5ce77..0c2e3a8f8200 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -910,9 +910,11 @@ struct v4l2_subdev {
+  *
+  * @vfh: pointer to &struct v4l2_fh
+  * @pad: pointer to &struct v4l2_subdev_pad_config
++ * @owner: module pointer to the owner of this file handle
+  */
+ struct v4l2_subdev_fh {
+ 	struct v4l2_fh vfh;
++	struct module *owner;
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	struct v4l2_subdev_pad_config *pad;
+ #endif
 -- 
 2.20.1
 
