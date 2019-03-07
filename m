@@ -6,170 +6,98 @@ X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C143C43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 15:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA504C43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 16:07:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B46F20652
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 15:55:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEB2D20684
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 16:07:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726524AbfCGPz0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 10:55:26 -0500
-Received: from mga01.intel.com ([192.55.52.88]:27082 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726294AbfCGPz0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Mar 2019 10:55:26 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Mar 2019 07:55:25 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,451,1544515200"; 
-   d="scan'208";a="152932135"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga001.fm.intel.com with ESMTP; 07 Mar 2019 07:55:24 -0800
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 5F243204CC; Thu,  7 Mar 2019 17:55:23 +0200 (EET)
-Date:   Thu, 7 Mar 2019 17:55:23 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Benoit Parrot <bparrot@ti.com>
-Cc:     linux-media@vger.kernel.org, akinobu.mita@gmail.com,
-        robert.jarzmik@free.fr, hverkuil@xs4all.nl
-Subject: Re: [PATCH v1.1 4/4] ti-vpe: Parse local endpoint for properties,
- not the remote one
-Message-ID: <20190307155523.nmimw4c3rbqvmdeu@paasikivi.fi.intel.com>
-References: <20190305135602.24199-5-sakari.ailus@linux.intel.com>
- <20190305140224.25889-1-sakari.ailus@linux.intel.com>
- <20190305143409.yzmusyvuaab5ap4w@ti.com>
- <20190305163239.23qfa3o4utolln6f@kekkonen.localdomain>
- <20190305173842.fiwxqaujxlvybbty@ti.com>
- <20190305204844.pkusug2b37oxw7fm@kekkonen.localdomain>
- <20190307153412.fdva7pvjxtv2p2b4@ti.com>
+        id S1726200AbfCGQHl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 11:07:41 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37396 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726161AbfCGQHk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Mar 2019 11:07:40 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 9F982634C7B;
+        Thu,  7 Mar 2019 18:06:31 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1h1vXU-0002ky-C9; Thu, 07 Mar 2019 18:06:32 +0200
+Date:   Thu, 7 Mar 2019 18:06:32 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     hverkuil-cisco@xs4all.nl, linux-media@vger.kernel.org,
+        Helen Koike <helen.koike@collabora.com>
+Subject: Re: [PATCHv2 7/9] v4l2-subdev: handle module refcounting here
+Message-ID: <20190307160632.zjd2uohsnusvciop@valkosipuli.retiisi.org.uk>
+References: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
+ <20190305095847.21428-8-hverkuil-cisco@xs4all.nl>
+ <20190305195214.GH14928@pendragon.ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190307153412.fdva7pvjxtv2p2b4@ti.com>
+In-Reply-To: <20190305195214.GH14928@pendragon.ideasonboard.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Mar 07, 2019 at 09:34:12AM -0600, Benoit Parrot wrote:
-> Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 22:48:44 +0200]:
-> > On Tue, Mar 05, 2019 at 11:38:42AM -0600, Benoit Parrot wrote:
-> > > Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 18:32:40 +0200]:
-> > > > Hi Benoit,
-> > > > 
-> > > > On Tue, Mar 05, 2019 at 08:34:09AM -0600, Benoit Parrot wrote:
-> > > > > Sakari,
-> > > > > 
-> > > > > Thank you for the patch.
-> > > > > 
-> > > > > Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Tue [2019-Mar-05 16:02:24 +0200]:
-> > > > > > ti-vpe driver parsed the remote endpoints for properties but ignored the
-> > > > > > local ones. Fix this by parsing the local endpoint properties instead.
-> > > > > 
-> > > > > I am not sure I understand the logic here.  For CSI2 sensor as far as I
-> > > > > understand the lane mapping (clock and data) is driven from the sensor
-> > > > > side. The bridge driver (in this case CAL) needs to setup the receiver side
-> > > > > based on what the sensor (aka remote endpoint) can provide.
-> > > > > 
-> > > > > I failed to see how this fixes things here.
-> > > > > 
-> > > > > Are you suggesting that sensor relevant properties be set (and effectively
-> > > > > duplicated) on the bridge/receiver side?
-> > > > 
-> > > > Yes. The endpoint configuration in general is local to the device and
-> > > > should not be accessed from other device drivers.
-> > > > 
-> > > > The lane mapping, for instance, is specific to a given device --- and may
-> > > > differ even between for two connected endpoints. It's used to reorder the
-> > > > PHY lanes (if the device supports that). Same goes for the clock lane.
-> > > 
-> > > I did not see omap3isp having lane reorder capability, but I guess it would
-> > > be possible for instance, that a sensor uses clock lane 0 and data lane 1
-> > > & 2 but the way it is wired on the board makes it that the receiver would see
-> > > sensor lane 0 on device lane 2 and so on... Not sure why you would wire it
-> > > up that way but who knows...
-> > 
-> > I presume the feature is there to ease PCB design.
-> > 
-> > > 
-> > > > 
-> > > > See e.g. arch/arm/boot/dts/omap3-n9.dts .
-> > 
-> > 	     ^
-> > 
-> > There it is.
-> 
-> Yes I saw that the sensor describes its clock-lanes as 0 and data-lanes as
-> 1 & 2. And that the OMAP3ISP receiver describes its clock-lanes as 2 and
-> data-lanes as 1 & 3.
-> 
-> But when I looked at the driver code itself it just uses those lane config
-> without doing anything else, so to me that just point to the way it's wired up
-> on the board, nothing more. (although I have not looked into any schematics
-> so I am just guessing here)
+Hi Laurent, Hans,
 
-It is wired on the board... and that's the point here indeed. The register
-configured based on this is ISPCSI2_PHY_CFG (driver name, I don't know what
-the datasheet uses).
+On Tue, Mar 05, 2019 at 09:52:14PM +0200, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> (CC'ing Sakari)
+> 
+> Thank you for the patch.
+> 
+> On Tue, Mar 05, 2019 at 10:58:45AM +0100, hverkuil-cisco@xs4all.nl wrote:
+> > From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> > 
+> > The module ownership refcounting was done in media_entity_get/put,
+> > but that was very confusing and it did not work either in case an
+> > application had a v4l-subdevX device open and the module was
+> > unbound. When the v4l-subdevX device was closed the media_entity_put
+> > was never called and the module refcount was left one too high, making
+> > it impossible to unload it.
+
+Hmm. This is not really a proper fix for the problem although it lets you
+unload the module in the case things got horribly wrong. Instead the media
+device may not be allowed to disappear while it is being accessed
+elsewhere.
+
+I think that the merit of this patch is cleaning the code, not really
+fixing a bug. But keeping the owner you can't access later because you've
+released the memory isn't neat either.
+
+How about adding a comment next to the owner field, e.g. "TODO: address
+refcounting properly"?
+
+> > 
+> > Since v4l2-subdev.c was the only place where media_entity_get/put was
+> > called, just move the functionality to v4l2-subdev.c and drop those
+> > confusing entity functions.
+> 
+> I wonder if we will later need to refcount media entities, but we can
+> reintroduce a different version of those two functions then, it doesn't
+> prevent their removal now.
+
+I agree.
 
 > 
-> > 
-> > > > 
-> > > > > 
-> > > > > Some sensor can and do handle multiple data lanes configuration so the
-> > > > > sensor driver also needs to use those properties at probe time, duplicating
-> > > > > the lane data is just asking for a mismatch to happen, no?
-> > > > 
-> > > > It's a different configuration on the sensor side. We currently have no
-> > > > checks in place to verify that the two would match. I haven't heard of this
-> > > > would have really been a problem though.
-> > > 
-> > > I had just never thought about this cases, to me a single source of
-> > > information is better than 2. But anyhow I guess I'll have to update all of
-> > > my relevant dts files in the near future.
-> > 
-> > Do you have in-kernel dts files using this? I presume the driver should
-> > then figure out whether the local endpoint has a configuration and if it
-> > doesn't, then look it up from the remote one. Otherwise old dts binaries
-> > will break. :-(
-> 
-> No I do not currently have any dts in mainline using this feature as of
-> yet. It is used in several DT file in our own kernel tree so I'll have to
-> update those for sure. But between our major releases we do not guarantee
-> DTBs backward compatibility, so depending on when I merge this we may not
-> need to add backward compat code.
-> 
-> I guess you are free to augment the patch to add backward support since this
-> patch is changing the current DT parsing behavior for this driver.
-> 
-> I do have a backlog of patches for this driver I need to up-stream.
-> If you prefer you can drop this patch from the series then I can include a
-> version of it with my set. Up to you.
+> Sakari, when working on lifetime management of objects in the media and
+> V4L2 core, did you come across a need to refcount entities ?
 
-I have an upcoming patch that changes the code again. :-) So I'll keep it
-in my set.
-
-Btw. I checked Documentation/devicetree/bindings/media/ti-cal.txt and it
-seems a bit incomplete. There is no endpoint configuration on CAL side
-(which is understandable now), but there's also the "slave-mode" property
-which looks just inapplicable for this type or hardware.
-
-Also "reg = <0>" can be omitted on ar0330 side. Is this btw. an Aptina
-image sensor or some lesser known TI chip with somewhat similar properties?
-:-) The binding file should describe relevant properties for the device as
-well as the valid values for them. (Excluding graph etc. documentation
-which already exists elsewhere.)
-
-Would you like to address these? :-)
-
-Thanks.
+We will need to do that to allow removing entities safely. The current
+patchset only deals with the media device and it's stille pending on DVB
+framework issues.
 
 -- 
-Kind regards,
+Regards,
 
 Sakari Ailus
-sakari.ailus@linux.intel.com
