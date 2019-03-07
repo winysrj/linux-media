@@ -2,148 +2,86 @@ Return-Path: <SRS0=yxRx=RK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9321FC43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 04:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD255C4360F
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 07:57:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6355020652
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 04:51:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B25C20851
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 07:57:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726161AbfCGEvr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Mar 2019 23:51:47 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56058 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726010AbfCGEvr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Mar 2019 23:51:47 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:7ce3:cc56:17f2:1b6e])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id 1l0Sh6eOnI8AW1l0ThEpRc; Thu, 07 Mar 2019 05:51:45 +0100
-Message-ID: <31e5e4b299b492535f506819e6a76074@smtp-cloud9.xs4all.net>
-Date:   Thu, 07 Mar 2019 05:51:44 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfJ529jN8uA303tKVmXDZqnDZaL8pjZ96oj6HngtJkgQhJc57I5a1+qV4+Kjd9HBc/oiTrGZuKC5Z0fli//fkq1YP/jv80rN8Tdb/kqOSb5DywAYx1NC+
- Nuo7s6XDaQ+DOuQlRZ/EH0OA9A7zcsgwp1fMBgA+JTSLwOaZOq/CGjiXqQUqTKQKP3FCgodare6tPeFY/fRWXe8Gx14ha/NbYqgB81IJPic5a7i8iyBI4s+/
+        id S1726094AbfCGH51 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 02:57:27 -0500
+Received: from mga05.intel.com ([192.55.52.43]:17231 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725788AbfCGH51 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Mar 2019 02:57:27 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Mar 2019 23:57:27 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,451,1544515200"; 
+   d="scan'208";a="121736749"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga006.jf.intel.com with ESMTP; 06 Mar 2019 23:57:23 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id 56030204CC; Thu,  7 Mar 2019 09:57:22 +0200 (EET)
+Date:   Thu, 7 Mar 2019 09:57:22 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Tomasz Figa <tfiga@chromium.org>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: Re: [PATCH 1/5] staging: imgu: Switch to __aligned() from
+ __attribute__((aligned()))
+Message-ID: <20190307075722.d5actmzq2wdzvr5i@paasikivi.fi.intel.com>
+References: <20190220111953.7886-1-sakari.ailus@linux.intel.com>
+ <20190220111953.7886-2-sakari.ailus@linux.intel.com>
+ <CAAFQd5D=kTUEdzc4gStvKH45SMhDycDO_5ipJGaD=+aduiPESw@mail.gmail.com>
+ <CAAFQd5CwQaOivM81fQ4aGYWZTsUEhKOr55XvtwGYSJDJkSELpQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5CwQaOivM81fQ4aGYWZTsUEhKOr55XvtwGYSJDJkSELpQ@mail.gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Mar 07, 2019 at 12:00:59PM +0900, Tomasz Figa wrote:
+> On Thu, Mar 7, 2019 at 12:00 PM Tomasz Figa <tfiga@chromium.org> wrote:
+> >
+> > Hi Sakari,
+> >
+> > On Wed, Feb 20, 2019 at 8:21 PM Sakari Ailus
+> > <sakari.ailus@linux.intel.com> wrote:
+> > >
+> > > __aligned() is preferred. The patch has been generated using the following
+> > > command in the drivers/staging/media/ipu3 directory:
+> > >
+> > > $ git grep -l 'aligned(32)' | \
+> > >         xargs perl -i -pe \
+> > >         's/__attribute__\s*\(\(\s*aligned\s*\(([0-9]+)\s*\)\s*\)\)/__aligned($1)/g;'
+> >
+> > Thanks for the patch. These structs are expected to move to uapi/ once
+> > the driver leaves staging. Is __aligned() now accessible to uapi
+> > headers?
+> 
+> Ah, just noticed the v2 of the series doesn't include this patch.
+> Sorry for the noise.
 
-Results of the daily build of media_tree:
+No worries. I just intended to postpone it first but it seems it's better
+to drop it. Handling __aligned(whatever) is a pain with sed --- as it may
+be more than just numbers.
 
-date:			Thu Mar  7 05:00:15 CET 2019
-media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	9a9aa334dc485e40131f76842f97ea9ad01f80a6
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse version:		0.6.0
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+-- 
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 16
-sparse: OK
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Detailed regression test results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Thursday-test-media-dmesg.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Sakari Ailus
+sakari.ailus@linux.intel.com
