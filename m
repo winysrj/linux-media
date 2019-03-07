@@ -2,99 +2,102 @@ Return-Path: <SRS0=yxRx=RK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5ECFC43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:23:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93833C43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 770CA20835
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:23:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 635F720835
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726134AbfCGJXI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 04:23:08 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:46993 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725747AbfCGJXI (ORCPT
+        id S1726185AbfCGJaH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 04:30:07 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:40711 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726015AbfCGJaH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Mar 2019 04:23:08 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
+        Thu, 7 Mar 2019 04:30:07 -0500
+Received: from test-no.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id 1pF1h7uDsLMwI1pF4hxRP2; Thu, 07 Mar 2019 10:23:06 +0100
-Subject: Re: [PATCHv2 4/9] media-entity: set ent_enum->bmap to NULL after
- freeing it
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     linux-media@vger.kernel.org,
+        id 1pLlh7xLdLMwI1pLphxTBW; Thu, 07 Mar 2019 10:30:05 +0100
+From:   hverkuil-cisco@xs4all.nl
+To:     linux-media@vger.kernel.org
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>
-References: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
- <20190305095847.21428-5-hverkuil-cisco@xs4all.nl>
- <20190305193913.GF14928@pendragon.ideasonboard.com>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <8ea050d7-8827-9432-9737-3a704ea8cfe4@xs4all.nl>
-Date:   Thu, 7 Mar 2019 10:23:03 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+Subject: [PATCHv3 0/9] Various core and virtual driver fixes
+Date:   Thu,  7 Mar 2019 10:29:52 +0100
+Message-Id: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20190305193913.GF14928@pendragon.ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfLLnPb69C9wxvWkvrTuPLrR0car1320cS+d2SbnE2Ucnv90ao1g/2Hxnpx9MInRab4LDulSgsKyD8tIphQaR9/w22O7Qfq85yTSiiXcJLJIB531Ac01I
- Kaw7ewITtwGc4YSOOnVmEl3WoerGF1zhOPx1kLUSAw6OYxtZC4axBBQ4DJeJnDmge9igLjuoRe0LnLwpqYRoCjTn1h7z2QXC5Pi/hvmb9DkCbwokxqggU0rQ
- NafcBPJfkRWh/I368oGCTJDS9kIkkwK5P/a1gJZsTrc=
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfKm51N5Mw31uFM3/Dh5gqOge3zjtDQmtWu7Us6GOy87bn1oMHsfCuShac/90g+lPaKIiuQYhWukQtM2TJ1lJW7LDL7B+52nNS9bh6Iyald56twABDmTR
+ Bnu5jbwA+0hl38Zso7qP8gjo+UYGzpFzYAlnSD/UkIzAWQBltRjjzJczfkrf0EyWlGlQXl9pKjIWvTru3AVtmHqOLZ0i6i1omsUS423FOFHAeP/jVLWYNCXU
+ iWFWZPwb+vs6YFs6o9QLMwboRx1ryMYWY0/GTMVfxvU=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 3/5/19 8:39 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Tue, Mar 05, 2019 at 10:58:42AM +0100, hverkuil-cisco@xs4all.nl wrote:
->> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->>
->> Ensure that this pointer is set to NULL after it is freed.
->> The vimc driver has a static media_entity and after
->> unbinding and rebinding the vimc device the media code will
->> try to free this pointer again since it wasn't set to NULL.
-> 
-> I still think the problem lies in the vimc driver. Reusing static
-> structures is really asking for trouble. I'm however not opposed to
-> merging this patch, as you mentioned the problem will be fixed in vimc
-> too. I still wonder, though, if merging this couldn't make it easier for
-> drivers to do the wrong thing.
+From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-I'm keeping this patch :-)
+Various fixes for bugs that I found while working on the
+regression test-media script.
 
-I don't think that what vimc is doing is wrong in principle, just very unusual.
+The CONFIG_DEBUG_KOBJECT_RELEASE=y option in particular found
+a bunch of bugs where things were not released in the right
+order.
 
-Also I think it makes the mc framework more robust by properly zeroing this
-pointer.
+Note that the first two patches are not bug fixes, but they
+help debugging kobjects. Without this the object name is just
+(null), which makes it hard to figure out what the object is.
+
+Changes since v2:
+
+- Extended release callback documentation in patch 6/9
+- Added missing documentation for the new owner field in patch 7/9
+- Removed trailing . in sd_int_ops documentation in patch 9/9
+  for consistency.
+
+With these changes I can run the test-media script without errors
+(except for a known vimc 'do not call blocking ops when !TASK_RUNNING;'
+error, a patch for this from Helen arrived yesterday).
+
+Many thanks to Laurent for reviewing this series!
 
 Regards,
 
 	Hans
 
-> 
->> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->> ---
->>  drivers/media/media-entity.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->> index 0b1cb3559140..7b2a2cc95530 100644
->> --- a/drivers/media/media-entity.c
->> +++ b/drivers/media/media-entity.c
->> @@ -88,6 +88,7 @@ EXPORT_SYMBOL_GPL(__media_entity_enum_init);
->>  void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
->>  {
->>  	kfree(ent_enum->bmap);
->> +	ent_enum->bmap = NULL;
->>  }
->>  EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
->>  
-> 
+Hans Verkuil (9):
+  cec: fill in cec chardev kobject to ease debugging
+  media-devnode: fill in media chardev kobject to ease debugging
+  vivid: use vzalloc for dev->bitmap_out
+  media-entity: set ent_enum->bmap to NULL after freeing it
+  vim2m: replace devm_kzalloc by kzalloc
+  v4l2-subdev: add release() internal op
+  v4l2-subdev: handle module refcounting here
+  vimc: free vimc_cap_device when the last user disappears
+  vimc: use new release op
+
+ drivers/media/cec/cec-core.c                 |  1 +
+ drivers/media/media-devnode.c                |  1 +
+ drivers/media/media-entity.c                 | 29 +---------------
+ drivers/media/platform/vim2m.c               | 35 ++++++++++++--------
+ drivers/media/platform/vimc/vimc-capture.c   | 13 ++++++--
+ drivers/media/platform/vimc/vimc-common.c    |  2 ++
+ drivers/media/platform/vimc/vimc-common.h    |  2 ++
+ drivers/media/platform/vimc/vimc-debayer.c   | 15 +++++++--
+ drivers/media/platform/vimc/vimc-scaler.c    | 15 +++++++--
+ drivers/media/platform/vimc/vimc-sensor.c    | 19 ++++++++---
+ drivers/media/platform/vivid/vivid-vid-out.c | 14 +++++---
+ drivers/media/v4l2-core/v4l2-device.c        | 19 ++++++++---
+ drivers/media/v4l2-core/v4l2-subdev.c        | 22 +++++-------
+ include/media/media-entity.h                 | 24 --------------
+ include/media/v4l2-subdev.h                  | 15 ++++++++-
+ 15 files changed, 126 insertions(+), 100 deletions(-)
+
+-- 
+2.20.1
 
