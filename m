@@ -4,74 +4,75 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 186E4C43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 00:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C424CC4360F
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 00:33:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D5C35206DD
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 00:30:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92C33206DD
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 00:33:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="tHjLnClW"
+	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="JOWD57ji"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726161AbfCGAaJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Mar 2019 19:30:09 -0500
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:43648 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726104AbfCGAaJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 19:30:09 -0500
-Received: by mail-lf1-f68.google.com with SMTP id a130so2424174lfa.10
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2019 16:30:08 -0800 (PST)
+        id S1726278AbfCGAd1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Mar 2019 19:33:27 -0500
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:33501 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725790AbfCGAd0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 19:33:26 -0500
+Received: by mail-lj1-f193.google.com with SMTP id z7so12624366lji.0
+        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2019 16:33:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
         h=from:date:to:cc:subject:message-id:references:mime-version
          :content-disposition:content-transfer-encoding:in-reply-to
          :user-agent;
-        bh=Ll1ATQEXlaI3xu9YC5F1cCE73NOgY6DpmBaIi1j7wNI=;
-        b=tHjLnClWWY5A+MA3rLz9j02QBmbTxFN/sa+phbFkzUL3sK24WZTlN44CW+zHZKX1Rc
-         jQeYmj4JzPdTuAJ6/+u8nt2TqgOr3BCNlAoFR6ke6d4Y21VY2nneoPo/GxeE6dbnf3Ni
-         TmLAaNU0rZ0lrGAatlt9oPhYWcByruezv2rfD7JPcbKV7lN8T0d5G+iuwgPoXwfYkdWu
-         P3psZ3qgSUXSyWuQQ0juM0sW6yIkjWQeCpwu6y3zIaG4oUnUjQQdlyavP0Gd03j9F9Mx
-         csJhrNAZSx0VvVZqnOn/Rrq117svO2ffIJK318Yz3nZXQrtJjJGPnK5icIPjrTTP44pz
-         guaQ==
+        bh=NfZpD1/b6kmkTS17ZhHzCVuo70rU0cPgpAyYDTvG86w=;
+        b=JOWD57jiJQ+9FLq9tHgAKGK7mLjrIQKquQY3S1Ou2PYloaok0Wd+xW7j4JxV4lseOG
+         I19ka2/R9TB/h3CuiV57vNU+mn/mGUNteAy26mlXN1ueejcLYPELwMQXIIV90dMUlDMB
+         Mtxr9SAF00C4a6pCMomoPdEx5z/zS7/EulQBLDppE6yRModr68j/TZB7d6/o4fR6kAw3
+         Y89HHQoIW3ZBeufFNnnPUEu2450RUT7/l+IC5nG1BxwDbFBItySv/NBwQ7R9W0cmFXkv
+         ubD60cFWMv7hDBuKQE5F/40o5BLGIaLrHpRtKghvLsXAD45YDt7GX3VXjvAFRMQlARMi
+         Lfsg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:date:to:cc:subject:message-id:references
          :mime-version:content-disposition:content-transfer-encoding
          :in-reply-to:user-agent;
-        bh=Ll1ATQEXlaI3xu9YC5F1cCE73NOgY6DpmBaIi1j7wNI=;
-        b=FSkQlIyp1PiE7LgxVHOw8PzhlJ/Qt8HX3WWnf5e752dHnjZ9DohkQGrr56C0CYlF0k
-         u5Ke4ciYaDjQPdYobyCHC1XZBeN9DhCApZ4oj/gvVEClKbe3VcHMKGlX4nuoCl3fahJ/
-         oG7ujtGdvX9g+XXObIUftHNLl+gZzy2qwaN6iauFri5lb7S9UxKx7WgTKSR/jIWVsrjf
-         hAZv92acnPQmogRqvtKtJ3ast9p/rcL//TfA8aPGSagoNJ1NSswgn2ehhXQ1XPaO88Xd
-         KbMqt1sGkTi6WuOOXRwTOvsMSzwP50XSn/GCon0pdNA3tPw67NQSptGu/b34vUkltqMF
-         t+/g==
-X-Gm-Message-State: APjAAAX28f3SpG1216Y8v9IEGY0a5PSujfFDssA9D7XrD8tHvArFZcup
-        MfRJQwZM9gAob2khngwgfeFqLw==
-X-Google-Smtp-Source: APXvYqyd7ggLCHQl+RZJKV81FeQd2EkR4i7QoIsgOI9gmm58mTw6EYe61TOst0utnSS4t0iT49wNxw==
-X-Received: by 2002:a19:6806:: with SMTP id d6mr5397343lfc.48.1551918607239;
-        Wed, 06 Mar 2019 16:30:07 -0800 (PST)
+        bh=NfZpD1/b6kmkTS17ZhHzCVuo70rU0cPgpAyYDTvG86w=;
+        b=lMir0FcIHHkR3gURABHH/dzzfZaFpgPCIU7cvLAjWPmGrudKAgjspZ6G4lIwNqOcES
+         LY2OMhXeyJnylxbsLr7IhpXZRO7HuuZ6Cu9QoDFOHEulK1bWQFO8KNas+NwWGfAbIpqs
+         HGESPsfDG+G2fThoZLwFzJML7e1ZSMtrfZW67LLUClcC2qErXiocc0MYqpzAWfJu58wU
+         Ca2LLrarZglkCX2tyIsfPCKLqAPgvGDkgY9wYBzJTRbLbG0Gr3pd55HY7MKE6kgfMQZm
+         U/5BWKmmtB6eQhUG/3JxFYHKiuL/94ReM7hl4u66xrwwTbkl/Hf98ECeaIenHEsyG8PI
+         p4zw==
+X-Gm-Message-State: APjAAAWCXofMRyDD4H1BohpTV5RcSScOTMeZ1aoiHqcvemr0PthPgqpj
+        fHNL9WlukmOiU0zw/y0GaUUvoQ==
+X-Google-Smtp-Source: APXvYqw8gAwE9miLTOVe6kC4zeszIM8qUYvJNpi4/qHhmAkayKsBpN8hh5g6los7ExgSQ+AyvonvTA==
+X-Received: by 2002:a2e:968d:: with SMTP id q13mr4092207lji.189.1551918804507;
+        Wed, 06 Mar 2019 16:33:24 -0800 (PST)
 Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
-        by smtp.gmail.com with ESMTPSA id l21sm557938lfh.30.2019.03.06.16.30.06
+        by smtp.gmail.com with ESMTPSA id r5sm524276lfm.68.2019.03.06.16.33.23
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 06 Mar 2019 16:30:06 -0800 (PST)
+        Wed, 06 Mar 2019 16:33:23 -0800 (PST)
 From:   "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
 X-Google-Original-From: Niklas =?iso-8859-1?Q?S=F6derlund?= <niklas.soderlund+renesas@ragnatech.se>
-Date:   Thu, 7 Mar 2019 01:30:06 +0100
+Date:   Thu, 7 Mar 2019 01:33:23 +0100
 To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 2/3] rcar-csi2: Update start procedure for H3 ES2
-Message-ID: <20190307003006.GL9239@bigcity.dyn.berto.se>
+Subject: Re: [PATCH 3/3] rcar-csi2: Move setting of Field Detection Control
+ Register
+Message-ID: <20190307003323.GM9239@bigcity.dyn.berto.se>
 References: <20190218100313.14529-1-niklas.soderlund+renesas@ragnatech.se>
- <20190218100313.14529-3-niklas.soderlund+renesas@ragnatech.se>
- <e00ba393-0c42-36ff-e491-e24d83913385@ideasonboard.com>
+ <20190218100313.14529-4-niklas.soderlund+renesas@ragnatech.se>
+ <f04a3e2a-e06b-144f-ebc3-f29e89f53801@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <e00ba393-0c42-36ff-e491-e24d83913385@ideasonboard.com>
+In-Reply-To: <f04a3e2a-e06b-144f-ebc3-f29e89f53801@ideasonboard.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -82,124 +83,61 @@ Hi Kieran,
 
 Thanks for your feedback.
 
-On 2019-02-18 11:01:51 +0000, Kieran Bingham wrote:
+On 2019-02-18 11:19:50 +0000, Kieran Bingham wrote:
 > Hi Niklas,
 > 
 > On 18/02/2019 10:03, Niklas Söderlund wrote:
-> > Latest information from hardware engineers reveals that H3 ES2 and ES3
-> > of behaves differently when working with link speeds bellow 250 Mpbs.
-> 
-> of? "of the rcar-csi2?"
-
-s/of// :-)
-
-> 
-> > Add a SoC match for H3 ES2.* and use the correct startup sequence.
+> > Latest datasheet (rev 1.50) clarifies that the FLD register should be
+> > set after LINKCNT.
 > > 
 > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-csi2.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > index 50486301c21b4bae..f90b380478775015 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > @@ -545,7 +545,6 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
+> >  	rcsi2_write(priv, PHTC_REG, 0);
+> >  
+> >  	/* Configure */
+> > -	rcsi2_write(priv, FLD_REG, fld);
+> >  	rcsi2_write(priv, VCDT_REG, vcdt);
+> >  	if (vcdt2)
+> >  		rcsi2_write(priv, VCDT2_REG, vcdt2);
+> > @@ -576,6 +575,7 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
 > 
-> Assuming the step1 table is accurate, which I have not yet been able to
-> validate:
+> Hrm ... I'm on linux-media/master and I don't see a function named
+> rcsi2_start_receiver.
+> 
+> What base am I missing? I presume there are rework patches here in flight.
+
+Yes it's patches in flight,
+
+    [PATCH] rcar-csi2: Use standby mode instead of resetting
+
+> 
+> 
+> >  	rcsi2_write(priv, PHYCNT_REG, phycnt);
+> >  	rcsi2_write(priv, LINKCNT_REG, LINKCNT_MONITOR_EN |
+> >  		    LINKCNT_REG_MONI_PACT_EN | LINKCNT_ICLK_NONSTOP);
+> > +	rcsi2_write(priv, FLD_REG, fld);
+> 
+> However, I can see that this matches the flow chart in figures
+> 25.{17,18,19,20}
+> 
+> So
 > 
 > Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-I have collected your tag with the spelling fixes bellow, thanks!
-
-> 
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-csi2.c | 39 ++++++++++++++++++---
-> >  1 file changed, 35 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > index fbbe86a7a0fe14ab..50486301c21b4bae 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > @@ -932,6 +932,25 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
-> >  	return rcsi2_phtw_write_array(priv, step2);
-> >  }
-> >  
-> > +static int rcsi2_init_phtw_h3es2(struct rcar_csi2 *priv, unsigned int mbps)
-> > +{
-> > +	static const struct phtw_value step1[] = {
-> > +		{ .data = 0xcc, .code = 0xe2 },
-> > +		{ .data = 0x01, .code = 0xe3 },
-> > +		{ .data = 0x11, .code = 0xe4 },
-> > +		{ .data = 0x01, .code = 0xe5 },
-> > +		{ .data = 0x10, .code = 0x04 },
-> > +		{ .data = 0x38, .code = 0x08 },
-> > +		{ .data = 0x01, .code = 0x00 },
-> > +		{ .data = 0x4b, .code = 0xac },
-> > +		{ .data = 0x03, .code = 0x00 },
-> > +		{ .data = 0x80, .code = 0x07 },
-> > +		{ /* sentinel */ },
-> > +	};
-> > +
-> 
-> This looks reasonable - but I can't identify a table to verify these values.
-> 
-> Is this generated from the flow charts in section 25.3.9?
-
-Yes.
+Thanks!
 
 > 
 > 
-> > +	return rcsi2_phtw_write_array(priv, step1);
-> > +}
-> > +
-> >  static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2 *priv, unsigned int mbps)
-> >  {
-> >  	return rcsi2_phtw_write_mbps(priv, mbps, phtw_mbps_v3m_e3, 0x44);
-> > @@ -994,6 +1013,14 @@ static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
-> >  	.num_channels = 4,
-> >  };
-> >  
-> > +static const struct rcar_csi2_info rcar_csi2_info_r8a7795es2 = {
-> > +	.init_phtw = rcsi2_init_phtw_h3es2,
-> > +	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
-> > +	.csi0clkfreqrange = 0x20,
-> > +	.num_channels = 4,
-> > +	.clear_ulps = true,
-> > +};
-> > +
-> >  static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
-> >  	.hsfreqrange = hsfreqrange_m3w_h3es1,
-> >  	.num_channels = 4,
-> > @@ -1059,11 +1086,15 @@ static const struct of_device_id rcar_csi2_of_table[] = {
-> >  };
-> >  MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
-> >  
-> > -static const struct soc_device_attribute r8a7795es1[] = {
-> > +static const struct soc_device_attribute r8a7795[] = {
-> >  	{
-> >  		.soc_id = "r8a7795", .revision = "ES1.*",
-> >  		.data = &rcar_csi2_info_r8a7795es1,
-> >  	},
-> > +	{
-> > +		.soc_id = "r8a7795", .revision = "ES2.*",
-> > +		.data = &rcar_csi2_info_r8a7795es2,
-> > +	},
-> >  	{ /* sentinel */ },
-> >  };
-> >  
-> > @@ -1081,10 +1112,10 @@ static int rcsi2_probe(struct platform_device *pdev)
-> >  	priv->info = of_device_get_match_data(&pdev->dev);
-> >  
-> >  	/*
-> > -	 * r8a7795 ES1.x behaves differently than the ES2.0+ but doesn't
-> > -	 * have it's own compatible string.
-> > +	 * The different ES versions of r8a7795 (H3) behaves differently but
-> 
-> s/behaves/behave/
-> 
-> > +	 * shares the same compatible string.
-> 
-> s/shares/share/
-> 
-> >  	 */
-> > -	attr = soc_device_match(r8a7795es1);
-> > +	attr = soc_device_match(r8a7795);
-> >  	if (attr)
-> >  		priv->info = attr->data;
+> >  	rcsi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ);
+> >  	rcsi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ | PHYCNT_RSTZ);
 > >  
 > > 
 > 
