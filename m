@@ -2,99 +2,148 @@ Return-Path: <SRS0=yxRx=RK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 510B7C43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 03:01:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9321FC43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 04:51:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2289920854
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 03:01:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="jVCYQbCF"
+	by mail.kernel.org (Postfix) with ESMTP id 6355020652
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 04:51:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727578AbfCGDBM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Mar 2019 22:01:12 -0500
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:40531 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727521AbfCGDBM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2019 22:01:12 -0500
-Received: by mail-ot1-f67.google.com with SMTP id v20so12799289otk.7
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2019 19:01:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9ZxYCRDpZdb6bdXnhzSpbj20HxQCmbF5T4436VTRKHc=;
-        b=jVCYQbCFXC9k1tdbngXD9zrmV7iSaXow5fF9gbDGa9W8Rmqf2Wgy1KZ8PYhF+Z+0HT
-         uR9lnK9dBo0Ie9V39fw/FXdbDjRBXBPCw8/fI3krAQDkB8t35D8I7ZAR1N3QYAR4Afq6
-         BbdvQp/A7o4xn3GbNOHvWKnuaxCm/fYyjNbDY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9ZxYCRDpZdb6bdXnhzSpbj20HxQCmbF5T4436VTRKHc=;
-        b=UG/65O2muBuEAnkrxRo22gDbnkMA2T2CcVPyhsNGGi3F1hh7QlDoDq9XLR+ObMBF4T
-         UZB2n8r/ouMLEeGzjf6NHan9ijyBaLWw3sY+NJ1zscAUZhCUn6aCNmGgwtSrIt2aY9G/
-         28yn5Zf938EFUhlbvWVv36N+seFxgNGVQE6mhBy4/99RSUb1uUj37nDamV6xqAj2UjdZ
-         YniimC1cH9E1u3ev/YZuJABYY1w32IQkjv77Rz/3cvwidwPvoOKGtZxSZiDf17yokF69
-         QdxLQtL41rbUVL7wPb2EWJGnwPNjQn3T8+ddS7qbnUiyQmF4xGs5+Z+dJ/H5Xg7U6WZ3
-         tb/w==
-X-Gm-Message-State: APjAAAWYhSgRBFzlBHYhbQSsFfa73harYidsU7BRLnPZdvRND3DCIufE
-        kl3gzsCGFLBrzzuZxlXNq1jCquYZezU=
-X-Google-Smtp-Source: APXvYqztEuwjO1+AOshp+Z+z9N5gXwhQqNwYxe0Hx7IYcJN/8KXQf/sdMdllswkMG+dwiAcA97Wxgw==
-X-Received: by 2002:a9d:74c1:: with SMTP id a1mr6868859otl.107.1551927671616;
-        Wed, 06 Mar 2019 19:01:11 -0800 (PST)
-Received: from mail-ot1-f50.google.com (mail-ot1-f50.google.com. [209.85.210.50])
-        by smtp.gmail.com with ESMTPSA id r9sm1326380otp.81.2019.03.06.19.01.10
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 06 Mar 2019 19:01:11 -0800 (PST)
-Received: by mail-ot1-f50.google.com with SMTP id n71so12769540ota.10
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2019 19:01:10 -0800 (PST)
-X-Received: by 2002:a9d:6845:: with SMTP id c5mr6809611oto.350.1551927670551;
- Wed, 06 Mar 2019 19:01:10 -0800 (PST)
-MIME-Version: 1.0
-References: <20190220111953.7886-1-sakari.ailus@linux.intel.com>
- <20190220111953.7886-2-sakari.ailus@linux.intel.com> <CAAFQd5D=kTUEdzc4gStvKH45SMhDycDO_5ipJGaD=+aduiPESw@mail.gmail.com>
-In-Reply-To: <CAAFQd5D=kTUEdzc4gStvKH45SMhDycDO_5ipJGaD=+aduiPESw@mail.gmail.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Thu, 7 Mar 2019 12:00:59 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5CwQaOivM81fQ4aGYWZTsUEhKOr55XvtwGYSJDJkSELpQ@mail.gmail.com>
-Message-ID: <CAAFQd5CwQaOivM81fQ4aGYWZTsUEhKOr55XvtwGYSJDJkSELpQ@mail.gmail.com>
-Subject: Re: [PATCH 1/5] staging: imgu: Switch to __aligned() from __attribute__((aligned()))
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        id S1726161AbfCGEvr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Mar 2019 23:51:47 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56058 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726010AbfCGEvr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Mar 2019 23:51:47 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:7ce3:cc56:17f2:1b6e])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id 1l0Sh6eOnI8AW1l0ThEpRc; Thu, 07 Mar 2019 05:51:45 +0100
+Message-ID: <31e5e4b299b492535f506819e6a76074@smtp-cloud9.xs4all.net>
+Date:   Thu, 07 Mar 2019 05:51:44 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfJ529jN8uA303tKVmXDZqnDZaL8pjZ96oj6HngtJkgQhJc57I5a1+qV4+Kjd9HBc/oiTrGZuKC5Z0fli//fkq1YP/jv80rN8Tdb/kqOSb5DywAYx1NC+
+ Nuo7s6XDaQ+DOuQlRZ/EH0OA9A7zcsgwp1fMBgA+JTSLwOaZOq/CGjiXqQUqTKQKP3FCgodare6tPeFY/fRWXe8Gx14ha/NbYqgB81IJPic5a7i8iyBI4s+/
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Mar 7, 2019 at 12:00 PM Tomasz Figa <tfiga@chromium.org> wrote:
->
-> Hi Sakari,
->
-> On Wed, Feb 20, 2019 at 8:21 PM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> >
-> > __aligned() is preferred. The patch has been generated using the following
-> > command in the drivers/staging/media/ipu3 directory:
-> >
-> > $ git grep -l 'aligned(32)' | \
-> >         xargs perl -i -pe \
-> >         's/__attribute__\s*\(\(\s*aligned\s*\(([0-9]+)\s*\)\s*\)\)/__aligned($1)/g;'
->
-> Thanks for the patch. These structs are expected to move to uapi/ once
-> the driver leaves staging. Is __aligned() now accessible to uapi
-> headers?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Ah, just noticed the v2 of the series doesn't include this patch.
-Sorry for the noise.
+Results of the daily build of media_tree:
 
-Best regards,
-Tomasz
+date:			Thu Mar  7 05:00:15 CET 2019
+media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	9a9aa334dc485e40131f76842f97ea9ad01f80a6
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.3.0
+sparse version:		0.6.0
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 16
+sparse: OK
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Detailed regression test results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday-test-media.log
+http://www.xs4all.nl/~hverkuil/logs/Thursday-test-media-dmesg.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
