@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C4AEC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8EF5C4360F
 	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D345920840
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4E5220835
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726217AbfCGJaI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1726214AbfCGJaI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Thu, 7 Mar 2019 04:30:08 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:50178 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58077 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726101AbfCGJaH (ORCPT
+        by vger.kernel.org with ESMTP id S1726143AbfCGJaI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Mar 2019 04:30:07 -0500
+        Thu, 7 Mar 2019 04:30:08 -0500
 Received: from test-no.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id 1pLlh7xLdLMwI1pLqhxTC1; Thu, 07 Mar 2019 10:30:06 +0100
+        id 1pLlh7xLdLMwI1pLqhxTCD; Thu, 07 Mar 2019 10:30:06 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv3 3/9] vivid: use vzalloc for dev->bitmap_out
-Date:   Thu,  7 Mar 2019 10:29:55 +0100
-Message-Id: <20190307093001.30435-4-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv3 4/9] media-entity: set ent_enum->bmap to NULL after freeing it
+Date:   Thu,  7 Mar 2019 10:29:56 +0100
+Message-Id: <20190307093001.30435-5-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
 References: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
@@ -45,53 +45,28 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-When vivid is unloaded it used vfree to free dev->bitmap_out,
-but it was actually allocated using kmalloc. Use vzalloc
-instead, conform what vivid-vid-cap.c does.
+Ensure that this pointer is set to NULL after it is freed.
+The vimc driver has a static media_entity and after
+unbinding and rebinding the vimc device the media code will
+try to free this pointer again since it wasn't set to NULL.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/vivid/vivid-vid-out.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/media/media-entity.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index e61b91b414f9..9350ca65dd91 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -798,7 +798,7 @@ int vivid_vid_out_s_selection(struct file *file, void *fh, struct v4l2_selection
- 		s->r.height *= factor;
- 		if (dev->bitmap_out && (compose->width != s->r.width ||
- 					compose->height != s->r.height)) {
--			kfree(dev->bitmap_out);
-+			vfree(dev->bitmap_out);
- 			dev->bitmap_out = NULL;
- 		}
- 		*compose = s->r;
-@@ -941,15 +941,19 @@ int vidioc_s_fmt_vid_out_overlay(struct file *file, void *priv,
- 		return ret;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 0b1cb3559140..7b2a2cc95530 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -88,6 +88,7 @@ EXPORT_SYMBOL_GPL(__media_entity_enum_init);
+ void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
+ {
+ 	kfree(ent_enum->bmap);
++	ent_enum->bmap = NULL;
+ }
+ EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
  
- 	if (win->bitmap) {
--		new_bitmap = memdup_user(win->bitmap, bitmap_size);
-+		new_bitmap = vzalloc(bitmap_size);
- 
--		if (IS_ERR(new_bitmap))
--			return PTR_ERR(new_bitmap);
-+		if (!new_bitmap)
-+			return -ENOMEM;
-+		if (copy_from_user(new_bitmap, win->bitmap, bitmap_size)) {
-+			vfree(new_bitmap);
-+			return -EFAULT;
-+		}
- 	}
- 
- 	dev->overlay_out_top = win->w.top;
- 	dev->overlay_out_left = win->w.left;
--	kfree(dev->bitmap_out);
-+	vfree(dev->bitmap_out);
- 	dev->bitmap_out = new_bitmap;
- 	dev->clipcount_out = win->clipcount;
- 	if (dev->clipcount_out)
 -- 
 2.20.1
 
