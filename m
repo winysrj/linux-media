@@ -7,62 +7,65 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2208C43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 23:34:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB5BCC43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 23:34:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6892120851
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 23:34:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84B5F20675
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 23:34:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TllQC66w"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZFuM/zVk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726400AbfCGXeW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 18:34:22 -0500
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:41505 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726172AbfCGXeU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2019 18:34:20 -0500
-Received: by mail-pf1-f195.google.com with SMTP id d25so12656669pfn.8;
-        Thu, 07 Mar 2019 15:34:19 -0800 (PST)
+        id S1726445AbfCGXec (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 18:34:32 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:33193 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726387AbfCGXeW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2019 18:34:22 -0500
+Received: by mail-pg1-f193.google.com with SMTP id h11so12529350pgl.0;
+        Thu, 07 Mar 2019 15:34:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=TzYNY4dyCvErvAUyqdMe2vJGlg9mA4Gf0znlYekxs18=;
-        b=TllQC66wtdQMfdaYoHECCMU5iNRiSU2D9wTquDZba0EL4PXpHf/G/j/LrXz1DoSfJf
-         Q0K78tvbMF8UJVQC0DWQ1EE5lLB8f4MfvG3lBfg3tjm9VFoZBtOaM9R+nJ7QpLQAJfw4
-         lQGRmtW29XPhXOCTfi0KctAAZzQlqnA1dk9YGcCCP27ym2CunOLMairVlUpPtIDoy/vf
-         RclrdGs6WMy8omVgKMNrD0SMkQV1CXd/bTp2FUGujrsYrvmslk/w0gokiAuC3PDaIaLz
-         UdXlgLBZficrvE5GPppDf/CM9df3DLWwfVQ22jSRXKZtKLBJBsjLgVDJM0D+UKfWlX7Y
-         VnzA==
+        bh=MCRXi36yVo7k0lloMC2BZbkExKJ5Vx5y+atdUDoFkhY=;
+        b=ZFuM/zVkEAMYxdPKrj8S8+QVZpmhw8pj6jJlHs2YRbZGqE8IunDL+yqjHSvTHjW4ME
+         iQe6fjj3IiIXXhrito/0sGoh4ND1JlRcws2G6k0wNCABQ0ErzVfVEYp32ZWMM50qpfI5
+         cR7tPmFPj8LVBeA8fA2TKCSXJB5JGpNp9+D2fWr80SOfnk+hy5nR0cjuJrwMEj9t0ivh
+         SgOC1mTUGTubXTlj0fs/WUL0bH7WVqYtRbxXcUdzVmIOWJEQ2aQY8npNaFF/GfzxTxQa
+         SJpemQewCXUBOmiA8pgcGMojbGKp0tnGxfu9wHnTvWQYDGBCGHGXwOd5v6CbvsI1OePl
+         nATw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=TzYNY4dyCvErvAUyqdMe2vJGlg9mA4Gf0znlYekxs18=;
-        b=dR7juaGGiwNqJqkN+X7Jj4HR5qDejj9KkQBj6XKJRHcz6Kk2ecPsAXxaEZajIb9EMd
-         qnZ1+Ufx18mmdyBp7CcOOFx4oNZQxXPLY95loBKCjnTmkQgO6UJ4IQy07X8n5nEdozjv
-         AjKj9zN2qwRAL15MHNl7fuO9Ube76uMUAWDx31ciOKrgdzrolvGLM6Pg+cNL5LCFDVD1
-         Zq0lAxANU0dOZqWEQlPe+sy8DWTZ+uG7a+Z1ZV20Dw+216+oIkRtRzGur7xDxM/p8uS8
-         6r2AUiv8hmJH9Fe5Ow3k3Xd+79UUbBvLNxrbzZhaWI9xwZFN007cX6/nDrIMiwos9GzM
-         3qNw==
-X-Gm-Message-State: APjAAAVFQ1Iv1yNYbpQnMrqON0aeSeuH27lAvzw0GXFki5wxcS+aEgyr
-        F+5IF2UFZ27X7DIHtMFj3cqtTJoc
-X-Google-Smtp-Source: APXvYqzG6TQyIu8HpsB6yGXEdTWvnKe4KxmMXbQ4ixCBI69VFP1/ie1QREX2p6eNkgG8C5dXuRsUrA==
-X-Received: by 2002:a17:902:2963:: with SMTP id g90mr15771686plb.182.1552001658590;
-        Thu, 07 Mar 2019 15:34:18 -0800 (PST)
+        bh=MCRXi36yVo7k0lloMC2BZbkExKJ5Vx5y+atdUDoFkhY=;
+        b=MLgcg8yO/bnBAEpVDPL/qgaKziv62NitVXDS9bwR2kaDUxv3GTszz028BtxXasf9sp
+         6S/cCrM61Sbxrr/fc1862Ix/PtbSrQ/Y9TP2R/zduDWhnG7bGljrM5LdSRSpun9sDpj6
+         2CWzbA0j0UQnlg+cq7jJjiJ6Lxsz1ERomgxU2qLA2DVBc0mrfZoZAGEkWR1Ge5OrUd8K
+         /cqIQZ/R61a89MrZf0w09nOkVApLWp56AmfRuinWsStf8ClAjWShFUU40ipu5mTd84lO
+         SuRZXAz04ukCT+wEwPKhVIkZv3XVsRiHHEy1yUwtFabS49Re27kBjAaMFMbKugeBzQMP
+         oWRA==
+X-Gm-Message-State: APjAAAX9U47IW3XqDmSpR6xtqmRrspS2SD1Kr7Ugp68X+u87dg568efV
+        9KwwMwKNZ0rvDnGXrOsdV7XMzOIH
+X-Google-Smtp-Source: APXvYqwo8jF+3UeWcvZFIWme1fy9jrhlRkP0xnv/aAXOJ18HR1f6MpkaRhTvnSLO9AK4OU5c/fvsCw==
+X-Received: by 2002:aa7:918b:: with SMTP id x11mr16004027pfa.228.1552001661305;
+        Thu, 07 Mar 2019 15:34:21 -0800 (PST)
 Received: from localhost.localdomain ([2605:e000:d445:6a00:2097:f23b:3b8f:e255])
-        by smtp.gmail.com with ESMTPSA id m21sm8684866pfa.14.2019.03.07.15.34.16
+        by smtp.gmail.com with ESMTPSA id m21sm8684866pfa.14.2019.03.07.15.34.19
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 07 Mar 2019 15:34:17 -0800 (PST)
+        Thu, 07 Mar 2019 15:34:20 -0800 (PST)
 From:   Steve Longerbeam <slongerbeam@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Tim Harvey <tharvey@gateworks.com>,
         Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        dri-devel@lists.freedesktop.org (open list:DRM DRIVERS FOR FREESCALE
-        IMX), linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v6 5/7] gpu: ipu-v3: ipu-ic: Add support for limited range encoding
-Date:   Thu,  7 Mar 2019 15:33:54 -0800
-Message-Id: <20190307233356.23748-6-slongerbeam@gmail.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rui Miguel Silva <rmfrfs@gmail.com>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v6 6/7] media: imx: Try colorimetry at both sink and source pads
+Date:   Thu,  7 Mar 2019 15:33:55 -0800
+Message-Id: <20190307233356.23748-7-slongerbeam@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190307233356.23748-1-slongerbeam@gmail.com>
 References: <20190307233356.23748-1-slongerbeam@gmail.com>
@@ -71,390 +74,304 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add support for the following conversions:
+The colorimetry parameters need to be tested at both sink and source
+pads. Specifically, for prpencvf, the IC only supports RGB full-range
+quantization at input and output.
 
-- YUV full-range to YUV limited-range
-- YUV limited-range to YUV full-range
-- YUV limited-range to RGB full-range
-- RGB full-range to YUV limited-range
-
-The last two conversions require operating on the YUV full-range
-encoding and inverse encoding coefficients, with the YUV-to-YUV
-limited<->full coefficients. The formula to convert is
-
-M_c = M_a * M_b
-O_c = M_a * O_b + O_a
-
-For calculating the RGB full-range to YUV limited-range coefficients:
-
-[M_a, O_a] = YUV full-range to YUV limited-range coefficients.
-[M_b, O_b] = RGB full-range to YUV full-range coefficients.
-
-For calculating the YUV limited-range to RGB full-range coefficients:
-
-[M_a, O_a] = YUV full-range to RGB full-range coefficients.
-[M_b, O_b] = YUV limited-range to YUV full-range coefficients.
-
-The calculation of [M_c, O_c] is carried out by the function
-transform_coeffs().
-
-In the future if RGB limited range encoding is required, the same
-function can be used. And cascaded to create all combinations of
-encoding for YUV limited/full range <-> RGB limited/full range,
-passing the output coefficients from one call as the input for the
-next.
-
-For example, to create YUV full-range to RGB limited-range coefficients:
-
-[M_a, O_a] = RGB full-range to RGB limited-range coefficients.
-[M_b, O_b] = YUV full-range to RGB full-range coefficients.
-
-and that output sent as input to create YUV limited-range to RGB
-limited-range coefficients:
-
-[M_a, O_a] = YUV full-range to RGB limited-range coefficients.
-[M_b, O_b] = YUV limited-range to YUV full-range coefficients.
+Fix this by cleaning up imx_media_fill_default_mbus_fields(), renaming
+to imx_media_try_colorimetry(), and call it at both sink and source
+pad try_fmt's. The unrelated check for uninitialized field value is
+moved out to appropriate places in each subdev try_fmt.
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
 ---
- drivers/gpu/ipu-v3/ipu-ic.c | 281 +++++++++++++++++++++++++++++++++---
- 1 file changed, 263 insertions(+), 18 deletions(-)
+ drivers/staging/media/imx/imx-ic-prp.c      |  6 +-
+ drivers/staging/media/imx/imx-ic-prpencvf.c |  8 +--
+ drivers/staging/media/imx/imx-media-csi.c   | 19 +++---
+ drivers/staging/media/imx/imx-media-utils.c | 68 +++++++++++----------
+ drivers/staging/media/imx/imx-media-vdic.c  |  5 +-
+ drivers/staging/media/imx/imx-media.h       |  5 +-
+ drivers/staging/media/imx/imx7-media-csi.c  |  8 +--
+ 7 files changed, 62 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-index 1460901af9b5..a7dd85f8d832 100644
---- a/drivers/gpu/ipu-v3/ipu-ic.c
-+++ b/drivers/gpu/ipu-v3/ipu-ic.c
-@@ -178,10 +178,10 @@ static inline void ipu_ic_write(struct ipu_ic *ic, u32 value, unsigned offset)
+diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
+index 3d43cdcb4bb9..8010ee706164 100644
+--- a/drivers/staging/media/imx/imx-ic-prp.c
++++ b/drivers/staging/media/imx/imx-ic-prp.c
+@@ -197,8 +197,8 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
+ 			sdformat->format.code = cc->codes[0];
+ 		}
+ 
+-		imx_media_fill_default_mbus_fields(&sdformat->format, infmt,
+-						   true);
++		if (sdformat->format.field == V4L2_FIELD_ANY)
++			sdformat->format.field = V4L2_FIELD_NONE;
+ 		break;
+ 	case PRP_SRC_PAD_PRPENC:
+ 	case PRP_SRC_PAD_PRPVF:
+@@ -207,6 +207,8 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
+ 		break;
+ 	}
+ 
++	imx_media_try_colorimetry(&sdformat->format, true);
++
+ 	fmt = __prp_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
+ 	*fmt = sdformat->format;
+ out:
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index 10f2c7684727..b1886a4e362e 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -899,8 +899,6 @@ static void prp_try_fmt(struct prp_priv *priv,
+ 		/* propagate colorimetry from sink */
+ 		sdformat->format.colorspace = infmt->colorspace;
+ 		sdformat->format.xfer_func = infmt->xfer_func;
+-		sdformat->format.quantization = infmt->quantization;
+-		sdformat->format.ycbcr_enc = infmt->ycbcr_enc;
+ 	} else {
+ 		v4l_bound_align_image(&sdformat->format.width,
+ 				      MIN_W_SINK, MAX_W_SINK, W_ALIGN_SINK,
+@@ -908,9 +906,11 @@ static void prp_try_fmt(struct prp_priv *priv,
+ 				      MIN_H_SINK, MAX_H_SINK, H_ALIGN_SINK,
+ 				      S_ALIGN);
+ 
+-		imx_media_fill_default_mbus_fields(&sdformat->format, infmt,
+-						   true);
++		if (sdformat->format.field == V4L2_FIELD_ANY)
++			sdformat->format.field = V4L2_FIELD_NONE;
+ 	}
++
++	imx_media_try_colorimetry(&sdformat->format, true);
  }
  
- struct ic_encode_coeff {
--	s16 coeff[3][3];	/* signed 9-bit integer coefficients */
--	s16 offset[3];		/* signed 11+2-bit fixed point offset */
--	u8 scale:2;		/* scale coefficients * 2^(scale-1) */
--	bool sat:1;		/* saturate to (16, 235(Y) / 240(U, V)) */
-+	int coeff[3][3];	/* signed 9-bit integer coefficients */
-+	int offset[3];		/* signed 13-bit integer offset */
-+	int scale;		/* scale coefficients * 2^(scale-1) */
-+	bool sat;		/* saturate to (16, 235(Y) / 240(U, V)) */
- };
+ static int prp_set_fmt(struct v4l2_subdev *sd,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 3b7517348666..cc3e0086b08a 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1369,9 +1369,15 @@ static void csi_try_field(struct csi_priv *priv,
+ 	struct v4l2_mbus_framefmt *infmt =
+ 		__csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which);
+ 
+-	/* no restrictions on sink pad field type */
+-	if (sdformat->pad == CSI_SINK_PAD)
++	/*
++	 * no restrictions on sink pad field type except must
++	 * be initialized.
++	 */
++	if (sdformat->pad == CSI_SINK_PAD) {
++		if (sdformat->format.field == V4L2_FIELD_ANY)
++			sdformat->format.field = V4L2_FIELD_NONE;
+ 		return;
++	}
+ 
+ 	switch (infmt->field) {
+ 	case V4L2_FIELD_SEQ_TB:
+@@ -1449,8 +1455,6 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 		/* propagate colorimetry from sink */
+ 		sdformat->format.colorspace = infmt->colorspace;
+ 		sdformat->format.xfer_func = infmt->xfer_func;
+-		sdformat->format.quantization = infmt->quantization;
+-		sdformat->format.ycbcr_enc = infmt->ycbcr_enc;
+ 
+ 		break;
+ 	case CSI_SINK_PAD:
+@@ -1470,10 +1474,6 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 
+ 		csi_try_field(priv, cfg, sdformat);
+ 
+-		imx_media_fill_default_mbus_fields(
+-			&sdformat->format, infmt,
+-			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
+-
+ 		/* Reset crop and compose rectangles */
+ 		crop->left = 0;
+ 		crop->top = 0;
+@@ -1489,6 +1489,9 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 
+ 		break;
+ 	}
++
++	imx_media_try_colorimetry(&sdformat->format,
++			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
+ }
+ 
+ static int csi_set_fmt(struct v4l2_subdev *sd,
+diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+index 1c63a2765a81..aa7d4be77a7e 100644
+--- a/drivers/staging/media/imx/imx-media-utils.c
++++ b/drivers/staging/media/imx/imx-media-utils.c
+@@ -515,21 +515,19 @@ int imx_media_init_cfg(struct v4l2_subdev *sd,
+ EXPORT_SYMBOL_GPL(imx_media_init_cfg);
  
  /*
-@@ -277,6 +277,231 @@ static const struct ic_encode_coeff ic_encode_ycbcr2rgb_709 = {
- 	.scale = 2,
- };
+- * Check whether the field and colorimetry parameters in tryfmt are
+- * uninitialized, and if so fill them with the values from fmt,
+- * or if tryfmt->colorspace has been initialized, all the default
+- * colorimetry params can be derived from tryfmt->colorspace.
++ * Default the colorspace in tryfmt to SRGB if set to an unsupported
++ * colorspace or not initialized. Then set the remaining colorimetry
++ * parameters based on the colorspace if they are uninitialized.
+  *
+  * tryfmt->code must be set on entry.
+  *
+  * If this format is destined to be routed through the Image Converter,
+- * quantization and Y`CbCr encoding must be fixed. The IC expects and
+- * produces fixed quantization and Y`CbCr encoding at its input and output
+- * (full range for RGB, limited range for YUV, and V4L2_YCBCR_ENC_601).
++ * quantization and Y`CbCr encoding must be fixed. The IC supports only
++ * full-range quantization for RGB at its input and output, and only
++ * BT.601 Y`CbCr encoding.
+  */
+-void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
+-					struct v4l2_mbus_framefmt *fmt,
+-					bool ic_route)
++void imx_media_try_colorimetry(struct v4l2_mbus_framefmt *tryfmt,
++			       bool ic_route)
+ {
+ 	const struct imx_media_pixfmt *cc;
+ 	bool is_rgb = false;
+@@ -537,28 +535,41 @@ void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
+ 	cc = imx_media_find_mbus_format(tryfmt->code, CS_SEL_ANY, true);
+ 	if (!cc)
+ 		cc = imx_media_find_ipu_format(tryfmt->code, CS_SEL_ANY);
+-	if (cc && cc->cs != IPUV3_COLORSPACE_YUV)
++	if (cc && cc->cs == IPUV3_COLORSPACE_RGB)
+ 		is_rgb = true;
  
-+/*
-+ * YUV full range to YUV limited range:
-+ *
-+ * Y_lim  = 0.8588 * Y_full + 16
-+ * Cb_lim = 0.8784 * (Cb_full - 128) + 128
-+ * Cr_lim = 0.8784 * (Cr_full - 128) + 128
-+ */
-+static const struct ic_encode_coeff ic_encode_ycbcr_full2lim = {
-+	.coeff = {
-+		{ 219, 0, 0 },
-+		{ 0, 224, 0 },
-+		{ 0, 0, 224 },
-+	},
-+	.offset = { 64, 62, 62 },
-+	.scale = 1,
-+};
-+
-+/*
-+ * YUV limited range to YUV full range:
-+ *
-+ * Y_full  = 1.1644 * (Y_lim - 16)
-+ * Cb_full = 1.1384 * (Cb_lim - 128) + 128
-+ * Cr_full = 1.1384 * (Cr_lim - 128) + 128
-+ */
-+static const struct ic_encode_coeff ic_encode_ycbcr_lim2full = {
-+	.coeff = {
-+		{ 149, 0, 0 },
-+		{ 0, 145, 0 },
-+		{ 0, 0, 145 },
-+	},
-+	.offset = { -37, -35, -35 },
-+	.scale = 2,
-+};
-+
-+/*
-+ * RGB full range to RGB limited range:
-+ *
-+ * R_lim = 0.8588 * R_full + 16
-+ * G_lim = 0.8588 * G_full + 16
-+ * B_lim = 0.8588 * B_full + 16
-+ */
-+static const struct ic_encode_coeff
-+ic_encode_rgb_full2lim __maybe_unused = {
-+	.coeff = {
-+		{ 220, 0, 0 },
-+		{ 0, 220, 0 },
-+		{ 0, 0, 220 },
-+	},
-+	.offset = { 64, 64, 64 },
-+	.scale = 1,
-+};
-+
-+/*
-+ * RGB limited range to RGB full range:
-+ *
-+ * R_full = 1.1644 * (R_lim - 16)
-+ * G_full = 1.1644 * (G_lim - 16)
-+ * B_full = 1.1644 * (B_lim - 16)
-+ */
-+static const struct ic_encode_coeff
-+ic_encode_rgb_lim2full __maybe_unused = {
-+	.coeff = {
-+		{ 149, 0, 0 },
-+		{ 0, 149, 0 },
-+		{ 0, 0, 149 },
-+	},
-+	.offset = { -37, -37, -37 },
-+	.scale = 2,
-+};
-+
-+/*
-+ * Convert a coefficient and scale value in TPMEM register format
-+ * to a signed int times 256 (fix the radix point). The TPMEM register
-+ * coefficient format is a signed 9-bit value (sign bit at bit 8,
-+ * mantissa = coeff * 2 ^ (8 - scale - 1)).
-+ */
-+static int coeff_fix(int coeff, int scale)
-+{
-+	if (coeff >= 256)
-+		coeff -= 512;
-+	if (scale == 0)
-+		return DIV_ROUND_CLOSEST(coeff, 2);
-+	return coeff << (scale - 1);
-+}
-+
-+/*
-+ * Convert a signed int coefficient times 256 to TPMEM register
-+ * format, given a scale value = TPMEM scale - 1.
-+ */
-+static int coeff_normalize(int coeff, int scale)
-+{
-+	coeff = DIV_ROUND_CLOSEST(coeff, 1 << scale);
-+	if (coeff < 0)
-+		coeff += 512;
-+	return coeff;
-+}
-+
-+/*
-+ * Convert an offset and scale value in TPMEM register format to a
-+ * signed int times 256 (fix the radix point). The TPMEM register
-+ * offset format is a signed 13-bit value (sign bit at bit 12,
-+ * mantissa = offset * 2 ^ (2 - (scale - 1)).
-+ */
-+static int offset_fix(int offset, int scale)
-+{
-+	return offset << (8 - (2 - (scale - 1)));
-+}
-+
-+/*
-+ * Convert a signed int offset times 256 to TPMEM register
-+ * format, given a scale value = TPMEM scale - 1.
-+ */
-+static int offset_normalize(int off, int scale)
-+{
-+	return DIV_ROUND_CLOSEST(off, 1 << (8 - (2 - scale)));
-+}
-+
-+/*
-+ * Find the scale value that fits the given coefficient within
-+ * the 8-bit TPMEM mantissa.
-+ */
-+static int get_coeff_scale(int coeff)
-+{
-+	int scale = 0;
-+
-+	while (abs(coeff) >= 256 && scale <= 2) {
-+		coeff = DIV_ROUND_CLOSEST(coeff, 2);
-+		scale++;
+-	/* fill field if necessary */
+-	if (tryfmt->field == V4L2_FIELD_ANY)
+-		tryfmt->field = fmt->field;
++	switch (tryfmt->colorspace) {
++	case V4L2_COLORSPACE_SMPTE170M:
++	case V4L2_COLORSPACE_REC709:
++	case V4L2_COLORSPACE_JPEG:
++	case V4L2_COLORSPACE_SRGB:
++	case V4L2_COLORSPACE_BT2020:
++	case V4L2_COLORSPACE_OPRGB:
++	case V4L2_COLORSPACE_DCI_P3:
++	case V4L2_COLORSPACE_RAW:
++		break;
++	default:
++		tryfmt->colorspace = V4L2_COLORSPACE_SRGB;
++		break;
 +	}
 +
-+	return scale;
-+}
-+
-+/*
-+ * The above defined encoding coefficients all encode between
-+ * full-range RGB and full-range YCbCr.
-+ *
-+ * This function calculates a matrix M_c and offset vector O_c, given
-+ * input matrices M_a, M_b and offset vectors O_a, O_b, such that:
-+ *
-+ * M_c = M_a * M_b
-+ * O_c = M_a * O_b + O_a
-+ *
-+ * This operation will transform the full-range coefficients to
-+ * coefficients that encode to or from limited range YCbCr or RGB.
-+ *
-+ * For example, to transform ic_encode_rgb2ycbcr_601 to encode to
-+ * limited-range YCbCr:
-+ *
-+ * [M_a, O_a] = ic_encode_ycbcr_full2lim
-+ * [M_b, O_b] = ic_encode_rgb2ycbcr_601
-+ *
-+ * To transform the inverse coefficients ic_encode_ycbcr2rgb_601 to
-+ * encode from limited-range YCbCr:
-+ *
-+ * [M_a, O_a] = ic_encode_ycbcr2rgb_601
-+ * [M_b, O_b] = ic_encode_ycbcr_lim2full
-+ *
-+ * The function can also be used to create RGB limited range
-+ * coefficients, and cascaded to create all combinations of
-+ * encodings between YCbCr limited/full range <-> RGB limited/full
-+ * range.
-+ */
-+static void transform_coeffs(struct ic_encode_coeff *out,
-+			     const struct ic_encode_coeff *a,
-+			     const struct ic_encode_coeff *b)
-+{
-+	int c_a, c_b, c_out;
-+	int o_a, o_b, o_out;
-+	int outscale = 0;
-+	int i, j, k;
-+
-+	for (i = 0; i < 3; i++) {
-+		o_out = 0;
-+		for (j = 0; j < 3; j++) {
-+			int scale;
-+
-+			/* M_c[i,j] = M_a[i,k] * M_b[k,j] */
-+			c_out = 0;
-+			for (k = 0; k < 3; k++) {
-+				c_a = coeff_fix(a->coeff[i][k], a->scale);
-+				c_b = coeff_fix(b->coeff[k][j], b->scale);
-+				c_out += c_a * c_b;
-+			}
-+
-+			c_out = DIV_ROUND_CLOSEST(c_out, 1 << 8);
-+			out->coeff[i][j] = c_out;
-+
-+			/*
-+			 * get scale for this coefficient and update
-+			 * final output scale.
-+			 */
-+			scale = get_coeff_scale(c_out);
-+			outscale = max(outscale, scale);
-+
-+			/* M_a[i,j] * O_b[j] */
-+			c_a = coeff_fix(a->coeff[i][j], a->scale);
-+			o_b = offset_fix(b->offset[j], b->scale);
-+			o_out += DIV_ROUND_CLOSEST(c_a * o_b, 1 << 8);
-+		}
-+
-+		/* O_c[i] = (M_a * O_b)[i] + O_a[i] */
-+		o_a = offset_fix(a->offset[i], a->scale);
-+		o_out += o_a;
-+
-+		out->offset[i] = o_out;
++	if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
++		tryfmt->xfer_func =
++			V4L2_MAP_XFER_FUNC_DEFAULT(tryfmt->colorspace);
 +	}
 +
-+	/*
-+	 * normalize output coefficients and offsets to TPMEM
-+	 * register format.
-+	 */
-+	for (i = 0; i < 3; i++) {
-+		for (j = 0; j < 3; j++) {
-+			c_out = out->coeff[i][j];
-+			out->coeff[i][j] = coeff_normalize(c_out, outscale);
-+		}
++	if (ic_route) {
++		if (is_rgb ||
++		    tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT)
++			tryfmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
+ 
+-	/* fill colorimetry if necessary */
+-	if (tryfmt->colorspace == V4L2_COLORSPACE_DEFAULT) {
+-		tryfmt->colorspace = fmt->colorspace;
+-		tryfmt->xfer_func = fmt->xfer_func;
+-		tryfmt->ycbcr_enc = fmt->ycbcr_enc;
+-		tryfmt->quantization = fmt->quantization;
++		tryfmt->ycbcr_enc = V4L2_YCBCR_ENC_601;
+ 	} else {
+-		if (tryfmt->xfer_func == V4L2_XFER_FUNC_DEFAULT) {
+-			tryfmt->xfer_func =
+-				V4L2_MAP_XFER_FUNC_DEFAULT(tryfmt->colorspace);
+-		}
+ 		if (tryfmt->ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT) {
+ 			tryfmt->ycbcr_enc =
+ 				V4L2_MAP_YCBCR_ENC_DEFAULT(tryfmt->colorspace);
+ 		}
 +
-+		o_out = out->offset[i];
-+		out->offset[i] = offset_normalize(o_out, outscale);
-+	}
-+
-+	out->scale = outscale + 1;
-+}
-+
- static int calc_csc_coeffs(struct ipu_ic_priv *priv,
- 			   struct ic_encode_coeff *coeff_out,
- 			   const struct ipu_ic_colorspace *in,
-@@ -290,14 +515,6 @@ static int calc_csc_coeffs(struct ipu_ic_priv *priv,
- 		return -ENOTSUPP;
+ 		if (tryfmt->quantization == V4L2_QUANTIZATION_DEFAULT) {
+ 			tryfmt->quantization =
+ 				V4L2_MAP_QUANTIZATION_DEFAULT(
+@@ -566,15 +577,8 @@ void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
+ 					tryfmt->ycbcr_enc);
+ 		}
  	}
- 
--	if ((in->cs == IPUV3_COLORSPACE_YUV &&
--	     in->quant != V4L2_QUANTIZATION_FULL_RANGE) ||
--	    (out->cs == IPUV3_COLORSPACE_YUV &&
--	     out->quant != V4L2_QUANTIZATION_FULL_RANGE)) {
--		dev_err(priv->ipu->dev, "Limited range YUV not supported\n");
--		return -ENOTSUPP;
--	}
 -
- 	if ((in->cs == IPUV3_COLORSPACE_RGB &&
- 	     in->quant != V4L2_QUANTIZATION_FULL_RANGE) ||
- 	    (out->cs == IPUV3_COLORSPACE_RGB &&
-@@ -307,7 +524,18 @@ static int calc_csc_coeffs(struct ipu_ic_priv *priv,
- 	}
+-	if (ic_route) {
+-		tryfmt->quantization = is_rgb ?
+-			V4L2_QUANTIZATION_FULL_RANGE :
+-			V4L2_QUANTIZATION_LIM_RANGE;
+-		tryfmt->ycbcr_enc = V4L2_YCBCR_ENC_601;
+-	}
+ }
+-EXPORT_SYMBOL_GPL(imx_media_fill_default_mbus_fields);
++EXPORT_SYMBOL_GPL(imx_media_try_colorimetry);
  
- 	if (in->cs == out->cs) {
--		*coeff_out = ic_encode_identity;
-+		if (in->quant == out->quant) {
-+			*coeff_out = ic_encode_identity;
-+		} else if (in->quant == V4L2_QUANTIZATION_FULL_RANGE) {
-+			/* YUV full-range to YUV limited-range */
-+			*coeff_out = ic_encode_ycbcr_full2lim;
+ int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
+ 				  struct v4l2_rect *compose,
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 2808662e2597..a285619afa0f 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -615,14 +615,13 @@ static void vdic_try_fmt(struct vdic_priv *priv,
+ 				      &sdformat->format.height,
+ 				      MIN_H, MAX_H_VDIC, H_ALIGN, S_ALIGN);
+ 
+-		imx_media_fill_default_mbus_fields(&sdformat->format, infmt,
+-						   true);
+-
+ 		/* input must be interlaced! Choose SEQ_TB if not */
+ 		if (!V4L2_FIELD_HAS_BOTH(sdformat->format.field))
+ 			sdformat->format.field = V4L2_FIELD_SEQ_TB;
+ 		break;
+ 	}
 +
-+			/* set saturation bit for YUV limited-range output */
-+			coeff_out->sat = true;
-+		} else {
-+			/* YUV limited-range to YUV full-range */
-+			*coeff_out = ic_encode_ycbcr_lim2full;
-+		}
++	imx_media_try_colorimetry(&sdformat->format, true);
+ }
  
- 		return 0;
- 	}
-@@ -328,7 +556,24 @@ static int calc_csc_coeffs(struct ipu_ic_priv *priv,
- 		return -ENOTSUPP;
- 	}
+ static int vdic_set_fmt(struct v4l2_subdev *sd,
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index ae964c8d5be1..48c8996d394c 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -176,9 +176,8 @@ int imx_media_init_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
+ 			    const struct imx_media_pixfmt **cc);
+ int imx_media_init_cfg(struct v4l2_subdev *sd,
+ 		       struct v4l2_subdev_pad_config *cfg);
+-void imx_media_fill_default_mbus_fields(struct v4l2_mbus_framefmt *tryfmt,
+-					struct v4l2_mbus_framefmt *fmt,
+-					bool ic_route);
++void imx_media_try_colorimetry(struct v4l2_mbus_framefmt *tryfmt,
++			       bool ic_route);
+ int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
+ 				  struct v4l2_rect *compose,
+ 				  const struct v4l2_mbus_framefmt *mbus,
+diff --git a/drivers/staging/media/imx/imx7-media-csi.c b/drivers/staging/media/imx/imx7-media-csi.c
+index 3fba7c27c0ec..6e626c10a5f1 100644
+--- a/drivers/staging/media/imx/imx7-media-csi.c
++++ b/drivers/staging/media/imx/imx7-media-csi.c
+@@ -1003,8 +1003,6 @@ static int imx7_csi_try_fmt(struct imx7_csi *csi,
  
--	*coeff_out = *encode_coeff;
-+	if (in->quant == out->quant) {
-+		/*
-+		 * YUV full-range to RGB full-range, or
-+		 * RGB full-range to YUV full-range.
-+		 */
-+		*coeff_out = *encode_coeff;
-+	} else if (inverse_encode) {
-+		/* YUV limited-range to RGB full-range */
-+		transform_coeffs(coeff_out, encode_coeff,
-+				 &ic_encode_ycbcr_lim2full);
-+	} else {
-+		/* RGB full-range to YUV limited-range */
-+		transform_coeffs(coeff_out, &ic_encode_ycbcr_full2lim,
-+				 encode_coeff);
+ 		sdformat->format.colorspace = in_fmt->colorspace;
+ 		sdformat->format.xfer_func = in_fmt->xfer_func;
+-		sdformat->format.quantization = in_fmt->quantization;
+-		sdformat->format.ycbcr_enc = in_fmt->ycbcr_enc;
+ 		break;
+ 	case IMX7_CSI_PAD_SINK:
+ 		*cc = imx_media_find_mbus_format(sdformat->format.code,
+@@ -1015,14 +1013,14 @@ static int imx7_csi_try_fmt(struct imx7_csi *csi,
+ 							 false);
+ 			sdformat->format.code = (*cc)->codes[0];
+ 		}
+-
+-		imx_media_fill_default_mbus_fields(&sdformat->format, in_fmt,
+-						   false);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 		break;
+ 	}
 +
-+		/* set saturation bit for YUV limited-range output */
-+		coeff_out->sat = true;
-+	}
- 
++	imx_media_try_colorimetry(&sdformat->format, false);
++
  	return 0;
  }
-@@ -340,9 +585,9 @@ static int init_csc(struct ipu_ic *ic,
- {
- 	struct ipu_ic_priv *priv = ic->priv;
- 	struct ic_encode_coeff coeff;
-+	const unsigned int (*c)[3];
-+	const unsigned int *a;
- 	u32 __iomem *base;
--	const u16 (*c)[3];
--	const u16 *a;
- 	u32 param;
- 	int ret;
  
-@@ -354,8 +599,8 @@ static int init_csc(struct ipu_ic *ic,
- 		(priv->tpmem_base + ic->reg->tpmem_csc[csc_index]);
- 
- 	/* Cast to unsigned */
--	c = (const u16 (*)[3])coeff.coeff;
--	a = (const u16 *)coeff.offset;
-+	c = (const unsigned int (*)[3])coeff.coeff;
-+	a = (const unsigned int *)coeff.offset;
- 
- 	param = ((a[0] & 0x1f) << 27) | ((c[0][0] & 0x1ff) << 18) |
- 		((c[1][1] & 0x1ff) << 9) | (c[2][2] & 0x1ff);
 -- 
 2.17.1
 
