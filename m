@@ -2,98 +2,105 @@ Return-Path: <SRS0=yxRx=RK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-8.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,USER_AGENT_NEOMUTT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F23F4C10F0C
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC19CC43381
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:47:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 466A120840
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:30:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B63520840
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 09:47:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726057AbfCGJaK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 04:30:10 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59382 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726207AbfCGJaJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Mar 2019 04:30:09 -0500
-Received: from test-no.fritz.box ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id 1pLlh7xLdLMwI1pLrhxTCs; Thu, 07 Mar 2019 10:30:07 +0100
-From:   hverkuil-cisco@xs4all.nl
-To:     linux-media@vger.kernel.org
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Helen Koike <helen.koike@collabora.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv3 8/9] vimc: free vimc_cap_device when the last user disappears
-Date:   Thu,  7 Mar 2019 10:30:00 +0100
-Message-Id: <20190307093001.30435-9-hverkuil-cisco@xs4all.nl>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
-References: <20190307093001.30435-1-hverkuil-cisco@xs4all.nl>
+        id S1726166AbfCGJr3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 04:47:29 -0500
+Received: from mga02.intel.com ([134.134.136.20]:54894 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725795AbfCGJr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Mar 2019 04:47:29 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Mar 2019 01:47:29 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,451,1544515200"; 
+   d="scan'208";a="280540445"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga004.jf.intel.com with ESMTP; 07 Mar 2019 01:47:27 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id 400A4204CC; Thu,  7 Mar 2019 11:47:26 +0200 (EET)
+Date:   Thu, 7 Mar 2019 11:47:26 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc:     laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 00/31] v4l: add support for multiplexed streams
+Message-ID: <20190307094725.5nrvzz7hn7gfmgxe@paasikivi.fi.intel.com>
+References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfN8kVqLfMSIe67KDjPWm7pSwY91BmLSoJhwI/fxub4/tZMqvd5NqVW/d123Y2Mx4LZSgDg6Cl4m1NXZSezslHhNvXQo+osxvyyiJn3u2CLqIFVtmLZbr
- x+5ws6qHa8aOofg75DTFIi9/my+GrOL3I59aUC01miCMjpcN/dK3HlIevUQZW4cnCIaY9fTsky7vN7QtlqM1Fql/daJBcVfXHr101s7zr/pyfZ4KDwP0RWSG
- LgvEWuFQMuwKwCtxRh8MG3z0lUk9RUSzk2TAx91mh+cc0wkdNoy5oqA3jMyBztYNfYAdjPh3UxK9P84U97FubQ==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Hi Jacopo,
 
-Don't free vimc_cap_device immediately, instead do this
-in the video_device release function which is called when the
-last user closes the video device. Only then is it safe to
-free the memory.
+On Tue, Mar 05, 2019 at 07:51:19PM +0100, Jacopo Mondi wrote:
+> Hello,
+>    third version of multiplexed stream support patch series.
+> 
+> V2 sent by Niklas is available at:
+> https://patchwork.kernel.org/cover/10573817/
+> 
+> As per v2, most of the core patches are work from Sakari and Laurent, with
+> Niklas' support on top for adv748x and rcar-csi2.
+> 
+> The use case of the series remains the same: support for virtual channel
+> selection implemented on R-Car Gen3 and adv748x. Quoting the v2 cover letter:
+> 
+> -------------------------------------------------------------------------------
+> I have added driver support for the devices used on the Renesas Gen3
+> platforms, a ADV7482 connected to the R-Car CSI-2 receiver. With these
+> changes I can control which of the analog inputs of the ADV7482 the
+> video source is captured from and on which CSI-2 virtual channel the
+> video is transmitted on to the R-Car CSI-2 receiver.
+> 
+> The series adds two new subdev IOCTLs [GS]_ROUTING which allows
+> user-space to get and set routes inside a subdevice. I have added RFC
+> support for these to v4l-utils [2] which can be used to test this
+> series, example:
+> 
+>     Check the internal routing of the adv748x csi-2 transmitter:
+>     v4l2-ctl -d /dev/v4l-subdev24 --get-routing
+>     0/0 -> 1/0 [ENABLED]
+>     0/0 -> 1/1 []
+>     0/0 -> 1/2 []
+>     0/0 -> 1/3 []
+> 
+> 
+>     Select that video should be outputed on VC 2 and check the result:
+>     $ v4l2-ctl -d /dev/v4l-subdev24 --set-routing '0/0 -> 1/2 [1]'
+> 
+>     $ v4l2-ctl -d /dev/v4l-subdev24 --get-routing
+>     0/0 -> 1/0 []
+>     0/0 -> 1/1 []
+>     0/0 -> 1/2 [ENABLED]
+>     0/0 -> 1/3 []
+> -------------------------------------------------------------------------------
+> 
+> Below is reported the media graph of the system used for testing [1].
+> 
+> v4l2-ctl patches to handle the newly introduced IOCTLs are available from
+> Niklas' repository at:
+> git://git.ragnatech.se/v4l-utils routing
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vimc/vimc-capture.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+Could you send the v4l2-ctl patches out as well, please?
 
-diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-index ea869631a3f6..3d433361d297 100644
---- a/drivers/media/platform/vimc/vimc-capture.c
-+++ b/drivers/media/platform/vimc/vimc-capture.c
-@@ -338,6 +338,15 @@ static const struct media_entity_operations vimc_cap_mops = {
- 	.link_validate		= vimc_link_validate,
- };
- 
-+static void vimc_cap_release(struct video_device *vdev)
-+{
-+	struct vimc_cap_device *vcap = container_of(vdev, struct vimc_cap_device,
-+						    vdev);
-+
-+	vimc_pads_cleanup(vcap->ved.pads);
-+	kfree(vcap);
-+}
-+
- static void vimc_cap_comp_unbind(struct device *comp, struct device *master,
- 				 void *master_data)
- {
-@@ -348,8 +357,6 @@ static void vimc_cap_comp_unbind(struct device *comp, struct device *master,
- 	vb2_queue_release(&vcap->queue);
- 	media_entity_cleanup(ved->ent);
- 	video_unregister_device(&vcap->vdev);
--	vimc_pads_cleanup(vcap->ved.pads);
--	kfree(vcap);
- }
- 
- static void *vimc_cap_process_frame(struct vimc_ent_device *ved,
-@@ -467,7 +474,7 @@ static int vimc_cap_comp_bind(struct device *comp, struct device *master,
- 	vdev = &vcap->vdev;
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
- 	vdev->entity.ops = &vimc_cap_mops;
--	vdev->release = video_device_release_empty;
-+	vdev->release = vimc_cap_release;
- 	vdev->fops = &vimc_cap_fops;
- 	vdev->ioctl_ops = &vimc_cap_ioctl_ops;
- 	vdev->lock = &vcap->lock;
 -- 
-2.20.1
-
+Sakari Ailus
+sakari.ailus@linux.intel.com
