@@ -2,134 +2,158 @@ Return-Path: <SRS0=yxRx=RK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E09A4C43381
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:10:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D03EEC10F03
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:27:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B877720835
-	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:10:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DC4820840
+	for <linux-media@archiver.kernel.org>; Thu,  7 Mar 2019 10:27:41 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FzTYsQIW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726283AbfCGKKD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Mar 2019 05:10:03 -0500
-Received: from regular1.263xmail.com ([211.150.99.138]:39494 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726143AbfCGKKD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2019 05:10:03 -0500
-Received: from randy.li?rock-chips.com (unknown [192.168.167.139])
-        by regular1.263xmail.com (Postfix) with ESMTP id 9929A29F;
-        Thu,  7 Mar 2019 18:03:33 +0800 (CST)
-X-263anti-spam: KSV:0;BIG:0;
-X-MAIL-GRAY: 0
-X-MAIL-DELIVERY: 1
-X-KSVirus-check: 0
-X-ADDR-CHECKED4: 1
-X-ABS-CHECKED: 1
-X-SKE-CHECKED: 1
-X-ANTISPAM-LEVEL: 2
-Received: from randy-pc.lan (unknown [58.22.7.114])
-        by smtp.263.net (postfix) whith ESMTP id P17008T140071111993088S1551952999924990_;
-        Thu, 07 Mar 2019 18:03:32 +0800 (CST)
-X-IP-DOMAINF: 1
-X-UNIQUE-TAG: <2570fe3db80530bcfee662caed67e8d4>
-X-RL-SENDER: randy.li@rock-chips.com
-X-SENDER: randy.li@rock-chips.com
-X-LOGIN-NAME: randy.li@rock-chips.com
-X-FST-TO: linux-media@vger.kernel.org
-X-SENDER-IP: 58.22.7.114
-X-ATTACHMENT-NUM: 0
-X-DNS-TYPE: 0
-From:   Randy Li <randy.li@rock-chips.com>
-To:     linux-media@vger.kernel.org
-Cc:     Randy Li <ayaka@soulik.info>, hverkuil@xs4all.nl,
-        maxime.ripard@bootlin.com, joro@8bytes.org,
-        linux-kernel@vger.kernel.org, jernej.skrabec@gmail.com,
-        nicolas@ndufresne.ca, paul.kocialkowski@bootlin.com,
-        linux-rockchip@lists.infradead.org, thomas.petazzoni@bootlin.com,
-        mchehab@kernel.org, ezequiel@collabora.com,
-        linux-arm-kernel@lists.infradead.org, posciak@chromium.org,
-        groeck@chromium.org
-Subject: [PATCH v2 1/6] arm64: dts: rockchip: add power domain to iommu
-Date:   Thu,  7 Mar 2019 18:03:11 +0800
-Message-Id: <20190307100316.925-2-randy.li@rock-chips.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190307100316.925-1-randy.li@rock-chips.com>
-References: <20190307100316.925-1-randy.li@rock-chips.com>
+        id S1726203AbfCGK1l (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Mar 2019 05:27:41 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:38225 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726102AbfCGK1k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2019 05:27:40 -0500
+Received: by mail-wm1-f66.google.com with SMTP id a188so8622850wmf.3;
+        Thu, 07 Mar 2019 02:27:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=6H3yADGNnbnt6pSPultKNdQyfxemFU0VTFw8p+6SX9Y=;
+        b=FzTYsQIWa0qYeO2q1qZk8AgmTr5UjmiRC8nw/wggpTFYLdS1OFF5DACW5FqsBZzZou
+         IXu2muCySAdSXGeYEFV0eAVUoKaohlbVGww625uxchAN4yq6fhVD4yn9DhgSvYFi7olj
+         h6wX7NpsaeapijQXWoAt6ZE/FHbFm+CaRqdWZEoZSs+r5I6cSXJ2iYghyJ3HGm1TSPfh
+         Eum1TDKv/CF8ENtjGNU+J9/TUFEQ/smSWVINexpucKZkQoXm5WP2BJlqGJN380LVrlGg
+         VJfzF1l7bePGAOxqHRc7hiflhnQ+dDe15wwHMSKQS+Apwb+548m8g/60B7NRnavMZyPL
+         Q6ow==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=6H3yADGNnbnt6pSPultKNdQyfxemFU0VTFw8p+6SX9Y=;
+        b=Z2KY8yL5to9qKXa6z2GJ9v8ONwZJlLcC0eHqmv1IgWOPPZIEePG2mQPA8miwzqGgmK
+         TPXVGyf4ovN9WMsJHUzfDgiU6Yj9tSLAj+bY0dKX1mxASCMr+Wu/vUoU7xjt6gZPyHwL
+         V6Sz+dPh5TRDjvdOFH+D7PD+UTgkT5+O1AzxnDmDe1vz3YSU7AC8YpWC1rjwpWquWkm4
+         nkTpLPmzZcXMnTi7Zznbo25Wkg30DrbKEMSSmGckpw+sV7cPl+HaGsaaZAtA6tsyAGX3
+         zEK7rGhD0Z+a/n2aIXLLdWFbOfvv6tzYv63u9nkUgmhucdlUBKrl+pKeE61/H/wveaUW
+         iZsQ==
+X-Gm-Message-State: APjAAAV32kXL8PTXv9kDjmhp+Re5ry8NbigpjowVec6Ln8ukYSduihFN
+        w4lprMy3TLZ42BPEdc888AchEpD/
+X-Google-Smtp-Source: APXvYqxNucetnmXjTPzzuxmcpeNA5ipdyQxLdxCeTEzzSdPAUhKvmQLCJttzJCj1v1R+W8dPGwb4gg==
+X-Received: by 2002:a1c:7f15:: with SMTP id a21mr4784756wmd.27.1551954458260;
+        Thu, 07 Mar 2019 02:27:38 -0800 (PST)
+Received: from [192.168.19.12] (host86-147-153-76.range86-147.btcentralplus.com. [86.147.153.76])
+        by smtp.googlemail.com with ESMTPSA id e7sm7280237wrw.35.2019.03.07.02.27.37
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Thu, 07 Mar 2019 02:27:37 -0800 (PST)
+Subject: Re: [PATCH v3 12/31] media: entity: Add an iterator helper for
+ connected pads
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc:     laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
+ <20190305185150.20776-13-jacopo+renesas@jmondi.org>
+ <20190307100924.4iuabzet67ttgk2p@paasikivi.fi.intel.com>
+From:   Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <9f07ed66-b67b-500e-1faf-7e9c31447fd1@gmail.com>
+Date:   Thu, 7 Mar 2019 10:27:36 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.2
 MIME-Version: 1.0
+In-Reply-To: <20190307100924.4iuabzet67ttgk2p@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US-large
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Randy Li <ayaka@soulik.info>
+On 07/03/2019 10:09, Sakari Ailus wrote:
+> Hi Jacopo,
+> 
+> On Tue, Mar 05, 2019 at 07:51:31PM +0100, Jacopo Mondi wrote:
+>> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>
+>> Add a helper macro for iterating over pads that are connected through
+>> enabled routes. This can be used to find all the connected pads within an
+>> entity, for instance starting from the pad which has been obtained during
+>> the graph walk.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>
+>> - Make __media_entity_next_routed_pad() return NULL and adjust the
+>>    iterator to handle that
+>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> ---
+>>   include/media/media-entity.h | 27 +++++++++++++++++++++++++++
+>>   1 file changed, 27 insertions(+)
+>>
+>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>> index 205561545d7e..82f0bdf2a6d1 100644
+>> --- a/include/media/media-entity.h
+>> +++ b/include/media/media-entity.h
+>> @@ -936,6 +936,33 @@ __must_check int media_graph_walk_init(
+>>   bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+>>   			    unsigned int pad1);
+>>   
+>> +static inline struct media_pad *__media_entity_next_routed_pad(
+>> +	struct media_pad *start, struct media_pad *iter)
+>> +{
+>> +	struct media_entity *entity = start->entity;
+>> +
+>> +	while (iter < &entity->pads[entity->num_pads] &&
+>> +	       !media_entity_has_route(entity, start->index, iter->index))
+>> +		iter++;
+>> +
+>> +	return iter == &entity->pads[entity->num_pads] ? NULL : iter;
+> 
+> Could you use iter <= ...?
+> 
+> It doesn't seem to matter here, but it'd seem safer to change the check.
+> 
 
-Signed-off-by: Randy Li <ayaka@soulik.info>
----
- arch/arm64/boot/dts/rockchip/rk3328.dtsi | 4 ++++
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 2 ++
- 2 files changed, 6 insertions(+)
+How about something like...
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3328.dtsi b/arch/arm64/boot/dts/rockchip/rk3328.dtsi
-index 84f14b132e8f..117d02e21932 100644
---- a/arch/arm64/boot/dts/rockchip/rk3328.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3328.dtsi
-@@ -581,6 +581,7 @@
- 		clocks = <&cru ACLK_H265>, <&cru PCLK_H265>;
- 		clock-names = "aclk", "iface";
- 		#iommu-cells = <0>;
-+		power-domains = <&power RK3328_PD_HEVC>;
- 		status = "disabled";
- 	};
- 
-@@ -592,6 +593,7 @@
- 		clocks = <&cru ACLK_VPU>, <&cru HCLK_VPU>;
- 		clock-names = "aclk", "iface";
- 		#iommu-cells = <0>;
-+		power-domains = <&power RK3328_PD_HEVC>;
- 		status = "disabled";
- 	};
- 
-@@ -603,6 +605,7 @@
- 		clocks = <&cru ACLK_VPU>, <&cru HCLK_VPU>;
- 		clock-names = "aclk", "iface";
- 		#iommu-cells = <0>;
-+		power-domains = <&power RK3328_PD_VPU>;
- 		status = "disabled";
- 	};
- 
-@@ -614,6 +617,7 @@
- 		clocks = <&cru ACLK_RKVDEC>, <&cru HCLK_RKVDEC>;
- 		clock-names = "aclk", "iface";
- 		#iommu-cells = <0>;
-+		power-domains = <&power RK3328_PD_VIDEO>;
- 		status = "disabled";
- 	};
- 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index db9d948c0b03..23d061ab6fa6 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1263,6 +1263,7 @@
- 		clock-names = "aclk", "iface";
- 		#iommu-cells = <0>;
- 		power-domains = <&power RK3399_PD_VCODEC>;
-+		status = "disabled";
- 	};
- 
- 	vdec_mmu: iommu@ff660480 {
-@@ -1273,6 +1274,7 @@
- 		clocks = <&cru ACLK_VDU>, <&cru HCLK_VDU>;
- 		clock-names = "aclk", "iface";
- 		#iommu-cells = <0>;
-+		power-domains = <&power RK3399_PD_VDU>;
- 		status = "disabled";
- 	};
- 
--- 
-2.20.1
+for (; iter < &entity->pads[entity->num_pads]; iter++)
+     if (media_entity_has_route(entity, start->index, iter->index))
+         return iter;
 
+return NULL;
 
+Regards,
+Ian
 
+>> +}
+>> +
+>> +/**
+>> + * media_entity_for_each_routed_pad - Iterate over entity pads connected by routes
+>> + *
+>> + * @start: The stating pad
+>> + * @iter: The iterator pad
+>> + *
+>> + * Iterate over all pads connected through routes from a given pad
+>> + * within an entity. The iteration will include the starting pad itself.
+>> + */
+>> +#define media_entity_for_each_routed_pad(start, iter)			\
+>> +	for (iter = __media_entity_next_routed_pad(			\
+>> +		     start, (start)->entity->pads);			\
+>> +	     iter != NULL;						\
+>> +	     iter = __media_entity_next_routed_pad(start, iter + 1))
+>> +
+>>   /**
+>>    * media_graph_walk_cleanup - Release resources used by graph walk.
+>>    *
+> 
