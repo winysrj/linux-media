@@ -2,172 +2,224 @@ Return-Path: <SRS0=k2dg=RL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC64EC10F0D
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 13:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA281C43381
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 13:56:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9802920661
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 13:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4FFF208E4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 13:56:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726829AbfCHN4e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Mar 2019 08:56:34 -0500
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36843 "EHLO
+        id S1726841AbfCHN4i (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Mar 2019 08:56:38 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41465 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726798AbfCHN4c (ORCPT
+        by vger.kernel.org with ESMTP id S1726820AbfCHN4d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Mar 2019 08:56:32 -0500
+        Fri, 8 Mar 2019 08:56:33 -0500
 Received: from tschai.fritz.box ([212.251.195.8])
         by smtp-cloud9.xs4all.net with ESMTPA
-        id 2Fz7hPu8XI8AW2FzChLWFW; Fri, 08 Mar 2019 14:56:30 +0100
+        id 2Fz7hPu8XI8AW2FzDhLWGe; Fri, 08 Mar 2019 14:56:31 +0100
 From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
 To:     linux-media@vger.kernel.org
 Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Helen Koike <helen.koike@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv4 4/9] vim2m: replace devm_kzalloc by kzalloc
-Date:   Fri,  8 Mar 2019 14:56:20 +0100
-Message-Id: <20190308135625.11278-5-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv4 9/9] vimc: use new release op
+Date:   Fri,  8 Mar 2019 14:56:25 +0100
+Message-Id: <20190308135625.11278-10-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190308135625.11278-1-hverkuil-cisco@xs4all.nl>
 References: <20190308135625.11278-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfACdcE0cPS2rLGfu372taeC34S1lAywkR4NlMCsUvZ/F8obcioZCGgjNTN3X5YwLa+qbMwzWHjilWqzh0bVpHKM422Tpu/O0XZgFlTRRHDGHDLt9VNTA
- lDSkhxYDuk3PrBbOmOa6rz4sMrsKGzLjF+r1LiNdVQwvVW4G9rZ6fqqtPzwsKCmoWvpLwy6exzR1+xBVMQWx4rfxSARQxavQzeYvRV9yI8WzgHxQJZkSPL83
- P2EDWkpARa/AuDyr/fzU2MMRWTjH3U+TzfC0HnW14yhVTAFM8uU1uF+uEpKxgOrVvjpBD9fVwckTZ6QcGsOSlw==
+X-CMAE-Envelope: MS4wfCa5hWYgNNC07lkC3IT1K5S3bgsgC0za9RjbGz0DEjZ+YzS6D9ZeIwwA8iScYOm3xzEIlcYMpXwQnDe7awViX/3oEwb1E5TH7TwbOcCEkxuRHWN+xmKi
+ aRZI1c17NJac0N0WPv47CPCMaa+rm5UzKNsX2BY8t4IVVwvpoB34h+NfZoZYr6X1u7zMXoEoTKL38n9WmKqVVJZ0xnKgH/demXIjC8qsw6bXQblAlWkV/VDp
+ yIqomdi8sZwGvimsljOQgQJlBldn701r3Gm8Lv4iYF2hVVeRO3QWDfqrWGIX8l7VYJFs5cGM5NMRN9Zq5UshTw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-It is not possible to use devm_kzalloc since that memory is
-freed immediately when the device instance is unbound.
-
-Various objects like the video device may still be in use
-since someone has the device node open, and when that is closed
-it expects the memory to be around.
-
-So use kzalloc and release it at the appropriate time.
+Use the new v4l2_subdev_internal_ops release op to free the
+subdev memory only once the last user closed the file handle.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/vim2m.c | 35 +++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ drivers/media/platform/vimc/vimc-common.c  |  2 ++
+ drivers/media/platform/vimc/vimc-common.h  |  2 ++
+ drivers/media/platform/vimc/vimc-debayer.c | 15 +++++++++++++--
+ drivers/media/platform/vimc/vimc-scaler.c  | 15 +++++++++++++--
+ drivers/media/platform/vimc/vimc-sensor.c  | 19 +++++++++++++++----
+ 5 files changed, 45 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 34dcaca45d8b..dd47821fc661 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -1262,6 +1262,15 @@ static int vim2m_release(struct file *file)
- 	return 0;
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index c1a74bb2df58..0adbfd8fd26d 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -380,6 +380,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ 			 u32 function,
+ 			 u16 num_pads,
+ 			 const unsigned long *pads_flag,
++			 const struct v4l2_subdev_internal_ops *sd_int_ops,
+ 			 const struct v4l2_subdev_ops *sd_ops)
+ {
+ 	int ret;
+@@ -394,6 +395,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ 
+ 	/* Initialize the subdev */
+ 	v4l2_subdev_init(sd, sd_ops);
++	sd->internal_ops = sd_int_ops;
+ 	sd->entity.function = function;
+ 	sd->entity.ops = &vimc_ent_sd_mops;
+ 	sd->owner = THIS_MODULE;
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 84539430b5e7..c439cbf2f030 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -187,6 +187,7 @@ const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat);
+  * @function:	media entity function defined by MEDIA_ENT_F_* macros
+  * @num_pads:	number of pads to initialize
+  * @pads_flag:	flags to use in each pad
++ * @sd_int_ops:	pointer to &struct v4l2_subdev_internal_ops
+  * @sd_ops:	pointer to &struct v4l2_subdev_ops.
+  *
+  * Helper function initialize and register the struct vimc_ent_device and struct
+@@ -199,6 +200,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ 			 u32 function,
+ 			 u16 num_pads,
+ 			 const unsigned long *pads_flag,
++			 const struct v4l2_subdev_internal_ops *sd_int_ops,
+ 			 const struct v4l2_subdev_ops *sd_ops);
+ 
+ /**
+diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
+index 7d77c63b99d2..eaed4233ad1b 100644
+--- a/drivers/media/platform/vimc/vimc-debayer.c
++++ b/drivers/media/platform/vimc/vimc-debayer.c
+@@ -489,6 +489,18 @@ static void *vimc_deb_process_frame(struct vimc_ent_device *ved,
+ 
  }
  
-+static void vim2m_device_release(struct video_device *vdev)
++static void vimc_deb_release(struct v4l2_subdev *sd)
 +{
-+	struct vim2m_dev *dev = container_of(vdev, struct vim2m_dev, vfd);
++	struct vimc_deb_device *vdeb =
++				container_of(sd, struct vimc_deb_device, sd);
 +
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+	v4l2_m2m_release(dev->m2m_dev);
-+	kfree(dev);
++	kfree(vdeb);
 +}
 +
- static const struct v4l2_file_operations vim2m_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= vim2m_open,
-@@ -1277,7 +1286,7 @@ static const struct video_device vim2m_videodev = {
- 	.fops		= &vim2m_fops,
- 	.ioctl_ops	= &vim2m_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release_empty,
-+	.release	= vim2m_device_release,
- 	.device_caps	= V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING,
++static const struct v4l2_subdev_internal_ops vimc_deb_int_ops = {
++	.release = vimc_deb_release,
++};
++
+ static void vimc_deb_comp_unbind(struct device *comp, struct device *master,
+ 				 void *master_data)
+ {
+@@ -497,7 +509,6 @@ static void vimc_deb_comp_unbind(struct device *comp, struct device *master,
+ 						    ved);
+ 
+ 	vimc_ent_sd_unregister(ved, &vdeb->sd);
+-	kfree(vdeb);
+ }
+ 
+ static int vimc_deb_comp_bind(struct device *comp, struct device *master,
+@@ -519,7 +530,7 @@ static int vimc_deb_comp_bind(struct device *comp, struct device *master,
+ 				   MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV, 2,
+ 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
+ 				   MEDIA_PAD_FL_SOURCE},
+-				   &vimc_deb_ops);
++				   &vimc_deb_int_ops, &vimc_deb_ops);
+ 	if (ret) {
+ 		kfree(vdeb);
+ 		return ret;
+diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
+index 39b2a73dfcc1..2028afa4ef7a 100644
+--- a/drivers/media/platform/vimc/vimc-scaler.c
++++ b/drivers/media/platform/vimc/vimc-scaler.c
+@@ -348,6 +348,18 @@ static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
+ 	return vsca->src_frame;
  };
  
-@@ -1298,13 +1307,13 @@ static int vim2m_probe(struct platform_device *pdev)
- 	struct video_device *vfd;
- 	int ret;
++static void vimc_sca_release(struct v4l2_subdev *sd)
++{
++	struct vimc_sca_device *vsca =
++				container_of(sd, struct vimc_sca_device, sd);
++
++	kfree(vsca);
++}
++
++static const struct v4l2_subdev_internal_ops vimc_sca_int_ops = {
++	.release = vimc_sca_release,
++};
++
+ static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
+ 				 void *master_data)
+ {
+@@ -356,7 +368,6 @@ static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
+ 						    ved);
  
--	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (!dev)
- 		return -ENOMEM;
+ 	vimc_ent_sd_unregister(ved, &vsca->sd);
+-	kfree(vsca);
+ }
  
- 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 
+@@ -379,7 +390,7 @@ static int vimc_sca_comp_bind(struct device *comp, struct device *master,
+ 				   MEDIA_ENT_F_PROC_VIDEO_SCALER, 2,
+ 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
+ 				   MEDIA_PAD_FL_SOURCE},
+-				   &vimc_sca_ops);
++				   &vimc_sca_int_ops, &vimc_sca_ops);
+ 	if (ret) {
+ 		kfree(vsca);
+ 		return ret;
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 59195f262623..d7891d3bbeaa 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -301,6 +301,20 @@ static const struct v4l2_ctrl_ops vimc_sen_ctrl_ops = {
+ 	.s_ctrl = vimc_sen_s_ctrl,
+ };
+ 
++static void vimc_sen_release(struct v4l2_subdev *sd)
++{
++	struct vimc_sen_device *vsen =
++				container_of(sd, struct vimc_sen_device, sd);
++
++	v4l2_ctrl_handler_free(&vsen->hdl);
++	tpg_free(&vsen->tpg);
++	kfree(vsen);
++}
++
++static const struct v4l2_subdev_internal_ops vimc_sen_int_ops = {
++	.release = vimc_sen_release,
++};
++
+ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
+ 				 void *master_data)
+ {
+@@ -309,9 +323,6 @@ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
+ 				container_of(ved, struct vimc_sen_device, ved);
+ 
+ 	vimc_ent_sd_unregister(ved, &vsen->sd);
+-	v4l2_ctrl_handler_free(&vsen->hdl);
+-	tpg_free(&vsen->tpg);
+-	kfree(vsen);
+ }
+ 
+ /* Image Processing Controls */
+@@ -371,7 +382,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 				   pdata->entity_name,
+ 				   MEDIA_ENT_F_CAM_SENSOR, 1,
+ 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
+-				   &vimc_sen_ops);
++				   &vimc_sen_int_ops, &vimc_sen_ops);
  	if (ret)
--		return ret;
-+		goto error_free;
+ 		goto err_free_hdl;
  
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
-@@ -1317,7 +1326,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
--		goto unreg_v4l2;
-+		goto error_v4l2;
- 	}
- 
- 	video_set_drvdata(vfd, dev);
-@@ -1330,7 +1339,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	if (IS_ERR(dev->m2m_dev)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(dev->m2m_dev);
--		goto unreg_dev;
-+		goto error_dev;
- 	}
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
-@@ -1346,27 +1355,29 @@ static int vim2m_probe(struct platform_device *pdev)
- 						 MEDIA_ENT_F_PROC_VIDEO_SCALER);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
--		goto unreg_m2m;
-+		goto error_m2m;
- 	}
- 
- 	ret = media_device_register(&dev->mdev);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
--		goto unreg_m2m_mc;
-+		goto error_m2m_mc;
- 	}
- #endif
- 	return 0;
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
--unreg_m2m_mc:
-+error_m2m_mc:
- 	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
--unreg_m2m:
-+error_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
- #endif
--unreg_dev:
-+error_dev:
- 	video_unregister_device(&dev->vfd);
--unreg_v4l2:
-+error_v4l2:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+error_free:
-+	kfree(dev);
- 
- 	return ret;
- }
-@@ -1382,9 +1393,7 @@ static int vim2m_remove(struct platform_device *pdev)
- 	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
- 	media_device_cleanup(&dev->mdev);
- #endif
--	v4l2_m2m_release(dev->m2m_dev);
- 	video_unregister_device(&dev->vfd);
--	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	return 0;
- }
 -- 
 2.20.1
 
