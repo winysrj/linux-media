@@ -2,147 +2,383 @@ Return-Path: <SRS0=k2dg=RL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7872EC4360F
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:29:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 035DAC43381
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:46:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 47BFD20854
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:29:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="MmhlKK25"
+	by mail.kernel.org (Postfix) with ESMTP id C28C320851
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:46:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726270AbfCHL3q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Mar 2019 06:29:46 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:53150 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725975AbfCHL3q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2019 06:29:46 -0500
-Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id A6C78309;
-        Fri,  8 Mar 2019 12:29:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552044584;
-        bh=b7cfgF4m93vSIHz+NYNeX5bfcXjY5LjUwf+Eosr+L/g=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=MmhlKK25ARLLy/9wkAfDMd0etnVt/h2oHWiyZ8YwejNIqs4xjRvzzT2rp+OweQJJM
-         Oc/dHwfYdtDTc/Eh+5x1kAdOo5CZ+Xf2+r/h9+a0fsU/J+Dto+OahSljXJbNd0cAYD
-         OXO51S6Run8hUDwtAEI+ukHz9P83hs8WfEJX+sGw=
-Date:   Fri, 8 Mar 2019 13:29:38 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Jacopo Mondi <jacopo@jmondi.org>
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: adv748x: Don't disable CSI-2 on link_setup
-Message-ID: <20190308112938.GE4802@pendragon.ideasonboard.com>
-References: <20190306112659.8310-1-jacopo+renesas@jmondi.org>
- <20190306191521.GE4791@pendragon.ideasonboard.com>
- <20190307103511.wtx2c7jecyx4nmms@uno.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20190307103511.wtx2c7jecyx4nmms@uno.localdomain>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S1726329AbfCHLqh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Mar 2019 06:46:37 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:37133 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725789AbfCHLqg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2019 06:46:36 -0500
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1h2DxT-0001wN-3h; Fri, 08 Mar 2019 12:46:35 +0100
+Message-ID: <1552045591.4009.4.camel@pengutronix.de>
+Subject: Re: [PATCH v6 3/7] gpu: ipu-v3: ipu-ic: Fully describe colorspace
+ conversions
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc:     Tim Harvey <tharvey@gateworks.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX" 
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
+Date:   Fri, 08 Mar 2019 12:46:31 +0100
+In-Reply-To: <20190307233356.23748-4-slongerbeam@gmail.com>
+References: <20190307233356.23748-1-slongerbeam@gmail.com>
+         <20190307233356.23748-4-slongerbeam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
-
-On Thu, Mar 07, 2019 at 11:35:11AM +0100, Jacopo Mondi wrote:
-> On Wed, Mar 06, 2019 at 09:15:21PM +0200, Laurent Pinchart wrote:
-> > On Wed, Mar 06, 2019 at 12:26:59PM +0100, Jacopo Mondi wrote:
-> >> When both the media links between AFE and HDMI and the two TX CSI-2 outputs
-> >> gets disabled, the routing register ADV748X_IO_10 gets zeroed causing both
-> >> TXA and TXB output to get disabled.
-> >>
-> >> This causes some HDMI transmitters to stop working after both AFE and
-> >> HDMI links are disabled.
-> >
-> > Could you elaborate on why this would be the case ? By HDMI transmitter,
-> > I assume you mean the device connected to the HDMI input of the ADV748x.
-> > Why makes it fail (and how ?) when the TXA and TXB are both disabled ?
+On Thu, 2019-03-07 at 15:33 -0800, Steve Longerbeam wrote:
+> Only providing the input and output RGB/YUV space to the IC task init
+> functions is not sufficient. To fully characterize a colorspace
+> conversion, the colorspace (chromaticities), Y'CbCr encoding standard,
+> and quantization also need to be specified.
 > 
-> I know, it's weird, the HDMI transmitter is connected to the HDMI
-> input of adv748x and should not be bothered by CSI-2 outputs
-> enablement/disablement.
+> Define a 'struct ipu_ic_colorspace' that includes all the above, and pass
+> the input and output ipu_ic_colorspace to the IC task init functions.
 > 
-> BUT, when I developed the initial adv748x AFE->TXA patches I was
-> testing HDMI capture using a laptop, and things were smooth.
+> This allows to actually enforce the fact that the IC:
 > 
-> I recently started using a chrome cast device I found in some drawer
-> to test HDMI, as with it I don't need to go through xrandr as I had to
-> do when using a laptop for testing, but it seems the two behaves differently.
+> - can only encode to/from YUV full range (follow-up patch will remove
+>   this restriction).
+> - can only encode to/from RGB full range.
+> - can only encode using BT.601 standard (follow-up patch will add
+>   Rec.709 encoding support).
+> - cannot convert colorspaces from input to output, the
+>   input and output colorspace chromaticities must be the same.
 > 
-> Failures are of different types: from detecting a non-realisting
-> resolution from the HDMI subdevice, and then messing up the pipeline
-> configuration, to capture operations apparently completing properly
-> but resulting in mangled images.
+> The determination of the CSC coefficients based on the input/output
+> colorspace parameters are moved to a new function calc_csc_coeffs(),
+> called by init_csc().
 > 
-> Do not deactivate the CSI-2 ouputs seems to fix the issue for the
-> Chromecast, and still work when capturing from laptop. There might be
-> something I am missing about HDMI maybe, but the patch not just fixes
-> the issue for me, but it might make sense on its own as disabling the
-> TXes might trigger some internal power saving state, or simply mess up
-> the HDMI link.
-
-I think this needs more investigation. It feels to me that you're
-working around an issue by chance, and it will come back to bite us
-later :-(
-
-> As disabling both TXes usually happens at media link reset time, just
-> before enabling one of them (or both), going through a full disable
-> makes little sense, even more if it triggers any sort of malfunctioning.
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> ---
+>  drivers/gpu/ipu-v3/ipu-ic.c                 | 136 +++++++++++++-------
+>  drivers/gpu/ipu-v3/ipu-image-convert.c      |  27 ++--
+>  drivers/staging/media/imx/imx-ic-prpencvf.c |  22 +++-
+>  include/video/imx-ipu-v3.h                  |  37 +++++-
+>  4 files changed, 154 insertions(+), 68 deletions(-)
 > 
-> Does this make sense to you?
+> diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
+> index b63a2826b629..c4048c921801 100644
+> --- a/drivers/gpu/ipu-v3/ipu-ic.c
+> +++ b/drivers/gpu/ipu-v3/ipu-ic.c
+> @@ -146,8 +146,10 @@ struct ipu_ic {
+>  	const struct ic_task_regoffs *reg;
+>  	const struct ic_task_bitfields *bit;
+>  
+> -	enum ipu_color_space in_cs, g_in_cs;
+> -	enum ipu_color_space out_cs;
+> +	struct ipu_ic_colorspace in_cs;
+> +	struct ipu_ic_colorspace g_in_cs;
+> +	struct ipu_ic_colorspace out_cs;
+> +
+>  	bool graphics;
+>  	bool rotation;
+>  	bool in_use;
+> @@ -235,42 +237,83 @@ static const struct ic_encode_coeff ic_encode_ycbcr2rgb_601 = {
+>  	.scale = 2,
+>  };
+>  
+> +static int calc_csc_coeffs(struct ipu_ic_priv *priv,
+> +			   struct ic_encode_coeff *coeff_out,
+> +			   const struct ipu_ic_colorspace *in,
+> +			   const struct ipu_ic_colorspace *out)
+> +{
+> +	bool inverse_encode;
+> +
+> +	if (in->colorspace != out->colorspace) {
+> +		dev_err(priv->ipu->dev, "Cannot convert colorspaces\n");
+> +		return -ENOTSUPP;
+> +	}
 
-It also doesn't make too much sense to keep them both enabled when they
-don't need to be :-) You'll end up consuming more power.
+I don't think this is useful enough to warrant having the colorspace
+field in ipu_ic_colorspace. Let the caller make sure of this, same as
+for xfer_func.
 
-> >> Fix this by preventing writing 0 to
-> >> ADV748X_IO_10 register, which gets only updated when links are enabled
-> >> again.
-> >>
-> >> Fixes: 9423ca350df7 ("media: adv748x: Implement TX link_setup callback")
-> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >> ---
-> >> The issue presents itself only on some HDMI transmitters, and went unnoticed
-> >> during the development of:
-> >> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
-> >>
-> >> Patch intended to be applied on top of latest media-master, where the
-> >> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
-> >> series is applied.
-> >>
-> >> The patch reports a "Fixes" tag, but should actually be merged with the above
-> >> mentioned series.
-> >>
-> >> ---
-> >>  drivers/media/i2c/adv748x/adv748x-core.c | 3 +++
-> >>  1 file changed, 3 insertions(+)
-> >>
-> >> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> >> index f57cd77a32fa..0e5a75eb6d75 100644
-> >> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> >> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> >> @@ -354,6 +354,9 @@ static int adv748x_link_setup(struct media_entity *entity,
-> >>
-> >>  	tx->src = enable ? rsd : NULL;
-> >>
-> >> +	if (!enable)
-> >> +		return 0;
-> >> +
-> >>  	if (state->afe.tx) {
-> >>  		/* AFE Requires TXA enabled, even when output to TXB */
-> >>  		io10 |= ADV748X_IO_10_CSI4_EN;
+> +	if (out->enc != V4L2_YCBCR_ENC_601) {
+> +		dev_err(priv->ipu->dev, "Only BT.601 encoding supported\n");
+> +		return -ENOTSUPP;
+> +	}
 
--- 
-Regards,
+This is only important if out->cs is IPUV3_COLORSPACE_YUV, right? If the
+output is RGB this field shouldn't matter.
 
-Laurent Pinchart
+> +
+> +	if ((in->cs == IPUV3_COLORSPACE_YUV &&
+> +	     in->quant != V4L2_QUANTIZATION_FULL_RANGE) ||
+> +	    (out->cs == IPUV3_COLORSPACE_YUV &&
+> +	     out->quant != V4L2_QUANTIZATION_FULL_RANGE)) {
+> +		dev_err(priv->ipu->dev, "Limited range YUV not supported\n");
+> +		return -ENOTSUPP;
+> +	}
+> +
+> +	if ((in->cs == IPUV3_COLORSPACE_RGB &&
+> +	     in->quant != V4L2_QUANTIZATION_FULL_RANGE) ||
+> +	    (out->cs == IPUV3_COLORSPACE_RGB &&
+> +	     out->quant != V4L2_QUANTIZATION_FULL_RANGE)) {
+> +		dev_err(priv->ipu->dev, "Limited range RGB not supported\n");
+> +		return -ENOTSUPP;
+> +	}
+> +
+> +	if (in->cs == out->cs) {
+> +		*coeff_out = ic_encode_identity;
+> +
+> +		return 0;
+> +	}
+> +
+> +	inverse_encode = (in->cs == IPUV3_COLORSPACE_YUV);
+
+What does inverse_encode mean in this context?
+
+> +
+> +	*coeff_out = inverse_encode ?
+> +		ic_encode_ycbcr2rgb_601 : ic_encode_rgb2ycbcr_601;
+> +
+> +	return 0;
+> +}
+> +
+>  static int init_csc(struct ipu_ic *ic,
+> -		    enum ipu_color_space inf,
+> -		    enum ipu_color_space outf,
+> +		    const struct ipu_ic_colorspace *in,
+> +		    const struct ipu_ic_colorspace *out,
+>  		    int csc_index)
+>  {
+>  	struct ipu_ic_priv *priv = ic->priv;
+> -	const struct ic_encode_coeff *coeff;
+> +	struct ic_encode_coeff coeff;
+
+I understand this is a preparation for patch 5, but on its own this
+introduces an unnecessary copy.
+
+>  	u32 __iomem *base;
+>  	const u16 (*c)[3];
+>  	const u16 *a;
+>  	u32 param;
+> +	int ret;
+> +
+> +	ret = calc_csc_coeffs(priv, &coeff, in, out);
+> +	if (ret)
+> +		return ret;
+>  
+>  	base = (u32 __iomem *)
+>  		(priv->tpmem_base + ic->reg->tpmem_csc[csc_index]);
+>  
+> -	if (inf == IPUV3_COLORSPACE_YUV && outf == IPUV3_COLORSPACE_RGB)
+> -		coeff = &ic_encode_ycbcr2rgb_601;
+> -	else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_YUV)
+> -		coeff = &ic_encode_rgb2ycbcr_601;
+> -	else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_RGB)
+> -		coeff = &ic_encode_identity;
+> -	else {
+> -		dev_err(priv->ipu->dev, "Unsupported color space conversion\n");
+> -		return -EINVAL;
+> -	}
+> -
+>  	/* Cast to unsigned */
+> -	c = (const u16 (*)[3])coeff->coeff;
+> -	a = (const u16 *)coeff->offset;
+> +	c = (const u16 (*)[3])coeff.coeff;
+> +	a = (const u16 *)coeff.offset;
+>  
+>  	param = ((a[0] & 0x1f) << 27) | ((c[0][0] & 0x1ff) << 18) |
+>  		((c[1][1] & 0x1ff) << 9) | (c[2][2] & 0x1ff);
+>  	writel(param, base++);
+>  
+> -	param = ((a[0] & 0x1fe0) >> 5) | (coeff->scale << 8) |
+> -		(coeff->sat << 10);
+> +	param = ((a[0] & 0x1fe0) >> 5) | (coeff.scale << 8) |
+> +		(coeff.sat << 10);
+>  	writel(param, base++);
+>  
+>  	param = ((a[1] & 0x1f) << 27) | ((c[0][1] & 0x1ff) << 18) |
+> @@ -357,14 +400,14 @@ void ipu_ic_task_enable(struct ipu_ic *ic)
+>  	if (ic->rotation)
+>  		ic_conf |= ic->bit->ic_conf_rot_en;
+>  
+> -	if (ic->in_cs != ic->out_cs)
+> +	if (ic->in_cs.cs != ic->out_cs.cs)
+>  		ic_conf |= ic->bit->ic_conf_csc1_en;
+>  
+>  	if (ic->graphics) {
+>  		ic_conf |= ic->bit->ic_conf_cmb_en;
+>  		ic_conf |= ic->bit->ic_conf_csc1_en;
+>  
+> -		if (ic->g_in_cs != ic->out_cs)
+> +		if (ic->g_in_cs.cs != ic->out_cs.cs)
+>  			ic_conf |= ic->bit->ic_conf_csc2_en;
+>  	}
+>  
+> @@ -399,7 +442,7 @@ void ipu_ic_task_disable(struct ipu_ic *ic)
+>  EXPORT_SYMBOL_GPL(ipu_ic_task_disable);
+>  
+>  int ipu_ic_task_graphics_init(struct ipu_ic *ic,
+> -			      enum ipu_color_space in_g_cs,
+> +			      const struct ipu_ic_colorspace *g_in_cs,
+
+What made you decide not to expose the task parameter structure?
+
+I was hoping we could eventually move the V4L2 colorimetry settings to
+conversion matrix translation into imx-media.
+
+Btw, do you have any plans for using IC composition?
+ipu_ic_task_graphics_init() is currently unused...
+
+>  			      bool galpha_en, u32 galpha,
+>  			      bool colorkey_en, u32 colorkey)
+>  {
+> @@ -416,20 +459,25 @@ int ipu_ic_task_graphics_init(struct ipu_ic *ic,
+>  	ic_conf = ipu_ic_read(ic, IC_CONF);
+>  
+>  	if (!(ic_conf & ic->bit->ic_conf_csc1_en)) {
+> +		struct ipu_ic_colorspace rgb_cs;
+> +
+> +		ipu_ic_fill_colorspace(&rgb_cs,
+> +				       V4L2_COLORSPACE_SRGB,
+> +				       V4L2_YCBCR_ENC_601,
+> +				       V4L2_QUANTIZATION_FULL_RANGE,
+> +				       IPUV3_COLORSPACE_RGB);
+> +
+>  		/* need transparent CSC1 conversion */
+> -		ret = init_csc(ic, IPUV3_COLORSPACE_RGB,
+> -			       IPUV3_COLORSPACE_RGB, 0);
+> +		ret = init_csc(ic, &rgb_cs, &rgb_cs, 0);
+>  		if (ret)
+>  			goto unlock;
+>  	}
+>  
+> -	ic->g_in_cs = in_g_cs;
+> +	ic->g_in_cs = *g_in_cs;
+>  
+> -	if (ic->g_in_cs != ic->out_cs) {
+> -		ret = init_csc(ic, ic->g_in_cs, ic->out_cs, 1);
+> -		if (ret)
+> -			goto unlock;
+> -	}
+> +	ret = init_csc(ic, &ic->g_in_cs, &ic->out_cs, 1);
+> +	if (ret)
+> +		goto unlock;
+
+I had to look twice, but this is fine. If ic->g_in_cs == ic->out_cs,
+ipu_ic_task_enable() won't enable CSC2 in IC_CONF, and these TPMEM
+values will be ignored.
+
+>  
+>  	if (galpha_en) {
+>  		ic_conf |= IC_CONF_IC_GLB_LOC_A;
+> @@ -456,10 +504,10 @@ int ipu_ic_task_graphics_init(struct ipu_ic *ic,
+>  EXPORT_SYMBOL_GPL(ipu_ic_task_graphics_init);
+>  
+>  int ipu_ic_task_init_rsc(struct ipu_ic *ic,
+> +			 const struct ipu_ic_colorspace *in_cs,
+> +			 const struct ipu_ic_colorspace *out_cs,
+>  			 int in_width, int in_height,
+>  			 int out_width, int out_height,
+> -			 enum ipu_color_space in_cs,
+> -			 enum ipu_color_space out_cs,
+>  			 u32 rsc)
+>  {
+>  	struct ipu_ic_priv *priv = ic->priv;
+> @@ -491,28 +539,24 @@ int ipu_ic_task_init_rsc(struct ipu_ic *ic,
+>  	ipu_ic_write(ic, rsc, ic->reg->rsc);
+>  
+>  	/* Setup color space conversion */
+> -	ic->in_cs = in_cs;
+> -	ic->out_cs = out_cs;
+> +	ic->in_cs = *in_cs;
+> +	ic->out_cs = *out_cs;
+>  
+> -	if (ic->in_cs != ic->out_cs) {
+> -		ret = init_csc(ic, ic->in_cs, ic->out_cs, 0);
+> -		if (ret)
+> -			goto unlock;
+> -	}
+> +	ret = init_csc(ic, &ic->in_cs, &ic->out_cs, 0);
+
+Same as above for CSC1.
+ 
+> -unlock:
+>  	spin_unlock_irqrestore(&priv->lock, flags);
+>  	return ret;
+>  }
+>  
+>  int ipu_ic_task_init(struct ipu_ic *ic,
+> +		     const struct ipu_ic_colorspace *in_cs,
+> +		     const struct ipu_ic_colorspace *out_cs,
+>  		     int in_width, int in_height,
+> -		     int out_width, int out_height,
+> -		     enum ipu_color_space in_cs,
+> -		     enum ipu_color_space out_cs)
+> +		     int out_width, int out_height)
+>  {
+> -	return ipu_ic_task_init_rsc(ic, in_width, in_height, out_width,
+> -				    out_height, in_cs, out_cs, 0);
+> +	return ipu_ic_task_init_rsc(ic, in_cs, out_cs,
+> +				    in_width, in_height,
+> +				    out_width, out_height, 0);
+>  }
+>  EXPORT_SYMBOL_GPL(ipu_ic_task_init);
+>  
+> diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
+> index 13103ab86050..ccbc8f4d95d7 100644
+> --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
+> +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
+> @@ -1317,7 +1317,7 @@ static int convert_start(struct ipu_image_convert_run *run, unsigned int tile)
+>  	struct ipu_image_convert_priv *priv = chan->priv;
+>  	struct ipu_image_convert_image *s_image = &ctx->in;
+>  	struct ipu_image_convert_image *d_image = &ctx->out;
+> -	enum ipu_color_space src_cs, dest_cs;
+> +	struct ipu_ic_colorspace src_cs, dest_cs;
+>  	unsigned int dst_tile = ctx->out_tile_map[tile];
+>  	unsigned int dest_width, dest_height;
+>  	unsigned int col, row;
+> @@ -1327,8 +1327,16 @@ static int convert_start(struct ipu_image_convert_run *run, unsigned int tile)
+>  	dev_dbg(priv->ipu->dev, "%s: task %u: starting ctx %p run %p tile %u -> %u\n",
+>  		__func__, chan->ic_task, ctx, run, tile, dst_tile);
+>  
+> -	src_cs = ipu_pixelformat_to_colorspace(s_image->fmt->fourcc);
+> -	dest_cs = ipu_pixelformat_to_colorspace(d_image->fmt->fourcc);
+> +	ipu_ic_fill_colorspace(&src_cs,
+> +			s_image->base.pix.colorspace,
+> +			s_image->base.pix.ycbcr_enc,
+> +			s_image->base.pix.quantization,
+> +			ipu_pixelformat_to_colorspace(s_image->fmt->fourcc));
+> +	ipu_ic_fill_colorspace(&dest_cs,
+> +			d_image->base.pix.colorspace,
+> +			d_image->base.pix.ycbcr_enc,
+> +			d_image->base.pix.quantization,
+> +			ipu_pixelformat_to_colorspace(d_image->fmt->fourcc));
+
+If ipu_ic_task_init(_rsc) could be passed the task parameter structure,
+it could be calculated once in ipu_image_convert_prepare and stored in
+ipu_image_convert_ctx for repeated use.
+
+regards
+Philipp
