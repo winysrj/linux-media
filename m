@@ -2,130 +2,212 @@ Return-Path: <SRS0=k2dg=RL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0689C43381
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 10:05:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24BDFC43381
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 10:24:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AADAE20811
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 10:05:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1D352081B
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 10:24:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726336AbfCHKFE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Mar 2019 05:05:04 -0500
-Received: from regular1.263xmail.com ([211.150.99.135]:53226 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725789AbfCHKFE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2019 05:05:04 -0500
-Received: from randy.li?rock-chips.com (unknown [192.168.167.205])
-        by regular1.263xmail.com (Postfix) with ESMTP id 0CA6329E;
-        Fri,  8 Mar 2019 18:04:51 +0800 (CST)
-X-263anti-spam: KSV:0;
-X-MAIL-GRAY: 0
-X-MAIL-DELIVERY: 1
-X-KSVirus-check: 0
-X-ABS-CHECKED: 4
-Received: from randy-pc.lan (unknown [58.22.7.114])
-        by smtp.263.net (postfix) whith ESMTP id P4577T140460028839680S1552039482412209_;
-        Fri, 08 Mar 2019 18:04:50 +0800 (CST)
-X-IP-DOMAINF: 1
-X-UNIQUE-TAG: <3592bafda1430e3d55e003cbbd907b7a>
-X-RL-SENDER: randy.li@rock-chips.com
-X-SENDER: randy.li@rock-chips.com
-X-LOGIN-NAME: randy.li@rock-chips.com
-X-FST-TO: linux-media@vger.kernel.org
-X-SENDER-IP: 58.22.7.114
-X-ATTACHMENT-NUM: 0
-X-DNS-TYPE: 0
-From:   Randy Li <randy.li@rock-chips.com>
-To:     linux-media@vger.kernel.org
-Cc:     Randy Li <randy.li@rock-chips.com>, ayaka@soulik.info,
-        joro@8bytes.org, iommu@lists.linux-foundation.org,
-        linux-kernel@vger.kernel.org, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        mchehab@kernel.org, hverkuil@xs4all.nl, nicolas@ndufresne.ca,
-        ezequiel@collabora.com, posciak@chromium.org, groeck@chromium.org,
-        paul.kocialkowski@bootlin.com, linux-rockchip@lists.infradead.org
-Subject: [PATCH] [TEST]: media: vb2: reverse DMA addr of each plane
-Date:   Fri,  8 Mar 2019 18:04:40 +0800
-Message-Id: <20190308100440.14601-1-randy.li@rock-chips.com>
-X-Mailer: git-send-email 2.20.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1726352AbfCHKYB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Mar 2019 05:24:01 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:49213 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725789AbfCHKYB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2019 05:24:01 -0500
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1h2CfX-0001hZ-GE; Fri, 08 Mar 2019 11:23:59 +0100
+Message-ID: <1552040639.4009.1.camel@pengutronix.de>
+Subject: Re: [PATCH v6 2/7] gpu: ipu-v3: ipu-ic: Fix BT.601 coefficients
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc:     Tim Harvey <tharvey@gateworks.com>, stable@vger.kernel.org,
+        "open list:DRM DRIVERS FOR FREESCALE IMX" 
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>
+Date:   Fri, 08 Mar 2019 11:23:59 +0100
+In-Reply-To: <20190307233356.23748-3-slongerbeam@gmail.com>
+References: <20190307233356.23748-1-slongerbeam@gmail.com>
+         <20190307233356.23748-3-slongerbeam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-With the default iova and dma-iommu driver, the starting
-address of a new buffer would be at lower address than
-the previous one.
+Hi Steve,
 
-This patch can solve this problem simply, but I want
-a way to control the address direction of the IOMMU/IOVA.
+On Thu, 2019-03-07 at 15:33 -0800, Steve Longerbeam wrote:
+> The ycbcr2rgb and inverse rgb2ycbcr tables define the BT.601 Y'CbCr
+> encoding coefficients.
+> 
+> The rgb2ycbcr table specifically describes the BT.601 encoding from
+> full range RGB to full range YUV. Add table comments to make this more
+> clear.
+> 
+> The ycbcr2rgb inverse table describes encoding YUV limited range to RGB
+> full range. To be consistent with the rgb2ycbcr table, convert this to
+> YUV full range to RGB full range, and adjust/expand on the comments.
+> 
+> The ic_csc_rgb2rgb table is just an identity matrix, so rename to
+> ic_encode_identity.
+> 
+> Fixes: 1aa8ea0d2bd5d ("gpu: ipu-v3: Add Image Converter unit")
+> 
+> Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> Cc: stable@vger.kernel.org
+> ---
+>  drivers/gpu/ipu-v3/ipu-ic.c | 61 ++++++++++++++++++++++---------------
+>  1 file changed, 37 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
+> index 18816ccf600e..b63a2826b629 100644
+> --- a/drivers/gpu/ipu-v3/ipu-ic.c
+> +++ b/drivers/gpu/ipu-v3/ipu-ic.c
+> @@ -175,7 +175,7 @@ static inline void ipu_ic_write(struct ipu_ic *ic, u32 value, unsigned offset)
+>  	writel(value, ic->priv->base + offset);
+>  }
+>  
+> -struct ic_csc_params {
+> +struct ic_encode_coeff {
 
-The reason why we(ayaka and I) need to do this is simple,
-some devices want a contiguous memory for its pixel data.
-But with the single plane buffer, there is not a properly way
-to export its buffer offsets with the userspace,
-since their bytesperline and offset are not full related
-to the picture width or height. You can find more detail
-in the previous mail.
+This less accurate. These are called IC (Task) Parameters in the
+reference manual, the 64-bit aligned words are called CSC words. Beside
+the coefficients, this structure also contains the coefficient scale,
+the offsets, and the saturation mode flag.
 
-Besides, this patch won't solve all the problem, if you
-don't disable the size_aligned of the iova driver or
-there would be a gap between the plane 0 and plane 1.
+>  	s16 coeff[3][3];	/* signed 9-bit integer coefficients */
+>  	s16 offset[3];		/* signed 11+2-bit fixed point offset */
+>  	u8 scale:2;		/* scale coefficients * 2^(scale-1) */
+> @@ -183,13 +183,15 @@ struct ic_csc_params {
+>  };
+>  
+>  /*
+> - * Y = R *  .299 + G *  .587 + B *  .114;
+> - * U = R * -.169 + G * -.332 + B *  .500 + 128.;
+> - * V = R *  .500 + G * -.419 + B * -.0813 + 128.;
+> + * BT.601 encoding from RGB full range to YUV full range:
+> + *
+> + * Y =  .2990 * R + .5870 * G + .1140 * B
+> + * U = -.1687 * R - .3313 * G + .5000 * B + 128
+> + * V =  .5000 * R - .4187 * G - .0813 * B + 128
+>   */
+> -static const struct ic_csc_params ic_csc_rgb2ycbcr = {
+> +static const struct ic_encode_coeff ic_encode_rgb2ycbcr_601 = {
+>  	.coeff = {
+> -		{ 77, 150, 29 },
+> +		{  77, 150,  29 },
+>  		{ 469, 427, 128 },
+>  		{ 128, 405, 491 },
 
-This patch is used for showing the problem we met not
-for merging.
+We could subtract 512 from the negative values, to improve readability.
 
-Signed-off-by: Randy Li <randy.li@rock-chips.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+>  	},
+> @@ -197,8 +199,11 @@ static const struct ic_csc_params ic_csc_rgb2ycbcr = {
+>  	.scale = 1,
+>  };
+>  
+> -/* transparent RGB->RGB matrix for graphics combining */
+> -static const struct ic_csc_params ic_csc_rgb2rgb = {
+> +/*
+> + * identity matrix, used for transparent RGB->RGB graphics
+> + * combining.
+> + */
+> +static const struct ic_encode_coeff ic_encode_identity = {
+>  	.coeff = {
+>  		{ 128, 0, 0 },
+>  		{ 0, 128, 0 },
+> @@ -208,17 +213,25 @@ static const struct ic_csc_params ic_csc_rgb2rgb = {
+>  };
+>  
+>  /*
+> - * R = (1.164 * (Y - 16)) + (1.596 * (Cr - 128));
+> - * G = (1.164 * (Y - 16)) - (0.392 * (Cb - 128)) - (0.813 * (Cr - 128));
+> - * B = (1.164 * (Y - 16)) + (2.017 * (Cb - 128);
+> + * Inverse BT.601 encoding from YUV full range to RGB full range:
+> + *
+> + * R = 1. * Y +      0 * (Cb - 128) + 1.4020 * (Cr - 128)
+> + * G = 1. * Y -  .3442 * (Cb - 128) - 0.7142 * (Cr - 128)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 15b6b9c0a2e4..6762d1547e49 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -204,11 +204,11 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 	 * Allocate memory for all planes in this buffer
- 	 * NOTE: mmapped areas should be page aligned
- 	 */
--	for (plane = 0; plane < vb->num_planes; ++plane) {
--		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
-+	for (plane = vb->num_planes; plane > 0; --plane) {
-+		unsigned long size = PAGE_ALIGN(vb->planes[plane - 1].length);
- 
- 		mem_priv = call_ptr_memop(vb, alloc,
--				q->alloc_devs[plane] ? : q->dev,
-+				q->alloc_devs[plane - 1] ? : q->dev,
- 				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
- 			if (mem_priv)
-@@ -217,15 +217,15 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		}
- 
- 		/* Associate allocator private data with this plane */
--		vb->planes[plane].mem_priv = mem_priv;
-+		vb->planes[plane - 1].mem_priv = mem_priv;
- 	}
- 
- 	return 0;
- free:
- 	/* Free already allocated memory if one of the allocations failed */
--	for (; plane > 0; --plane) {
--		call_void_memop(vb, put, vb->planes[plane - 1].mem_priv);
--		vb->planes[plane - 1].mem_priv = NULL;
-+	for (; plane < vb->num_planes; plane++) {
-+		call_void_memop(vb, put, vb->planes[plane].mem_priv);
-+		vb->planes[plane].mem_priv = NULL;
- 	}
- 
- 	return ret;
--- 
-2.20.1
+Should that be      ^^^^^ .3441   and     ^^^^^ .7141 ?
+The coefficients and offsets after rounding should end up the same.
 
+Also, let's consistently either add the leading zero, or leave it out.
 
+> + * B = 1. * Y + 1.7720 * (Cb - 128) +      0 * (Cr - 128)
+> + *
+> + * equivalently (factoring out the offsets):
+> + *
+> + * R = 1. * Y  +      0 * Cb + 1.4020 * Cr - 179.456
+> + * G = 1. * Y  -  .3442 * Cb - 0.7142 * Cr + 135.475
+> + * B = 1. * Y  + 1.7720 * Cb +      0 * Cr - 226.816
+>   */
+> -static const struct ic_csc_params ic_csc_ycbcr2rgb = {
+> +static const struct ic_encode_coeff ic_encode_ycbcr2rgb_601 = {
+>  	.coeff = {
+> -		{ 149, 0, 204 },
+> -		{ 149, 462, 408 },
+> -		{ 149, 255, 0 },
+> +		{ 128,   0, 179 },
+> +		{ 128, 468, 421 },
+> +		{ 128, 227,   0 },
+>  	},
+> -	.offset = { -446, 266, -554 },
+> +	.offset = { -359, 271, -454 },
 
+These seem to be correct. Again, I think this would be easier to read if
+the negative coefficients were written with a sign as well.
+
+>  	.scale = 2,
+>  };
+>  
+> @@ -228,7 +241,7 @@ static int init_csc(struct ipu_ic *ic,
+>  		    int csc_index)
+>  {
+>  	struct ipu_ic_priv *priv = ic->priv;
+> -	const struct ic_csc_params *params;
+> +	const struct ic_encode_coeff *coeff;
+>  	u32 __iomem *base;
+>  	const u16 (*c)[3];
+>  	const u16 *a;
+> @@ -238,26 +251,26 @@ static int init_csc(struct ipu_ic *ic,
+>  		(priv->tpmem_base + ic->reg->tpmem_csc[csc_index]);
+>  
+>  	if (inf == IPUV3_COLORSPACE_YUV && outf == IPUV3_COLORSPACE_RGB)
+> -		params = &ic_csc_ycbcr2rgb;
+> +		coeff = &ic_encode_ycbcr2rgb_601;
+>  	else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_YUV)
+> -		params = &ic_csc_rgb2ycbcr;
+> +		coeff = &ic_encode_rgb2ycbcr_601;
+>  	else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_RGB)
+> -		params = &ic_csc_rgb2rgb;
+> +		coeff = &ic_encode_identity;
+>  	else {
+>  		dev_err(priv->ipu->dev, "Unsupported color space conversion\n");
+>  		return -EINVAL;
+>  	}
+>  
+>  	/* Cast to unsigned */
+> -	c = (const u16 (*)[3])params->coeff;
+> -	a = (const u16 *)params->offset;
+> +	c = (const u16 (*)[3])coeff->coeff;
+> +	a = (const u16 *)coeff->offset;
+
+This looks weird to me. I'd be in favor of not renaming the type.
+
+regards
+Philipp
