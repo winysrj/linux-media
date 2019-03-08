@@ -2,66 +2,67 @@ Return-Path: <SRS0=k2dg=RL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA85BC43381
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 17:37:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1564C43381
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 17:37:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8AC6220868
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 17:37:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81DCA208E4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 17:37:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=xilinx.onmicrosoft.com header.i=@xilinx.onmicrosoft.com header.b="p07OGDYR"
+	dkim=pass (1024-bit key) header.d=xilinx.onmicrosoft.com header.i=@xilinx.onmicrosoft.com header.b="a0rdhqLi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726897AbfCHRh0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Mar 2019 12:37:26 -0500
-Received: from mail-eopbgr680076.outbound.protection.outlook.com ([40.107.68.76]:55943
-        "EHLO NAM04-BN3-obe.outbound.protection.outlook.com"
+        id S1726934AbfCHRhg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Mar 2019 12:37:36 -0500
+Received: from mail-eopbgr820041.outbound.protection.outlook.com ([40.107.82.41]:10272
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726249AbfCHRhZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Mar 2019 12:37:25 -0500
+        id S1726747AbfCHRhg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Mar 2019 12:37:36 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=xilinx.onmicrosoft.com; s=selector1-xilinx-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iXKPk/PYhvlOsLfzbqPhcTyqD9wqHRtDWn2oAnXfjpw=;
- b=p07OGDYRB271V9EcdBfi7j/CJzEKPbkzdl8XiCWOTpzI/84nTYKG2AeoM814+N1247DzSMb5OztnPVHC/uSh87lyQlJC0huKlea+cUqyq0a9KDd6NI+r1AHsdZ5MAoLmMNJ+ZwyOe0AhsPtL8G/Eb5Gk+nyeOfDUllvwlgOY+cw=
-Received: from BYAPR02CA0058.namprd02.prod.outlook.com (2603:10b6:a03:54::35)
- by MWHPR02MB2381.namprd02.prod.outlook.com (2603:10b6:300:5d::7) with
+ bh=l/ZeZXnZb6252rnhVCw38qItIdjVjvElSlJck2yYisY=;
+ b=a0rdhqLiP5m3cIxl5vbBDJklNztDiHvqbvKaUtLroS6oHWm4qohbsWgbnVwHKVyE8SMkrxA3bwHzUCfbzTGI2AqgrRN7ePUSMho5EaG2UoBFXDNzRuJaIX1Ijre45UgpaNxyc0RBbaeD8/ZkJcsoAS5sbn+2POEfN1cQ6f8EGc0=
+Received: from MN2PR02CA0030.namprd02.prod.outlook.com (2603:10b6:208:fc::43)
+ by DM5PR02MB2379.namprd02.prod.outlook.com (2603:10b6:3:51::11) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.1665.18; Fri, 8 Mar
- 2019 17:37:21 +0000
-Received: from SN1NAM02FT053.eop-nam02.prod.protection.outlook.com
- (2a01:111:f400:7e44::206) by BYAPR02CA0058.outlook.office365.com
- (2603:10b6:a03:54::35) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.1665.16 via Frontend
- Transport; Fri, 8 Mar 2019 17:37:21 +0000
-Authentication-Results: spf=pass (sender IP is 149.199.60.83)
+ 2019 17:37:31 +0000
+Received: from BL2NAM02FT054.eop-nam02.prod.protection.outlook.com
+ (2a01:111:f400:7e46::208) by MN2PR02CA0030.outlook.office365.com
+ (2603:10b6:208:fc::43) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.1686.18 via Frontend
+ Transport; Fri, 8 Mar 2019 17:37:31 +0000
+Authentication-Results: spf=pass (sender IP is 149.199.60.100)
  smtp.mailfrom=xilinx.com; vger.kernel.org; dkim=none (message not signed)
  header.d=none;vger.kernel.org; dmarc=bestguesspass action=none
  header.from=xilinx.com;
 Received-SPF: Pass (protection.outlook.com: domain of xilinx.com designates
- 149.199.60.83 as permitted sender) receiver=protection.outlook.com;
- client-ip=149.199.60.83; helo=xsj-pvapsmtpgw01;
-Received: from xsj-pvapsmtpgw01 (149.199.60.83) by
- SN1NAM02FT053.mail.protection.outlook.com (10.152.72.102) with Microsoft SMTP
+ 149.199.60.100 as permitted sender) receiver=protection.outlook.com;
+ client-ip=149.199.60.100; helo=xsj-pvapsmtpgw02;
+Received: from xsj-pvapsmtpgw02 (149.199.60.100) by
+ BL2NAM02FT054.mail.protection.outlook.com (10.152.77.107) with Microsoft SMTP
  Server (version=TLS1_0, cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.20.1686.19
- via Frontend Transport; Fri, 8 Mar 2019 17:37:20 +0000
-Received: from unknown-38-66.xilinx.com ([149.199.38.66] helo=xsj-pvapsmtp01)
-        by xsj-pvapsmtpgw01 with esmtp (Exim 4.63)
+ via Frontend Transport; Fri, 8 Mar 2019 17:37:30 +0000
+Received: from unknown-38-66.xilinx.com ([149.199.38.66]:57884 helo=xsj-pvapsmtp01)
+        by xsj-pvapsmtpgw02 with esmtp (Exim 4.63)
         (envelope-from <vishal.sagar@xilinx.com>)
-        id 1h2JQu-0003jk-1j; Fri, 08 Mar 2019 09:37:20 -0800
+        id 1h2JR4-0002sL-62; Fri, 08 Mar 2019 09:37:30 -0800
 Received: from [127.0.0.1] (helo=localhost)
         by xsj-pvapsmtp01 with smtp (Exim 4.63)
         (envelope-from <vishal.sagar@xilinx.com>)
-        id 1h2JQo-0001oh-Uc; Fri, 08 Mar 2019 09:37:14 -0800
-Received: from xsj-pvapsmtp01 (mailhub.xilinx.com [149.199.38.66])
-        by xsj-smtp-dlp1.xlnx.xilinx.com (8.13.8/8.13.1) with ESMTP id x28HbCwd001139;
-        Fri, 8 Mar 2019 09:37:12 -0800
+        id 1h2JQz-0001pw-1v; Fri, 08 Mar 2019 09:37:25 -0800
+Received: from xsj-pvapsmtp01 (xsj-smtp1.xilinx.com [149.199.38.66])
+        by xsj-smtp-dlp1.xlnx.xilinx.com (8.13.8/8.13.1) with ESMTP id x28HbG74001162;
+        Fri, 8 Mar 2019 09:37:16 -0800
 Received: from [172.23.29.77] (helo=xhdyacto-vnc1.xilinx.com)
         by xsj-pvapsmtp01 with esmtp (Exim 4.63)
         (envelope-from <vishal.sagar@xilinx.com>)
-        id 1h2JQl-0001nL-OD; Fri, 08 Mar 2019 09:37:12 -0800
+        id 1h2JQp-0001nL-VG; Fri, 08 Mar 2019 09:37:16 -0800
 From:   Vishal Sagar <vishal.sagar@xilinx.com>
 To:     Hyun Kwon <hyunk@xilinx.com>, <laurent.pinchart@ideasonboard.com>,
         <mchehab@kernel.org>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
@@ -72,163 +73,225 @@ To:     Hyun Kwon <hyunk@xilinx.com>, <laurent.pinchart@ideasonboard.com>,
         <linux-kernel@vger.kernel.org>, Dinesh Kumar <dineshk@xilinx.com>,
         Sandip Kothari <sandipk@xilinx.com>
 CC:     Vishal Sagar <vishal.sagar@xilinx.com>
-Subject: [PATCH v4 0/2] Add support for Xilinx CSI2 Receiver Subsystem
-Date:   Fri, 8 Mar 2019 23:01:26 +0530
-Message-ID: <1552066288-58404-1-git-send-email-vishal.sagar@xilinx.com>
+Subject: [PATCH v4 1/2] media: dt-bindings: media: xilinx: Add Xilinx MIPI CSI-2 Rx Subsystem
+Date:   Fri, 8 Mar 2019 23:01:27 +0530
+Message-ID: <1552066288-58404-2-git-send-email-vishal.sagar@xilinx.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1552066288-58404-1-git-send-email-vishal.sagar@xilinx.com>
+References: <1552066288-58404-1-git-send-email-vishal.sagar@xilinx.com>
 X-RCIS-Action: ALLOW
 X-TM-AS-Product-Ver: IMSS-7.1.0.1224-8.2.0.1013-23620.005
 X-TM-AS-User-Approved-Sender: Yes;Yes
 X-EOPAttributedMessage: 0
 X-MS-Office365-Filtering-HT: Tenant
-X-Forefront-Antispam-Report: CIP:149.199.60.83;IPV:NLI;CTRY:US;EFV:NLI;SFV:NSPM;SFS:(10009020)(396003)(39860400002)(346002)(136003)(376002)(2980300002)(199004)(189003)(26005)(110136005)(7696005)(2201001)(16586007)(77096007)(2906002)(81156014)(8676002)(81166006)(6636002)(5660300002)(476003)(2616005)(47776003)(107886003)(316002)(6666004)(356004)(186003)(336012)(86362001)(14444005)(48376002)(36756003)(126002)(478600001)(106002)(8936002)(486006)(51416003)(7416002)(426003)(50226002)(4326008)(50466002)(63266004)(44832011)(106466001)(9786002)(36386004)(305945005)(921003)(2101003)(1121003)(83996005);DIR:OUT;SFP:1101;SCL:1;SRVR:MWHPR02MB2381;H:xsj-pvapsmtpgw01;FPR:;SPF:Pass;LANG:en;PTR:unknown-60-83.xilinx.com;A:1;MX:1;
+X-Forefront-Antispam-Report: CIP:149.199.60.100;IPV:NLI;CTRY:US;EFV:NLI;SFV:NSPM;SFS:(10009020)(136003)(346002)(376002)(39860400002)(396003)(2980300002)(189003)(199004)(51416003)(426003)(110136005)(486006)(126002)(316002)(36386004)(16586007)(4326008)(305945005)(6636002)(7416002)(50226002)(2906002)(63266004)(44832011)(106466001)(47776003)(478600001)(336012)(36756003)(107886003)(81166006)(8936002)(81156014)(9786002)(8676002)(11346002)(356004)(6666004)(2616005)(48376002)(186003)(446003)(86362001)(77096007)(106002)(76176011)(26005)(2201001)(5660300002)(7696005)(50466002)(14444005)(476003)(921003)(83996005)(5001870100001)(1121003)(2101003);DIR:OUT;SFP:1101;SCL:1;SRVR:DM5PR02MB2379;H:xsj-pvapsmtpgw02;FPR:;SPF:Pass;LANG:en;PTR:unknown-60-100.xilinx.com,xapps1.xilinx.com;MX:1;A:1;
 MIME-Version: 1.0
 Content-Type: text/plain
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: fa867fb4-7825-408b-648c-08d6a3ecb7b6
-X-Microsoft-Antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600127)(711020)(4605104)(4608103)(4709054)(2017052603328)(7153060);SRVR:MWHPR02MB2381;
-X-MS-TrafficTypeDiagnostic: MWHPR02MB2381:
-X-Microsoft-Exchange-Diagnostics: 1;MWHPR02MB2381;20:9qN8OWu5FXagSbUHNRgeQKFYbQSQok0VXIgOT9XKH1N3CWI3RPuDEdccj9vOdb6W3IGHl3jhMl1Pa6+sWkGLXndKyPzoJWTZiKOXqNrf5NDfTZUR815i05txf3qKWzfDYVB9+cZkNJOBQJgERP94pSpx+dQUA/p1mweuwGzI0xBa43d5jzO+BJLxibCFDA1RKYJBice4Nf/aleU+8ZLd2q4zX0El9nEPMByt0QeCJ9v46m0T/SsLRBesKaHqOVV0UQbxZaIcDjZWX1WFIadE+A9n8FGROM3VbUvq+0pQ8XPRInG+SoUo3NgyXc+Gn0O6/oP1ZnQj0p8LcS6abJTjid++Us1UzO68uVL0KQf+bCBe6OJwWmN4nLPgUqSmKvwQUgSLZ4wYH7mNmCR+GvI7wUPG4UsBsVwp7lY6y+ftIUgNE1WAZUDzLP/7z6ITC3U4wkLV9oAeEbsakCDM+iSvObHV9beuhptODrb2CluvcHaVquMXp0SxVwQSV4jxvvmy
-X-Microsoft-Antispam-PRVS: <MWHPR02MB2381293FD32709BF25A4FC0BF64D0@MWHPR02MB2381.namprd02.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: 9c4fe503-466b-420f-ee0d-08d6a3ecbdc0
+X-Microsoft-Antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600127)(711020)(4605104)(4608103)(4709054)(2017052603328)(7153060);SRVR:DM5PR02MB2379;
+X-MS-TrafficTypeDiagnostic: DM5PR02MB2379:
+X-Microsoft-Exchange-Diagnostics: 1;DM5PR02MB2379;20:dxZ5Mq7viZolijO6tiOkWLT50iMkd8Re/WZR3NhY/hKpkhakP4fgETApY+TpaKuyE0yIwYT8JCxAj1TrdQK6A2gmFHubazjEPrp1b3drlOsJQc7/WLvVg7ICpAMNCih73BQes1kvswUnB6de+FTh3aD/GGvIWnD0Olg7MpS6HiCOcdkJXQz2Hyu1sxd9W5ou1Yke6qDnM7u+iO5Qg/oar0WIMzcxngidsAWy2Uskx6o1SaMzByNU0WJao7Gdfii6iUzkoljw81mtTY4rGvAHVZ8tLZDNGXEpoLaE57HQ+abVh38XuLYKGv5uPlUZwHraMAmbonQK47vBnSre6HiaE7GVDmRtbmt2GSfcIutzD4uCr8n61IG5zbT1xdtKkKK3xHxN5Ly3SaO+0ho5Iz253FPSTMIxyQ6MdrHVjMR8NnMCuG0iHjZGMKqacLFSLGYu57Dbq2YL3Uf/xkMKH/1puASARhMk+pobxHevHDsqn+C4hXNyxTcreIN+yCmtNwTs
+X-Microsoft-Antispam-PRVS: <DM5PR02MB23795E3BD1DB4985FC5D5543F64D0@DM5PR02MB2379.namprd02.prod.outlook.com>
 X-Forefront-PRVS: 0970508454
-X-Microsoft-Exchange-Diagnostics: =?us-ascii?Q?1;MWHPR02MB2381;23:LOx7UsETwzg6cNkQk1Qio34aClTnmVZSuFJSLENqP?=
- =?us-ascii?Q?gwaf/MCfztnaz+/Lz1XORhLAO0tWxW0qV/Tdh8deLW3OLPjU0DBTbrNpYBG6?=
- =?us-ascii?Q?VpB6EEVI9/vZJViAruJY5kKIha+SMCb6lz15xs+iBzbAgPMAdHUd2wRwlzFo?=
- =?us-ascii?Q?DrsiNy0DBUD50sdq1iIK87Q0sJ2P4crvLlnV0OmImbNOULrkzjJxxIdiCexP?=
- =?us-ascii?Q?87hJhMBrG+YrS1VlAdiwpi7kV5QrpqdjLvBVdjJeQQD3CsTi9jHN7VMRLmFu?=
- =?us-ascii?Q?wkQ2WarDL3bO9t0vP65D36llSfkUzvq7nAEbE6MppJtOmKg2ruePlF+mNjGX?=
- =?us-ascii?Q?1oOqnTGfFkupbInVt27NxfdHqHtFt2IcC9Ljz6RrBmons+BfWf68MXYx5URl?=
- =?us-ascii?Q?9CpPYPGuID8VA4ogiHUoGDkgSW0CCEc6+jWy1vp7SfMG1m/eou7SQvBXHuVI?=
- =?us-ascii?Q?WGrX+lubSJgLlMFZx9ejTqDoy33TGM/DN15bGj8VGEDrfR6pZvhxohLTHL0r?=
- =?us-ascii?Q?h3qFy53rASEoLp1lVbs57ABBaztxULeNFnWUWqq1hD1C52PLNi6wLbtT2odZ?=
- =?us-ascii?Q?d6JxlgHvz7/NEkfAGIyY6XZCJSX7Wmqf83Lk6LDdRa2USnrYJ3ZXA4oCVYio?=
- =?us-ascii?Q?qVEhsLs33Am2hbkIKxXEV1Kw/V3/h2J7YqxfvCs6dn+LOw2YK2mM+Gc+fh2F?=
- =?us-ascii?Q?L/seMXPy33fMXRtj6edqT5CNuh89Jl/qwo2FhJq+EScuyBXurCbezU+Z2u30?=
- =?us-ascii?Q?aR7JfnAt6LH3nEMfh4+nyIQOADyRTlO5V4BTLzRbkLA2TkAmpVJkL+f2qRXH?=
- =?us-ascii?Q?Eg5b2aoQw5l+8NSP5mJ5xpWv9TgPnkm7L0WKZaSg11TUmOnfTH/3XyMvjj5L?=
- =?us-ascii?Q?Z2CY4RD+CclBexW5+gPk7WFkp0gZ7fz1b/btTJDgppEM3mGPDJSJLjXr61Wb?=
- =?us-ascii?Q?onGdfQzX1J7PVosxwQGVXya82upExg96IaRSV6e4PQyEWXiofDP6G1XZUg9H?=
- =?us-ascii?Q?clyEdGQiuAv/mp44WQhddL/MiULM/bvTDzAB9CeX5FMRK6vpIosJu3E1/CAe?=
- =?us-ascii?Q?3Eh1aGKp9bHdWbTpbVEAwNBPODW7GnW5SlHb/xEX86wmih5u6kOWpn+lmoZD?=
- =?us-ascii?Q?7CrKexHs1mSHEQh1/rHIkNX7xOAgpdb+hGCHFwPPl/NTSIaZOMwnny11Qe+l?=
- =?us-ascii?Q?gnPdF6/xXJNXOs=3D?=
+X-Microsoft-Exchange-Diagnostics: =?us-ascii?Q?1;DM5PR02MB2379;23:bfwJX1ABb0CL6VaQbKDsXrfgiHqj7O5+BbrJ+QfSE?=
+ =?us-ascii?Q?tT2+MeBkut/JJRo+qbW364IdCXi+ruSNAWcgnLbcewkZ+Nztk2eRWtTh2O4d?=
+ =?us-ascii?Q?hMenydKn8sy/g97zVte5GuLzvYs6xk/KkopCzEVCf67PTkYIcQEHTEv4epv6?=
+ =?us-ascii?Q?QtaIYAmqsu5DvhygwlMSRea1IrctoqOXO7UR9SkTKZ8kv9F+iwdvtqvnSCxj?=
+ =?us-ascii?Q?qDyg71dnmjjtmeYn0FAWgwh4J4uvVw5IFvQDazjZGxI2xQy6NHcbf4NLhmit?=
+ =?us-ascii?Q?gLH780YmOZbAgU6x+Uk7aDuEkwop4o41a3zxhObli2sgn0qCkxLjcEBANpIN?=
+ =?us-ascii?Q?2rrgc25AQkErEbvXPmK394tpS9RwYgnDJHXm4KaGZb/CA7fqyxab6mqwa35a?=
+ =?us-ascii?Q?fygxBqIfeX7s66nd0c/6L0DfaZI7Ldm6XP8TNU/9Ncd/tORG8b+dnKeqC0Hu?=
+ =?us-ascii?Q?gPjAvKLetbx6CZ4QRpxvuokGoW5GJpFAL+lEi3Jwsu3yON6YOMh/HvUb4XvX?=
+ =?us-ascii?Q?z42d4Br8h5l4fxjqe6Va5vI8a0BN7HgX0CTs3j3m2xzngILprLZYtZfaqYhO?=
+ =?us-ascii?Q?+5M9YwZ5iIcz8R5EB5lTKAT0BIvt+TR0vDfSproOXEbJLgYeE73BozB5ARhP?=
+ =?us-ascii?Q?nQTYc4Apr2FKdehf9hhKY5CMjWVSWZCKfkKEd7FfZ8fSgx3v5ibh3W5RaaTM?=
+ =?us-ascii?Q?p8ayW9n37NqbLGCvIny4EpdCD9TyUiGWzjEbJKXDISbs/C9YjvEZfZHSJnIA?=
+ =?us-ascii?Q?p1N+aN6qqnSHxdEWfKFEuS5TWXc4HbRzL4OU/Mp53JwL6Ot+qfuVs5lHApv5?=
+ =?us-ascii?Q?x3/p3PVMw5QcETtdP4T0Tupq2cykFAGbwbtQG7PHrjQNooDnQRawWPaEIhW6?=
+ =?us-ascii?Q?opWP8b+usLB/F0GHX2UtvBs7dVPdsPq2zqgxUbG/sQXUNU0ky7TBwFs/hvKt?=
+ =?us-ascii?Q?bI3XX1vXU/orRX8mef/zRnbM/5IAFJlUnKqgBqcgCy4+rtGzwI+aQmNUzGq8?=
+ =?us-ascii?Q?9rM1OyNfb7bJ5MW95PFpCJPLjPeiGlofSJ8NRK2kJA2BJMO/qojrEocHkOsW?=
+ =?us-ascii?Q?ZGtt2E5Jm6BvoMsxWbKKCPU0puZmIcxaXPB3QpaNMQ1RXLRDPoQRsGBLVS1d?=
+ =?us-ascii?Q?9jFLRV1N+vDW7tFuaw34RMPgDahzi5P32nJUSyQPaPhQ2R8vBCik1hyl2cMk?=
+ =?us-ascii?Q?xgQAUs/+/33bd3n4V+p4bXol/EdEisNDwM80B7v79XarXm1diwg0XpPuNtUL?=
+ =?us-ascii?Q?EF0ffOqjki577v+BIM2DV2995lT9o7QX1LbOcHu?=
 X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam-Message-Info: hCoD+kA5hpuduF0h9AX+aOKpNvkmKBPUnC4eqx6BctokBejpXcqIkM9uKiTIF6yisp22sohi5x6GCJLf11tLp5OtlYHC1Ifxp+krQ0aPGonEXCVrwl15HGciHAvFZjleYYSFVXiIATEcTsVzHAuyW0k1GX5GpAN0N0TqWgPzLROdmJosc8r6qBkjiM0g/G3UQcl5qDakor5uBFQcmG7XucWZp2IvwxE8cSKTsyCm2w14dNjF1xLYWQ6VidKM8GcZ6YPcXwYSMN2ek9j6rSXEjbDCiCYDMBR/kpE+Flk/pcRC+0J7oV6/Y9MQytkjYYiNDKAuOgOVUDzNlvV0OGY84ZsKxKISHqtBLSZw7jXSp6/m31YngV9antmXPN5z9aT28hbm4JIVwXZm3A4wOY7o8rg9odmlMUtRRY2/aZb9Tlw=
+X-Microsoft-Antispam-Message-Info: fNHBM1e7em72p6JF5/zcbl0L3iyWNMlXGoGrEzAesbWZIizhinqzR3uia60sTR/fBJr8P7lpl1A4vGt88eoqM2qMxe2emVVF/9/jeJjlVTYB5uT/qUAHd86LeXmnn6VPbWgIm/ktsj7hUpg6jV0VucSDPx557ElnmLVE3A6mGkk8Lt2K0o7gio+lR5fE4tFPCC8OuPQWAKEB4aU5jSSKbT7HGwnYNfGVyS+/Ww7552NXI/RNQw/Q97Yay6z8XyBveaF6j0zilumEZc4arlvL8+eP3MPPrWTyPwd884aciJyS2udVVduQ39U4YPMkrJq2rPEJSPGXBLPWnN2e5xR91LccF6SHRmndGHH9FGAIR/1TEj1i/dSRLYVAh1oKLr98fRb58AT+DwI3Ny/i3xf4DrU17Kk6/3xHfN+hJgHWhRs=
 X-OriginatorOrg: xilinx.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2019 17:37:20.4823
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2019 17:37:30.8239
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fa867fb4-7825-408b-648c-08d6a3ecb7b6
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9c4fe503-466b-420f-ee0d-08d6a3ecbdc0
 X-MS-Exchange-CrossTenant-Id: 657af505-d5df-48d0-8300-c31994686c5c
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=657af505-d5df-48d0-8300-c31994686c5c;Ip=[149.199.60.83];Helo=[xsj-pvapsmtpgw01]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=657af505-d5df-48d0-8300-c31994686c5c;Ip=[149.199.60.100];Helo=[xsj-pvapsmtpgw02]
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR02MB2381
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR02MB2379
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Xilinx MIPI CSI-2 Receiver Subsystem
-------------------------------------
+Add bindings documentation for Xilinx MIPI CSI-2 Rx Subsystem.
 
-The Xilinx MIPI CSI-2 Receiver Subsystem Soft IP consists of a DPHY which
-gets the data, an optional I2C, a CSI-2 Receiver which parses the data and
-converts it into AXIS data.
-This stream output maybe connected to a Xilinx Video Format Bridge.
-The maximum number of lanes supported is fixed in the design.
-The number of active lanes can be programmed.
-For e.g. the design may set maximum lanes as 4 but if the camera sensor has
-only 1 lane then the active lanes shall be set as 1.
+The Xilinx MIPI CSI-2 Rx Subsystem consists of a CSI-2 Rx controller, a
+DPHY in Rx mode, an optional I2C controller and a Video Format Bridge.
 
-The pixel format set in design acts as a filter allowing only the selected
-data type or RAW8 data packets. The D-PHY register access can be gated in
-the design. The base address of the DPHY depends on whether the internal
-Xilinx I2C controller is enabled or not in design.
-
-The device driver registers the MIPI CSI2 Rx Subsystem as a V4L2 sub device
-having 2 pads. The sink pad is connected to the MIPI camera sensor and
-output pad is connected to the video node.
-Refer to xlnx,csi2rxss.txt for device tree node details.
-
-This driver helps configure the number of active lanes to be set, setting
-and handling interrupts and IP core enable. It logs the number of events
-occurring according to their type between streaming ON and OFF.
-It generates a v4l2 event for each short packet data received.
-The application can then dequeue this event and get the requisite data
-from the event structure.
-
-It adds new V4L2 controls which are used to get the event counter values
-and reset the subsystem.
-
-The Xilinx CSI-2 Rx Subsystem outputs an AXI4 Stream data which can be
-used for image processing. This data follows the video formats mentioned
-in Xilinx UG934 when the Video Format Bridge.
-
+Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
+Reviewed-by: Hyun Kwon <hyun.kwon@xilinx.com>
+---
 v4
-- 1/2
-  - Added reviewed by Hyun Kwon
-- 2/2
-  - Removed irq member from core structure
-  - Consolidated IP config prints in xcsi2rxss_log_ipconfig()
-  - Return -EINVAL in case of invalid ioctl
-  - Code formatting
-  - Added reviewed by Hyun Kwon
+- Added reviewed by Hyun Kwon
 
 v3
-- 1/2
-  - removed interrupt parent as suggested by Rob
-  - removed dphy clock
-  - moved vfb to optional properties
-  - Added required and optional port properties section
-  - Added endpoint property section
-- 2/2
- - Fixed comments given by Hyun.
- - Removed DPHY 200 MHz clock. This will be controlled by DPHY driver
- - Minor code formatting
- - en_csi_v20 and vfb members removed from struct and made local to dt parsing
- - lock description updated
- - changed to ratelimited type for all dev prints in irq handler
- - Removed YUV 422 10bpc media format
+- removed interrupt parent as suggested by Rob
+- removed dphy clock
+- moved vfb to optional properties
+- Added required and optional port properties section
+- Added endpoint property section
 
 v2
-- 1/2
-  - updated the compatible string to latest version supported
-  - removed DPHY related parameters
-  - added CSI v2.0 related property (including VCX for supporting upto 16
-    virtual channels).
-  - modified csi-pxl-format from string to unsigned int type where the value
-    is as per the CSI specification
-  - Defined port 0 and port 1 as sink and source ports.
-  - Removed max-lanes property as suggested by Rob and Sakari
+- updated the compatible string to latest version supported
+- removed DPHY related parameters
+- added CSI v2.0 related property (including VCX for supporting upto 16
+  virtual channels).
+- modified csi-pxl-format from string to unsigned int type where the value
+  is as per the CSI specification
+- Defined port 0 and port 1 as sink and source ports.
+- Removed max-lanes property as suggested by Rob and Sakari
 
-- 2/2
-  - Fixed comments given by Hyun and Sakari.
-  - Made all bitmask using BIT() and GENMASK()
-  - Removed unused definitions
-  - Removed DPHY access. This will be done by separate DPHY PHY driver.
-  - Added support for CSI v2.0 for YUV 422 10bpc, RAW16, RAW20 and extra
-    virtual channels
-  - Fixed the ports as sink and source
-  - Now use the v4l2fwnode API to get number of data-lanes
-  - Added clock framework support
-  - Removed the close() function
-  - updated the set format function
-  - Support only VFB enabled config
-
-Vishal Sagar (2):
-  media: dt-bindings: media: xilinx: Add Xilinx MIPI CSI-2 Rx Subsystem
-  media: v4l: xilinx: Add Xilinx MIPI CSI-2 Rx Subsystem driver
-
- .../bindings/media/xilinx/xlnx,csi2rxss.txt        |  123 ++
- drivers/media/platform/xilinx/Kconfig              |   10 +
- drivers/media/platform/xilinx/Makefile             |    1 +
- drivers/media/platform/xilinx/xilinx-csi2rxss.c    | 1557 ++++++++++++++++++++
- include/uapi/linux/xilinx-v4l2-controls.h          |   14 +
- include/uapi/linux/xilinx-v4l2-events.h            |   25 +
- 6 files changed, 1730 insertions(+)
+ .../bindings/media/xilinx/xlnx,csi2rxss.txt        | 123 +++++++++++++++++++++
+ 1 file changed, 123 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
- create mode 100644 drivers/media/platform/xilinx/xilinx-csi2rxss.c
- create mode 100644 include/uapi/linux/xilinx-v4l2-events.h
 
+diff --git a/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+new file mode 100644
+index 0000000..399f7fa
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+@@ -0,0 +1,123 @@
++Xilinx MIPI CSI2 Receiver Subsystem Device Tree Bindings
++--------------------------------------------------------
++
++The Xilinx MIPI CSI2 Receiver Subsystem is used to capture MIPI CSI2 traffic
++from compliant camera sensors and send the output as AXI4 Stream video data
++for image processing.
++
++The subsystem consists of a MIPI DPHY in slave mode which captures the
++data packets. This is passed along the MIPI CSI2 Rx IP which extracts the
++packet data. The Video Format Bridge (VFB) converts this data to AXI4 Stream
++video data.
++
++For more details, please refer to PG232 Xilinx MIPI CSI-2 Receiver Subsystem.
++
++Required properties:
++--------------------
++- compatible: Must contain "xlnx,mipi-csi2-rx-subsystem-4.0".
++- reg: Physical base address and length of the registers set for the device.
++- interrupts: Property with a value describing the interrupt number.
++- clocks: List of phandles to AXI Lite, Video and 200 MHz DPHY clocks.
++- clock-names: Must contain "lite_aclk" and "video_aclk" in the same order
++  as clocks listed in clocks property.
++- xlnx,csi-pxl-format: This denotes the CSI Data type selected in hw design.
++  Packets other than this data type (except for RAW8 and User defined data
++  types) will be filtered out. Possible values are as below -
++  0x1E - YUV4228B
++  0x1F - YUV42210B
++  0x20 - RGB444
++  0x21 - RGB555
++  0x22 - RGB565
++  0x23 - RGB666
++  0x24 - RGB888
++  0x28 - RAW6
++  0x29 - RAW7
++  0x2A - RAW8
++  0x2B - RAW10
++  0x2C - RAW12
++  0x2D - RAW14
++  0x2E - RAW16
++  0x2F - RAW20
++
++
++Optional properties:
++--------------------
++- xlnx,vfb: This is present when Video Format Bridge is enabled.
++  Without this property the driver won't be loaded as IP won't be able to generate
++  media bus format compliant stream output.
++- xlnx,en-csi-v2-0: Present if CSI v2 is enabled in IP configuration.
++- xlnx,en-vcx: When present, there are maximum 16 virtual channels, else
++  only 4. This is present only if xlnx,en-csi-v2-0 is present.
++- xlnx,en-active-lanes: Enable Active lanes configuration in Protocol
++  Configuration Register.
++
++Ports
++-----
++The device node shall contain two 'port' child nodes as defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++The port@0 is sink port and shall connect to CSI2 source like camera.
++It must have the data-lanes property. It may have the xlnx,cfa-pattern
++property to indicate bayer pattern of source.
++
++The port@1 is source port could be connected to any video processing IP
++which can work with AXI4 Stream data.
++
++Required port properties:
++--------------------
++- reg: 0 - for sink port.
++       1 - for source port.
++
++Optional port properties:
++--------------------
++- xlnx,cfa-pattern: This goes in the sink port to indicate bayer pattern.
++  Valid values are "bggr", "rggb", "gbrg" and "grbg".
++
++Optional endpoint property:
++---------------------------
++- data-lanes: specifies MIPI CSI-2 data lanes as covered in video-interfaces.txt.
++  This should be in the sink port endpoint which connects to MIPI CSI2 source
++  like sensor. The possible values are:
++  1       - For 1 lane enabled in IP.
++  1 2     - For 2 lanes enabled in IP.
++  1 2 3   - For 3 lanes enabled in IP.
++  1 2 3 4 - For 4 lanes enabled in IP.
++
++Example:
++
++	csiss_1: csiss@a0020000 {
++		compatible = "xlnx,mipi-csi2-rx-subsystem-4.0";
++		reg = <0x0 0xa0020000 0x0 0x10000>;
++		interrupt-parent = <&gic>;
++		interrupts = <0 95 4>;
++		xlnx,csi-pxl-format = <0x2a>;
++		xlnx,vfb;
++		xlnx,en-active-lanes;
++		xlnx,en-csi-v2-0;
++		xlnx,en-vcx;
++		clock-names = "lite_aclk", "video_aclk";
++		clocks = <&misc_clk_0>, <&misc_clk_1>, <&misc_clk_2>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				/* Sink port */
++				reg = <0>;
++				xlnx,cfa-pattern = "bggr"
++				csiss_in: endpoint {
++					data-lanes = <1 2 3 4>;
++					/* MIPI CSI2 Camera handle */
++					remote-endpoint = <&camera_out>;
++				};
++			};
++			port@1 {
++				/* Source port */
++				reg = <1>;
++				csiss_out: endpoint {
++					remote-endpoint = <&vproc_in>;
++				};
++			};
++		};
++	};
 -- 
 2.7.4
 
