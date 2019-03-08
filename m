@@ -2,100 +2,145 @@ Return-Path: <SRS0=k2dg=RL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4C7C43381
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:26:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7872EC4360F
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:29:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F90120684
-	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:26:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47BFD20854
+	for <linux-media@archiver.kernel.org>; Fri,  8 Mar 2019 11:29:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="E4xN7RaL"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="MmhlKK25"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726305AbfCHL04 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Mar 2019 06:26:56 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:53130 "EHLO
+        id S1726270AbfCHL3q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Mar 2019 06:29:46 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:53150 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725975AbfCHL04 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2019 06:26:56 -0500
+        with ESMTP id S1725975AbfCHL3q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2019 06:29:46 -0500
 Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 260C7309;
-        Fri,  8 Mar 2019 12:26:54 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id A6C78309;
+        Fri,  8 Mar 2019 12:29:44 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552044414;
-        bh=kvkLuZGlgKA7JWuXozLIz3UE1JGPA8ZSdEWGkO14DLE=;
+        s=mail; t=1552044584;
+        bh=b7cfgF4m93vSIHz+NYNeX5bfcXjY5LjUwf+Eosr+L/g=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=E4xN7RaLu6EFg4KJpBp9+dmBwLus66a7AIc95FmwZ/ep5EkbKQ+A+XJmylOk6Mgif
-         rt6x1e4bvRQ8XU0+BuT4qbQCJcmf+mw6HQOqjcylcoM9K5bpa3M0H6rPC2QVtqNDbN
-         w+np6H1z4yuYfyncCAFNv7dWoeY/IEyEH00knCqo=
-Date:   Fri, 8 Mar 2019 13:26:48 +0200
+        b=MmhlKK25ARLLy/9wkAfDMd0etnVt/h2oHWiyZ8YwejNIqs4xjRvzzT2rp+OweQJJM
+         Oc/dHwfYdtDTc/Eh+5x1kAdOo5CZ+Xf2+r/h9+a0fsU/J+Dto+OahSljXJbNd0cAYD
+         OXO51S6Run8hUDwtAEI+ukHz9P83hs8WfEJX+sGw=
+Date:   Fri, 8 Mar 2019 13:29:38 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc:     linux-media@vger.kernel.org,
-        Helen Koike <helen.koike@collabora.com>
-Subject: Re: [PATCHv2 4/9] media-entity: set ent_enum->bmap to NULL after
- freeing it
-Message-ID: <20190308112648.GD4802@pendragon.ideasonboard.com>
-References: <20190305095847.21428-1-hverkuil-cisco@xs4all.nl>
- <20190305095847.21428-5-hverkuil-cisco@xs4all.nl>
- <20190305193913.GF14928@pendragon.ideasonboard.com>
- <8ea050d7-8827-9432-9737-3a704ea8cfe4@xs4all.nl>
+To:     Jacopo Mondi <jacopo@jmondi.org>
+Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund+renesas@ragnatech.se,
+        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: adv748x: Don't disable CSI-2 on link_setup
+Message-ID: <20190308112938.GE4802@pendragon.ideasonboard.com>
+References: <20190306112659.8310-1-jacopo+renesas@jmondi.org>
+ <20190306191521.GE4791@pendragon.ideasonboard.com>
+ <20190307103511.wtx2c7jecyx4nmms@uno.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <8ea050d7-8827-9432-9737-3a704ea8cfe4@xs4all.nl>
+In-Reply-To: <20190307103511.wtx2c7jecyx4nmms@uno.localdomain>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Hans,
+Hi Jacopo,
 
-On Thu, Mar 07, 2019 at 10:23:03AM +0100, Hans Verkuil wrote:
-> On 3/5/19 8:39 PM, Laurent Pinchart wrote:
-> > On Tue, Mar 05, 2019 at 10:58:42AM +0100, hverkuil-cisco@xs4all.nl wrote:
-> >> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+On Thu, Mar 07, 2019 at 11:35:11AM +0100, Jacopo Mondi wrote:
+> On Wed, Mar 06, 2019 at 09:15:21PM +0200, Laurent Pinchart wrote:
+> > On Wed, Mar 06, 2019 at 12:26:59PM +0100, Jacopo Mondi wrote:
+> >> When both the media links between AFE and HDMI and the two TX CSI-2 outputs
+> >> gets disabled, the routing register ADV748X_IO_10 gets zeroed causing both
+> >> TXA and TXB output to get disabled.
 > >>
-> >> Ensure that this pointer is set to NULL after it is freed.
-> >> The vimc driver has a static media_entity and after
-> >> unbinding and rebinding the vimc device the media code will
-> >> try to free this pointer again since it wasn't set to NULL.
-> > 
-> > I still think the problem lies in the vimc driver. Reusing static
-> > structures is really asking for trouble. I'm however not opposed to
-> > merging this patch, as you mentioned the problem will be fixed in vimc
-> > too. I still wonder, though, if merging this couldn't make it easier for
-> > drivers to do the wrong thing.
+> >> This causes some HDMI transmitters to stop working after both AFE and
+> >> HDMI links are disabled.
+> >
+> > Could you elaborate on why this would be the case ? By HDMI transmitter,
+> > I assume you mean the device connected to the HDMI input of the ADV748x.
+> > Why makes it fail (and how ?) when the TXA and TXB are both disabled ?
 > 
-> I'm keeping this patch :-)
+> I know, it's weird, the HDMI transmitter is connected to the HDMI
+> input of adv748x and should not be bothered by CSI-2 outputs
+> enablement/disablement.
 > 
-> I don't think that what vimc is doing is wrong in principle, just very unusual.
+> BUT, when I developed the initial adv748x AFE->TXA patches I was
+> testing HDMI capture using a laptop, and things were smooth.
+> 
+> I recently started using a chrome cast device I found in some drawer
+> to test HDMI, as with it I don't need to go through xrandr as I had to
+> do when using a laptop for testing, but it seems the two behaves differently.
+> 
+> Failures are of different types: from detecting a non-realisting
+> resolution from the HDMI subdevice, and then messing up the pipeline
+> configuration, to capture operations apparently completing properly
+> but resulting in mangled images.
+> 
+> Do not deactivate the CSI-2 ouputs seems to fix the issue for the
+> Chromecast, and still work when capturing from laptop. There might be
+> something I am missing about HDMI maybe, but the patch not just fixes
+> the issue for me, but it might make sense on its own as disabling the
+> TXes might trigger some internal power saving state, or simply mess up
+> the HDMI link.
 
-I disagree here. We've developed the media controller (and V4L2) core
-code with many assumptions that structures are zeroed on allocation. For
-the structures that are meant to be registered once only, the code
-assumes, explicitly and implicitly, that some of the fields are zeroed.
-Removing that assumption for the odd case of vimc will require you to
-chase bugs for a long time. You've caught a few of the easier ones here,
-I'm sure other will linger for a much longer time before they get fixed.
-In the vimc case, the best option is to zero the structure manually if
-you don't want to allocate it dynamically (and I think it should be
-allocated dynamically).
+I think this needs more investigation. It feels to me that you're
+working around an issue by chance, and it will come back to bite us
+later :-(
 
-For the record, I ran into a similar problem before when trying to
-unregister and re-register a struct device. I reported what I considered
-to be a bug, and Greg very clearly told me it was plain wrong. You will
-run into similar issues due to the platform_device embedded in struct
-vimc_device. Let's just allocate it dynamically.
+> As disabling both TXes usually happens at media link reset time, just
+> before enabling one of them (or both), going through a full disable
+> makes little sense, even more if it triggers any sort of malfunctioning.
+> 
+> Does this make sense to you?
 
-> Also I think it makes the mc framework more robust by properly zeroing this
-> pointer.
+It also doesn't make too much sense to keep them both enabled when they
+don't need to be :-) You'll end up consuming more power.
 
-This patch is not wrong per-se, and I'm not opposed to it, but we should
-fix issues in drivers, which would render this patch unneeded.
+> >> Fix this by preventing writing 0 to
+> >> ADV748X_IO_10 register, which gets only updated when links are enabled
+> >> again.
+> >>
+> >> Fixes: 9423ca350df7 ("media: adv748x: Implement TX link_setup callback")
+> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >> ---
+> >> The issue presents itself only on some HDMI transmitters, and went unnoticed
+> >> during the development of:
+> >> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
+> >>
+> >> Patch intended to be applied on top of latest media-master, where the
+> >> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
+> >> series is applied.
+> >>
+> >> The patch reports a "Fixes" tag, but should actually be merged with the above
+> >> mentioned series.
+> >>
+> >> ---
+> >>  drivers/media/i2c/adv748x/adv748x-core.c | 3 +++
+> >>  1 file changed, 3 insertions(+)
+> >>
+> >> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> >> index f57cd77a32fa..0e5a75eb6d75 100644
+> >> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> >> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> >> @@ -354,6 +354,9 @@ static int adv748x_link_setup(struct media_entity *entity,
+> >>
+> >>  	tx->src = enable ? rsd : NULL;
+> >>
+> >> +	if (!enable)
+> >> +		return 0;
+> >> +
+> >>  	if (state->afe.tx) {
+> >>  		/* AFE Requires TXA enabled, even when output to TXB */
+> >>  		io10 |= ADV748X_IO_10_CSI4_EN;
 
 -- 
 Regards,
