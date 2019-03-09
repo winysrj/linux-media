@@ -2,149 +2,115 @@ Return-Path: <SRS0=5UJH=RM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87D94C43381
-	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 04:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC1B7C43381
+	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 06:36:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4623620866
-	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 04:52:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DCFA2081B
+	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 06:36:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="PaLWuZiN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726571AbfCIEwr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Mar 2019 23:52:47 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57930 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726400AbfCIEwr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Mar 2019 23:52:47 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:78a4:6943:576:bba3])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id 2TyWhXTJTI8AW2TyXhNbj3; Sat, 09 Mar 2019 05:52:45 +0100
-Message-ID: <5886b8697c48cfaeaa90b7fcb5ff97f9@smtp-cloud9.xs4all.net>
-Date:   Sat, 09 Mar 2019 05:52:44 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfA44hYP98sZdcyC5KuiuOpuYieuxlVRiB/jF7CXcz5AqzDuDczposoZqLNuCyLAtUnUTysg3R51mA5cfnoOllUJCR1KyqjQrNKt5uoSw+njrlOv1ACU6
- vBsbJ9WIckRtmwcUQAQBFwH742m3YYibj6H+rRUSJkC1yk1fq2ik38sDVAXRb10qau1EozSZMqbCrHNWqb+ySCs+Xjo7hYl4Lh4tRc6+eRsGbwSWDXRX/KV/
+        id S1725916AbfCIGgI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 9 Mar 2019 01:36:08 -0500
+Received: from mta-p8.oit.umn.edu ([134.84.196.208]:41064 "EHLO
+        mta-p8.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725768AbfCIGgI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2019 01:36:08 -0500
+X-Greylist: delayed 317 seconds by postgrey-1.27 at vger.kernel.org; Sat, 09 Mar 2019 01:36:07 EST
+Received: from localhost (unknown [127.0.0.1])
+        by mta-p8.oit.umn.edu (Postfix) with ESMTP id CB220BCE
+        for <linux-media@vger.kernel.org>; Sat,  9 Mar 2019 06:36:06 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at umn.edu
+Received: from mta-p8.oit.umn.edu ([127.0.0.1])
+        by localhost (mta-p8.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id nqaxG8GnCs1X for <linux-media@vger.kernel.org>;
+        Sat,  9 Mar 2019 00:36:06 -0600 (CST)
+Received: from mail-it1-f200.google.com (mail-it1-f200.google.com [209.85.166.200])
+        (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mta-p8.oit.umn.edu (Postfix) with ESMTPS id 9E621B9F
+        for <linux-media@vger.kernel.org>; Sat,  9 Mar 2019 00:36:06 -0600 (CST)
+Received: by mail-it1-f200.google.com with SMTP id z131so13709887itb.2
+        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2019 22:36:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=umn.edu; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=QibFjWkhVa0if5Gddi16qagm9dnKdfLT5eOW+qU9df8=;
+        b=PaLWuZiNjbA1zJ2RrTdXhua6u8w2Qq28lzKOqX9iHbN8RyVFQkknp0r25/smrmgm2K
+         xsZL3IGPdgJnRtadDX8dvTDklh1Op+p5wHlWvq+0nIBLR94bTCd/TODf86mROq1Ov/hx
+         Splo+pAEjdV0H6T/kiW6sHQmvL7nydZ/gohW+NHCOtULkOAu6iOJ+jFHN2Fg53+oDd78
+         qnuv9ZQtCNx+T7ZNdVsICbifEbRbjBKwBqj1RP1vR/3Maf22jeQeMq98ikp2GBAmKIoB
+         lBItF7DjHg6g4sLFnJ3t+GrfO5MkRl4AWvKaMXpFpejlts9dElPhwUlnMkxzqXvgGq0B
+         gvoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=QibFjWkhVa0if5Gddi16qagm9dnKdfLT5eOW+qU9df8=;
+        b=ug6VEpGIr7svMHUIjgRMmDFi8Ll799fURP4IxMzXwsqzhY7GhaB+BIIz123AUXvhPo
+         d263OszeMbfc8hHYJonyXe1c215d3LO6NhSsuXYj8wD3GecgAtiOJkO2+uYnRu0YDQnV
+         KO/t56b7Z9cCVrh3j06aGxVTbVM9hJQgW2ul08+b2GLLk+8ecEFMnNykPab0eo2YITZn
+         kMo2pCA/rlRx9TNy7fbJkefUzGhTEx/GgaWcOm/OzxeqOZ/kaDkQaPGEfuvUBlPNczX7
+         wBL1SUhaFg4yGwc5zlQpyATPFZBB6jj+X2GtD7nP98ouw0804kpNCI3T/GRgs8rtB4XB
+         ltoQ==
+X-Gm-Message-State: APjAAAUCYc2O4OoO8KQSIootfT2J5ex20RTieu5RX9ErV3KpChIcr4FG
+        Hwl5DcMdON6Fg7mB/SVKItfxVA1maPGS9P2LJ1nobN2P72r+1vScbcumTKFKqFu6PFl9pFCOEXy
+        HEikFpIJeCp1GvXfGeP8ZcYWZV6I=
+X-Received: by 2002:a6b:f81a:: with SMTP id o26mr10109574ioh.156.1552113366226;
+        Fri, 08 Mar 2019 22:36:06 -0800 (PST)
+X-Google-Smtp-Source: APXvYqyjCRG95mYlXzX+zNuZBX50IZP57NwGC3iNPWZxoa8C97MsBYf4OqqyBdTlLfARE0agl9er0g==
+X-Received: by 2002:a6b:f81a:: with SMTP id o26mr10109567ioh.156.1552113366010;
+        Fri, 08 Mar 2019 22:36:06 -0800 (PST)
+Received: from bee.dtc.umn.edu (cs-bee-u.cs.umn.edu. [128.101.106.63])
+        by smtp.gmail.com with ESMTPSA id c19sm3810033ioh.4.2019.03.08.22.36.04
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 08 Mar 2019 22:36:05 -0800 (PST)
+From:   Kangjie Lu <kjlu@umn.edu>
+To:     kjlu@umn.edu
+Cc:     pakki001@umn.edu, Jacob chen <jacob2.chen@rock-chips.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heiko Stuebner <heiko@sntech.de>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: rga: fix NULL pointer dereferences
+Date:   Sat,  9 Mar 2019 00:35:56 -0600
+Message-Id: <20190309063556.32487-1-kjlu@umn.edu>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+In case __get_free_pages fails, return -ENOMEM to avoid NULL
+pointer dereferences.
 
-Results of the daily build of media_tree:
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+---
+ drivers/media/platform/rockchip/rga/rga.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-date:			Sat Mar  9 05:00:15 CET 2019
-media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	7f912dc2f989a1d400bb11d9c7a73f93801a2ee4
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse version:		0.6.0
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
+index 5c653287185f..d42b214977a9 100644
+--- a/drivers/media/platform/rockchip/rga/rga.c
++++ b/drivers/media/platform/rockchip/rga/rga.c
+@@ -892,8 +892,13 @@ static int rga_probe(struct platform_device *pdev)
+ 
+ 	rga->src_mmu_pages =
+ 		(unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
++	if (!rga->src_mmu_pages)
++		return -ENOMEM;
++
+ 	rga->dst_mmu_pages =
+ 		(unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
++	if (!rga->dst_mmu_pages)
++		return -ENOMEM;
+ 
+ 	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
+ 	def_frame.size = def_frame.stride * def_frame.height;
+-- 
+2.17.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 14
-sparse: OK
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Detailed regression test results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media-dmesg.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
