@@ -4,113 +4,147 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC1B7C43381
-	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 06:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F33E0C43381
+	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 06:38:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8DCFA2081B
-	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 06:36:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7EA520868
+	for <linux-media@archiver.kernel.org>; Sat,  9 Mar 2019 06:38:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="PaLWuZiN"
+	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="USMRKPMo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725916AbfCIGgI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 9 Mar 2019 01:36:08 -0500
-Received: from mta-p8.oit.umn.edu ([134.84.196.208]:41064 "EHLO
-        mta-p8.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725768AbfCIGgI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2019 01:36:08 -0500
-X-Greylist: delayed 317 seconds by postgrey-1.27 at vger.kernel.org; Sat, 09 Mar 2019 01:36:07 EST
+        id S1725994AbfCIGiv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 9 Mar 2019 01:38:51 -0500
+Received: from mta-p6.oit.umn.edu ([134.84.196.206]:46674 "EHLO
+        mta-p6.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725916AbfCIGiu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2019 01:38:50 -0500
 Received: from localhost (unknown [127.0.0.1])
-        by mta-p8.oit.umn.edu (Postfix) with ESMTP id CB220BCE
-        for <linux-media@vger.kernel.org>; Sat,  9 Mar 2019 06:36:06 +0000 (UTC)
+        by mta-p6.oit.umn.edu (Postfix) with ESMTP id 253E5D8C
+        for <linux-media@vger.kernel.org>; Sat,  9 Mar 2019 06:30:50 +0000 (UTC)
 X-Virus-Scanned: amavisd-new at umn.edu
-Received: from mta-p8.oit.umn.edu ([127.0.0.1])
-        by localhost (mta-p8.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id nqaxG8GnCs1X for <linux-media@vger.kernel.org>;
-        Sat,  9 Mar 2019 00:36:06 -0600 (CST)
-Received: from mail-it1-f200.google.com (mail-it1-f200.google.com [209.85.166.200])
+Received: from mta-p6.oit.umn.edu ([127.0.0.1])
+        by localhost (mta-p6.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id hpaKU2KkamOL for <linux-media@vger.kernel.org>;
+        Sat,  9 Mar 2019 00:30:50 -0600 (CST)
+Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
         (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mta-p8.oit.umn.edu (Postfix) with ESMTPS id 9E621B9F
-        for <linux-media@vger.kernel.org>; Sat,  9 Mar 2019 00:36:06 -0600 (CST)
-Received: by mail-it1-f200.google.com with SMTP id z131so13709887itb.2
-        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2019 22:36:06 -0800 (PST)
+        by mta-p6.oit.umn.edu (Postfix) with ESMTPS id E4829CEC
+        for <linux-media@vger.kernel.org>; Sat,  9 Mar 2019 00:30:49 -0600 (CST)
+Received: by mail-io1-f69.google.com with SMTP id w19so17209120ioa.15
+        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2019 22:30:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=umn.edu; s=google;
         h=from:to:cc:subject:date:message-id;
-        bh=QibFjWkhVa0if5Gddi16qagm9dnKdfLT5eOW+qU9df8=;
-        b=PaLWuZiNjbA1zJ2RrTdXhua6u8w2Qq28lzKOqX9iHbN8RyVFQkknp0r25/smrmgm2K
-         xsZL3IGPdgJnRtadDX8dvTDklh1Op+p5wHlWvq+0nIBLR94bTCd/TODf86mROq1Ov/hx
-         Splo+pAEjdV0H6T/kiW6sHQmvL7nydZ/gohW+NHCOtULkOAu6iOJ+jFHN2Fg53+oDd78
-         qnuv9ZQtCNx+T7ZNdVsICbifEbRbjBKwBqj1RP1vR/3Maf22jeQeMq98ikp2GBAmKIoB
-         lBItF7DjHg6g4sLFnJ3t+GrfO5MkRl4AWvKaMXpFpejlts9dElPhwUlnMkxzqXvgGq0B
-         gvoA==
+        bh=nurTLZi7ZZTrj3Ks+uFfVRbQaS2Tt+sCNdUD/Hv/o9Q=;
+        b=USMRKPMoeU2OvadzshIJIBt3XHuUPgqFspFs97EcX5etOYE8NTB8daL92DmivZLDYr
+         PN39g0w1+37o9aO0ZS8dcMC2JXUsbHI+f4am0XpxCAQWW4nfYvqq7yLODyX2dLI8ZF+3
+         GtfVe7oIhDLk41hgRz0S50VIXR6aKAt1NMlr/O2tb7h0h2i6a3pMPOPkB6nxJID3gs3P
+         W85FbgIWUIC4TCyG+HJ1z7NnoipdHGby5agj84YxXqIc8kYj5cvZe5kQ+rSZFh15pcSt
+         HTE20U9T3z1td1JoiNqomjgKCbnrPldPfFUhkB9Tr7/ojh8ouIS85lvakseP8NScEnty
+         mCGQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=QibFjWkhVa0if5Gddi16qagm9dnKdfLT5eOW+qU9df8=;
-        b=ug6VEpGIr7svMHUIjgRMmDFi8Ll799fURP4IxMzXwsqzhY7GhaB+BIIz123AUXvhPo
-         d263OszeMbfc8hHYJonyXe1c215d3LO6NhSsuXYj8wD3GecgAtiOJkO2+uYnRu0YDQnV
-         KO/t56b7Z9cCVrh3j06aGxVTbVM9hJQgW2ul08+b2GLLk+8ecEFMnNykPab0eo2YITZn
-         kMo2pCA/rlRx9TNy7fbJkefUzGhTEx/GgaWcOm/OzxeqOZ/kaDkQaPGEfuvUBlPNczX7
-         wBL1SUhaFg4yGwc5zlQpyATPFZBB6jj+X2GtD7nP98ouw0804kpNCI3T/GRgs8rtB4XB
-         ltoQ==
-X-Gm-Message-State: APjAAAUCYc2O4OoO8KQSIootfT2J5ex20RTieu5RX9ErV3KpChIcr4FG
-        Hwl5DcMdON6Fg7mB/SVKItfxVA1maPGS9P2LJ1nobN2P72r+1vScbcumTKFKqFu6PFl9pFCOEXy
-        HEikFpIJeCp1GvXfGeP8ZcYWZV6I=
-X-Received: by 2002:a6b:f81a:: with SMTP id o26mr10109574ioh.156.1552113366226;
-        Fri, 08 Mar 2019 22:36:06 -0800 (PST)
-X-Google-Smtp-Source: APXvYqyjCRG95mYlXzX+zNuZBX50IZP57NwGC3iNPWZxoa8C97MsBYf4OqqyBdTlLfARE0agl9er0g==
-X-Received: by 2002:a6b:f81a:: with SMTP id o26mr10109567ioh.156.1552113366010;
-        Fri, 08 Mar 2019 22:36:06 -0800 (PST)
+        bh=nurTLZi7ZZTrj3Ks+uFfVRbQaS2Tt+sCNdUD/Hv/o9Q=;
+        b=YUBRkvxTmPkE8aAPO/n64nKzepTP/6GrA+LDqHyAppmODIOi7NwkTOYMcXfCFrFPRs
+         TXGV1ES+I7jZqoeyAVDtlgNIc+mZRxZH64ZZfv1OkJgwa0zmC+EETRXTGlghXnGfS61D
+         gcJR9leXAihvne2VGnB5m+eFGS2eamRNjJHztUw8qT+tzsUCi/zrBRXIOzQ6rc02QdXD
+         iXcSVBaMuWT9Q8fM7HSeI79UeRz903UA2vagBIl6uf6YGkLrapmP0E59XLxEV7TAtY0K
+         j4aCqmYekdRhguliSck+Kbvn7ChUxdYiBBQLEtlXBursbJl2CLEYENoehTdCuY64hOge
+         NuOQ==
+X-Gm-Message-State: APjAAAVhxHQGvuE81USmPBrHzY0XRU3czlU1SPUcHiOTQ4eDH53dxPL7
+        ia9CccTHCBSKzAmkZoEu3YDAkZWSTIowJJSKrSMHbjhY/AKmBFQwAPtJ8xSv3srSv51yNZjwFgb
+        NR6/Kj1k/1Q082e/p6FJemaL9anc=
+X-Received: by 2002:a24:7d84:: with SMTP id b126mr10353710itc.58.1552113049480;
+        Fri, 08 Mar 2019 22:30:49 -0800 (PST)
+X-Google-Smtp-Source: APXvYqyqjI8njjJ9Z2cAPmCIt8r2qQ+6vdawBVkBUnpXidgCuvJW0bjX7C5sK4BIRtWdMmQWBXb5jw==
+X-Received: by 2002:a24:7d84:: with SMTP id b126mr10353700itc.58.1552113049209;
+        Fri, 08 Mar 2019 22:30:49 -0800 (PST)
 Received: from bee.dtc.umn.edu (cs-bee-u.cs.umn.edu. [128.101.106.63])
-        by smtp.gmail.com with ESMTPSA id c19sm3810033ioh.4.2019.03.08.22.36.04
+        by smtp.gmail.com with ESMTPSA id o200sm5190000ito.32.2019.03.08.22.30.47
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 08 Mar 2019 22:36:05 -0800 (PST)
+        Fri, 08 Mar 2019 22:30:48 -0800 (PST)
 From:   Kangjie Lu <kjlu@umn.edu>
 To:     kjlu@umn.edu
-Cc:     pakki001@umn.edu, Jacob chen <jacob2.chen@rock-chips.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Heiko Stuebner <heiko@sntech.de>, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: rga: fix NULL pointer dereferences
-Date:   Sat,  9 Mar 2019 00:35:56 -0600
-Message-Id: <20190309063556.32487-1-kjlu@umn.edu>
+Cc:     pakki001@umn.edu, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: stv090x: add missed checks for STV090x_WRITE_DEMOD
+Date:   Sat,  9 Mar 2019 00:30:07 -0600
+Message-Id: <20190309063009.31558-1-kjlu@umn.edu>
 X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-In case __get_free_pages fails, return -ENOMEM to avoid NULL
-pointer dereferences.
+Conservatively check return value of STV090x_WRITE_DEMOD in case
+it fails.
 
 Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 ---
- drivers/media/platform/rockchip/rga/rga.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/dvb-frontends/stv090x.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
-index 5c653287185f..d42b214977a9 100644
---- a/drivers/media/platform/rockchip/rga/rga.c
-+++ b/drivers/media/platform/rockchip/rga/rga.c
-@@ -892,8 +892,13 @@ static int rga_probe(struct platform_device *pdev)
+diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+index a0622bb71803..3e2af3969e16 100644
+--- a/drivers/media/dvb-frontends/stv090x.c
++++ b/drivers/media/dvb-frontends/stv090x.c
+@@ -1446,14 +1446,17 @@ static int stv090x_start_search(struct stv090x_state *state)
+ 		/* >= Cut 3 */
+ 		if (state->srate <= 5000000) {
+ 			/* enlarge the timing bandwidth for Low SR */
+-			STV090x_WRITE_DEMOD(state, RTCS2, 0x68);
++			if (STV090x_WRITE_DEMOD(state, RTCS2, 0x68) < 0)
++				goto err;
+ 		} else {
+ 			/* reduce timing bandwidth for high SR */
+-			STV090x_WRITE_DEMOD(state, RTCS2, 0x44);
++			if (STV090x_WRITE_DEMOD(state, RTCS2, 0x44) < 0)
++				goto err;
+ 		}
  
- 	rga->src_mmu_pages =
- 		(unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
-+	if (!rga->src_mmu_pages)
-+		return -ENOMEM;
-+
- 	rga->dst_mmu_pages =
- 		(unsigned int *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 3);
-+	if (!rga->dst_mmu_pages)
-+		return -ENOMEM;
+ 		/* Set CFR min and max to manual mode */
+-		STV090x_WRITE_DEMOD(state, CARCFG, 0x46);
++		if (STV090x_WRITE_DEMOD(state, CARCFG, 0x46) < 0)
++			goto err;
  
- 	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
- 	def_frame.size = def_frame.stride * def_frame.height;
+ 		if (state->algo == STV090x_WARM_SEARCH) {
+ 			/* WARM Start
+@@ -2604,7 +2607,8 @@ static enum stv090x_signal_state stv090x_get_sig_params(struct stv090x_state *st
+ 
+ 	if (state->algo == STV090x_BLIND_SEARCH) {
+ 		tmg = STV090x_READ_DEMOD(state, TMGREG2);
+-		STV090x_WRITE_DEMOD(state, SFRSTEP, 0x5c);
++		if (STV090x_WRITE_DEMOD(state, SFRSTEP, 0x5c) < 0)
++			goto err;
+ 		while ((i <= 50) && (tmg != 0) && (tmg != 0xff)) {
+ 			tmg = STV090x_READ_DEMOD(state, TMGREG2);
+ 			msleep(5);
+@@ -2910,7 +2914,9 @@ static int stv090x_optimize_track(struct stv090x_state *state)
+ 			pilots = STV090x_GETFIELD_Px(reg, DEMOD_TYPE_FIELD) & 0x01;
+ 			aclc = stv090x_optimize_carloop(state, modcod, pilots);
+ 			if (modcod <= STV090x_QPSK_910) {
+-				STV090x_WRITE_DEMOD(state, ACLC2S2Q, aclc);
++				if (STV090x_WRITE_DEMOD(state, ACLC2S2Q, aclc)
++						< 0)
++					goto err;
+ 			} else if (modcod <= STV090x_8PSK_910) {
+ 				if (STV090x_WRITE_DEMOD(state, ACLC2S2Q, 0x2a) < 0)
+ 					goto err;
+@@ -2972,7 +2978,8 @@ static int stv090x_optimize_track(struct stv090x_state *state)
+ 	reg = STV090x_READ_DEMOD(state, TMGOBS);
+ 
+ 	if (state->algo == STV090x_BLIND_SEARCH) {
+-		STV090x_WRITE_DEMOD(state, SFRSTEP, 0x00);
++		if (STV090x_WRITE_DEMOD(state, SFRSTEP, 0x00) < 0)
++			goto err;
+ 		reg = STV090x_READ_DEMOD(state, DMDCFGMD);
+ 		STV090x_SETFIELD_Px(reg, SCAN_ENABLE_FIELD, 0x00);
+ 		STV090x_SETFIELD_Px(reg, CFR_AUTOSCAN_FIELD, 0x00);
 -- 
 2.17.1
 
