@@ -2,112 +2,243 @@ Return-Path: <SRS0=G3Vt=RO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A102C43381
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:25:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51881C4360F
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:31:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 71787206BA
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:25:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A2802171F
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727557AbfCKOZk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 10:25:40 -0400
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38202 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726897AbfCKOZk (ORCPT
+        id S1727388AbfCKObz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 10:31:55 -0400
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:55447 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725943AbfCKObz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 10:25:40 -0400
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id 3LrwhRzi14HFn3LrzhEsUF; Mon, 11 Mar 2019 15:25:38 +0100
-Subject: Re: [PATCH] media: atmel: atmel-isc: reworked driver and formats
-To:     Ken Sloat <KSloat@aampglobal.com>,
-        "Eugen.Hristev@microchip.com" <Eugen.Hristev@microchip.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "Nicolas.Ferre@microchip.com" <Nicolas.Ferre@microchip.com>,
-        "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-References: <1550219467-9532-1-git-send-email-eugen.hristev@microchip.com>
- <BL0PR07MB4115ECEE3BED0B46C342F4A9AD630@BL0PR07MB4115.namprd07.prod.outlook.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <805728da-29ac-bf4b-ad61-95bc71036e23@xs4all.nl>
-Date:   Mon, 11 Mar 2019 15:25:32 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Mon, 11 Mar 2019 10:31:55 -0400
+X-Originating-IP: 2.224.242.101
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay7-d.mail.gandi.net (Postfix) with ESMTPSA id CD97720009;
+        Mon, 11 Mar 2019 14:31:51 +0000 (UTC)
+Date:   Mon, 11 Mar 2019 15:32:26 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund+renesas@ragnatech.se,
+        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: adv748x: Don't disable CSI-2 on link_setup
+Message-ID: <20190311143226.wreigi3nmamt2egf@uno.localdomain>
+References: <20190306112659.8310-1-jacopo+renesas@jmondi.org>
+ <20190306191521.GE4791@pendragon.ideasonboard.com>
+ <20190307103511.wtx2c7jecyx4nmms@uno.localdomain>
+ <20190308112938.GE4802@pendragon.ideasonboard.com>
+ <20190308131221.g5ueabsbhbog7oxn@uno.localdomain>
+ <7edc4c80-541b-473a-f520-a758d73ce8d3@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <BL0PR07MB4115ECEE3BED0B46C342F4A9AD630@BL0PR07MB4115.namprd07.prod.outlook.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfKz+PTmhN7YIqOrPP4/Zfo/kjOxLAEE703kNnB05PmljFNMJTZzoz64P3RPt+cJkmvSCDKra8W4/DrpowR03KIfjMsw83SyHmdJ3RMY9y10UmWrnQLS3
- /MT9dW24y3mS2TsPJ96Bye4j1Hx5beBgHaLdEtdLzpfEUj0zpFI4UWhqddlGWgxmNblEyoFEO89XjuUcbUxfoDhyQ4n/IAARYONmC7uZ3M8vkXg48Vqdqj8X
- ydQUEW/1/qear9bIdRHRxV4j3meL6Jeiv/8yoUL84uuI5zu5TGEMyIHWqCIQsfL1R3NNOOFGc304oC8F4TxLs43bHWEhWc6TPzzObBAoWNTeVytWSfUrgH4U
- nwBujMpWGEnGGriHOi2Oy+yrpMDPh/OuNzRZ6+PvddBBmlTI2cYEHltDfT9dsPsntkiaTcw4+SHDXdp+rz3D0e6ry96XtzHCYRzOvNxcJySkIIsOpsA=
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hr3uzs2vfclwp35n"
+Content-Disposition: inline
+In-Reply-To: <7edc4c80-541b-473a-f520-a758d73ce8d3@xs4all.nl>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Ken,
 
-On 2/18/19 2:37 PM, Ken Sloat wrote:
->> -----Original Message-----
->> From: Eugen.Hristev@microchip.com <Eugen.Hristev@microchip.com>
->> Sent: Friday, February 15, 2019 3:38 AM
->> To: linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
->> kernel@vger.kernel.org; mchehab@kernel.org;
->> Nicolas.Ferre@microchip.com; Ken Sloat <KSloat@aampglobal.com>;
->> sakari.ailus@iki.fi; hverkuil@xs4all.nl
->> Cc: Eugen.Hristev@microchip.com
->> Subject: [PATCH] media: atmel: atmel-isc: reworked driver and formats
->>
->> From: Eugen Hristev <eugen.hristev@microchip.com>
->>
->> This change is a redesign in the formats and the way the ISC is configured
->> w.r.t. sensor format and the output format from the ISC.
->> I have changed the splitting between sensor output (which is also ISC input)
->> and ISC output.
->> The sensor format represents the way the sensor is configured, and what ISC
->> is receiving.
->> The format configuration represents the way ISC is interpreting the data and
->> formatting the output to the subsystem.
->> Now it's much easier to figure out what is the ISC configuration for input, and
->> what is the configuration for output.
->> The non-raw format can be obtained directly from sensor or it can be done
->> inside the ISC. The controller format list will include a configuration for each
->> format.
->> The old supported formats are still in place, if we want to dump the sensor
->> format directly to the output, the try format routine will detect and configure
->> the pipeline accordingly.
->> This also fixes the previous issues when the raw format was NULL which
->> resulted in many crashes for sensors which did not have the expected/tested
->> formats.
->>
->> Signed-off-by: Eugen Hristev <eugen.hristev@microchip.com>
->> ---
->> Hello Ken and possibly others using ISC driver,
->>
->> I would appreciate if you could test this patch with your sensor, because I do
->> not wish to break anything in your setups.
->> Feedback is appreciated if any errors appear, so I can fix them.
->> I tested with ov5640, ov7670, ov7740(only in 4.19 because on latest it's
->> broken for me...) Rebased this patch on top of mediatree.git/master Thanks!
->>
->> Eugen
->>
-> Hi Eugen,
-> 
-> No problem I will try to test sometime this week on my setup. I appreciate you keeping me in the loop.
+--hr3uzs2vfclwp35n
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Were you able to test this patch? And if not, when do you think you can
-test this? I think it would be good to test this before committing it
-since it is a major change.
+Hi Hans,
 
-Regards,
+On Mon, Mar 11, 2019 at 03:05:24PM +0100, Hans Verkuil wrote:
+> On 3/8/19 2:12 PM, Jacopo Mondi wrote:
+> > Hi Laurent,
+> >
+> > On Fri, Mar 08, 2019 at 01:29:38PM +0200, Laurent Pinchart wrote:
+> >> Hi Jacopo,
+> >>
+> >> On Thu, Mar 07, 2019 at 11:35:11AM +0100, Jacopo Mondi wrote:
+> >>> On Wed, Mar 06, 2019 at 09:15:21PM +0200, Laurent Pinchart wrote:
+> >>>> On Wed, Mar 06, 2019 at 12:26:59PM +0100, Jacopo Mondi wrote:
+> >>>>> When both the media links between AFE and HDMI and the two TX CSI-2 outputs
+> >>>>> gets disabled, the routing register ADV748X_IO_10 gets zeroed causing both
+> >>>>> TXA and TXB output to get disabled.
+> >>>>>
+> >>>>> This causes some HDMI transmitters to stop working after both AFE and
+> >>>>> HDMI links are disabled.
+> >>>>
+> >>>> Could you elaborate on why this would be the case ? By HDMI transmitter,
+> >>>> I assume you mean the device connected to the HDMI input of the ADV748x.
+> >>>> Why makes it fail (and how ?) when the TXA and TXB are both disabled ?
+> >>>
+> >>> I know, it's weird, the HDMI transmitter is connected to the HDMI
+> >>> input of adv748x and should not be bothered by CSI-2 outputs
+> >>> enablement/disablement.
+> >>>
+> >>> BUT, when I developed the initial adv748x AFE->TXA patches I was
+> >>> testing HDMI capture using a laptop, and things were smooth.
+> >>>
+> >>> I recently started using a chrome cast device I found in some drawer
+> >>> to test HDMI, as with it I don't need to go through xrandr as I had to
+> >>> do when using a laptop for testing, but it seems the two behaves differently.
+> >>>
+> >>> Failures are of different types: from detecting a non-realisting
+> >>> resolution from the HDMI subdevice, and then messing up the pipeline
+> >>> configuration, to capture operations apparently completing properly
+> >>> but resulting in mangled images.
+> >>>
+> >>> Do not deactivate the CSI-2 ouputs seems to fix the issue for the
+> >>> Chromecast, and still work when capturing from laptop. There might be
+> >>> something I am missing about HDMI maybe, but the patch not just fixes
+> >>> the issue for me, but it might make sense on its own as disabling the
+> >>> TXes might trigger some internal power saving state, or simply mess up
+> >>> the HDMI link.
+> >>
+> >> I think this needs more investigation. It feels to me that you're
+> >> working around an issue by chance, and it will come back to bite us
+> >> later :-(
+> >>
+> >
+> > I'm sorry I really can't tell what's happening, and why it is
+> > happening on that specific device, which I cannot debug for sure.
+> >
+> > Ian suggested a possible cause, but I cannot tell due to my
+> > HDMI-ignorance.
+>
+> I agree with Ian that it is likely related to EDID and/or HPD handling
+> of the adv748x. The only other option is if the HDMI transmitter supports
+> RxSense (i.e. detecting the pull-ups of the TMDS clock lines as a way of
+> detecting that the transmitter is connected to a display).
+>
+> Not many transmitters support RxSense, though.
+>
+> HPD and/or EDID are the most likely culprits. It certainly has nothing
+> to do with the CSI ports as such.
 
-	Hans
+Thanks for adding more details to the issue.
+
+Even if not related to the CSI ports directly, the issue triggers when
+all of the two TXes gets disabled, and this patch prevents that from
+happening. I cannot elaborate a detailed explanation of the reasons
+why, so I understand if you prefer to ditch this patch. In my opinion
+is better to have something that fix the issue and makes the adv748x
+work with a broader number of transmitters than not, but I let you and
+Laurent decide if to take this one in.
+
+Thanks
+   j
+
+>
+> Regards,
+>
+> 	Hans
+>
+> >
+> >>> As disabling both TXes usually happens at media link reset time, just
+> >>> before enabling one of them (or both), going through a full disable
+> >>> makes little sense, even more if it triggers any sort of malfunctioning.
+> >>>
+> >>> Does this make sense to you?
+> >>
+> >> It also doesn't make too much sense to keep them both enabled when they
+> >> don't need to be :-) You'll end up consuming more power.
+> >>
+> >
+> > They've alwyas been up before introduction of dynamic routing, provided
+> > something is connected to the TX source pad in DT.
+> > https://elixir.bootlin.com/linux/latest/source/drivers/media/i2c/adv748x/adv748x-core.c#L489
+> >
+> > Power saving wise, we're not doing worse than before, and if that's a
+> > concern, it should be identified first why the CSI-2 Tx PLL never gets
+> > turned off:
+> > https://elixir.bootlin.com/linux/latest/source/drivers/media/i2c/adv748x/adv748x-core.c#L269
+> > See "mipi_pll_en, CSI-TXA Map, Address 0xDA[0]" registrer description.
+> >
+> > The two issues might be actually connected, I tried fixing this in the past,
+> > but frame capture broke, and I didn't have time to investigate
+> > fruther.
+> >
+> > To sum up, this patch solves an issue on some devices, it does not
+> > perform worse than what we had from a power consumption perspective,
+> > but I agree it might work around some deeper issues it might be worth
+> > chasing.
+> >
+> > If I got your NAK on this, I'll keep carrying it in my tree when
+> > testing with that device.
+> >
+> > Thanks
+> >   j
+> >
+> >
+> >>>>> Fix this by preventing writing 0 to
+> >>>>> ADV748X_IO_10 register, which gets only updated when links are enabled
+> >>>>> again.
+> >>>>>
+> >>>>> Fixes: 9423ca350df7 ("media: adv748x: Implement TX link_setup callback")
+> >>>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >>>>> ---
+> >>>>> The issue presents itself only on some HDMI transmitters, and went unnoticed
+> >>>>> during the development of:
+> >>>>> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
+> >>>>>
+> >>>>> Patch intended to be applied on top of latest media-master, where the
+> >>>>> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
+> >>>>> series is applied.
+> >>>>>
+> >>>>> The patch reports a "Fixes" tag, but should actually be merged with the above
+> >>>>> mentioned series.
+> >>>>>
+> >>>>> ---
+> >>>>>  drivers/media/i2c/adv748x/adv748x-core.c | 3 +++
+> >>>>>  1 file changed, 3 insertions(+)
+> >>>>>
+> >>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> >>>>> index f57cd77a32fa..0e5a75eb6d75 100644
+> >>>>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> >>>>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> >>>>> @@ -354,6 +354,9 @@ static int adv748x_link_setup(struct media_entity *entity,
+> >>>>>
+> >>>>>  	tx->src = enable ? rsd : NULL;
+> >>>>>
+> >>>>> +	if (!enable)
+> >>>>> +		return 0;
+> >>>>> +
+> >>>>>  	if (state->afe.tx) {
+> >>>>>  		/* AFE Requires TXA enabled, even when output to TXB */
+> >>>>>  		io10 |= ADV748X_IO_10_CSI4_EN;
+> >>
+> >> --
+> >> Regards,
+> >>
+> >> Laurent Pinchart
+>
+
+--hr3uzs2vfclwp35n
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlyGcXoACgkQcjQGjxah
+VjwwGQ/+LgcJg4nwKeTdEXsf5cYa8G+Z+kB6in9SavfndKViCyemH7dpgUEm96rG
+LBWQgNSVEvbQD7La6VF0/JyAJ3EgttDUDGf4M2ZKGucaWbrrBzbvxOFi9K/iC/Jl
+iQWJjgWFJ7Cg8DQ0ExrsdPLAgf3uxM+dWpXPGNdtqL5IwrILiXMRFoMnlxVSRW/n
+gSJS0VsglAFUj6vXNHQk4kUuyhmgA42iOg/gt3bxQeMNodWPEeAbDvjPpF112u/U
+LNXqLgsUCozGoE9ZTdAcfxbLJDGXEt1IWJQnFnnW9ci3ogVnQMXPeJDYzkeqIuqV
+PJ4VT6OE0pR5BhaEvwSFzxjiomhrVw9xoV+a/VQPsoxobLVIWm01sC7z8Gflh10o
+guQd7q0UeasI2Ut5LdUx38k28QN8EKAgK+1SUnaI2evntI/jdn2HJHN4ZoMT1zt5
+ji0U0hHQSZfUn19vEMksT3dCI9exBvI/oZNXoTHTF8Z6VxDk/R1IJ/MEzkWjeNbd
+IBAnFAQUY0rDWgjEvn1G7pe7oG2cKF+UNbfuMUZE/0t2jule4ltzVZi4TgYIrP5N
+o1gGkDTZqTJ4hsAnPvGqW83Zrdd8wmYaAguo1ofFwCWd5hoOJ2vcfgeeJoTCEyVh
+tGGqAh8AGsMhYdLevqHoYZouQ3hJlcpyDF5nTlyj50DLQtZz64g=
+=uJeS
+-----END PGP SIGNATURE-----
+
+--hr3uzs2vfclwp35n--
