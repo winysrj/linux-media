@@ -2,155 +2,116 @@ Return-Path: <SRS0=G3Vt=RO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C258EC10F06
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 22:10:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 243C5C43381
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 22:41:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E531214AE
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 22:10:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="IiL+NKU5"
+	by mail.kernel.org (Postfix) with ESMTP id E3519214D8
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 22:41:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1552344108;
+	bh=T4d3bzHQRcayBAPdRMLxv0rUZJIeCyBP9xBDFwH6zn0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=xkH3jtN5yVl4lqcM8WDRcFq0w5QXwtWD2QwJGIAbOXheo3y1/w2Z9edGbNcfUT32S
+	 TdzkD7YtfyXyGNs7lADbYnXgKOWyr2tefSFnFNc3WbDz76b2JKJijUmRsq36FqPsqm
+	 1UDcRjsCqrScWlq/j3e3nfz6nFK2Wj8nBgibiot8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728438AbfCKWKd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 18:10:33 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:37826 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727138AbfCKWKd (ORCPT
+        id S1726411AbfCKWln (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 18:41:43 -0400
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:41624 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725843AbfCKWlm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 18:10:33 -0400
-Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 33EA99B8;
-        Mon, 11 Mar 2019 23:10:30 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552342230;
-        bh=LXHb1CWiAzGvfZt6yqW+mvavpjZoJE6zQDFhFpejwCA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=IiL+NKU5tNvC5kMVVa7gj1bGE+IfPx8v/yUJJ1grUYEcHEYvz/Y8dnB5d/682XxFt
-         ZfXXA1GftyyoRPN1tMjlgP2IhHVw8GDycavKxiJQpULHUVl2C1VkkBfFIzD5M3vDsB
-         xzJjxrMKjNQj7RUN5pP0rgrzUVSuqCi1oc9XcKp8=
-Date:   Tue, 12 Mar 2019 00:10:23 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] rcar-csi2: Propagate the FLD signal for NTSC and PAL
-Message-ID: <20190311221023.GA12319@pendragon.ideasonboard.com>
-References: <20190308235157.26357-1-niklas.soderlund+renesas@ragnatech.se>
- <20190311090901.GG4775@pendragon.ideasonboard.com>
- <20190311214559.GI5281@bigcity.dyn.berto.se>
+        Mon, 11 Mar 2019 18:41:42 -0400
+Received: by mail-ot1-f67.google.com with SMTP id t7so714091otk.8;
+        Mon, 11 Mar 2019 15:41:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=TJML0uGfLYj5LcXJ4ZSv+L1LfESaD+LndKo9tAnKPnI=;
+        b=cnDETFtzpm/6T7qD/hQdFn3FVyVU/fw+mzt7BVGSC8ohbTJ+YS6D4DnP/T/5aDfEBn
+         rJCU5WTxFp7iJ0xn8J+JpzkdpyH3WnlvZHixsYzpi11G6NAZa0rEzgGByumm/XbFxODQ
+         efneTvxrXiSGUfjqz8EatyRtLMcn85XC5lCUcn9nWITlEE0OXvMNZwfs95/Cpbxt/2j2
+         ACLorxOXBQDRjiqulvzJs6sttzdQcLpACMWi4CmMBVxB15ioqnA6xFKBRj6o+IF1y6QH
+         V82PjxnF78K4QxqIwOPxYylAxpiy1jdbBG59wA0Ru1o8wWV26vf5siRVwEOqSbYxISs/
+         8kaw==
+X-Gm-Message-State: APjAAAWvOE1VS3FKnM48lybbOm4Wcl5m31i9PrUEBZEzDYb1ugFSDQ+3
+        oiYlmE+O8gBZaVHixA8GEg==
+X-Google-Smtp-Source: APXvYqws1Fdg+l1hnYj9cI/erwrOqcnhpIHzvFFUQZLzfYiJM4C1GtLrQALvmc7rI4HYL33tYX2w3g==
+X-Received: by 2002:a9d:130:: with SMTP id 45mr23236431otu.355.1552344101336;
+        Mon, 11 Mar 2019 15:41:41 -0700 (PDT)
+Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id o4sm194581oih.45.2019.03.11.15.41.40
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Mon, 11 Mar 2019 15:41:40 -0700 (PDT)
+Date:   Mon, 11 Mar 2019 17:41:40 -0500
+From:   Rob Herring <robh@kernel.org>
+To:     Vishal Sagar <vishal.sagar@xilinx.com>
+Cc:     Hyun Kwon <hyunk@xilinx.com>, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        Michal Simek <michals@xilinx.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, Dinesh Kumar <dineshk@xilinx.com>,
+        Sandip Kothari <sandipk@xilinx.com>,
+        Vishal Sagar <vishal.sagar@xilinx.com>
+Subject: Re: [PATCH v5 1/2] media: dt-bindings: media: xilinx: Add Xilinx
+ MIPI CSI-2 Rx Subsystem
+Message-ID: <20190311224140.GA23484@bogus>
+References: <1552297257-145919-1-git-send-email-vishal.sagar@xilinx.com>
+ <1552297257-145919-2-git-send-email-vishal.sagar@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190311214559.GI5281@bigcity.dyn.berto.se>
+In-Reply-To: <1552297257-145919-2-git-send-email-vishal.sagar@xilinx.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
-
-On Mon, Mar 11, 2019 at 10:45:59PM +0100, Niklas Söderlund wrote:
-> On 2019-03-11 11:09:01 +0200, Laurent Pinchart wrote:
-> > On Sat, Mar 09, 2019 at 12:51:57AM +0100, Niklas Söderlund wrote:
-> >> Depending on which video standard is used the driver needs to setup the
-> >> hardware to correctly handle fields. If stream is identified as NTSC
-> >> or PAL setup field detection and propagate the field detection signal.
-> >> 
-> >> Later versions of the datasheet have been updated to make it clear
-> >> that FLD register should be set to 0 when dealing with non-interlaced
-> >> field formats.
-> >> 
-> >> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> >> ---
-> >>  drivers/media/platform/rcar-vin/rcar-csi2.c | 15 ++++++++++++---
-> >>  1 file changed, 12 insertions(+), 3 deletions(-)
-> >> 
-> >> ---
-> >> 
-> >> Hi,
-> >> 
-> >> This patch depends on [PATCH v2 0/2] rcar-csi2: Use standby mode instead of resetting
-> >> 
-> >> 
-> >> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> >> index 7a1c9b549e0fffc6..d9b29dbbcc2949de 100644
-> >> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> >> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> >> @@ -475,7 +475,7 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
-> >>  static int rcsi2_start_receiver(struct rcar_csi2 *priv)
-> >>  {
-> >>  	const struct rcar_csi2_format *format;
-> >> -	u32 phycnt, vcdt = 0, vcdt2 = 0;
-> >> +	u32 phycnt, vcdt = 0, vcdt2 = 0, fld = 0;
-> >>  	unsigned int i;
-> >>  	int mbps, ret;
-> >>  
-> >> @@ -507,6 +507,16 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
-> >>  			vcdt2 |= vcdt_part << ((i % 2) * 16);
-> >>  	}
-> >>  
-> >> +	if (priv->mf.field != V4L2_FIELD_NONE &&
-> > 
-> > Shouldn't this be
-> > 
-> > 	if (priv->mf.field == V4L2_FIELD_ALTERNATE) {
-> > 
-> > If the CSI-2 receiver gets a top/bottom-only or sequential field order I
-> > would expect it not to toggle the field signal.
+On Mon, 11 Mar 2019 15:10:56 +0530, Vishal Sagar wrote:
+> Add bindings documentation for Xilinx MIPI CSI-2 Rx Subsystem.
 > 
-> For some reason I mixed all interlaced formats in to the mix while now 
-> it's clear ALTERNATE is the only one which make sens, thanks!
+> The Xilinx MIPI CSI-2 Rx Subsystem consists of a CSI-2 Rx controller, a
+> DPHY in Rx mode, an optional I2C controller and a Video Format Bridge.
 > 
-> > 
-> >> +	    (priv->mf.height == 240 || priv->mf.height == 288)) {
-> > 
-> > I think you can drop this part of the check.
+> Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
+> Reviewed-by: Hyun Kwon <hyun.kwon@xilinx.com>
+> ---
+> v5
+> - Incorporated comments by Luca Cersoli
+> - Removed DPHY clock from description and example
+> - Removed bayer pattern from device tree MIPI CSI IP
+>   doesn't deal with bayer pattern.
 > 
-> I added it to guard so this special case only would trigger for PAL and 
-> NTSC resolutions. But I think I agree with you that I might be over 
-> cautious.
+> v4
+> - Added reviewed by Hyun Kwon
 > 
-> > 
-> >> +		fld =  FLD_FLD_EN4 | FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN;
-> >> +
-> >> +		if (priv->mf.height == 240)
-> >> +			fld |= FLD_FLD_NUM(2);
-> >> +		else
-> >> +			fld |= FLD_FLD_NUM(1);
-> > 
-> > How does this work ? Looking at the datasheet, I was expecting
-> > FLD_DET_SEL field to be set to 01 in order for the field signal to
-> > toggle every frame.
+> v3
+> - removed interrupt parent as suggested by Rob
+> - removed dphy clock
+> - moved vfb to optional properties
+> - Added required and optional port properties section
+> - Added endpoint property section
 > 
-> I thought so too then I read 26.4.5 FLD Signal which fits what is done 
-> in the BSP code and fits with how the hardware behaves.
+> v2
+> - updated the compatible string to latest version supported
+> - removed DPHY related parameters
+> - added CSI v2.0 related property (including VCX for supporting upto 16
+>   virtual channels).
+> - modified csi-pxl-format from string to unsigned int type where the value
+>   is as per the CSI specification
+> - Defined port 0 and port 1 as sink and source ports.
+> - Removed max-lanes property as suggested by Rob and Sakari
+> 
+>  .../bindings/media/xilinx/xlnx,csi2rxss.txt        | 118 +++++++++++++++++++++
+>  1 file changed, 118 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> 
 
-Do we have a guarantee that all alternate sources will cycle the frame
-number between 1 and 2 ? If not I think you should select based on the
-LSB.
-
-> > >+	}
-> >> +
-> >>  	phycnt = PHYCNT_ENABLECLK;
-> >>  	phycnt |= (1 << priv->lanes) - 1;
-> >>  
-> >> @@ -519,8 +529,7 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
-> >>  	rcsi2_write(priv, PHTC_REG, 0);
-> >>  
-> >>  	/* Configure */
-> >> -	rcsi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
-> >> -		    FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
-> >> +	rcsi2_write(priv, FLD_REG, fld);
-> >>  	rcsi2_write(priv, VCDT_REG, vcdt);
-> >>  	if (vcdt2)
-> >>  		rcsi2_write(priv, VCDT2_REG, vcdt2);
-
--- 
-Regards,
-
-Laurent Pinchart
+Reviewed-by: Rob Herring <robh@kernel.org>
