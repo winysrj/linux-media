@@ -2,98 +2,108 @@ Return-Path: <SRS0=G3Vt=RO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F51CC43381
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:25:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DACAC43381
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F7F4206BA
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:25:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64B5A20657
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727027AbfCKPZv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 11:25:51 -0400
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39306 "EHLO
+        id S1727008AbfCKPaK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 11:30:10 -0400
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51736 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726926AbfCKPZv (ORCPT
+        by vger.kernel.org with ESMTP id S1726864AbfCKPaK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 11:25:51 -0400
+        Mon, 11 Mar 2019 11:30:10 -0400
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id 3MoEhSeVA4HFn3MoHhFJtf; Mon, 11 Mar 2019 16:25:49 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+        id 3MsOhSh7T4HFn3MsShFLa8; Mon, 11 Mar 2019 16:30:08 +0100
+Subject: Re: [PATCHv2] media: videobuf2: Return error after allocation failure
+To:     Souptick Joarder <jrdr.linux@gmail.com>, pawel@osciak.com,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>, mchehab@kernel.org,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20190204150142.GA3900@jordon-HP-15-Notebook-PC>
+ <CAFqt6zbWPn4H6ArYEecou0Ri79a6hQcYcBo8ZrjPfkxFJUV-UQ@mail.gmail.com>
+ <CAFqt6zZ=9-xtHg_vuCQ2E+S91G6jD8CcK=Wr-OjYONO4+SnEmg@mail.gmail.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v5.2] Various fixes/enhancements part 2
-Message-ID: <4132455b-41ca-3c3e-f809-fd2b3f872eeb@xs4all.nl>
-Date:   Mon, 11 Mar 2019 16:25:46 +0100
+Message-ID: <52354072-81c5-4aaa-b3ea-885437e043b0@xs4all.nl>
+Date:   Mon, 11 Mar 2019 16:30:04 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
+In-Reply-To: <CAFqt6zZ=9-xtHg_vuCQ2E+S91G6jD8CcK=Wr-OjYONO4+SnEmg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfPXrxr/vPaq6UKbvwB15hIdeHmuMi4fl9q/xjSTPYn8y27HJYn/7JerrMeaPqunulnpd2ovaHaXKF07mPkbGFNAdu+cqej1jqCC4v+Co6AzGFzMsnvfk
- pCzGn4UZOESrnricPS6BpafRpxJYGa0Xbd2OJN6XYDRfq0ZlJz7J0Cpbu1B6o1+8Vu6u+n4x23aRqw==
+X-CMAE-Envelope: MS4wfGLeZguZ64odaxVEpPch/aqvhe+xCcl3r3ThkmH7WUtHafMk/cSMbyLeOu3TAgK3qDGMZBtoon5u5D3XK2Cza/o+3TQymjY9nWE5pVUxr1OHNPOvp+8S
+ RAznPS8eQN8UWMTI4q3cGWIm+LQQEahfceRjxl6CAfuzaNai8pSxzVoTf5ys+lPgoARU31JVsEQxIY54mRGQO2gmi9vc47ODy9gCkh8NQ+x87EJdyIGihDPr
+ +xLcABRQ7KDXTd9q7MHA8JC8YGQHUUqP3GMHrvGFBLvSpjy1Yc7rVQKSdbjyuDgo8M+Hh25sm0io0CFvNsMP0IxoxIutDHfivjJUYoKryGfHkPjlc8wz9aFm
+ kSLjj2nGBWy4mVeI5bNqGAzdnx1pyrq0RCqTx3rLsacpLHnWGEPqZL/9G/GLtJCvkuPN6tWj
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The following changes since commit 15d90a6ae98e6d2c68497b44a491cb9efbb98ab1:
+On 3/1/19 4:04 AM, Souptick Joarder wrote:
+> On Mon, Feb 11, 2019 at 7:42 AM Souptick Joarder <jrdr.linux@gmail.com> wrote:
+>>
+>> On Mon, Feb 4, 2019 at 8:27 PM Souptick Joarder <jrdr.linux@gmail.com> wrote:
+>>>
+>>> There is no point to continuing assignment after memory allocation
+>>> failed, rather throw error immediately.
+>>>
+>>> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+>>
+>> Any comment on this patch ?
+> 
+> If no further comment, can we get this patch in queue for 5.1 ?
 
-  media: dvb/earth-pt1: fix wrong initialization for demod blocks (2019-03-04 06:17:02 -0500)
+5.1 was too late, but it will certainly go into 5.2.
 
-are available in the Git repository at:
+Regards,
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.2b
+	Hans
 
-for you to fetch changes up to e1585164f65ae0d034252bb8e4bffd906bb3d889:
+>>
+>>> ---
+>>> v1 -> v2:
+>>>         Corrected typo in change log.
+>>>
+>>>  drivers/media/common/videobuf2/videobuf2-vmalloc.c | 8 ++++----
+>>>  1 file changed, 4 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+>>> index 6dfbd5b..d3f71e2 100644
+>>> --- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+>>> +++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+>>> @@ -46,16 +46,16 @@ static void *vb2_vmalloc_alloc(struct device *dev, unsigned long attrs,
+>>>
+>>>         buf->size = size;
+>>>         buf->vaddr = vmalloc_user(buf->size);
+>>> -       buf->dma_dir = dma_dir;
+>>> -       buf->handler.refcount = &buf->refcount;
+>>> -       buf->handler.put = vb2_vmalloc_put;
+>>> -       buf->handler.arg = buf;
+>>>
+>>>         if (!buf->vaddr) {
+>>>                 pr_debug("vmalloc of size %ld failed\n", buf->size);
+>>>                 kfree(buf);
+>>>                 return ERR_PTR(-ENOMEM);
+>>>         }
+>>> +       buf->dma_dir = dma_dir;
+>>> +       buf->handler.refcount = &buf->refcount;
+>>> +       buf->handler.put = vb2_vmalloc_put;
+>>> +       buf->handler.arg = buf;
+>>>
+>>>         refcount_set(&buf->refcount, 1);
+>>>         return buf;
+>>> --
+>>> 1.9.1
+>>>
 
-  gspca: do not resubmit URBs when streaming has stopped (2019-03-11 15:59:41 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Arnd Bergmann (3):
-      media: saa7146: avoid high stack usage with clang
-      media: go7007: avoid clang frame overflow warning with KASAN
-      media: vicodec: avoid clang frame size warning
-
-Dan Carpenter (2):
-      media: ivtv: update *pos correctly in ivtv_read_pos()
-      media: cx18: update *pos correctly in cx18_read_pos()
-
-Hans Verkuil (1):
-      gspca: do not resubmit URBs when streaming has stopped
-
-Jernej Skrabec (3):
-      dt-bindings: media: cedrus: Add H6 compatible
-      media: cedrus: Add a quirk for not setting DMA offset
-      media: cedrus: Add support for H6
-
-Ken Sloat (1):
-      media: atmel-isc: Add support for BT656 with CRC decoding
-
-Shuah Khan (2):
-      media: replace WARN_ON in __media_pipeline_start()
-      au0828: minor fix to a misleading comment in _close()
-
- Documentation/devicetree/bindings/media/cedrus.txt |  1 +
- drivers/media/media-entity.c                       |  5 ++++-
- drivers/media/pci/cx18/cx18-fileops.c              |  2 +-
- drivers/media/pci/ivtv/ivtv-fileops.c              |  2 +-
- drivers/media/pci/saa7146/hexium_gemini.c          |  5 ++---
- drivers/media/pci/saa7146/hexium_orion.c           |  5 ++---
- drivers/media/platform/atmel/atmel-isc-regs.h      |  2 ++
- drivers/media/platform/atmel/atmel-isc.c           |  7 ++++++-
- drivers/media/platform/vicodec/codec-fwht.c        | 29 ++++++++++++++++++-----------
- drivers/media/usb/au0828/au0828-video.c            |  4 ++--
- drivers/media/usb/go7007/go7007-fw.c               |  4 ++--
- drivers/media/usb/gspca/gspca.c                    |  8 ++++++--
- drivers/staging/media/sunxi/cedrus/cedrus.c        |  9 +++++++++
- drivers/staging/media/sunxi/cedrus/cedrus.h        |  3 +++
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c     |  3 ++-
- 15 files changed, 61 insertions(+), 28 deletions(-)
