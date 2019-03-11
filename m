@@ -3,176 +3,107 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B3DC10F06
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 10:53:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2167C43381
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 11:16:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC16020657
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 10:53:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B98A52084F
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 11:16:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727185AbfCKKxH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 06:53:07 -0400
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59524 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727099AbfCKKxH (ORCPT
+        id S1727250AbfCKLQm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 07:16:42 -0400
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43721 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726074AbfCKLQm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 06:53:07 -0400
+        Mon, 11 Mar 2019 07:16:42 -0400
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id 3IYHhPTfc4HFn3IYKhDBDS; Mon, 11 Mar 2019 11:53:05 +0100
-Subject: Re: [PATCH] rcar-csi2: restart CSI-2 link if error is detected
-To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        id 3Iv6hPmep4HFn3Iv9hDOxU; Mon, 11 Mar 2019 12:16:40 +0100
+Subject: Re: [PATCH v2 1/4] media: v4l: Simplify dev_debug flags
+To:     Ezequiel Garcia <ezequiel@collabora.com>,
         linux-media@vger.kernel.org
-Cc:     linux-renesas-soc@vger.kernel.org
-References: <20190218101541.15819-1-niklas.soderlund+renesas@ragnatech.se>
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com
+References: <20190227170706.6258-1-ezequiel@collabora.com>
+ <20190227170706.6258-2-ezequiel@collabora.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0fb0337f-32f7-729b-c30b-1453c3b6e901@xs4all.nl>
-Date:   Mon, 11 Mar 2019 11:53:01 +0100
+Message-ID: <810424a2-93e8-207d-90b6-887b032d6546@xs4all.nl>
+Date:   Mon, 11 Mar 2019 12:16:36 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190218101541.15819-1-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20190227170706.6258-2-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfIKMvlGYn4oHXtAHRo1LHbDgoJ5biEEJpDuKu4JtQ7X38NxBq27XPdCguEm5ZOoERhTOXXo05x4GxUoXvPfRG5JK/Fg3iiCtyuqhUZ/coCjYA+fNKeGc
- 3vTA5jQusPyG1bvjro9U4BcN+Um5FHhoblarLU/M49riZ5nV6qbwALlkrfnxuwQ1AAK2o3j2PGk9j1r6vB+ykn8Y4yLCVSxIx/0rrjGNeS7g2dW4Y9MIDb/c
- MAVwKXzAmFkEx48tAUSKhino9xlGcHhBoFbmWjMv58IgE8yQdwTkiHVTFOoqkp5/4mvg7A4Pf21peZXNRsbQ3m9yCO2JxmOz4NgXAY7eRi4=
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfKYnu9Osc/3ZWwS4Q57xMfJAy6A1B1vna+TS3aYNBEMYnsWwNnWA2XtXwt3DW2iYPiIfh93jcfqQHudw0OwBUGSFKQXufthpcpjGztawEKJJKgoQg/oB
+ EAJaiCYyU5HB7sSaG2N4VMlik12rIzF11pXUXzsTAPTzpE2tNxXEGso8oYM3UIPsEDZSL1fn0kTa6gTRPXByLTSS9j7u3iRLa1q2nC9+37tioRG6y++UxnjO
+ l96QHia/VO95yzqVmPVLahlS0icPu6KEg+4jIMhhjhrnFM8yRfV6iuRLPiTK0Sed
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/18/19 11:15 AM, Niklas Söderlund wrote:
-> Restart the CSI-2 link if the CSI-2 receiver detects an error during
-> reception. The driver did nothing when a link error happened and the
-> data flow simply stopped without the user knowing why.
+On 2/27/19 6:07 PM, Ezequiel Garcia wrote:
+> In preparation to cleanup the debug logic, simplify the dev_debug
+> usage. In particular, make sure that a single flag is used to
+> control each debug print.
 > 
-> Change the driver to try and recover from errors by restarting the link
-> and informing the user that something is not right. For obvious reasons
-> it's not possible to recover from all errors (video source disconnected
-> for example) but in such cases the user is at least informed of the
-> error and the same behavior of the stopped data flow is retained.
+> Before this commit V4L2_DEV_DEBUG_STREAMING and V4L2_DEV_DEBUG_FOP
+> were needed to enable read and write debugging. After this commit
+> only the former is needed.
 
-What you really would like to have is that when a CSI error is detected,
-the CSI driver can ask upstream whether or not a disconnect has taken place.
+The original idea was that ioctls are logged with V4L2_DEV_DEBUG_IOCTL
+and file ops with V4L2_DEV_DEBUG_FOP. And to see the streaming ioctls
+or fops you would have to add V4L2_DEV_DEBUG_STREAMING in addition to
+DEBUG_IOCTL/FOP.
 
-If that was the case, then there is no point in restarting the CSI.
+This patch changes the behavior in that the streaming fops are now
+solely controlled by V4L2_DEV_DEBUG_STREAMING.
 
-While a disconnect is very uncommon for a sensor, it is of course perfectly
-normal if an HDMI-to-CSI bridge was connected to the CSI port.
+I do agree with this change, but this requires that the same change is
+done for the streaming ioctls (DQBUF/QBUF) and that the documentation in
+Documentation/media/kapi/v4l2-dev.rst is updated (section "video device
+debugging").
 
-Unfortunately, we don't have such functionality, but perhaps this is something
-to think about?
-
-This does mean, however, that I don't like the dev_err since it doesn't have
-to be an error. I would suggest replacing the first dev_err by dev_info and
-the second by dev_warn.
+Of course, the documentation should also mention the new dev_debug
+module parameter and the new debug flag for debugging controls.
 
 Regards,
 
 	Hans
 
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 > ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 52 ++++++++++++++++++++-
->  1 file changed, 51 insertions(+), 1 deletion(-)
+>  drivers/media/v4l2-core/v4l2-dev.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index f90b380478775015..0506fe4106d5c012 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -84,6 +84,9 @@ struct rcar_csi2;
->  
->  /* Interrupt Enable */
->  #define INTEN_REG			0x30
-> +#define INTEN_INT_AFIFO_OF		BIT(27)
-> +#define INTEN_INT_ERRSOTHS		BIT(4)
-> +#define INTEN_INT_ERRSOTSYNCHS		BIT(3)
->  
->  /* Interrupt Source Mask */
->  #define INTCLOSE_REG			0x34
-> @@ -540,6 +543,10 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
->  	if (mbps < 0)
->  		return mbps;
->  
-> +	/* Enable interrupts. */
-> +	rcsi2_write(priv, INTEN_REG, INTEN_INT_AFIFO_OF | INTEN_INT_ERRSOTHS
-> +		    | INTEN_INT_ERRSOTSYNCHS);
-> +
->  	/* Init */
->  	rcsi2_write(priv, TREF_REG, TREF_TREF);
->  	rcsi2_write(priv, PHTC_REG, 0);
-> @@ -702,6 +709,43 @@ static const struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
->  	.pad	= &rcar_csi2_pad_ops,
->  };
->  
-> +static irqreturn_t rcsi2_irq(int irq, void *data)
-> +{
-> +	struct rcar_csi2 *priv = data;
-> +	u32 status, err_status;
-> +
-> +	status = rcsi2_read(priv, INTSTATE_REG);
-> +	err_status = rcsi2_read(priv, INTERRSTATE_REG);
-> +
-> +	if (!status)
-> +		return IRQ_HANDLED;
-> +
-> +	rcsi2_write(priv, INTSTATE_REG, status);
-> +
-> +	if (!err_status)
-> +		return IRQ_HANDLED;
-> +
-> +	rcsi2_write(priv, INTERRSTATE_REG, err_status);
-> +
-> +	dev_err(priv->dev, "Transfer error, restarting CSI-2 receiver\n");
-> +
-> +	return IRQ_WAKE_THREAD;
-> +}
-> +
-> +static irqreturn_t rcsi2_irq_thread(int irq, void *data)
-> +{
-> +	struct rcar_csi2 *priv = data;
-> +
-> +	mutex_lock(&priv->lock);
-> +	rcsi2_stop(priv);
-> +	usleep_range(1000, 2000);
-> +	if (rcsi2_start(priv))
-> +		dev_err(priv->dev, "Failed to restart CSI-2 receiver\n");
-> +	mutex_unlock(&priv->lock);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * Async handling and registration of subdevices and links.
->   */
-> @@ -982,7 +1026,7 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
->  				 struct platform_device *pdev)
->  {
->  	struct resource *res;
-> -	int irq;
-> +	int irq, ret;
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	priv->base = devm_ioremap_resource(&pdev->dev, res);
-> @@ -993,6 +1037,12 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
->  	if (irq < 0)
->  		return irq;
->  
-> +	ret = devm_request_threaded_irq(&pdev->dev, irq, rcsi2_irq,
-> +					rcsi2_irq_thread, IRQF_SHARED,
-> +					KBUILD_MODNAME, priv);
-> +	if (ret)
-> +		return ret;
-> +
->  	priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
->  	if (IS_ERR(priv->rstc))
->  		return PTR_ERR(priv->rstc);
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index d7528f82a66a..34e4958663bf 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -315,8 +315,7 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
+>  		return -EINVAL;
+>  	if (video_is_registered(vdev))
+>  		ret = vdev->fops->read(filp, buf, sz, off);
+> -	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
+> -	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+> +	if (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING)
+>  		dprintk("%s: read: %zd (%d)\n",
+>  			video_device_node_name(vdev), sz, ret);
+>  	return ret;
+> @@ -332,8 +331,7 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
+>  		return -EINVAL;
+>  	if (video_is_registered(vdev))
+>  		ret = vdev->fops->write(filp, buf, sz, off);
+> -	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
+> -	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+> +	if (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING)
+>  		dprintk("%s: write: %zd (%d)\n",
+>  			video_device_node_name(vdev), sz, ret);
+>  	return ret;
 > 
 
