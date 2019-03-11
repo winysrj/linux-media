@@ -2,93 +2,80 @@ Return-Path: <SRS0=G3Vt=RO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41808C10F0C
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 09:09:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D997DC43381
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 09:18:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03D4A2075C
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 09:09:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="YF9vKVVi"
+	by mail.kernel.org (Postfix) with ESMTP id A3E932075C
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 09:18:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727024AbfCKJJt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 05:09:49 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:49874 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725850AbfCKJJt (ORCPT
+        id S1726986AbfCKJSb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 05:18:31 -0400
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:43797 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726897AbfCKJSb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 05:09:49 -0400
-Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5B973304;
-        Mon, 11 Mar 2019 10:09:47 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552295387;
-        bh=RBsicthfwwKQf0AZi52EIAvbj1UcPmv77Op5AR3JICY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=YF9vKVVieEL/vofuSXNZQb3OfpD31qw7OFZRlfyFuWRrcY85FT2AYiGaqFSgOMtu7
-         frZM5WZh90/HpSOStHXNP+Xp9xAXHtglB0FN16073fexQ6/n5MuqA/BmigYz6gCesB
-         zxMSK9t8usJyKPN/mFd9MGcPLemfFEzWViuZxl/s=
-Date:   Mon, 11 Mar 2019 11:09:41 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] dt-bindings: rcar-csi2: List resets as a
- mandatory property
-Message-ID: <20190311090941.GH4775@pendragon.ideasonboard.com>
-References: <20190308234722.25775-1-niklas.soderlund+renesas@ragnatech.se>
- <20190308234722.25775-2-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190308234722.25775-2-niklas.soderlund+renesas@ragnatech.se>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Mon, 11 Mar 2019 05:18:31 -0400
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1h3H4f-0004xL-7e; Mon, 11 Mar 2019 10:18:21 +0100
+Message-ID: <1552295898.3334.3.camel@pengutronix.de>
+Subject: Re: [PATCH] media: video-mux: fix  null pointer dereferences
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Kangjie Lu <kjlu@umn.edu>
+Cc:     pakki001@umn.edu, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Mon, 11 Mar 2019 10:18:18 +0100
+In-Reply-To: <20190309072056.4618-1-kjlu@umn.edu>
+References: <20190309072056.4618-1-kjlu@umn.edu>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
-
-Thank you for the patch.
-
-On Sat, Mar 09, 2019 at 12:47:21AM +0100, Niklas Söderlund wrote:
-> The resets property will become mandatory to operate the device, list it
-> as such. All device tree source files have always included the reset
-> property so making it mandatory will not introduce any regressions.
+On Sat, 2019-03-09 at 01:20 -0600, Kangjie Lu wrote:
+> devm_kcalloc may fail and return a null pointer. The fix returns
+> -ENOMEM upon failures to avoid null pointer dereferences.
 > 
-> While at it improve the description for the clocks property.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 > ---
->  Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  drivers/media/platform/video-mux.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-> index d63275e17afdd180..9a0d0531c67df48c 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-> @@ -18,7 +18,8 @@ Mandatory properties
+> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+> index c33900e3c23e..4135165cdabe 100644
+> --- a/drivers/media/platform/video-mux.c
+> +++ b/drivers/media/platform/video-mux.c
+> @@ -399,9 +399,14 @@ static int video_mux_probe(struct platform_device *pdev)
+>  	vmux->active = -1;
+>  	vmux->pads = devm_kcalloc(dev, num_pads, sizeof(*vmux->pads),
+>  				  GFP_KERNEL);
+> +	if (!vmux->pads)
+> +		return -ENOMEM;
+> +
+>  	vmux->format_mbus = devm_kcalloc(dev, num_pads,
+>  					 sizeof(*vmux->format_mbus),
+>  					 GFP_KERNEL);
+> +	if (!vmux->format_mbus)
+> +		return -ENOMEM;
 >  
->   - reg: the register base and size for the device registers
->   - interrupts: the interrupt for the device
-> - - clocks: reference to the parent clock
-> + - clocks: A phandle + clock specifier for the module clock
-> + - resets: A phandle + reset specifier for the module reset
->  
->  The device node shall contain two 'port' child nodes according to the
->  bindings defined in Documentation/devicetree/bindings/media/
+>  	for (i = 0; i < num_pads; i++) {
+>  		vmux->pads[i].flags = (i < num_pads - 1) ? MEDIA_PAD_FL_SINK
 
--- 
-Regards,
+Thank you,
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Laurent Pinchart
+regards
+Philipp
