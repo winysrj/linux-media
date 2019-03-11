@@ -2,201 +2,105 @@ Return-Path: <SRS0=G3Vt=RO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEBD2C10F06
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:05:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B97D3C43381
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:08:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C7D6C2084F
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:05:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85F2820657
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 14:08:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="4qvycFoM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727479AbfCKOFb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 10:05:31 -0400
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:56125 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727444AbfCKOFb (ORCPT
+        id S1727470AbfCKOIE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 10:08:04 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:43464 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727444AbfCKOID (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 10:05:31 -0400
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id 3LYShRlNn4HFn3LYVhEj3M; Mon, 11 Mar 2019 15:05:28 +0100
-Subject: Re: [PATCH] media: adv748x: Don't disable CSI-2 on link_setup
-To:     Jacopo Mondi <jacopo@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-References: <20190306112659.8310-1-jacopo+renesas@jmondi.org>
- <20190306191521.GE4791@pendragon.ideasonboard.com>
- <20190307103511.wtx2c7jecyx4nmms@uno.localdomain>
- <20190308112938.GE4802@pendragon.ideasonboard.com>
- <20190308131221.g5ueabsbhbog7oxn@uno.localdomain>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7edc4c80-541b-473a-f520-a758d73ce8d3@xs4all.nl>
-Date:   Mon, 11 Mar 2019 15:05:24 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Mon, 11 Mar 2019 10:08:03 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x2BDrS5A128444;
+        Mon, 11 Mar 2019 14:07:48 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2018-07-02;
+ bh=iaNuEvg1hwrPvmjS6QIGXQiQZ748sgl43/mJY01kQ5A=;
+ b=4qvycFoMt+HNL6zJCVJyR4HT88W3TagD5S9IRKzYD/AME9gXHejU+8igRsMKS+/n16GO
+ 1csLo314PZeMnXGiRt2fLwcT/rcLPqxJGb3B+i5UTWQIlM7G8orNtA1+86+C/kIO1+V8
+ Zv9sJ6V8Redx0fO34pvZTIxLRAqP6KAeoqgZXOS8c5iK48R0CETLCeiJVNVPEZ2Ys6jZ
+ ktbbo65OX287rHo/aQdRGUfVJnutQhzGY/qKyjk0bFGjwV0PEiVzozIyapmAzxK91VQ8
+ utWqvACByWIcgtmieX3Zn5Ul/YdNNVcLlV5l0qIcoWICPb+/MY+NCdOIMfW84Xw+Cj5b cA== 
+Received: from aserv0021.oracle.com (aserv0021.oracle.com [141.146.126.233])
+        by userp2130.oracle.com with ESMTP id 2r44wtxmph-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 11 Mar 2019 14:07:48 +0000
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by aserv0021.oracle.com (8.14.4/8.14.4) with ESMTP id x2BE7klb030242
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 11 Mar 2019 14:07:47 GMT
+Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x2BE7hGG012572;
+        Mon, 11 Mar 2019 14:07:44 GMT
+Received: from kadam (/197.157.34.165)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Mon, 11 Mar 2019 07:07:43 -0700
+Date:   Mon, 11 Mar 2019 17:07:33 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Mao Wenan <maowenan@huawei.com>
+Cc:     gregkh@linuxfoundation.org, Julia.Lawall@lip6.fr,
+        kimbrownkd@gmail.com, colin.king@canonical.com,
+        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH] staging: davinci: drop pointless static qualifier in
+ vpfe_resizer_init()
+Message-ID: <20190311140733.GG2434@kadam>
+References: <20190311141405.123611-1-maowenan@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20190308131221.g5ueabsbhbog7oxn@uno.localdomain>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfJAQa1rzSzkJCyNvDbcPPTwm/Ko0rYxQSRjRdW1+FJuqhTGtSDjDLNR9mWEVnB3ioBVIms9ZeBeBBySPQuDtKUVLUc2uAFhDoCsUjNlHrwx7yMA8wEVy
- kVLIOIJrkeK/dHKwLaTWb+5wyxWCvqk1EydCFcE0l2lpfLjPmT5Eu1IPdhKxh52ZcaKSVUc+GEHL7cuV/IT/qgbgusC33PdxpQBtN+RuIN/sJimTF19UNvu6
- NnwDiaBWpvnjC6CKKB3Vuo28zHwbcZXbYLWYJv/dX0mLsPhv85uplIO/TRMbwAFZpBFPXyogAKOvxqp830unA2pXEvPbwKU742CewD9SZW5PyRWTLRL0ZfPU
- a7dQkxIXinp3AMbkkttH7S/8U1S32CsIjW0U8H3KCNkzRtblW1llycn5Y7vZWNi6bWi1843rBIm81wD0uDsWKOTbuXHWQQ==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190311141405.123611-1-maowenan@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9191 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
+ definitions=main-1903110102
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 3/8/19 2:12 PM, Jacopo Mondi wrote:
-> Hi Laurent,
+On Mon, Mar 11, 2019 at 10:14:05PM +0800, Mao Wenan wrote:
+> There is no need to have the 'T *v' variable static
+> since new value always be assigned before use it.
 > 
-> On Fri, Mar 08, 2019 at 01:29:38PM +0200, Laurent Pinchart wrote:
->> Hi Jacopo,
->>
->> On Thu, Mar 07, 2019 at 11:35:11AM +0100, Jacopo Mondi wrote:
->>> On Wed, Mar 06, 2019 at 09:15:21PM +0200, Laurent Pinchart wrote:
->>>> On Wed, Mar 06, 2019 at 12:26:59PM +0100, Jacopo Mondi wrote:
->>>>> When both the media links between AFE and HDMI and the two TX CSI-2 outputs
->>>>> gets disabled, the routing register ADV748X_IO_10 gets zeroed causing both
->>>>> TXA and TXB output to get disabled.
->>>>>
->>>>> This causes some HDMI transmitters to stop working after both AFE and
->>>>> HDMI links are disabled.
->>>>
->>>> Could you elaborate on why this would be the case ? By HDMI transmitter,
->>>> I assume you mean the device connected to the HDMI input of the ADV748x.
->>>> Why makes it fail (and how ?) when the TXA and TXB are both disabled ?
->>>
->>> I know, it's weird, the HDMI transmitter is connected to the HDMI
->>> input of adv748x and should not be bothered by CSI-2 outputs
->>> enablement/disablement.
->>>
->>> BUT, when I developed the initial adv748x AFE->TXA patches I was
->>> testing HDMI capture using a laptop, and things were smooth.
->>>
->>> I recently started using a chrome cast device I found in some drawer
->>> to test HDMI, as with it I don't need to go through xrandr as I had to
->>> do when using a laptop for testing, but it seems the two behaves differently.
->>>
->>> Failures are of different types: from detecting a non-realisting
->>> resolution from the HDMI subdevice, and then messing up the pipeline
->>> configuration, to capture operations apparently completing properly
->>> but resulting in mangled images.
->>>
->>> Do not deactivate the CSI-2 ouputs seems to fix the issue for the
->>> Chromecast, and still work when capturing from laptop. There might be
->>> something I am missing about HDMI maybe, but the patch not just fixes
->>> the issue for me, but it might make sense on its own as disabling the
->>> TXes might trigger some internal power saving state, or simply mess up
->>> the HDMI link.
->>
->> I think this needs more investigation. It feels to me that you're
->> working around an issue by chance, and it will come back to bite us
->> later :-(
->>
+> Signed-off-by: Mao Wenan <maowenan@huawei.com>
+> ---
+>  drivers/staging/media/davinci_vpfe/dm365_resizer.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I'm sorry I really can't tell what's happening, and why it is
-> happening on that specific device, which I cannot debug for sure.
-> 
-> Ian suggested a possible cause, but I cannot tell due to my
-> HDMI-ignorance.
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> index 6098f43ac51b..a2a672d4615d 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> @@ -1881,7 +1881,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
+>  	struct v4l2_subdev *sd = &vpfe_rsz->crop_resizer.subdev;
+>  	struct media_pad *pads = &vpfe_rsz->crop_resizer.pads[0];
+>  	struct media_entity *me = &sd->entity;
+> -	static resource_size_t  res_len;
+> +	resource_size_t  res_len;
+                        ^
+Could you remove the extra space character also, please.
 
-I agree with Ian that it is likely related to EDID and/or HPD handling
-of the adv748x. The only other option is if the HDMI transmitter supports
-RxSense (i.e. detecting the pull-ups of the TMDS clock lines as a way of
-detecting that the transmitter is connected to a display).
+>  	struct resource *res;
+>  	int ret;
 
-Not many transmitters support RxSense, though.
+regards,
+dan carpenter
 
-HPD and/or EDID are the most likely culprits. It certainly has nothing
-to do with the CSI ports as such.
-
-Regards,
-
-	Hans
-
-> 
->>> As disabling both TXes usually happens at media link reset time, just
->>> before enabling one of them (or both), going through a full disable
->>> makes little sense, even more if it triggers any sort of malfunctioning.
->>>
->>> Does this make sense to you?
->>
->> It also doesn't make too much sense to keep them both enabled when they
->> don't need to be :-) You'll end up consuming more power.
->>
-> 
-> They've alwyas been up before introduction of dynamic routing, provided
-> something is connected to the TX source pad in DT.
-> https://elixir.bootlin.com/linux/latest/source/drivers/media/i2c/adv748x/adv748x-core.c#L489
-> 
-> Power saving wise, we're not doing worse than before, and if that's a
-> concern, it should be identified first why the CSI-2 Tx PLL never gets
-> turned off:
-> https://elixir.bootlin.com/linux/latest/source/drivers/media/i2c/adv748x/adv748x-core.c#L269
-> See "mipi_pll_en, CSI-TXA Map, Address 0xDA[0]" registrer description.
-> 
-> The two issues might be actually connected, I tried fixing this in the past,
-> but frame capture broke, and I didn't have time to investigate
-> fruther.
-> 
-> To sum up, this patch solves an issue on some devices, it does not
-> perform worse than what we had from a power consumption perspective,
-> but I agree it might work around some deeper issues it might be worth
-> chasing.
-> 
-> If I got your NAK on this, I'll keep carrying it in my tree when
-> testing with that device.
-> 
-> Thanks
->   j
-> 
-> 
->>>>> Fix this by preventing writing 0 to
->>>>> ADV748X_IO_10 register, which gets only updated when links are enabled
->>>>> again.
->>>>>
->>>>> Fixes: 9423ca350df7 ("media: adv748x: Implement TX link_setup callback")
->>>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->>>>> ---
->>>>> The issue presents itself only on some HDMI transmitters, and went unnoticed
->>>>> during the development of:
->>>>> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
->>>>>
->>>>> Patch intended to be applied on top of latest media-master, where the
->>>>> "[PATCH v3 0/6] media: adv748x: Implement dynamic routing support"
->>>>> series is applied.
->>>>>
->>>>> The patch reports a "Fixes" tag, but should actually be merged with the above
->>>>> mentioned series.
->>>>>
->>>>> ---
->>>>>  drivers/media/i2c/adv748x/adv748x-core.c | 3 +++
->>>>>  1 file changed, 3 insertions(+)
->>>>>
->>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
->>>>> index f57cd77a32fa..0e5a75eb6d75 100644
->>>>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
->>>>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
->>>>> @@ -354,6 +354,9 @@ static int adv748x_link_setup(struct media_entity *entity,
->>>>>
->>>>>  	tx->src = enable ? rsd : NULL;
->>>>>
->>>>> +	if (!enable)
->>>>> +		return 0;
->>>>> +
->>>>>  	if (state->afe.tx) {
->>>>>  		/* AFE Requires TXA enabled, even when output to TXB */
->>>>>  		io10 |= ADV748X_IO_10_CSI4_EN;
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
 
