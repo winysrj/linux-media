@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F6E4C43381
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:36:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D61EEC4360F
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:36:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2EDBA20883
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:36:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A55DF2147C
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:36:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HWm4Wkoy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L4GlmrnM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726779AbfCKPgU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 11:36:20 -0400
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:33073 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726546AbfCKPgU (ORCPT
+        id S1727063AbfCKPgX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 11:36:23 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:42776 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726546AbfCKPgW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 11:36:20 -0400
-Received: by mail-pg1-f195.google.com with SMTP id h11so4324820pgl.0
-        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2019 08:36:20 -0700 (PDT)
+        Mon, 11 Mar 2019 11:36:22 -0400
+Received: by mail-pf1-f194.google.com with SMTP id n74so3950265pfi.9
+        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2019 08:36:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=Zw+ZDBhtH5rEsPuUwE6cbsXvsVpuOmGxWeTV7vbELQI=;
-        b=HWm4WkoyDMDRu5CE6Y67Jgdk3Gk/QmO13BwS1n/OVlgLJ0OZGk4G9SYHFA1wOe2TCy
-         Vw9wucAX9UL4RutL71BWvFnTW/Pf/evq17samwZWu8ZX39q2RBxlV88anyEFV6Z+79ym
-         FU89l7iE0dPcUfzBOd3clapdREVCH3l5zcpO/4Ori4vAVZAHy8JdXhK8Qb71VyiYdR8+
-         N2iL0hfzPb6xFqMqWFVTMq5oiG7Kavf0RfUGzJsByr51ufXf74lF1x9vHWUjlctxhMCE
-         bJi3BQbDpxUsWsQVRLfGMZT/pQxxJ7bz1lQpxD7GT2ghSemWUIuDPB2CeKECNCBn5vSc
-         G1Ow==
+        bh=j8We34rp/0NT1UhnhDwyb+xe1pOVX9dOK6b5P0QcV2c=;
+        b=L4GlmrnMoR3ofRo8xKOS9VC430WQz9Mg4KjNix93xBGuc2j4tc2feIrZ0XGoDQc6/z
+         qOJWpurvj0aam+niG0pNffW1f7GATAaqydfsZ7v1PQVb3suRgRQg7hlyE/EsO2k1C/CK
+         0OIENemiKOIm9DlsENQHegjknvjb96Q5BGIvwhnfSCbs/xZ/98eEtZXXgVUTEJFGnYTs
+         eJ2kZNpexHTQqS7FvcELROv2glW/HysW/KR23lc+xgUPHCLfQ0n/qZ6Vu1Xxirg40Log
+         17CBXPF3gFPW2o2rhxLmazdlFjDIP27t73L17M40ivIs6EAHVJBJWgpOYuF5a6K6USqF
+         nliQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=Zw+ZDBhtH5rEsPuUwE6cbsXvsVpuOmGxWeTV7vbELQI=;
-        b=qeHlawZnFO8Ny1GAG4O7iAjGg0iJfbBYoZ9P/FikKH4BboI1Et1QqAYk+CHoKbV1Um
-         DHjyMOKZB7xuC3quBoWzSedkwGByjAWzp6pjQzkT9VOYyXOeQlWY0NpYffYnUk9EQMyb
-         JeYD7IQVFLwz84HRSla1GqCoX9YkxeSn5A23yk6vQugfBZfzAXnE/ll2f2TpkzeEbRqx
-         Q01LXQTHjT4FQeTfDtoDyHO1oUUEA0OtnKkEzn6ddMbYseRMYz3aU7b7PWdWmSeRAXen
-         /Q91zbrR0SfVRXE+GWD7vYxJsy8xexNoLVgi/MinRdxzvV9Zp0mMImqzrO923zPZ44bD
-         /FWQ==
-X-Gm-Message-State: APjAAAWULbx9sexk/nDnUPrj3+0mc8jyNVzXggYYLZYrKz2wtzJzjLb/
-        qKfw5jP9yJYmRJfndA4eaWbMB/VV
-X-Google-Smtp-Source: APXvYqwuX4DuJoPeO/gvX7wlQ076ICy8UmVs/uPA00/Fygt+FEu/eaUbPvQPxQeObElB2Gq78dvoAg==
-X-Received: by 2002:a63:1053:: with SMTP id 19mr30652673pgq.55.1552318579688;
-        Mon, 11 Mar 2019 08:36:19 -0700 (PDT)
+        bh=j8We34rp/0NT1UhnhDwyb+xe1pOVX9dOK6b5P0QcV2c=;
+        b=LwB5jCqwdQI4iQ6jDVVXBc6ib4bvSJEky0IpEN/HX1IgcX+8tr8du+IvAFrWJRPiN2
+         61cB5MyL8JzipmiK74BtyF5DZr4bDFFgdXU70Nt9/8FXLGMl11DQOMrtunnPZgpVQ/3I
+         guwHBnLzoaPAI9TiYSKmQss1KqK0E6xpNQJ0dBRsfzZ96MhGWdtj693j6+gEAQMQmPYo
+         5uuTNe44iAU7aekjamlFs56f8jc4MgGMgJHyE4A1RFxb4xZYgXX4anWEkY3C3b8GYJLw
+         ZEXp3sqwipXTQOfbgKNWbKDtgfV4oYvxn9WQDFw44awNK31+nuFfIOkGbDJdPN/dy3XU
+         4pVQ==
+X-Gm-Message-State: APjAAAWPR4bZ9aePlAuVp2AWEU02mEfsUPYP4DIZNHjud0hjej6UqC0X
+        wt2Hu+U6jPqjBcYLZXK5qRzCzyzB
+X-Google-Smtp-Source: APXvYqxJNtNC01EPg6MPX/FyxClT4WUFX18Jx9H52GLoyGuNzmgk3BzL8JgsW1WGk218jZKD/LzREA==
+X-Received: by 2002:a62:b40b:: with SMTP id h11mr33401459pfn.108.1552318581719;
+        Mon, 11 Mar 2019 08:36:21 -0700 (PDT)
 Received: from localhost.localdomain ([240f:34:212d:1:1b24:991b:df50:ea3f])
-        by smtp.gmail.com with ESMTPSA id f28sm10428364pfh.178.2019.03.11.08.36.17
+        by smtp.gmail.com with ESMTPSA id f28sm10428364pfh.178.2019.03.11.08.36.19
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Mon, 11 Mar 2019 08:36:19 -0700 (PDT)
+        Mon, 11 Mar 2019 08:36:21 -0700 (PDT)
 From:   Akinobu Mita <akinobu.mita@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
@@ -61,9 +61,9 @@ Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
         Jonathan Corbet <corbet@lwn.net>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 1/2] media: ov7670: restore default settings after power-up
-Date:   Tue, 12 Mar 2019 00:36:02 +0900
-Message-Id: <1552318563-6685-2-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH 2/2] media: ov7670: don't access registers when the device is powered off
+Date:   Tue, 12 Mar 2019 00:36:03 +0900
+Message-Id: <1552318563-6685-3-git-send-email-akinobu.mita@gmail.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1552318563-6685-1-git-send-email-akinobu.mita@gmail.com>
 References: <1552318563-6685-1-git-send-email-akinobu.mita@gmail.com>
@@ -75,8 +75,13 @@ X-Mailing-List: linux-media@vger.kernel.org
 Since commit 3d6a8fe25605 ("media: ov7670: hook s_power onto v4l2 core"),
 the device is actually powered off while the video stream is stopped.
 
-The frame format and framerate are restored right after power-up, but
-restoring the default register settings is forgotten.
+So now set_format and s_frame_interval could be called while the device
+is powered off, but these callbacks try to change the register settings
+at this time.
+
+The frame format and framerate will be restored right after power-up, so
+we can just postpone applying these changes at these callbacks if the
+device is not powered up.
 
 Fixes: 3d6a8fe25605 ("media: ov7670: hook s_power onto v4l2 core")
 Cc: Lubomir Rintel <lkundrak@v3.sk>
@@ -85,21 +90,65 @@ Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/i2c/ov7670.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/ov7670.c | 31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index a7d26b2..e65693c 100644
+index e65693c..44c3eed 100644
 --- a/drivers/media/i2c/ov7670.c
 +++ b/drivers/media/i2c/ov7670.c
-@@ -1664,6 +1664,7 @@ static int ov7670_s_power(struct v4l2_subdev *sd, int on)
+@@ -864,7 +864,15 @@ static int ov7675_set_framerate(struct v4l2_subdev *sd,
+ 	/* Recalculate frame rate */
+ 	ov7675_get_framerate(sd, tpf);
  
- 	if (on) {
- 		ov7670_power_on (sd);
-+		ov7670_init(sd, 0);
- 		ov7670_apply_fmt(sd);
- 		ov7675_apply_framerate(sd);
- 		v4l2_ctrl_handler_setup(&info->hdl);
+-	return ov7675_apply_framerate(sd);
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any changes to H/W at this time. Instead
++	 * the framerate will be restored right after power-up.
++	 */
++	if (info->on)
++		return ov7675_apply_framerate(sd);
++
++	return 0;
+ }
+ 
+ static void ov7670_get_framerate_legacy(struct v4l2_subdev *sd,
+@@ -895,7 +903,16 @@ static int ov7670_set_framerate_legacy(struct v4l2_subdev *sd,
+ 	info->clkrc = (info->clkrc & 0x80) | div;
+ 	tpf->numerator = 1;
+ 	tpf->denominator = info->clock_speed / div;
+-	return ov7670_write(sd, REG_CLKRC, info->clkrc);
++
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any changes to H/W at this time. Instead
++	 * the framerate will be restored right after power-up.
++	 */
++	if (info->on)
++		return ov7670_write(sd, REG_CLKRC, info->clkrc);
++
++	return 0;
+ }
+ 
+ /*
+@@ -1105,9 +1122,13 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = ov7670_apply_fmt(sd);
+-	if (ret)
+-		return ret;
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any changes to H/W at this time. Instead
++	 * the frame format will be restored right after power-up.
++	 */
++	if (info->on)
++		return ov7670_apply_fmt(sd);
+ 
+ 	return 0;
+ }
 -- 
 2.7.4
 
