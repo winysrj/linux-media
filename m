@@ -2,133 +2,86 @@ Return-Path: <SRS0=G3Vt=RO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-2.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D10AC43381
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:31:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B52C43381
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:36:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DEEEE20657
-	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:31:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 492B32084F
+	for <linux-media@archiver.kernel.org>; Mon, 11 Mar 2019 15:36:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KMw4kyxb"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mOGHYdon"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727436AbfCKPbX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Mar 2019 11:31:23 -0400
-Received: from mail-lj1-f195.google.com ([209.85.208.195]:46899 "EHLO
-        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727027AbfCKPbX (ORCPT
+        id S1726625AbfCKPgS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Mar 2019 11:36:18 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:40198 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726546AbfCKPgS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Mar 2019 11:31:23 -0400
-Received: by mail-lj1-f195.google.com with SMTP id v16so4451704ljg.13;
-        Mon, 11 Mar 2019 08:31:22 -0700 (PDT)
+        Mon, 11 Mar 2019 11:36:18 -0400
+Received: by mail-pf1-f194.google.com with SMTP id h1so3953320pfo.7
+        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2019 08:36:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=EQp296CCJHJi73tm7U0Fpj4NvT79CDYo+sJDL+q9Q7o=;
-        b=KMw4kyxb/nokVc8caAJdAo7nkfOwjCVD+vD8Cno7Fjgnrkt16OmDDTTkH5TJ6B2gRQ
-         yzrOl2S3V4rR8cf1C1kWnctRBxbqHuCQt+RujDVJBRaE6DtVejqYrwedX3vpKzvTWnsR
-         HvGB66t3MCE9TF0MJSituMChFJQlyBB5UZW1nQLEagbp9ddd6Lor6k6QKrTSKacKNYcJ
-         HC41DnkVGXXdhA5Z2AQTYjjAKSE4DDAbVVkFli+qPeS8syvp0wbANJTaAAc3sgZmp35f
-         +pW+2Z0lJ8Vm5vO/d3ib9VMmVLrQsw5i4sXRu2/LtcCWZsawddsEvNXB4vWL6EEYySks
-         hyMg==
+        h=from:to:cc:subject:date:message-id;
+        bh=38Ct61JAwOp1T0/dv5d7Rwd4z9DTD4VC603kU20nOsw=;
+        b=mOGHYdonDEAc3NS6Smty/R1/TAHsdAljLaiHWZN4pAYN5lb5zYUYR8m8UNTEj9+5x2
+         sIb2tsgdeewDU1Q5u12jnb+0rJB2SUoqReQagZjbwmZ20eKpOCC8uLZh6LDzCSC8DCYe
+         kEID7jgjXIo6XEwiDNoaYSWRQdrT0lfMPnJevxTvSL/ZUZfAwV+F1O3Rd2IHsN61T8ZT
+         K5NP5HLUZmyoVy4pMQ8alfpGDbdOZwz+qAFCtJlcGZPSUTK9bGPP5I9YyXw+7ILv5yRm
+         It0sriqeLlhqhxVVgrLPTnEG21lCy4iRNvD1OX+97soO8PXb1xVASBgpcyBjrMyUSuOd
+         cpgQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=EQp296CCJHJi73tm7U0Fpj4NvT79CDYo+sJDL+q9Q7o=;
-        b=kobBMSZCK+/6TeiK52ERhyKsZ1DXLvzJ9Q8a2d0EibS4WF9Z1wIHB3QoqPDRC1Web1
-         oxbAUMU/xoWGfU9ex+0IcceCIFKg6dFWKLikurqswe+gOh7SdO96MIajYoBBtNNw8iQh
-         3zPOTA0P5bxVtzYuY1Uvdznr5XrFTLRoMYxwJvJ2FS1u3H+9S13Fh13CUehE3ysg7oUC
-         M7t/o7R3fFlKK2mjSsXdCu+B1r4LOcqYRxZJXnvJxAQjk4PM/AHL39SMRLwag/6sk0th
-         vGOJo30OB3HSTwliDmfDhCI1DaqH8cF/ZnW1mHFjvWcXWBLyKeINDaj3Np7nmZaCb3i+
-         bVFQ==
-X-Gm-Message-State: APjAAAXNgJ73cjeZpOuchpiuRB78kXW+bxCPPd3DJSzp6Q4bWv1U3juW
-        FZQuD+RPg5huOczFElYr+ScRH4OxXX/39uhGEpQ=
-X-Google-Smtp-Source: APXvYqwjZa/cE8yEYFCQj/5o9Gh4ER9pMwAMb12nGs0tHZycLtjY7J6R1nighfKUvJEDBdS9qXPRMM2LFTrHfVb/VOY=
-X-Received: by 2002:a2e:9b95:: with SMTP id z21mr9056336lji.155.1552318281137;
- Mon, 11 Mar 2019 08:31:21 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190204150142.GA3900@jordon-HP-15-Notebook-PC>
- <CAFqt6zbWPn4H6ArYEecou0Ri79a6hQcYcBo8ZrjPfkxFJUV-UQ@mail.gmail.com>
- <CAFqt6zZ=9-xtHg_vuCQ2E+S91G6jD8CcK=Wr-OjYONO4+SnEmg@mail.gmail.com> <52354072-81c5-4aaa-b3ea-885437e043b0@xs4all.nl>
-In-Reply-To: <52354072-81c5-4aaa-b3ea-885437e043b0@xs4all.nl>
-From:   Souptick Joarder <jrdr.linux@gmail.com>
-Date:   Mon, 11 Mar 2019 21:01:09 +0530
-Message-ID: <CAFqt6zZD=hthKfLRAPeERP-42OJMTZX90-JndK05hqLL7hc21g@mail.gmail.com>
-Subject: Re: [PATCHv2] media: videobuf2: Return error after allocation failure
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     pawel@osciak.com, Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>, mchehab@kernel.org,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=38Ct61JAwOp1T0/dv5d7Rwd4z9DTD4VC603kU20nOsw=;
+        b=JVG5o3b/Q4TlH0+DHnnibCXxyt6ktXmYsJTQJMkgiR5kuqqAaJNhExFTwfQdoUOjyE
+         w6LIqoNqH0DYzKgdxdPSTZAtE35/OfGksulAIk1f1He+izk06AAbLGTPTeKxHy7HLb3r
+         mymwUo1bo2iwGJU1/qIjWQkFnW8eOCdoIcYBjFtfQ4DRnoz3nYhxlACNiHGpMRSRHdjC
+         hcMHNxDaHuFqZkPmZqHStIQRQxonjgtOT1OX3ahOdfw/+2o/LT2+M6eXcOin/pLXf4fz
+         HtErMoel0nEJ+mnRjgYPXiwvXBR2gUDOdCY1X+sez/+2EmTzjafkkA/2ib5Qq0KYOE2k
+         66nQ==
+X-Gm-Message-State: APjAAAVWo9r40K1iJ9TTzYKJiKbbPYxPLoLZFQwuoNOgCQlRakwIXZWu
+        eOJA5sJdjm5ra/1irNSwv7P6nOzz
+X-Google-Smtp-Source: APXvYqxpTSB1uZakwbTAY3KNQN/qUF3G1gdsQawE9Hkgvov4IOBS6XeSjwGQFDv3iI3Pi4FP5Hg3NQ==
+X-Received: by 2002:a17:902:834b:: with SMTP id z11mr34852325pln.257.1552318577599;
+        Mon, 11 Mar 2019 08:36:17 -0700 (PDT)
+Received: from localhost.localdomain ([240f:34:212d:1:1b24:991b:df50:ea3f])
+        by smtp.gmail.com with ESMTPSA id f28sm10428364pfh.178.2019.03.11.08.36.15
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Mon, 11 Mar 2019 08:36:16 -0700 (PDT)
+From:   Akinobu Mita <akinobu.mita@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Lubomir Rintel <lkundrak@v3.sk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 0/2] media: ov7670: fix regressions caused by "hook s_power onto v4l2 core"
+Date:   Tue, 12 Mar 2019 00:36:01 +0900
+Message-Id: <1552318563-6685-1-git-send-email-akinobu.mita@gmail.com>
+X-Mailer: git-send-email 2.7.4
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Mar 11, 2019 at 9:00 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 3/1/19 4:04 AM, Souptick Joarder wrote:
-> > On Mon, Feb 11, 2019 at 7:42 AM Souptick Joarder <jrdr.linux@gmail.com> wrote:
-> >>
-> >> On Mon, Feb 4, 2019 at 8:27 PM Souptick Joarder <jrdr.linux@gmail.com> wrote:
-> >>>
-> >>> There is no point to continuing assignment after memory allocation
-> >>> failed, rather throw error immediately.
-> >>>
-> >>> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-> >>
-> >> Any comment on this patch ?
-> >
-> > If no further comment, can we get this patch in queue for 5.1 ?
->
-> 5.1 was too late, but it will certainly go into 5.2.
+This patchset fixes the problems introduced by recent change to ov7670.
 
-Thanks.
->
-> Regards,
->
->         Hans
->
-> >>
-> >>> ---
-> >>> v1 -> v2:
-> >>>         Corrected typo in change log.
-> >>>
-> >>>  drivers/media/common/videobuf2/videobuf2-vmalloc.c | 8 ++++----
-> >>>  1 file changed, 4 insertions(+), 4 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
-> >>> index 6dfbd5b..d3f71e2 100644
-> >>> --- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
-> >>> +++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
-> >>> @@ -46,16 +46,16 @@ static void *vb2_vmalloc_alloc(struct device *dev, unsigned long attrs,
-> >>>
-> >>>         buf->size = size;
-> >>>         buf->vaddr = vmalloc_user(buf->size);
-> >>> -       buf->dma_dir = dma_dir;
-> >>> -       buf->handler.refcount = &buf->refcount;
-> >>> -       buf->handler.put = vb2_vmalloc_put;
-> >>> -       buf->handler.arg = buf;
-> >>>
-> >>>         if (!buf->vaddr) {
-> >>>                 pr_debug("vmalloc of size %ld failed\n", buf->size);
-> >>>                 kfree(buf);
-> >>>                 return ERR_PTR(-ENOMEM);
-> >>>         }
-> >>> +       buf->dma_dir = dma_dir;
-> >>> +       buf->handler.refcount = &buf->refcount;
-> >>> +       buf->handler.put = vb2_vmalloc_put;
-> >>> +       buf->handler.arg = buf;
-> >>>
-> >>>         refcount_set(&buf->refcount, 1);
-> >>>         return buf;
-> >>> --
-> >>> 1.9.1
-> >>>
->
+Akinobu Mita (2):
+  media: ov7670: restore default settings after power-up
+  media: ov7670: don't access registers when the device is powered off
+
+ drivers/media/i2c/ov7670.c | 32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
+
+Cc: Lubomir Rintel <lkundrak@v3.sk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+-- 
+2.7.4
+
