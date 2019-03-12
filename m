@@ -2,74 +2,76 @@ Return-Path: <SRS0=ZIWa=RP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB81FC43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 14:05:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D04FDC43381
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 14:07:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C6612087C
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 14:05:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90DE52087C
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 14:07:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="bics063t"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="vyxYwxhc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726671AbfCLOF3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 10:05:29 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:36395 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726365AbfCLOF3 (ORCPT
+        id S1726670AbfCLOHI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 10:07:08 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:54253 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726365AbfCLOHH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 10:05:29 -0400
-Received: by mail-wr1-f68.google.com with SMTP id g18so2871899wru.3
-        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2019 07:05:27 -0700 (PDT)
+        Tue, 12 Mar 2019 10:07:07 -0400
+Received: by mail-wm1-f65.google.com with SMTP id e74so2802278wmg.3
+        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2019 07:07:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=references:user-agent:from:to:cc:subject:in-reply-to:date
          :message-id:mime-version;
-        bh=Ae3WRq4jyg8RQTHC2kXqGMDRMH7DYMb+QRqEF+aWxzg=;
-        b=bics063tViopRzk+isSWJImb7HDgLQTBgaZ1S747PthYGodGRGLiYl3/ED13D3iGOD
-         IMId7yE2BYUab9QWDX3j16HzPqIhyB1X/NYHUDHQf+mpmeRRSKs/+g2m/mb+mEm3FCk7
-         ZwFaH5fqW/IhjYbC5+p7oWPwPktT0xoFOXemo3wKFg7P51wJafqBI4p4hyUD7rcottuS
-         T0QCj9sa3uP71nIBYY5LVBezbzy2u8+xL9e4W/9AhuMe+NJebDAeOkMRDZApLITnMdX7
-         sUjMX5L/q9K2jQnlk8bGOE7qJayM+fuVtPPO6VSdzgYggY3sMjMeMOPvdszPTittshb3
-         jDqg==
+        bh=JjMDIgYsSlgugTzudX3B0a2CM/FNaFwMHn2A0fAXZqQ=;
+        b=vyxYwxhcyBQRX9DmbTwNt5jKAZyy73CZiMDoVyRD4+5Jxmd2xeKsg593wVusS474px
+         kahyvFbIc9y7pGbvPreJNuEalZ0WLlgtI5mqb/Zl9RXNs5c/q5IBycolcqiQvba+BUVY
+         e/3TYVM7yM6p2POXpE3vh2BOGtWQjWQJffauNkEJBeU6n3BfyZaCXiszXHeuIrrLeYIl
+         A8I2aDdL8MEZKkUMGoRpLzZBJYliOHff/TosvYvrTAvW9XO2uTLjH7DBeXmst80lCUTf
+         AhV8jcl6vqS3B7BqoCsgQX3N9PFOE1TkbBPw4/+UiyqTREYZRMXREuZg+DsemoMUWu+z
+         snYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:references:user-agent:from:to:cc:subject
          :in-reply-to:date:message-id:mime-version;
-        bh=Ae3WRq4jyg8RQTHC2kXqGMDRMH7DYMb+QRqEF+aWxzg=;
-        b=rFv2iACxP6/cjaLo5VMitsdJT5QO133GWocYW4sot5yGADF4o/J9MkTl4JJmlqVoqk
-         Pd8BjNgyGifjQTFLGI+QSgPj5mJuM8KVBIaQSikk0tesvhVSx0as7Ia+RI+ybPNsbtiX
-         jGjg95uvjXDtVfAVe+JUpUb5w44wIZi1o/i3fQkGNQWBS8uyQjpIWsT3sry6OhmsrkLv
-         XLW45272VOVt535BBEugKlmbX/QOpItZWXN6jbBZKCuOvfwDkrvUEQtRdXTstXPkRFNY
-         oZFhBGStusJJLRTJiZF+WL/GhRc41ifkewO32nY1NWJRv5vvu+nA7ae9a5dgW94xsSSV
-         WhJA==
-X-Gm-Message-State: APjAAAXEO7T6HPdEny5dd6UBRqeeTIuifgRvCArUwp/0ys/HJ557Pxw/
-        vcDUrZ3lPAAdLKqewWiBnRV8vw==
-X-Google-Smtp-Source: APXvYqy1Fezem0EnCPRW4ytCycQ2rIHMtGfwG6DBcFp5XYCTUjMBgbLJifXV09389L0Vvy4OZnSDRw==
-X-Received: by 2002:a5d:5042:: with SMTP id h2mr5321099wrt.12.1552399527029;
-        Tue, 12 Mar 2019 07:05:27 -0700 (PDT)
+        bh=JjMDIgYsSlgugTzudX3B0a2CM/FNaFwMHn2A0fAXZqQ=;
+        b=pRPi2itsbZCQeBRPsBZ1z9t6O9Aa2ICTh2I1U6317PY0+RF4dqVocv756nIjyw4+dg
+         FW/tl+44wvbGAGskCrFXPQFfWWW3FktsEccSzZsCGbF1wmmR7xljOGckY/CAs1o8M1Va
+         gZeMmblk4V92NGRlrIVimup3ILcENw3mQHQKjndecLwWhD13ig8C0LouobBndqA4T/73
+         p6ZSFeISe4JeU3IPfBPliQRK9T2sSaUgGAIrfPhlVBze5p5Yq0fmLDcpZHVFxBwoabtl
+         qvA3O4tK4TFx9h7nYVGYrznuAtVJfkwBZes0TlQ7f7xgtkrWkEgE4aq8uCWO/CYAOcYS
+         7tbg==
+X-Gm-Message-State: APjAAAVzbtlOB+hwi8vpIgG8AAZE08uJMhbONK5BMM7csjlnNzaQmIY5
+        HhEs4BTRyzNa7b86yKAS57zQHQ==
+X-Google-Smtp-Source: APXvYqxiCW9Mp5W9iiC0g2nL+EWIYHeQU+BMzz2qPhGi43iyMmP07j1RdM5rsReEIxI7lpdnym/oUw==
+X-Received: by 2002:a7b:c929:: with SMTP id h9mr2585256wml.106.1552399625040;
+        Tue, 12 Mar 2019 07:07:05 -0700 (PDT)
 Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id a64sm2165826wma.11.2019.03.12.07.05.25
+        by smtp.gmail.com with ESMTPSA id y22sm1293500wmj.6.2019.03.12.07.07.03
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 12 Mar 2019 07:05:26 -0700 (PDT)
-References: <20190206151328.21629-1-rui.silva@linaro.org> <20190206151328.21629-9-rui.silva@linaro.org> <20190310214102.GA7578@pendragon.ideasonboard.com>
+        Tue, 12 Mar 2019 07:07:04 -0700 (PDT)
+References: <20180517125033.18050-1-rui.silva@linaro.org> <20180517125033.18050-7-rui.silva@linaro.org> <20180518065824.csio2fgwsxo2g2ow@valkosipuli.retiisi.org.uk> <m3tvr5xt9t.fsf@linaro.org> <20190310214834.GB7578@pendragon.ideasonboard.com>
 User-agent: mu4e 1.0; emacs 27.0.50
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     sakari.ailus@linux.intel.com,
+Cc:     Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
         devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v14 08/13] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
-In-reply-to: <20190310214102.GA7578@pendragon.ideasonboard.com>
-Date:   Tue, 12 Mar 2019 14:05:24 +0000
-Message-ID: <m3y35kdw7v.fsf@linaro.org>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v4 06/12] media: dt-bindings: add bindings for i.MX7 media driver
+In-reply-to: <20190310214834.GB7578@pendragon.ideasonboard.com>
+Date:   Tue, 12 Mar 2019 14:07:02 +0000
+Message-ID: <m3wol4dw55.fsf@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
@@ -78,191 +80,169 @@ List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 Hi Laurent,
-On Sun 10 Mar 2019 at 21:41, Laurent Pinchart wrote:
+On Sun 10 Mar 2019 at 21:48, Laurent Pinchart wrote:
 > Hi Rui,
 >
-> Thank you for the patch.
-
-Where have you been for the latest 14 versions? :)
-
-This is already merged, but... follow up patches can address your
-issues bellow.
-
->
-> On Wed, Feb 06, 2019 at 03:13:23PM +0000, Rui Miguel Silva 
+> On Fri, May 18, 2018 at 09:27:58AM +0100, Rui Miguel Silva 
 > wrote:
->> This patch adds the device tree nodes for csi, video 
->> multiplexer and
->> mipi-csi besides the graph connecting the necessary endpoints 
->> to make
->> the media capture entities to work in imx7 Warp board.
+>> Hi Sakari,
+>> Thanks for the review.
+>> On Fri 18 May 2018 at 06:58, Sakari Ailus wrote:
+>> > On Thu, May 17, 2018 at 01:50:27PM +0100, Rui Miguel Silva 
+>> > wrote:
+>> >> Add bindings documentation for i.MX7 media drivers.
+>> >> 
+>> >> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> >> ---
+>> >>  .../devicetree/bindings/media/imx7.txt        | 145 
+>> >>  ++++++++++++++++++
+>> >>  1 file changed, 145 insertions(+)
+>> >>  create mode 100644 
+>> >>  Documentation/devicetree/bindings/media/imx7.txt
+>> >> 
+>> >> diff --git 
+>> >> a/Documentation/devicetree/bindings/media/imx7.txt 
+>> >> b/Documentation/devicetree/bindings/media/imx7.txt
+>> >> new file mode 100644
+>> >> index 000000000000..161cff8e6442
+>> >> --- /dev/null
+>> >> +++ b/Documentation/devicetree/bindings/media/imx7.txt
+>> >> @@ -0,0 +1,145 @@
+>> >> +Freescale i.MX7 Media Video Device
+>> >> +==================================
+>> >> +
+>> >> +Video Media Controller node
+>> >> +---------------------------
+>> >
+>> > Note that DT bindings document the hardware, they are as such 
+>> > not Linux dependent.
 >> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  arch/arm/boot/dts/imx7s-warp.dts | 51 
->>  ++++++++++++++++++++++++++++++++
->>  arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++++++++
->
-> I would have split this in two patches to make backporting 
-> easier, but
-> it's not a big deal.
->
-> Please see below for a few additional comments.
->
->>  2 files changed, 78 insertions(+)
+>> This was removed in this series, however I removed it in the 
+>> wrong 
+>> patch, If you see patch 11/12 you will see this being removed. 
+>> I will
+>> fix this in v5. Thanks for notice it.
 >> 
->> diff --git a/arch/arm/boot/dts/imx7s-warp.dts 
->> b/arch/arm/boot/dts/imx7s-warp.dts
->> index 23431faecaf4..358bcae7ebaf 100644
->> --- a/arch/arm/boot/dts/imx7s-warp.dts
->> +++ b/arch/arm/boot/dts/imx7s-warp.dts
->> @@ -277,6 +277,57 @@
->>  	status = "okay";
->>  };
->>  
->> +&gpr {
->> +	csi_mux {
->> +		compatible = "video-mux";
->> +		mux-controls = <&mux 0>;
->> +		#address-cells = <1>;
->> +		#size-cells = <0>;
->> +
->> +		port@1 {
->> +			reg = <1>;
->> +
->> +			csi_mux_from_mipi_vc0: endpoint {
->> +				remote-endpoint = 
->> <&mipi_vc0_to_csi_mux>;
->> +			};
->> +		};
->> +
->> +		port@2 {
->> +			reg = <2>;
->> +
->> +			csi_mux_to_csi: endpoint {
->> +				remote-endpoint = 
->> <&csi_from_csi_mux>;
->> +			};
->> +		};
->> +	};
->> +};
->> +
->> +&csi {
->> +	status = "okay";
->> +
->> +	port {
->> +		csi_from_csi_mux: endpoint {
->> +			remote-endpoint = <&csi_mux_to_csi>;
->> +		};
->> +	};
->> +};
+>> >> +
+>> >> +This is the media controller node for video capture 
+>> >> support. 
+>> >> It is a
+>> >> +virtual device that lists the camera serial interface nodes 
+>> >> that the
+>> >> +media device will control.
+>> >
+>> > Ditto.
+>> >
+>> >> +
+>> >> +Required properties:
+>> >> +- compatible : "fsl,imx7-capture-subsystem";
+>> >> +- ports      : Should contain a list of phandles pointing 
+>> >> to 
+>> >> camera
+>> >> +		sensor interface port of CSI
+>> >> +
+>> >> +example:
+>> >> +
+>> >> +capture-subsystem {
+>> >
+>> > What's the purpose of this node, if you only refer to another 
+>> > device? This one rather does not look like a real device at 
+>> > all.
+>> >
+>> >> +	compatible = "fsl,imx7-capture-subsystem";
+>> >> +	ports = <&csi>;
+>> >> +};
+>> >> +
+>> >> +
+>> >> +mipi_csi2 node
+>> >> +--------------
+>> >> +
+>> >> +This is the device node for the MIPI CSI-2 receiver core in 
+>> >> i.MX7 SoC. It is
+>> >> +compatible with previous version of Samsung D-phy.
+>> >> +
+>> >> +Required properties:
+>> >> +
+>> >> +- compatible    : "fsl,imx7-mipi-csi2";
+>> >> +- reg           : base address and length of the register 
+>> >> set 
+>> >> for the device;
+>> >> +- interrupts    : should contain MIPI CSIS interrupt;
+>> >> +- clocks        : list of clock specifiers, see
+>> >> + 
+>> >> Documentation/devicetree/bindings/clock/clock-bindings.txt 
+>> >> for 
+>> >> details;
+>> >> +- clock-names   : must contain "pclk", "wrap" and "phy" 
+>> >> entries, matching
+>> >> +                  entries in the clock property;
+>> >> +- power-domains : a phandle to the power domain, see
+>> >> + 
+>> >> Documentation/devicetree/bindings/power/power_domain.txt for 
+>> >> details.
+>> >> +- reset-names   : should include following entry "mrst";
+>> >> +- resets        : a list of phandle, should contain reset 
+>> >> entry of
+>> >> +                  reset-names;
+>> >> +- phy-supply    : from the generic phy bindings, a phandle 
+>> >> to 
+>> >> a regulator that
+>> >> +	          provides power to MIPI CSIS core;
+>> >> +- bus-width     : maximum number of data lanes supported 
+>> >> (SoC 
+>> >> specific);
+>> >> +
+>> >> +Optional properties:
+>> >> +
+>> >> +- clock-frequency : The IP's main (system bus) clock 
+>> >> frequency 
+>> >> in Hz, default
+>> >> +		    value when this property is not specified is 
+>> >> 166 MHz;
+>> >> +
+>> >> +port node
+>> >> +---------
+>> >> +
+>> >> +- reg		  : (required) can take the values 0 or 1, 
+>> >> where 0 is the
+>> >> +                     related sink port and port 1 should be 
+>> >> the source one;
+>> >> +
+>> >> +endpoint node
+>> >> +-------------
+>> >> +
+>> >> +- data-lanes    : (required) an array specifying active 
+>> >> physical MIPI-CSI2
+>> >> +		    data input lanes and their mapping to logical 
+>> >> lanes; the
+>> >> +		    array's content is unused, only its length is 
+>> >> meaningful;
+>> >> +
+>> >> +- fsl,csis-hs-settle : (optional) differential receiver 
+>> >> (HS-RX) settle time;
+>> >
+>> > Could you calculate this, as other drivers do? It probably 
+>> > changes
+>> > depending on the device runtime configuration.
+>> 
+>> The only reference to possible values to this parameter is 
+>> given 
+>> by table in [0], can you point me out the formula for imx7 in 
+>> the
+>> documentation?
+>> 
+>> [0] https://community.nxp.com/thread/463777
 >
-> Shouldn't these two nodes, as well as port@1 of the mipi_csi 
-> node, be
-> moved to imx7d.dtsi ?
+> Can't you use the values from that table ? :-) You can get the 
+> link
+> speed by querying the connected subdev and reading its
+> V4L2_CID_PIXEL_RATE control.
 
-Yeah, I guess you are right here.
-
->
->> +
->> +&mipi_csi {
->> +	clock-frequency = <166000000>;
->> +	status = "okay";
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +	fsl,csis-hs-settle = <3>;
->
-> Shouldn't this be an endpoint property ? Different sensors 
-> connected
-> through different endpoints could have different timing 
-> requirements.
-
-Hum... I see you point, even tho the phy hs-settle is a common
-control. 
-
->
->> +
->> +	port@1 {
->> +		reg = <1>;
->> +
->> +		mipi_vc0_to_csi_mux: endpoint {
->> +			remote-endpoint = 
->> <&csi_mux_from_mipi_vc0>;
->> +		};
->> +	};
->> +};
->> +
->>  &wdog1 {
->>  	pinctrl-names = "default";
->>  	pinctrl-0 = <&pinctrl_wdog>;
->> diff --git a/arch/arm/boot/dts/imx7s.dtsi 
->> b/arch/arm/boot/dts/imx7s.dtsi
->> index 792efcd2caa1..01962f85cab6 100644
->> --- a/arch/arm/boot/dts/imx7s.dtsi
->> +++ b/arch/arm/boot/dts/imx7s.dtsi
->> @@ -8,6 +8,7 @@
->>  #include <dt-bindings/gpio/gpio.h>
->>  #include <dt-bindings/input/input.h>
->>  #include <dt-bindings/interrupt-controller/arm-gic.h>
->> +#include <dt-bindings/reset/imx7-reset.h>
->>  #include "imx7d-pinfunc.h"
->>  
->>  / {
->> @@ -709,6 +710,17 @@
->>  				status = "disabled";
->>  			};
->>  
->> +			csi: csi@30710000 {
->> +				compatible = "fsl,imx7-csi";
->> +				reg = <0x30710000 0x10000>;
->> +				interrupts = <GIC_SPI 7 
->> IRQ_TYPE_LEVEL_HIGH>;
->> +				clocks = <&clks IMX7D_CLK_DUMMY>,
->> +						<&clks 
->> IMX7D_CSI_MCLK_ROOT_CLK>,
->> +						<&clks 
->> IMX7D_CLK_DUMMY>;
->> +				clock-names = "axi", "mclk", 
->> "dcic";
->> +				status = "disabled";
->> +			};
->> +
->>  			lcdif: lcdif@30730000 {
->>  				compatible = "fsl,imx7d-lcdif", 
->>  "fsl,imx28-lcdif";
->>  				reg = <0x30730000 0x10000>;
->> @@ -718,6 +730,21 @@
->>  				clock-names = "pix", "axi";
->>  				status = "disabled";
->>  			};
->> +
->> +			mipi_csi: mipi-csi@30750000 {
->> +				compatible = "fsl,imx7-mipi-csi2";
->> +				reg = <0x30750000 0x10000>;
->> +				interrupts = <GIC_SPI 25 
->> IRQ_TYPE_LEVEL_HIGH>;
->> +				clocks = <&clks 
->> IMX7D_IPG_ROOT_CLK>,
->> +					<&clks 
->> IMX7D_MIPI_CSI_ROOT_CLK>,
->> +					<&clks 
->> IMX7D_MIPI_DPHY_ROOT_CLK>;
->> +				clock-names = "pclk", "wrap", 
->> "phy";
->> +				power-domains = <&pgc_mipi_phy>;
->> +				phy-supply = <&reg_1p0d>;
->> +				resets = <&src 
->> IMX7_RESET_MIPI_PHY_MRST>;
->> +				reset-names = "mrst";
->> +				status = "disabled";
->
-> How about already declaring port@0 here too (but obviously 
-> without any
-> endoint) ?
-
-empty port, do not know if they make much sense.
+Yeah, I good point to add support for others subdev's. I will try
+to add your comments in a follow up series.
 
 ---
 Cheers,
 	Rui
+
 
