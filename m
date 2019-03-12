@@ -2,70 +2,55 @@ Return-Path: <SRS0=ZIWa=RP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEEC0C43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 06:45:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED9C1C43381
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 06:45:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7EE3214D8
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 06:45:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6EA32147C
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 06:45:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727262AbfCLGpb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 02:45:31 -0400
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:42903 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725848AbfCLGpb (ORCPT
+        id S1726629AbfCLGp2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 02:45:28 -0400
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:23126 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725848AbfCLGp2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 02:45:31 -0400
-Received: from pps.filterd (m0046661.ppops.net [127.0.0.1])
-        by mx08-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x2C6aKc3013526;
-        Tue, 12 Mar 2019 07:45:07 +0100
+        Tue, 12 Mar 2019 02:45:28 -0400
+Received: from pps.filterd (m0046037.ppops.net [127.0.0.1])
+        by mx07-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x2C6b7FG002346;
+        Tue, 12 Mar 2019 07:45:21 +0100
 Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
-        by mx08-00178001.pphosted.com with ESMTP id 2r458m87d1-1
+        by mx07-00178001.pphosted.com with ESMTP id 2r444xr2gq-1
         (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT);
-        Tue, 12 Mar 2019 07:45:07 +0100
+        Tue, 12 Mar 2019 07:45:21 +0100
 Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id CD55F3D;
-        Tue, 12 Mar 2019 06:45:04 +0000 (GMT)
+        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id CC1DD31;
+        Tue, 12 Mar 2019 06:45:20 +0000 (GMT)
 Received: from Webmail-eu.st.com (Safex1hubcas21.st.com [10.75.90.44])
-        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 804FA147B;
-        Tue, 12 Mar 2019 06:45:04 +0000 (GMT)
+        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id AEDEE14A4;
+        Tue, 12 Mar 2019 06:45:20 +0000 (GMT)
 Received: from SAFEX1HUBCAS23.st.com (10.75.90.47) by SAFEX1HUBCAS21.st.com
  (10.75.90.44) with Microsoft SMTP Server (TLS) id 14.3.361.1; Tue, 12 Mar
- 2019 07:45:04 +0100
+ 2019 07:45:20 +0100
 Received: from localhost (10.129.172.100) by webmail-ga.st.com (10.75.90.48)
- with Microsoft SMTP Server (TLS) id 14.3.435.0; Tue, 12 Mar 2019 07:45:03
+ with Microsoft SMTP Server (TLS) id 14.3.435.0; Tue, 12 Mar 2019 07:45:20
  +0100
 From:   Mickael Guene <mickael.guene@st.com>
 To:     <linux-media@vger.kernel.org>
 CC:     Mickael Guene <mickael.guene@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, <devicetree@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        "Nicolas Ferre" <nicolas.ferre@microchip.com>,
-        Ben Kao <ben.kao@intel.com>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tianshu Qiu <tian.shu.qiu@intel.com>,
-        "Bingbu Cao" <bingbu.cao@intel.com>,
-        <linux-kernel@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        Akinobu Mita <akinobu.mita@gmail.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Jason Chen <jasonx.z.chen@intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: [PATCH v1 0/3] Add support for MIPID02 CSI-2 to PARALLEL bridge I2C device
-Date:   Tue, 12 Mar 2019 07:44:02 +0100
-Message-ID: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
+        "Mark Rutland" <mark.rutland@arm.com>
+Subject: [PATCH v1 1/3] dt-bindings: Document MIPID02 bindings
+Date:   Tue, 12 Mar 2019 07:44:03 +0100
+Message-ID: <1552373045-134493-2-git-send-email-mickael.guene@st.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
+References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.129.172.100]
@@ -76,27 +61,91 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This patchset introduces support of STMicroelectronics MIPID02 CSI-2 to PARALLEL
-I2C bridge. It allows using a CSI-2 sensor with a PARALLEL interface.
-Current driver implementation doesn't support CSI-2 second input port usage. It
-doesn't support also YUV420, RGB565 and RGB444 input formats.
+This adds documentation of device tree for MIPID02 CSI-2 to PARALLEL
+bridge.
 
+Signed-off-by: Mickael Guene <mickael.guene@st.com>
+---
 
-Mickael Guene (3):
-  dt-bindings: Document MIPID02 bindings
-  media:st-mipid02: MIPID02 CSI-2 to PARALLEL bridge driver
-  media: MAINTAINERS: add entry for STMicroelectronics MIPID02 media
-    driver
-
- .../bindings/media/i2c/st,st-mipid02.txt           |  69 ++
- MAINTAINERS                                        |   8 +
- drivers/media/i2c/Kconfig                          |  13 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/st-mipid02.c                     | 878 +++++++++++++++++++++
- 5 files changed, 969 insertions(+)
+ .../bindings/media/i2c/st,st-mipid02.txt           | 69 ++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
- create mode 100644 drivers/media/i2c/st-mipid02.c
 
+diff --git a/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+new file mode 100644
+index 0000000..a1855da
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+@@ -0,0 +1,69 @@
++STMicroelectronics MIPID02 CSI-2 to PARALLEL bridge
++
++MIPID02 has two CSI-2 input ports, only one of those ports can be active at a
++time. Active port input stream will be de-serialized and its content outputted
++through PARALLEL output port.
++CSI-2 first input port is a dual lane 800Mbps whereas CSI-2 second input port is
++a single lane 800Mbps. Both ports support clock and data lane polarity swap.
++First port also supports data lane swap.
++PARALLEL output port has a maximum width of 12 bits.
++Supported formats are RAW6, RAW7, RAW8, RAW10, RAW12, RGB565, RGB888, RGB444,
++YUV420 8-bit, YUV422 8-bit and YUV420 10-bit.
++
++Required Properties:
++- compatible: should be "st,st-mipid02"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++- VDDE-supply: sensor digital IO supply. Must be 1.8 volts.
++- VDDIN-supply: sensor internal regulator supply. Must be 1.8 volts.
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the xsdn pin, if any.
++	       This is an active low signal to the mipid02.
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++	   port, in accordance with the video interface bindings defined in
++	   Documentation/devicetree/bindings/media/video-interfaces.txt. The
++	   port nodes are numbered as follows:
++
++	   Port Description
++	   -----------------------------
++	   0    CSI-2 first input port
++	   1    CSI-2 second input port
++	   2    PARALLEL output
++
++Example:
++
++mipid02: mipid02@14 {
++	compatible = "st,st-mipid02";
++	reg = <0x14>;
++	status = "okay";
++	clocks = <&clk_ext_camera_12>;
++	clock-names = "xclk";
++	VDDE-supply = <&vdd>;
++	VDDIN-supply = <&vdd>;
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		port@0 {
++			reg = <0>;
++
++			ep0: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&mipi_csi2_in>;
++			};
++		};
++		port@2 {
++			reg = <2>;
++
++			ep2: endpoint {
++				bus-width = <8>;
++				hsync-active = <0>;
++				vsync-active = <0>;
++				remote-endpoint = <&parallel_out>;
++			};
++		};
++	};
++};
 -- 
 2.7.4
 
