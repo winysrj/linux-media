@@ -2,200 +2,108 @@ Return-Path: <SRS0=ZIWa=RP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17D3EC43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 08:38:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C8FCC10F00
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 08:38:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D44DF214AF
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 08:38:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IOigUejh"
+	by mail.kernel.org (Postfix) with ESMTP id 09640214AF
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 08:38:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727089AbfCLIif (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 04:38:35 -0400
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:36767 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725832AbfCLIif (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 04:38:35 -0400
-Received: by mail-lf1-f65.google.com with SMTP id d18so703624lfn.3
-        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2019 01:38:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:references:cc:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=d9i+bN0RKpp8w2BxTsuDGABqK025+FmhXSHTHeUl67I=;
-        b=IOigUejh9opiPCuW29txa/8+Z1y/Lynj28JvkQhl9/eShwNh3R6jx5CgWM61OHZ6Zp
-         Yk9l+tyxfEbcSzqhoTy9AaA9u3pnRASmFW0ZWeEF1A8gqrU/H2n/hiQ2uzmWLMjW/aJi
-         k2ETb3xRcknFDkTmAvrSePubkiVsXs2bP3eeFvnU8290EX60BfNVJZFWxfAvUedNmS0G
-         6SDViPGmLkZh5Dh7FmagAYylF9ee5pp0DayJQdYBli/GkiNzgayO5ix6b9dTf47TPGMe
-         mRrmHDjpBvsNy9IF2yJ1VkzE4iLISE9Vl7siWVngSYHAyAZ7BbfBUBUVo6NqoFIfQhji
-         fKZQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:cc:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=d9i+bN0RKpp8w2BxTsuDGABqK025+FmhXSHTHeUl67I=;
-        b=Zku9uq4B48pptqxfoqkzWnc4YME/63ZVlYXNiLR7sNLzVcCT7fwUxGLIJZTN1ZRSeM
-         GMnundZ1PBUm2HW3CJne5l8EThxB2vMtcsP5FPp4eVxONj2A7fVRbtit0BlvBT/oRfe7
-         bXK/j1bL97ncnFzScpH8TF1sicd8jd7eRMuJDaoIM9DWzo+uvXFVVFvBa87Bct3p3SY+
-         m/RM/8qy9wlPDWn422CfZ0q/vHFzOM5H5GRxAhG+Mf7ofWT5L6DxXahhMkbzvn/pWTJi
-         DEPgCPNUIhGzw2JlCfJOSytaB/d86O6gcdalpaV3pgvktVbikoOQWX8ycj7hxjZUeDHL
-         K+TA==
-X-Gm-Message-State: APjAAAWeWjzOcP9jcNzoRWcW0umnRleY4fuPXgaDqbgAR6N29BaMeTEo
-        NGZqTIQ4Qmnm+aDBBsHgGYA=
-X-Google-Smtp-Source: APXvYqzikvg3Mg4DOfY8Y8M55Q8knJTBqVzDV/OQSnDKCiJ+SKFhS2r+O6zQBuy2YXHGg/1/YMX96w==
-X-Received: by 2002:ac2:551a:: with SMTP id j26mr20684904lfk.59.1552379911992;
-        Tue, 12 Mar 2019 01:38:31 -0700 (PDT)
-Received: from [10.17.182.20] (ll-22.209.223.85.sovam.net.ua. [85.223.209.22])
-        by smtp.gmail.com with ESMTPSA id j23sm1460863lfb.17.2019.03.12.01.38.30
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 12 Mar 2019 01:38:31 -0700 (PDT)
-Subject: Re: [Xen-devel][PATCH v5 0/1] cameraif: add ABI for para-virtual
+        id S1727528AbfCLIit (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 04:38:49 -0400
+Received: from mx2.suse.de ([195.135.220.15]:47820 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727173AbfCLIis (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Mar 2019 04:38:48 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id A03F0B06B;
+        Tue, 12 Mar 2019 08:38:46 +0000 (UTC)
+Subject: Re: [Xen-devel][PATCH v5 1/1] cameraif: add ABI for para-virtual
  camera
-To:     hverkuil@xs4all.nl
-References: <20190312082000.32181-1-andr2000@gmail.com>
-Cc:     "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>,
+To:     Oleksandr Andrushchenko <andr2000@gmail.com>,
         xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
-        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, mchehab@kernel.org,
         linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        koji.matsuoka.xm@renesas.com
-From:   Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <5f76bde5-bfbd-0241-b65d-6cd65c4d0613@gmail.com>
-Date:   Tue, 12 Mar 2019 10:38:30 +0200
+        koji.matsuoka.xm@renesas.com, hverkuil@xs4all.nl
+Cc:     Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20190312082000.32181-1-andr2000@gmail.com>
+ <20190312082000.32181-2-andr2000@gmail.com>
+From:   Juergen Gross <jgross@suse.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=jgross@suse.com; prefer-encrypt=mutual; keydata=
+ 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
+Message-ID: <9e3b247e-39e6-3b87-5add-ed40b4bef731@suse.com>
+Date:   Tue, 12 Mar 2019 09:38:44 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
-In-Reply-To: <20190312082000.32181-1-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20190312082000.32181-2-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
 Content-Transfer-Encoding: 7bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello, Hans!
-
-This is the version of the protocol with minor comments addressed
-(that you had on v4). Hope this now looks OK.
-
-Thank you,
-Oleksandr
-
-On 3/12/19 10:19 AM, Oleksandr Andrushchenko wrote:
+On 12/03/2019 09:20, Oleksandr Andrushchenko wrote:
 > From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> Hello!
->
-> At the moment Xen [1] already supports some virtual multimedia
-> features [2] such as virtual display, sound. It supports keyboards,
-> pointers and multi-touch devices all allowing Xen to be used in
-> automotive appliances, In-Vehicle Infotainment (IVI) systems
-> and many more.
->
-> Frontend implementation is available at [3] and the corresponding
-> backend at [4]. These are work in progress, but frontend already
-> passes v4l2-compliance test for V4L2 drivers. libxl preliminary
-> changes are available at [5].
->
-> This work adds a new Xen para-virtualized protocol for a virtual
-> camera device which extends multimedia capabilities of Xen even
-> farther: video conferencing, IVI, high definition maps etc.
->
+> 
+> This is the ABI for the two halves of a para-virtualized
+> camera driver which extends Xen's reach multimedia capabilities even
+> farther enabling it for video conferencing, In-Vehicle Infotainment,
+> high definition maps etc.
+> 
 > The initial goal is to support most needed functionality with the
 > final idea to make it possible to extend the protocol if need be:
->
+> 
 > 1. Provide means for base virtual device configuration:
->   - pixel formats
->   - resolutions
->   - frame rates
+>  - pixel formats
+>  - resolutions
+>  - frame rates
 > 2. Support basic camera controls:
->   - contrast
->   - brightness
->   - hue
->   - saturation
+>  - contrast
+>  - brightness
+>  - hue
+>  - saturation
 > 3. Support streaming control
->
-> I would like to thank Hans Verkuil <hverkuil@xs4all.nl> for valuable
-> comments and help.
->
-> Thank you,
-> Oleksandr Andrushchenko
->
-> Changes since v4:
-> =================
->
-> 1. Removed unused XENCAMERA_EVT_CFG_FLG_RESOL flag
-> 2. Re-worded a bit description for num_buffers
->
-> Changes since v3:
-> =================
->
-> 1. Add trimming example for short FOURCC labels, e.g. Y16 and Y16-BE
-> 2. Remove from XENCAMERA_OP_CONFIG_XXX requests colorspace, xfer_func,
->     ycbcr_enc, quantization and move those into the corresponding response
-> 3. Extend description of XENCAMERA_OP_BUF_REQUEST.num_bufs: limit to
->     maximum buffers and num_bufs == 0 case
-> 4. Extend decription of XENCAMERA_OP_BUF_CREATE.index and specify its
->     range
-> 5. Make XENCAMERA_EVT_FRAME_AVAIL.seq_num 32-bit instead of 64-bit
->
-> Changes since v2:
-> =================
->
-> 1. Add "max-buffers" frontend configuration entry, e.g.
->     the maximum number of camera buffers a frontend may use.
-> 2. Add big-endian pixel-format support:
->   - "formats" configuration string length changed from 4 to 7
->     octets, so we can also manage BE pixel-formats
->   - add corresponding comments to FOURCC mappings description
-> 3. New commands added to the protocol and documented:
->   - XENCAMERA_OP_CONFIG_VALIDATE
->   - XENCAMERA_OP_FRAME_RATE_SET
->   - XENCAMERA_OP_BUF_GET_LAYOUT
-> 4.-Add defaults for colorspace, xfer, ycbcr_enc and quantization
-> 5. Remove XENCAMERA_EVT_CONFIG_CHANGE event
-> 6. Move plane offsets to XENCAMERA_OP_BUF_REQUEST as offsets
->     required for the frontend might not be known at the configuration time
-> 7. Clean up and address comments to v2 of the protocol
->
-> Changes since v1:
-> =================
->
-> 1. Added XenStore entries:
->   - frame-rates
-> 2. Do not require the FOURCC code in XenStore to be upper case only
-> 3. Added/changed command set:
->   - configuration get/set
->   - buffer queue/dequeue
->   - control get
-> 4. Added control flags, e.g. read-only etc.
-> 5. Added colorspace configuration support, relevant constants
-> 6. Added events:
->   - configuration change
->   - control change
-> 7. Changed control values to 64-bit
-> 8. Added sequence number to frame avail event
-> 9. Coding style cleanup
->
-> [1] https://www.xenproject.org/
-> [2] https://xenbits.xen.org/gitweb/?p=xen.git;a=tree;f=xen/include/public/io
-> [3] https://github.com/andr2000/linux/tree/camera_front_v1/drivers/media/xen
-> [4] https://github.com/andr2000/camera_be
-> [5] https://github.com/andr2000/xen/tree/vcamera
->
->
-> Oleksandr Andrushchenko (1):
->    cameraif: add ABI for para-virtual camera
->
->   xen/include/public/io/cameraif.h | 1370 ++++++++++++++++++++++++++++++
->   1 file changed, 1370 insertions(+)
->   create mode 100644 xen/include/public/io/cameraif.h
->
+> 
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
+Reviewed-by: Juergen Gross <jgross@suse.com>
+
+
+Juergen
