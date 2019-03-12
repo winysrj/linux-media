@@ -2,87 +2,123 @@ Return-Path: <SRS0=ZIWa=RP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8E54C43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 11:39:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F998C43381
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 11:56:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CD772084F
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 11:39:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E4CC20657
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 11:56:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="GChF3YJo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726418AbfCLLjX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 07:39:23 -0400
-Received: from kozue.soulik.info ([108.61.200.231]:43280 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725844AbfCLLjX (ORCPT
+        id S1726456AbfCLL4C (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 07:56:02 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:43745 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726193AbfCLL4C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 07:39:23 -0400
-Received: from [IPv6:2001:470:b30d:2:c604:15ff:0:f0e] (unknown [IPv6:2001:470:b30d:2:c604:15ff:0:f0e])
-        by kozue.soulik.info (Postfix) with ESMTPSA id 885E7100D65;
-        Tue, 12 Mar 2019 20:39:31 +0900 (JST)
-Subject: Re: media: rockchip: the memory layout of multiplanes buffer for DMA
- address
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tue, 12 Mar 2019 07:56:02 -0400
+Received: by mail-wr1-f66.google.com with SMTP id d17so2348344wre.10
+        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2019 04:56:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=sP1UMbnvXffQFvwNd2Kjky712sNdl4eU3YJAbGKjznc=;
+        b=GChF3YJos7jICxEpgt1qCMpaR0U4BrV05oTTishBHMbSLq1KNQXY5WE0v0RpAdAMHE
+         QCdqAkOr8Rw2m/UorsIgozuH9ZT3SA6FYR4ODWKoRme5IAOEnBEIRDqqmCe4N/j+oa3q
+         BKadL0GjhUp5u0FtnirgNZKB/YZW/F3i+zxQfFzk3kOJv6Htq5a2OfVHvmj6AZXfqsPo
+         /2Reiig3neOd5+04a3w2EbAbapE4CKSHMlBVvNoDdvk2g0Ke0TkDgfFOBRcnQUuVH+bL
+         kGN2vl51KFW+c+PrglW6p1LCFurTR9mkfK608cF2LzwgWmpXpvIBzrNizgi9SHM17DD5
+         z5xQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=sP1UMbnvXffQFvwNd2Kjky712sNdl4eU3YJAbGKjznc=;
+        b=DGISX8IroGQjKaSWgVnZMbyoTtlhuIQQp/Eva6FzereXIhvPz49/jH41SoBqZ/lwRl
+         2CAJ0Bwla7XQTQkQqiSZozaBfif6bCUU/2aiu8zX+z/+c98NpZ+BLmAyZu+TVO9agXDt
+         s/Xc6zZMJaWnEzanev6aRqGxKgzLipgDMVJnw8XRVbkaFd++ZbFpCB7dzvJKqJrNoq6t
+         zWQgO0QNv0CwkIFinQxpjQ9Cx66bkCR4817wrerUhMXIyS44kNKm/yzw7DrLV3USiM5B
+         VX2Dk0RCurzHT7qtU8hyJQ9lzhFA1K3QP2eDwMyBJDfT3C0Sl9tCFZsMhp+Hr6gBpFoo
+         YJDg==
+X-Gm-Message-State: APjAAAULU9doWhaMAHZJmJQyjeLzyw1lIwzdDhF5hAD+SrWpWKYXwp7E
+        iR582kn3py/90veuNUEbbZzLsoERXmw=
+X-Google-Smtp-Source: APXvYqxP1fqkxdH3SMt1UhyP3rAzpRcs/W5gu+FiNtIcwHS2o+AOzxgI6S0Bj6Ty4h/8sLFSIzZ95g==
+X-Received: by 2002:adf:fd01:: with SMTP id e1mr18313385wrr.204.1552391760145;
+        Tue, 12 Mar 2019 04:56:00 -0700 (PDT)
+Received: from mms-0440.qualcomm.mm-sol.com ([37.157.136.206])
+        by smtp.gmail.com with ESMTPSA id x22sm2064990wmc.19.2019.03.12.04.55.58
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 12 Mar 2019 04:55:59 -0700 (PDT)
+From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To:     linux-media@vger.kernel.org
+Cc:     linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>, myy@miouyouyou.fr,
-        Ezequiel Garcia <ezequiel@collabora.com>
-References: <C5689C9D-5F00-41E2-B24F-5BC8D9BA88AF@soulik.info>
- <CAAFQd5DY0n0oDvE9o6rAXY5inL20wwAC=jPxN9EwrD1Ubv0iJg@mail.gmail.com>
-From:   ayaka <ayaka@soulik.info>
-Message-ID: <c2c7df27-4556-9bae-6809-cc5de872eacd@soulik.info>
-Date:   Tue, 12 Mar 2019 19:39:16 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5DY0n0oDvE9o6rAXY5inL20wwAC=jPxN9EwrD1Ubv0iJg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH] venus: hfi_parser: fix Source Matcher errors
+Date:   Tue, 12 Mar 2019 13:55:42 +0200
+Message-Id: <20190312115542.15638-1-stanimir.varbanov@linaro.org>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This fixes following Smatch errors:
 
-On 3/12/19 4:22 PM, Tomasz Figa wrote:
-> On Thu, Feb 28, 2019 at 12:13 AM Ayaka <ayaka@soulik.info> wrote:
->> Hello all
->>
->> I am writing the v4l2 decoder driver for rockchip. Although I hear the suggest from the Hans before, it is ok for decoder to use single plane buffer format, but I still decide to the multi planes format.
->>
->> There is not a register for vdpau1 and vdpau2 setting the chroma starting address in both pixel image output(it has one only applied for jpeg) and reference. And the second plane should follow the first plane. It sounds pretty fix for the single plane, but the single plane can’t describe offset of the second plane, which is not the result of bytes per line multiples the height.
->>
->> There are two different memory access steps in those rockchip device, 16bytes for vdpau1 and vdpau2, 64bytes for rkvdec and 128bytes for rkvdec with a high resolution. Although those access steps can be adjusted by the memory cache registers. So it is hard to describe the pixel format with the single plane formats or userspace would need to do more work.
-> Why not just adjust the bytes per line to a multiple of 16/64/128
-> bytes? Most of the platforms allocate buffers this way for performance
-> reasons anyway.
+hfi_parser.c:103 parse_profile_level() error: memcpy() 'proflevel'
+too small (8 vs 128)
 
-I can't, it depends on the device design. Also I need extra empty 
-line(128/256 bytes) in each lines for the rkvdec. Maybe the device for 
-chrome only request an alignment with 16 bytes per line and at vertical 
-line, it is ok for the H.264 under the 1920x1080 resolution,  but above 
-that resolution would suffer a poor performance as well UHD.
+hfi_parser.c:129 parse_caps() error: memcpy() 'cap'
+too small (16 vs 512)
 
-I made a mistake in the previous mail, the current suggest alignment for 
-rkvdec is 256 bytes and plus an extra line.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi_parser.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Also it requests  a different alignment way for those chroma subsample 
-are not 4:2:0. And it is not easy to align with a width value while its 
-bitdepth is large than 8 bits.
+diff --git a/drivers/media/platform/qcom/venus/hfi_parser.c b/drivers/media/platform/qcom/venus/hfi_parser.c
+index 2293d936e49c..d8b34a7a825f 100644
+--- a/drivers/media/platform/qcom/venus/hfi_parser.c
++++ b/drivers/media/platform/qcom/venus/hfi_parser.c
+@@ -96,11 +96,15 @@ parse_profile_level(struct venus_core *core, u32 codecs, u32 domain, void *data)
+ 	struct hfi_profile_level_supported *pl = data;
+ 	struct hfi_profile_level *proflevel = pl->profile_level;
+ 	struct hfi_profile_level pl_arr[HFI_MAX_PROFILE_COUNT] = {};
++	unsigned int i;
+ 
+ 	if (pl->profile_count > HFI_MAX_PROFILE_COUNT)
+ 		return;
+ 
+-	memcpy(pl_arr, proflevel, pl->profile_count * sizeof(*proflevel));
++	for (i = 0; i < pl->profile_count; i++) {
++		pl_arr[i] = *proflevel;
++		proflevel++;
++	}
+ 
+ 	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
+ 		       fill_profile_level, pl_arr, pl->profile_count);
+@@ -122,11 +126,15 @@ parse_caps(struct venus_core *core, u32 codecs, u32 domain, void *data)
+ 	struct hfi_capability *cap = caps->data;
+ 	u32 num_caps = caps->num_capabilities;
+ 	struct hfi_capability caps_arr[MAX_CAP_ENTRIES] = {};
++	unsigned int i;
+ 
+ 	if (num_caps > MAX_CAP_ENTRIES)
+ 		return;
+ 
+-	memcpy(caps_arr, cap, num_caps * sizeof(*cap));
++	for (i = 0; i < num_caps; i++) {
++		caps_arr[i] = *cap;
++		cap++;
++	}
+ 
+ 	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
+ 		       fill_caps, caps_arr, num_caps);
+-- 
+2.17.1
 
->> Currently, I use the dma-contig allocator in my driver, it would allocate the second plane first, which results that the second plane has a lower address than first plane, which device would request the second plane follows the first plane. I increase the sizeimage of the first plane to solve this problem now and let device can continue to run, but I need a way to solve this problem.
->>
->> Is there a way to control how does dma-contig allocate a buffer? I have not figured out the internal flow of the videobuf2. I know how to allocate two planes in different memory region which the s5p-mfc does with two alloc_devs, but that is not what I want.
->>
->> Last time in FOSDEM, kwiboo and I talk some problems of the request API and stateless decoder, I say the a method to describe a buffer with many offsets as the buffer meta data would solve the most of  problems we talked, but I have no idea on how to implement it. And I think a buffer meta describing a buffer with many offsets would solve this problem as well.
->>
->> Sent from my iPad
-> P.S. Please fix your email client to properly wrap the lines around
-> the ~75 column line.
-Blame the thuderbird.
->
-> Best regards,
-> Tomasz
