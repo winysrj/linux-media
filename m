@@ -2,245 +2,252 @@ Return-Path: <SRS0=ZIWa=RP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB9E8C43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 10:12:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C3ABC43381
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 10:21:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF802214AF
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 10:12:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o2eCV6o2"
+	by mail.kernel.org (Postfix) with ESMTP id 5D73421734
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 10:21:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726360AbfCLKMA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 06:12:00 -0400
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:33895 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725873AbfCLKMA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 06:12:00 -0400
-Received: by mail-lj1-f194.google.com with SMTP id l5so1773733lje.1
-        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2019 03:11:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:references:from:message-id:date:user-agent:mime-version
-         :in-reply-to:content-transfer-encoding:content-language;
-        bh=JLZkBAkzd94tbMa1f3NV/RG91+gRHv2jzA+y4GyBbSA=;
-        b=o2eCV6o2cy66yWWBSvi0IvGWEtlUV0unDk42rXr5jkoe+RbO3RRdbxg8O4WS1Wt39W
-         l1vqMsnC9xHMIs9M131+EMe+WqXM9wSS53BeTzRebnWx3CnCZnp/9e9iQ2E5W6j1BDkx
-         tJYSWhnvkZ+5kycHYQZgYbWhnWx93Ok7anFZi8xbE+HOdt+iQaaVEJnz2gQWwFw2W6z0
-         HwfRlpRcCPDx1qtCbI5bzQHWMSVDGt8dsFL9NFpKU3EX/EQEzd54jmzSJBbTRf9lfY+J
-         KDny/9n+4VlQuD4h5nTbFUdVEWAWcUJTVFt6llqCq1WNijx4b9DdDjAROc869C0CjDIm
-         jDYQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=JLZkBAkzd94tbMa1f3NV/RG91+gRHv2jzA+y4GyBbSA=;
-        b=D8CffB244aWIJx7KvRTXY8Vn4ZVt2xhf5lo8hkwlmEgV6pkhM9Uh+/YKlh5gdPfe75
-         8nVuP8sOY3fBqAsoS5jidBxH0NkmqexHyyayKTIHalq+9FsAYXNVoAJ0SXmIZRqEAPxS
-         VGv5/NDaHNmonEc3mVze/o+w69kYSgmdH34j9jNkn0Nys7lnOASZt9eozwUcmdAMnqI8
-         i8IB2G59x5Ywkh1aVJG3gtu6dlDZN9CBy7wzt16g1XaIJkpam3GBK5nMWYGffgYbGb5X
-         mwwWkxw1eE70nJF4+vsJZlcmB+6UKdZfZQRdRDfiuYk6TyrD00Pce6RS8U43GObBJbfE
-         wygA==
-X-Gm-Message-State: APjAAAUPl9SbcoZ05Fhnas4wll8sifg0U29iUVfE0aO4wxOjKcGSuL8B
-        pqNGsZ+G+iOpXjqDMtO/yDY=
-X-Google-Smtp-Source: APXvYqwBcUAV2w2iRl/SOsu6Uv60jicUo29ku2pCvkR6wn/88kkLPvc1T2ScEX9t453cN/+USLaujA==
-X-Received: by 2002:a2e:9c10:: with SMTP id s16mr1230931lji.20.1552385516784;
-        Tue, 12 Mar 2019 03:11:56 -0700 (PDT)
-Received: from [10.17.182.20] (ll-22.209.223.85.sovam.net.ua. [85.223.209.22])
-        by smtp.gmail.com with ESMTPSA id h21sm1382617lji.63.2019.03.12.03.11.55
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 12 Mar 2019 03:11:56 -0700 (PDT)
-Subject: Re: [Xen-devel][PATCH v5 1/1] cameraif: add ABI for para-virtual
- camera
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>,
-        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
-        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        koji.matsuoka.xm@renesas.com
-References: <20190312082000.32181-1-andr2000@gmail.com>
- <20190312082000.32181-2-andr2000@gmail.com>
- <82d683f9-72a6-f806-33fd-294da10c95f9@xs4all.nl>
- <fd07546d-50a2-fb10-6f37-7f96acf0ce40@gmail.com>
- <27235a93-3896-6353-9665-15dd701cf634@xs4all.nl>
- <e5c8e820-8867-c77a-8902-9e0ea9275082@gmail.com>
- <2689ce24-0ac0-206f-bd5a-64dddb0a6b10@xs4all.nl>
-From:   Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <3d496d09-6783-9622-74bc-1b974782c0ff@gmail.com>
-Date:   Tue, 12 Mar 2019 12:11:54 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        id S1726325AbfCLKV2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 06:21:28 -0400
+Received: from mga06.intel.com ([134.134.136.31]:22656 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725872AbfCLKV2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Mar 2019 06:21:28 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Mar 2019 03:21:27 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,471,1544515200"; 
+   d="scan'208";a="208512448"
+Received: from vinayvna-mobl2.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.249.45.136])
+  by orsmga001.jf.intel.com with ESMTP; 12 Mar 2019 03:21:23 -0700
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id D3ED721E54; Tue, 12 Mar 2019 12:21:18 +0200 (EET)
+Date:   Tue, 12 Mar 2019 12:21:18 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Vishal Sagar <vishal.sagar@xilinx.com>
+Cc:     Hyun Kwon <hyunk@xilinx.com>, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        Michal Simek <michals@xilinx.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, hans.verkuil@cisco.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Dinesh Kumar <dineshk@xilinx.com>,
+        Sandip Kothari <sandipk@xilinx.com>
+Subject: Re: [PATCH v6 1/2] media: dt-bindings: media: xilinx: Add Xilinx
+ MIPI CSI-2 Rx Subsystem
+Message-ID: <20190312102118.6ianedkzscr7gdba@kekkonen.localdomain>
+References: <1552365330-21155-1-git-send-email-vishal.sagar@xilinx.com>
+ <1552365330-21155-2-git-send-email-vishal.sagar@xilinx.com>
 MIME-Version: 1.0
-In-Reply-To: <2689ce24-0ac0-206f-bd5a-64dddb0a6b10@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1552365330-21155-2-git-send-email-vishal.sagar@xilinx.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 3/12/19 12:09 PM, Hans Verkuil wrote:
-> On 3/12/19 10:35 AM, Oleksandr Andrushchenko wrote:
->> On 3/12/19 11:30 AM, Hans Verkuil wrote:
->>> On 3/12/19 10:08 AM, Oleksandr Andrushchenko wrote:
->>>> On 3/12/19 10:58 AM, Hans Verkuil wrote:
->>>>> Hi Oleksandr,
->>>>>
->>>>> Just one comment:
->>>>>
->>>>> On 3/12/19 9:20 AM, Oleksandr Andrushchenko wrote:
->>>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>>>>
->>>>>> This is the ABI for the two halves of a para-virtualized
->>>>>> camera driver which extends Xen's reach multimedia capabilities even
->>>>>> farther enabling it for video conferencing, In-Vehicle Infotainment,
->>>>>> high definition maps etc.
->>>>>>
->>>>>> The initial goal is to support most needed functionality with the
->>>>>> final idea to make it possible to extend the protocol if need be:
->>>>>>
->>>>>> 1. Provide means for base virtual device configuration:
->>>>>>     - pixel formats
->>>>>>     - resolutions
->>>>>>     - frame rates
->>>>>> 2. Support basic camera controls:
->>>>>>     - contrast
->>>>>>     - brightness
->>>>>>     - hue
->>>>>>     - saturation
->>>>>> 3. Support streaming control
->>>>>>
->>>>>> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>>>> ---
->>>>>>     xen/include/public/io/cameraif.h | 1370 ++++++++++++++++++++++++++++++
->>>>>>     1 file changed, 1370 insertions(+)
->>>>>>     create mode 100644 xen/include/public/io/cameraif.h
->>>>>>
->>>>>> diff --git a/xen/include/public/io/cameraif.h b/xen/include/public/io/cameraif.h
->>>>>> new file mode 100644
->>>>>> index 000000000000..1ae4c51ea758
->>>>>> --- /dev/null
->>>>>> +++ b/xen/include/public/io/cameraif.h
->>>>>> @@ -0,0 +1,1370 @@
->>>>> <snip>
->>>>>
->>>>>> +/*
->>>>>> + * Request camera buffer's layout:
->>>>>> + *         0                1                 2               3        octet
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |               id                | _BUF_GET_LAYOUT|   reserved     | 4
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |                             reserved                              | 8
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |                             reserved                              | 64
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + *
->>>>>> + * See response format for this request.
->>>>>> + *
->>>>>> + *
->>>>>> + * Request number of buffers to be used:
->>>>>> + *         0                1                 2               3        octet
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |               id                | _OP_BUF_REQUEST|   reserved     | 4
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |                             reserved                              | 8
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |    num_bufs    |                     reserved                     | 12
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |                             reserved                              | 16
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + * |                             reserved                              | 64
->>>>>> + * +----------------+----------------+----------------+----------------+
->>>>>> + *
->>>>>> + * num_bufs - uint8_t, desired number of buffers to be used.
->>>>>> + *
->>>>>> + * If num_bufs is not zero then the backend validates the requested number of
->>>>>> + * buffers and responds with the number of buffers allowed for this frontend.
->>>>>> + * Frontend is responsible for checking the corresponding response in order to
->>>>>> + * see if the values reported back by the backend do match the desired ones
->>>>>> + * and can be accepted.
->>>>>> + * Frontend is allowed to send multiple XENCAMERA_OP_BUF_REQUEST requests
->>>>>> + * before sending XENCAMERA_OP_STREAM_START request to update or tune the
->>>>>> + * final configuration.
->>>>>> + * Frontend is not allowed to change the number of buffers and/or camera
->>>>>> + * configuration after the streaming has started.
->>>>> This last sentence isn't quite right, and I missed that when reviewing the
->>>>> proposed text during the v4 discussions.
->>>>>
->>>>> The bit about not being allowed to change the number of buffers when streaming
->>>>> has started is correct.
->>>>>
->>>>> But the camera configuration is more strict: you can't change the camera
->>>>> configuration after this request unless you call this again with num_bufs = 0.
->>>>>
->>>>> The camera configuration changes the buffer size, so once the buffers are
->>>>> allocated you can no longer change the camera config. It is unrelated to streaming.
->>>> Can you please give me a hint of what would be the right thing to put in?
->>> How about this:
->>>
->>> Frontend is not allowed to change the camera configuration after this call with
->>> a non-zero value of num_bufs. If camera reconfiguration is required then this
->>> request must be sent with num_bufs set to zero and any created buffers must be
->>> destroyed first.
->>>
->>> Frontend is not allowed to change the number of buffers after the streaming has started.
->> Sounds great, so I'll replace:
->>
->> "Frontend is not allowed to change the number of buffers and/or camera
->>    configuration after the streaming has started."
->>
->> with:
->>
->> "Frontend is not allowed to change the camera configuration after this
->> call with
->>    a non-zero value of num_bufs. If camera reconfiguration is required
->> then this
->>    request must be sent with num_bufs set to zero and any created buffers
->> must be
->>    destroyed first.
->>
->>    Frontend is not allowed to change the number of buffers after the
->> streaming has started.
->> "
->>
->> Are these all the changes you see at the moment?
-> Also this change below...
->
->>>>>> + *
->>>>>> + * If num_bufs is 0 and streaming has not started yet, then the backend will
->>>>>> + * free all previously allocated buffers (if any).
->>>>>> + * Trying to call this if streaming is in progress will result in an error.
->>>>>> + *
->>>>>> + * If camera reconfiguration is required then the streaming must be stopped
->>>>>> + * and this request must be sent with num_bufs set to zero and finally
->>>>>> + * buffers destroyed.
->>> I would rewrite the last part as well:
->>>
->>> ...set to zero and any created buffers must be destroyed.
-Ah, indeed I missed this one ;)
-Thank you
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->
-> And note my note below :-)
->
->>>
->>> Note that "any created buffers must be destroyed" is something that you need to
->>> check for in your code if I am not mistaken.
-Yes, thank you
-> ^^^^^^^^^^^^^^^^^
->
-> Regards,
->
-> 	Hans
+Hi Vishal,
 
+Thanks for the update. This looks pretty good, please see a few comments
+below.
+
+On Tue, Mar 12, 2019 at 10:05:29AM +0530, Vishal Sagar wrote:
+> Add bindings documentation for Xilinx MIPI CSI-2 Rx Subsystem.
+> 
+> The Xilinx MIPI CSI-2 Rx Subsystem consists of a CSI-2 Rx controller, a
+> DPHY in Rx mode, an optional I2C controller and a Video Format Bridge.
+> 
+> Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
+> Reviewed-by: Hyun Kwon <hyun.kwon@xilinx.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> ---
+> v6
+> - Added "control" after V4L2_CID_XILINX_MIPICSISS_ACT_LANES as suggested by Luca
+> - Added reviewed by Rob Herring
+> 
+> v5
+> - Incorporated comments by Luca Cersoli
+> - Removed DPHY clock from description and example
+> - Removed bayer pattern from device tree MIPI CSI IP
+>   doesn't deal with bayer pattern.
+> 
+> v4
+> - Added reviewed by Hyun Kwon
+> 
+> v3
+> - removed interrupt parent as suggested by Rob
+> - removed dphy clock
+> - moved vfb to optional properties
+> - Added required and optional port properties section
+> - Added endpoint property section
+> 
+> v2
+> - updated the compatible string to latest version supported
+> - removed DPHY related parameters
+> - added CSI v2.0 related property (including VCX for supporting upto 16
+>   virtual channels).
+> - modified csi-pxl-format from string to unsigned int type where the value
+>   is as per the CSI specification
+> - Defined port 0 and port 1 as sink and source ports.
+> - Removed max-lanes property as suggested by Rob and Sakari
+> 
+>  .../bindings/media/xilinx/xlnx,csi2rxss.txt        | 118 +++++++++++++++++++++
+>  1 file changed, 118 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> new file mode 100644
+> index 0000000..5b8170f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> @@ -0,0 +1,118 @@
+> +Xilinx MIPI CSI2 Receiver Subsystem Device Tree Bindings
+> +--------------------------------------------------------
+> +
+> +The Xilinx MIPI CSI2 Receiver Subsystem is used to capture MIPI CSI2 traffic
+> +from compliant camera sensors and send the output as AXI4 Stream video data
+> +for image processing.
+> +
+> +The subsystem consists of a MIPI DPHY in slave mode which captures the
+> +data packets. This is passed along the MIPI CSI2 Rx IP which extracts the
+> +packet data. The optional Video Format Bridge (VFB) converts this data to
+> +AXI4 Stream video data.
+> +
+> +For more details, please refer to PG232 Xilinx MIPI CSI-2 Receiver Subsystem.
+> +
+> +Required properties:
+> +--------------------
+> +- compatible: Must contain "xlnx,mipi-csi2-rx-subsystem-4.0".
+> +- reg: Physical base address and length of the registers set for the device.
+> +- interrupts: Property with a value describing the interrupt number.
+> +- clocks: List of phandles to AXI Lite and Video clocks.
+> +- clock-names: Must contain "lite_aclk" and "video_aclk" in the same order
+> +  as clocks listed in clocks property.
+> +- xlnx,csi-pxl-format: This denotes the CSI Data type selected in hw design.
+> +  Packets other than this data type (except for RAW8 and User defined data
+> +  types) will be filtered out. Possible values are as below -
+> +  0x1E - YUV4228B
+> +  0x1F - YUV42210B
+> +  0x20 - RGB444
+> +  0x21 - RGB555
+> +  0x22 - RGB565
+> +  0x23 - RGB666
+> +  0x24 - RGB888
+> +  0x28 - RAW6
+> +  0x29 - RAW7
+> +  0x2A - RAW8
+> +  0x2B - RAW10
+> +  0x2C - RAW12
+> +  0x2D - RAW14
+> +  0x2E - RAW16
+> +  0x2F - RAW20
+> +
+> +
+> +Optional properties:
+> +--------------------
+> +- xlnx,vfb: This is present when Video Format Bridge is enabled.
+> +  Without this property the driver won't be loaded as IP won't be able to generate
+> +  media bus format compliant stream output.
+
+What's the use case for this? I read in an earlier thread that this is
+used to prevent the driver from loading.
+
+> +- xlnx,en-csi-v2-0: Present if CSI v2 is enabled in IP configuration.
+> +- xlnx,en-vcx: When present, there are maximum 16 virtual channels, else
+> +  only 4. This is present only if xlnx,en-csi-v2-0 is present.
+> +- xlnx,en-active-lanes: present if the number of active lanes can be
+> +  reconfigured at runtime in the Protocol Configuration Register.
+> +  If present, the V4L2_CID_XILINX_MIPICSISS_ACT_LANES control is added.
+> +  Otherwise all lanes, as set in IP configuration, are always active.
+
+The bindings document hardware, therefore a V4L2 control name doesn't
+belong here.
+
+If you want to set the number of lanes at runtime, the frame descriptors
+are probably the best way to do that. The patchset will be merged in the
+near future. Jacopo sent the last iteration of it recently. I'd leave that
+feature out for now though: few transmitter drivers support the feature
+(using an old API).
+
+> +
+> +Ports
+> +-----
+> +The device node shall contain two 'port' child nodes as defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +The port@0 is a sink port and shall connect to CSI2 source like camera.
+> +It must have the data-lanes property.
+> +
+> +The port@1 is a source port and can be connected to any video processing IP
+> +which can work with AXI4 Stream data.
+> +
+> +Required port properties:
+> +--------------------
+> +- reg: 0 - for sink port.
+> +       1 - for source port.
+> +
+> +Optional endpoint property:
+> +---------------------------
+> +- data-lanes: specifies MIPI CSI-2 data lanes as covered in video-interfaces.txt.
+> +  This should be in the sink port endpoint which connects to MIPI CSI2 source
+> +  like sensor. The possible values are:
+> +  1       - For 1 lane enabled in IP.
+> +  1 2     - For 2 lanes enabled in IP.
+> +  1 2 3   - For 3 lanes enabled in IP.
+> +  1 2 3 4 - For 4 lanes enabled in IP.
+> +
+> +Example:
+> +
+> +	csiss_1: csiss@a0020000 {
+
+The node name should be generic, a Cadence device uses csi2rx which seems
+like a good fit here, too.
+
+> +		compatible = "xlnx,mipi-csi2-rx-subsystem-4.0";
+> +		reg = <0x0 0xa0020000 0x0 0x10000>;
+> +		interrupt-parent = <&gic>;
+> +		interrupts = <0 95 4>;
+> +		xlnx,csi-pxl-format = <0x2a>;
+> +		xlnx,vfb;
+> +		xlnx,en-active-lanes;
+> +		xlnx,en-csi-v2-0;
+> +		xlnx,en-vcx;
+> +		clock-names = "lite_aclk", "video_aclk";
+> +		clocks = <&misc_clk_0>, <&misc_clk_1>;
+> +
+> +		ports {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			port@0 {
+> +				/* Sink port */
+> +				reg = <0>;
+> +				csiss_in: endpoint {
+> +					data-lanes = <1 2 3 4>;
+> +					/* MIPI CSI2 Camera handle */
+> +					remote-endpoint = <&camera_out>;
+> +				};
+> +			};
+> +			port@1 {
+> +				/* Source port */
+> +				reg = <1>;
+> +				csiss_out: endpoint {
+> +					remote-endpoint = <&vproc_in>;
+> +				};
+> +			};
+> +		};
+> +	};
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
