@@ -3,37 +3,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18462C43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:29:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2243C43381
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:32:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E03FA2147C
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F8462083D
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726329AbfCLP35 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 11:29:57 -0400
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:44855 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725894AbfCLP35 (ORCPT
+        id S1726425AbfCLPcf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 11:32:35 -0400
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:51669 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725894AbfCLPce (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 11:29:57 -0400
+        Tue, 12 Mar 2019 11:32:34 -0400
 X-Originating-IP: 90.88.22.102
 Received: from aptenodytes (aaubervilliers-681-1-80-102.w90-88.abo.wanadoo.fr [90.88.22.102])
         (Authenticated sender: paul.kocialkowski@bootlin.com)
-        by relay2-d.mail.gandi.net (Postfix) with ESMTPSA id D05C14000F;
-        Tue, 12 Mar 2019 15:29:54 +0000 (UTC)
-Message-ID: <84cdb4b2d228caa4545ff736639f9dd25b79dfc2.camel@bootlin.com>
-Subject: Re: [PATCH v5 02/23] videodev2.h: add V4L2_BUF_CAP_REQUIRES_REQUESTS
+        by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id CB95FE000E;
+        Tue, 12 Mar 2019 15:32:31 +0000 (UTC)
+Message-ID: <87eee8a06fba3882cbba472922d81cfeecd0c950.camel@bootlin.com>
+Subject: Re: [PATCH v5 03/23] cedrus: set requires_requests
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Date:   Tue, 12 Mar 2019 16:29:54 +0100
-In-Reply-To: <20190306211343.15302-3-dafna3@gmail.com>
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Date:   Tue, 12 Mar 2019 16:32:31 +0100
+In-Reply-To: <20190306211343.15302-4-dafna3@gmail.com>
 References: <20190306211343.15302-1-dafna3@gmail.com>
-         <20190306211343.15302-3-dafna3@gmail.com>
+         <20190306211343.15302-4-dafna3@gmail.com>
 Organization: Bootlin
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.5 
@@ -49,56 +50,37 @@ Hi,
 On Wed, 2019-03-06 at 13:13 -0800, Dafna Hirschfeld wrote:
 > From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > 
-> Add capability to indicate that requests are required instead of
-> merely supported.
+> The cedrus stateless decoder requires the use of request, so
+> indicate this by setting requires_requests to 1.
 > 
 > Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Note that this is true for now, but we might need to get rid of the
+flag when adding support for decoding JPEG, which may not require the
+request API.
+
+Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
 Cheers,
 
 Paul
 
 > ---
->  Documentation/media/uapi/v4l/vidioc-reqbufs.rst | 4 ++++
->  include/uapi/linux/videodev2.h                  | 1 +
->  2 files changed, 5 insertions(+)
+>  drivers/staging/media/sunxi/cedrus/cedrus_video.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> index d7faef10e39b..d42a3d9a7db3 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> @@ -125,6 +125,7 @@ aborting or finishing any DMA in progress, an implicit
->  .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
->  .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
->  .. _V4L2-BUF-CAP-SUPPORTS-ORPHANED-BUFS:
-> +.. _V4L2-BUF-CAP-REQUIRES-REQUESTS:
+> diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_video.c b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
+> index b47854b3bce4..9673874ece10 100644
+> --- a/drivers/staging/media/sunxi/cedrus/cedrus_video.c
+> +++ b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
+> @@ -536,6 +536,7 @@ int cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
+>  	src_vq->lock = &ctx->dev->dev_mutex;
+>  	src_vq->dev = ctx->dev->dev;
+>  	src_vq->supports_requests = true;
+> +	src_vq->requires_requests = true;
 >  
->  .. cssclass:: longtable
->  
-> @@ -150,6 +151,9 @@ aborting or finishing any DMA in progress, an implicit
->        - The kernel allows calling :ref:`VIDIOC_REQBUFS` while buffers are still
->          mapped or exported via DMABUF. These orphaned buffers will be freed
->          when they are unmapped or when the exported DMABUF fds are closed.
-> +    * - ``V4L2_BUF_CAP_REQUIRES_REQUESTS``
-> +      - 0x00000020
-> +      - This buffer type requires the use of :ref:`requests <media-request-api>`.
->  
->  Return Value
->  ============
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 1db220da3bcc..97e6a6a968ba 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -895,6 +895,7 @@ struct v4l2_requestbuffers {
->  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
->  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
->  #define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
-> +#define V4L2_BUF_CAP_REQUIRES_REQUESTS	(1 << 5)
->  
->  /**
->   * struct v4l2_plane - plane info for multi-planar buffers
+>  	ret = vb2_queue_init(src_vq);
+>  	if (ret)
 -- 
 Paul Kocialkowski, Bootlin
 Embedded Linux and kernel engineering
