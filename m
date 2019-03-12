@@ -2,197 +2,143 @@ Return-Path: <SRS0=ZIWa=RP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD2B7C43381
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:11:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A18E6C43381
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:29:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9DFE52147C
-	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:11:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="AxjwQQR1"
+	by mail.kernel.org (Postfix) with ESMTP id 792602083D
+	for <linux-media@archiver.kernel.org>; Tue, 12 Mar 2019 15:29:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726775AbfCLPLE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 11:11:04 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58260 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726765AbfCLPLD (ORCPT
+        id S1726418AbfCLP3f (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 11:29:35 -0400
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:37037 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725895AbfCLP3f (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 11:11:03 -0400
-Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4793733C;
-        Tue, 12 Mar 2019 16:11:00 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552403460;
-        bh=pxj8B1d+VdlpowP4JvkzWjXiIX3CFQxkJoERNQD/iHA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=AxjwQQR1b3BBwlHUcfutp6fUM0xMmeNqxfK15Vc4Dv2ZQarFMbYdcAhhGv1GErDFu
-         io0e3AXrtqKdNwlBM3UAigrpMfTl2L2eiOqqgQkVdskEe0zI76jsPhxuQbFiHqCZyK
-         1gtPhe0R/VEdn6fXf6Yv563TBCVKf+tJOZg4eu4c=
-Date:   Tue, 12 Mar 2019 17:10:53 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Rui Miguel Silva <rui.silva@linaro.org>
-Cc:     Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Subject: Re: [PATCH v4 06/12] media: dt-bindings: add bindings for i.MX7
- media driver
-Message-ID: <20190312151053.GD4845@pendragon.ideasonboard.com>
-References: <20180517125033.18050-1-rui.silva@linaro.org>
- <20180517125033.18050-7-rui.silva@linaro.org>
- <20180518065824.csio2fgwsxo2g2ow@valkosipuli.retiisi.org.uk>
- <m3tvr5xt9t.fsf@linaro.org>
- <20190310214834.GB7578@pendragon.ideasonboard.com>
- <m3wol4dw55.fsf@linaro.org>
+        Tue, 12 Mar 2019 11:29:35 -0400
+X-Originating-IP: 90.88.22.102
+Received: from aptenodytes (aaubervilliers-681-1-80-102.w90-88.abo.wanadoo.fr [90.88.22.102])
+        (Authenticated sender: paul.kocialkowski@bootlin.com)
+        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id E66EA240008;
+        Tue, 12 Mar 2019 15:29:31 +0000 (UTC)
+Message-ID: <8c7f6920833513818a290b778f0a4dc4a03c99b0.camel@bootlin.com>
+Subject: Re: [PATCH v5 01/23] vb2: add requires_requests bit for stateless
+ codecs
+From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Date:   Tue, 12 Mar 2019 16:29:31 +0100
+In-Reply-To: <20190306211343.15302-2-dafna3@gmail.com>
+References: <20190306211343.15302-1-dafna3@gmail.com>
+         <20190306211343.15302-2-dafna3@gmail.com>
+Organization: Bootlin
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.5 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <m3wol4dw55.fsf@linaro.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Rui,
+Hi,
 
-On Tue, Mar 12, 2019 at 02:07:02PM +0000, Rui Miguel Silva wrote:
-> On Sun 10 Mar 2019 at 21:48, Laurent Pinchart wrote:
-> > On Fri, May 18, 2018 at 09:27:58AM +0100, Rui Miguel Silva wrote:
-> >> On Fri 18 May 2018 at 06:58, Sakari Ailus wrote:
-> >>> On Thu, May 17, 2018 at 01:50:27PM +0100, Rui Miguel Silva wrote:
-> >>>> Add bindings documentation for i.MX7 media drivers.
-> >>>> 
-> >>>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> >>>> ---
-> >>>>  .../devicetree/bindings/media/imx7.txt        | 145 ++++++++++++++++++
-> >>>>  1 file changed, 145 insertions(+)
-> >>>>  create mode 100644 
-> >>>>  Documentation/devicetree/bindings/media/imx7.txt
-> >>>> 1
-> >>>> diff --git 
-> >>>> a/Documentation/devicetree/bindings/media/imx7.txt 
-> >>>> b/Documentation/devicetree/bindings/media/imx7.txt
-> >>>> new file mode 100644
-> >>>> index 000000000000..161cff8e6442
-> >>>> --- /dev/null
-> >>>> +++ b/Documentation/devicetree/bindings/media/imx7.txt
-> >>>> @@ -0,0 +1,145 @@
-> >>>> +Freescale i.MX7 Media Video Device
-> >>>> +==================================
-> >>>> +
-> >>>> +Video Media Controller node
-> >>>> +---------------------------
-> >>>
-> >>> Note that DT bindings document the hardware, they are as such 
-> >>> not Linux dependent.
-> >> 
-> >> This was removed in this series, however I removed it in the wrong
-> >> patch, If you see patch 11/12 you will see this being removed. I
-> >> will fix this in v5. Thanks for notice it.
-> >> 
-> >>>> +
-> >>>> +This is the media controller node for video capture  support. It is a
-> >>>> +virtual device that lists the camera serial interface nodes that the
-> >>>> +media device will control.
-> >>>
-> >>> Ditto.
-> >>>
-> >>>> +
-> >>>> +Required properties:
-> >>>> +- compatible : "fsl,imx7-capture-subsystem";
-> >>>> +- ports      : Should contain a list of phandles pointing to camera
-> >>>> +		sensor interface port of CSI
-> >>>> +
-> >>>> +example:
-> >>>> +
-> >>>> +capture-subsystem {
-> >>>
-> >>> What's the purpose of this node, if you only refer to another 
-> >>> device? This one rather does not look like a real device at 
-> >>> all.
-> >>>
-> >>>> +	compatible = "fsl,imx7-capture-subsystem";
-> >>>> +	ports = <&csi>;
-> >>>> +};
-> >>>> +
-> >>>> +
-> >>>> +mipi_csi2 node
-> >>>> +--------------
-> >>>> +
-> >>>> +This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
-> >>>> +compatible with previous version of Samsung D-phy.
-> >>>> +
-> >>>> +Required properties:
-> >>>> +
-> >>>> +- compatible    : "fsl,imx7-mipi-csi2";
-> >>>> +- reg           : base address and length of the register set for the device;
-> >>>> +- interrupts    : should contain MIPI CSIS interrupt;
-> >>>> +- clocks        : list of clock specifiers, see
-> >>>> + 
-> >>>> Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
-> >>>> +- clock-names   : must contain "pclk", "wrap" and "phy" entries, matching
-> >>>> +                  entries in the clock property;
-> >>>> +- power-domains : a phandle to the power domain, see
-> >>>> + 
-> >>>> Documentation/devicetree/bindings/power/power_domain.txt for details.
-> >>>> +- reset-names   : should include following entry "mrst";
-> >>>> +- resets        : a list of phandle, should contain reset entry of
-> >>>> +                  reset-names;
-> >>>> +- phy-supply    : from the generic phy bindings, a phandle to a regulator that
-> >>>> +	          provides power to MIPI CSIS core;
-> >>>> +- bus-width     : maximum number of data lanes supported (SoC specific);
-> >>>> +
-> >>>> +Optional properties:
-> >>>> +
-> >>>> +- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
-> >>>> +		    value when this property is not specified is 166 MHz;
-> >>>> +
-> >>>> +port node
-> >>>> +---------
-> >>>> +
-> >>>> +- reg		  : (required) can take the values 0 or 1, where 0 is the
-> >>>> +                     related sink port and port 1 should be the source one;
-> >>>> +
-> >>>> +endpoint node
-> >>>> +-------------
-> >>>> +
-> >>>> +- data-lanes    : (required) an array specifying active physical MIPI-CSI2
-> >>>> +		    data input lanes and their mapping to logical lanes; the
-> >>>> +		    array's content is unused, only its length is meaningful;
-> >>>> +
-> >>>> +- fsl,csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
-> >>>
-> >>> Could you calculate this, as other drivers do? It probably 
-> >>> changes> depending on the device runtime configuration.
-> >> 
-> >> The only reference to possible values to this parameter is given by
-> >> table in [0], can you point me out the formula for imx7 in the
-> >> documentation?
-> >> 
-> >> [0] https://community.nxp.com/thread/463777
-> >
-> > Can't you use the values from that table ? :-) You can get the 
-> > link speed by querying the connected subdev and reading its
-> > V4L2_CID_PIXEL_RATE control.
+On Wed, 2019-03-06 at 13:13 -0800, Dafna Hirschfeld wrote:
+> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > 
-> Yeah, I good point to add support for others subdev's. I will try
-> to add your comments in a follow up series.
+> Stateless codecs require the use of the Request API as opposed of it
+> being optional.
+> 
+> So add a bit to indicate this and let vb2 check for this.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Just for my information (no commitment), do you know the timeframe for
-that ?
+Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
+Cheers,
+
+Paul
+
+> ---
+>  drivers/media/common/videobuf2/videobuf2-core.c | 5 ++++-
+>  drivers/media/common/videobuf2/videobuf2-v4l2.c | 6 ++++++
+>  include/media/videobuf2-core.h                  | 3 +++
+>  3 files changed, 13 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index 15b6b9c0a2e4..d8cf9d3ec54d 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1518,7 +1518,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+>  
+>  	if ((req && q->uses_qbuf) ||
+>  	    (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
+> -	     q->uses_requests)) {
+> +	     (q->uses_requests || q->requires_requests))) {
+>  		dprintk(1, "queue in wrong mode (qbuf vs requests)\n");
+>  		return -EBUSY;
+>  	}
+> @@ -2247,6 +2247,9 @@ int vb2_core_queue_init(struct vb2_queue *q)
+>  	    WARN_ON(!q->ops->buf_queue))
+>  		return -EINVAL;
+>  
+> +	if (WARN_ON(q->requires_requests && !q->supports_requests))
+> +		return -EINVAL;
+> +
+>  	INIT_LIST_HEAD(&q->queued_list);
+>  	INIT_LIST_HEAD(&q->done_list);
+>  	spin_lock_init(&q->done_lock);
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index d09dee20e421..4dc4855056f1 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -385,6 +385,10 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
+>  			dprintk(1, "%s: queue uses requests\n", opname);
+>  			return -EBUSY;
+>  		}
+> +		if (q->requires_requests) {
+> +			dprintk(1, "%s: queue requires requests\n", opname);
+> +			return -EACCES;
+> +		}
+>  		return 0;
+>  	} else if (!q->supports_requests) {
+>  		dprintk(1, "%s: queue does not support requests\n", opname);
+> @@ -658,6 +662,8 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
+>  #ifdef CONFIG_MEDIA_CONTROLLER_REQUEST_API
+>  	if (q->supports_requests)
+>  		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
+> +	if (q->requires_requests)
+> +		*caps |= V4L2_BUF_CAP_REQUIRES_REQUESTS;
+>  #endif
+>  }
+>  
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 910f3d469005..fbf8dbbcbc09 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -484,6 +484,8 @@ struct vb2_buf_ops {
+>   *              has not been called. This is a vb1 idiom that has been adopted
+>   *              also by vb2.
+>   * @supports_requests: this queue supports the Request API.
+> + * @requires_requests: this queue requires the Request API. If this is set to 1,
+> + *		then supports_requests must be set to 1 as well.
+>   * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
+>   *		time this is called. Set to 0 when the queue is canceled.
+>   *		If this is 1, then you cannot queue buffers from a request.
+> @@ -558,6 +560,7 @@ struct vb2_queue {
+>  	unsigned			allow_zero_bytesused:1;
+>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+>  	unsigned			supports_requests:1;
+> +	unsigned			requires_requests:1;
+>  	unsigned			uses_qbuf:1;
+>  	unsigned			uses_requests:1;
+>  
 -- 
-Regards,
+Paul Kocialkowski, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
 
-Laurent Pinchart
