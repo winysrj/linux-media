@@ -2,234 +2,150 @@ Return-Path: <SRS0=adTL=RQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96B6AC10F00
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:18:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F6D7C43381
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 01:03:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 679292173C
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:18:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36C392063F
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 01:03:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="CrN/lc/i"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="bQxdy6hm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726738AbfCMASu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 20:18:50 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42440 "EHLO
+        id S1726309AbfCMBDL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 21:03:11 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43418 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726506AbfCMASu (ORCPT
+        with ESMTP id S1725917AbfCMBDL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 20:18:50 -0400
+        Tue, 12 Mar 2019 21:03:11 -0400
 Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EBB1E49;
-        Wed, 13 Mar 2019 01:18:47 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8A04531C;
+        Wed, 13 Mar 2019 02:03:08 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552436328;
-        bh=WLJ/A3KoCEhH6K1C84kH3ARY3GITuovSpl0s/gwcKrs=;
+        s=mail; t=1552438988;
+        bh=GOxNW4a22evfZyRTGVcvLfFJitYOSgVU0fZiaVESznY=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=CrN/lc/iN8/aZfrhDc7+Hq3GzRHkpfg7LpKNnwkWPRljpvvoJBPgUEMIVUsnh+ZpC
-         SQME6A3IHABIKvq8yG97EEfGEB3EQ1FSSAQCvRVO94ELI6sdZoPWZEbLiCdiqMjMw3
-         jZHeb9VF3qcgv1kUpjVURXuzbHxXMW4bCVpi+pPY=
-Date:   Wed, 13 Mar 2019 02:18:41 +0200
+        b=bQxdy6hmyBjzSdWvqrX+FaArswQM9ztQ8AJ36qOB7/kyID7HDvbH+mTH9TFqD7F4H
+         eTzcFRgd314EkEJ/35E5Vy5c06C8yxnDaO5ASosIEz6zGX7diLNg4WWwkWdCE4USxg
+         fkYfdywrUwq043oqzpImCt5ucH+JWoenDti96cNs=
+Date:   Wed, 13 Mar 2019 03:03:01 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] rcar-csi2: Use standby mode instead of resetting
-Message-ID: <20190313001841.GH891@pendragon.ideasonboard.com>
-References: <20190312234930.23193-1-niklas.soderlund+renesas@ragnatech.se>
- <20190312234930.23193-3-niklas.soderlund+renesas@ragnatech.se>
+To:     Amila Manoj <amilamanoj@gmail.com>
+Cc:     Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-uvc-devel@lists.sourceforge.net,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linux-uvc-devel] HD Camera (4e45:5501) support
+Message-ID: <20190313010301.GN891@pendragon.ideasonboard.com>
+References: <CAN6+69JTiWpiiOeRn2jAuW__sx2J2p8FWUts1SpLeUoAC=W4vQ@mail.gmail.com>
+ <c8534224-e8eb-8b77-a4ac-bcdbfd784a1c@ideasonboard.com>
+ <20190302163400.GC4682@pendragon.ideasonboard.com>
+ <CAN6+69+pRnH6zArTAa+2F-B9UDcKHE3DjLEQ0QHqP59CbmWTag@mail.gmail.com>
+ <20190305134607.GA10692@pendragon.ideasonboard.com>
+ <CAN6+69+0ucQ+SOqCpB3g0X+5MXEVhr7deZ8A2hS0kE_6XrjOnA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190312234930.23193-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <CAN6+69+0ucQ+SOqCpB3g0X+5MXEVhr7deZ8A2hS0kE_6XrjOnA@mail.gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
+Hello Amila,
 
-Thank you for the patch.
-
-On Wed, Mar 13, 2019 at 12:49:30AM +0100, Niklas Söderlund wrote:
-> Later versions of the datasheet updates the reset procedure to more
-> closely resemble the standby mode. Update the driver to enter and exit
-> the standby mode instead of resetting the hardware before and after
-> streaming is started and stopped. This replaces the software reset
-> (SRST.SRST) control.
+On Tue, Mar 05, 2019 at 04:50:47PM +0100, Amila Manoj wrote:
+> Hi Laurent,
 > 
-> While at it break out the full start and stop procedures from
-> rcsi2_s_stream() into the existing helper functions.
+> Thank you very much for the reply.
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/Kconfig     |  1 +
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 69 +++++++++++++--------
->  2 files changed, 43 insertions(+), 27 deletions(-)
+> I tried it on a Windows 10 computer and it worked fine without
+> installing any additional software.
 > 
-> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-> index e3eb8fee253658da..f26f47e3bcf44825 100644
-> --- a/drivers/media/platform/rcar-vin/Kconfig
-> +++ b/drivers/media/platform/rcar-vin/Kconfig
-> @@ -3,6 +3,7 @@ config VIDEO_RCAR_CSI2
->  	tristate "R-Car MIPI CSI-2 Receiver"
->  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
->  	depends on ARCH_RENESAS || COMPILE_TEST
-> +	select RESET_CONTROLLER
->  	select V4L2_FWNODE
->  	help
->  	  Support for Renesas R-Car MIPI CSI-2 receiver.
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index f64528d2be3c95dd..10f1b4978ed7dcc6 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -14,6 +14,7 @@
->  #include <linux/of_graph.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/reset.h>
->  #include <linux/sys_soc.h>
->  
->  #include <media/v4l2-ctrls.h>
-> @@ -350,6 +351,7 @@ struct rcar_csi2 {
->  	struct device *dev;
->  	void __iomem *base;
->  	const struct rcar_csi2_info *info;
-> +	struct reset_control *rstc;
->  
->  	struct v4l2_subdev subdev;
->  	struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
-> @@ -387,11 +389,19 @@ static void rcsi2_write(struct rcar_csi2 *priv, unsigned int reg, u32 data)
->  	iowrite32(data, priv->base + reg);
->  }
->  
-> -static void rcsi2_reset(struct rcar_csi2 *priv)
-> +static void rcsi2_enter_standby(struct rcar_csi2 *priv)
->  {
-> -	rcsi2_write(priv, SRST_REG, SRST_SRST);
-> +	rcsi2_write(priv, PHYCNT_REG, 0);
-> +	rcsi2_write(priv, PHTC_REG, PHTC_TESTCLR);
-> +	reset_control_assert(priv->rstc);
->  	usleep_range(100, 150);
-> -	rcsi2_write(priv, SRST_REG, 0);
-> +	pm_runtime_put(priv->dev);
-> +}
-> +
-> +static void rcsi2_exit_standby(struct rcar_csi2 *priv)
-> +{
-> +	pm_runtime_get_sync(priv->dev);
-> +	reset_control_deassert(priv->rstc);
->  }
->  
->  static int rcsi2_wait_phy_start(struct rcar_csi2 *priv)
-> @@ -462,7 +472,7 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
->  	return mbps;
->  }
->  
-> -static int rcsi2_start(struct rcar_csi2 *priv)
-> +static int rcsi2_start_receiver(struct rcar_csi2 *priv)
->  {
->  	const struct rcar_csi2_format *format;
->  	u32 phycnt, vcdt = 0, vcdt2 = 0;
-> @@ -506,7 +516,6 @@ static int rcsi2_start(struct rcar_csi2 *priv)
->  
->  	/* Init */
->  	rcsi2_write(priv, TREF_REG, TREF_TREF);
-> -	rcsi2_reset(priv);
->  	rcsi2_write(priv, PHTC_REG, 0);
->  
->  	/* Configure */
-> @@ -564,19 +573,36 @@ static int rcsi2_start(struct rcar_csi2 *priv)
->  	return 0;
->  }
->  
-> +static int rcsi2_start(struct rcar_csi2 *priv)
-> +{
-> +	int ret;
-> +
-> +	rcsi2_exit_standby(priv);
-> +
-> +	ret = rcsi2_start_receiver(priv);
-> +	if (ret) {
-> +		rcsi2_enter_standby(priv);
-> +		return ret;
-> +	}
-> +
-> +	ret = v4l2_subdev_call(priv->remote, video, s_stream, 1);
-> +	if (ret) {
-> +		rcsi2_enter_standby(priv);
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static void rcsi2_stop(struct rcar_csi2 *priv)
->  {
-> -	rcsi2_write(priv, PHYCNT_REG, 0);
-> -
-> -	rcsi2_reset(priv);
-> -
-> -	rcsi2_write(priv, PHTC_REG, PHTC_TESTCLR);
-> +	rcsi2_enter_standby(priv);
-> +	v4l2_subdev_call(priv->remote, video, s_stream, 0);
->  }
->  
->  static int rcsi2_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct rcar_csi2 *priv = sd_to_csi2(sd);
-> -	struct v4l2_subdev *nextsd;
->  	int ret = 0;
->  
->  	mutex_lock(&priv->lock);
-> @@ -586,27 +612,12 @@ static int rcsi2_s_stream(struct v4l2_subdev *sd, int enable)
->  		goto out;
->  	}
->  
-> -	nextsd = priv->remote;
-> -
->  	if (enable && priv->stream_count == 0) {
-> -		pm_runtime_get_sync(priv->dev);
-> -
->  		ret = rcsi2_start(priv);
-> -		if (ret) {
-> -			pm_runtime_put(priv->dev);
-> +		if (ret)
->  			goto out;
-> -		}
-> -
-> -		ret = v4l2_subdev_call(nextsd, video, s_stream, 1);
-> -		if (ret) {
-> -			rcsi2_stop(priv);
-> -			pm_runtime_put(priv->dev);
-> -			goto out;
-> -		}
->  	} else if (!enable && priv->stream_count == 1) {
->  		rcsi2_stop(priv);
-> -		v4l2_subdev_call(nextsd, video, s_stream, 0);
-> -		pm_runtime_put(priv->dev);
->  	}
->  
->  	priv->stream_count += enable ? 1 : -1;
-> @@ -936,6 +947,10 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
->  	if (irq < 0)
->  		return irq;
->  
-> +	priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
-> +	if (IS_ERR(priv->rstc))
-> +		return PTR_ERR(priv->rstc);
-> +
->  	return 0;
->  }
->  
+> Also managed to capture USB traffic on Linux (didn't capture on Windows yet).
+> I don't see a lot of traffic, most of the messages are USB and USBHID
+> protocol messages for GET_STATUS, SET_FEATURE, GET_DESCRIPTOR etc.
+> 
+> There is only one USBVIDEO protocol message for GET_CUR (0x81). Seems
+> like this request fails the error "No such file or directory (-ENOENT)
+> (-2). Does this sound like a bug in firmware / cause for the error we
+> saw in dmesg output?
+
+Yes, that error corresponds to the error message printed by the driver.
+My guess is that Windows would send a different sequence of requests,
+and the camera firmware assumes this will always be the case. The order
+of the requests received from a Linux host doesn't match that, and the
+firmware gets confused.
+
+> Here's the full text of USBVIDEO request and response:
+> 
+> REQUEST:
+> 
+> Frame 86: 64 bytes on wire (512 bits), 64 bytes captured (512 bits) on
+> interface 0
+> USB URB
+>     [Source: host]
+>     [Destination: 2.13.0]
+>     URB id: 0xffff89299a435600
+>     URB type: URB_SUBMIT ('S')
+>     URB transfer type: URB_CONTROL (0x02)
+>     Endpoint: 0x80, Direction: IN
+>     Device: 13
+>     URB bus id: 2
+>     Device setup request: relevant (0)
+>     Data: not present ('<')
+>     URB sec: 1551797452
+>     URB usec: 468271
+>     URB status: Operation now in progress (-EINPROGRESS) (-115)
+>     URB length [bytes]: 34
+>     Data length [bytes]: 0
+>     [Response in: 87]
+>     Interval: 0
+>     Start frame: 0
+>     Copy of Transfer Flags: 0x00000200
+>     Number of ISO descriptors: 0
+>     [bInterfaceClass: Video (0x0e)]
+> URB setup
+> bRequest: GET CUR (0x81)
+> Control Selector: Probe (0x01)
+> Interface: 0x01
+> Entity: 0x00
+> wLength: 34
+> 
+> RESPONSE:
+> 
+> Frame 87: 64 bytes on wire (512 bits), 64 bytes captured (512 bits) on
+> interface 0
+> USB URB
+>     [Source: 2.13.0]
+>     [Destination: host]
+>     URB id: 0xffff89299a435600
+>     URB type: URB_COMPLETE ('C')
+>     URB transfer type: URB_CONTROL (0x02)
+>     Endpoint: 0x80, Direction: IN
+>     Device: 13
+>     URB bus id: 2
+>     Device setup request: not relevant ('-')
+>     Data: present (0)
+>     URB sec: 1551797457
+>     URB usec: 587755
+>     URB status: No such file or directory (-ENOENT) (-2)
+>     URB length [bytes]: 0
+>     Data length [bytes]: 0
+>     [Request in: 86]
+>     [Time from request: 5.119484000 seconds]
+>     Unused Setup Header
+>     Interval: 0
+>     Start frame: 0
+>     Copy of Transfer Flags: 0x00000200
+>     Number of ISO descriptors: 0
+>     [bInterfaceClass: Video (0x0e)]
+> [Interface: 0x01]
+> [Entity: 0x00]
+> [Control Selector: Probe (0x01)]
 
 -- 
 Regards,
