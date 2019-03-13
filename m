@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6788C4360F
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:50:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC25C10F03
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:56:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 85E19206DF
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:50:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4585206DF
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:56:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="VEyJcMhb"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="Z+wMoUkv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726451AbfCMPub (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 11:50:31 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:53958 "EHLO
+        id S1726284AbfCMP4P (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 11:56:15 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54608 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725868AbfCMPub (ORCPT
+        with ESMTP id S1725856AbfCMP4P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 11:50:31 -0400
+        Wed, 13 Mar 2019 11:56:15 -0400
 Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4269C5AA;
-        Wed, 13 Mar 2019 16:50:29 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id CC1715AA;
+        Wed, 13 Mar 2019 16:56:12 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552492229;
-        bh=wzf2sEsZPvRsi/aRVxoSiXfcETr8OC35CZEYVSFcgqM=;
+        s=mail; t=1552492573;
+        bh=LDJGPkhP1UyT0m2rmzYmmM1bO2G4MbQjdphdcwC97LY=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=VEyJcMhbqVDUlndpgvS2XVidBg2LPlMtjYCaPkZIp2bKK8fbQNZjApF6+lvkCYrt+
-         3Td8GwxZr1I+i7yv+yuxBGkIHf+dWTYJGhoAGGE+9C2UiD4fu2Nhww1oPXhBzJz0ea
-         dnOcapq7ibnIEZzfEPFtWU0tBxQ7l9HHdqkZbwOU=
-Date:   Wed, 13 Mar 2019 17:50:22 +0200
+        b=Z+wMoUkvaQK8L2XMFUyN7B8HOJ7nW3Fr0xgVkLyZWp3la+aCgdoOVzdbbTlM/y+td
+         M7jknkYf7LAIiHghY18Pak0KCUvJt4TUkEhmfQ+LlDMVrkPfJiPkVKvJbY/3bzDsud
+         lS6+EBuDzMMDfCvXGsFkQbleVm5shzRoyckPiVdk=
+Date:   Wed, 13 Mar 2019 17:56:06 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
 Cc:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
@@ -40,16 +40,15 @@ Cc:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         linux-renesas-soc@vger.kernel.org,
         Liviu Dudau <Liviu.Dudau@arm.com>,
         Brian Starkey <brian.starkey@arm.com>
-Subject: Re: [PATCH v6 10/18] media: vsp1: drm: Extend frame completion API
- to the DU driver
-Message-ID: <20190313155022.GE4722@pendragon.ideasonboard.com>
+Subject: Re: [PATCH v6 11/18] media: vsp1: drm: Implement writeback support
+Message-ID: <20190313155606.GF4722@pendragon.ideasonboard.com>
 References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190313000532.7087-11-laurent.pinchart+renesas@ideasonboard.com>
- <481d3ccd-ad52-9998-2edf-e7774f03145d@ideasonboard.com>
+ <20190313000532.7087-12-laurent.pinchart+renesas@ideasonboard.com>
+ <ab98c192-9615-809c-2bdd-c1a2d72cff5b@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <481d3ccd-ad52-9998-2edf-e7774f03145d@ideasonboard.com>
+In-Reply-To: <ab98c192-9615-809c-2bdd-c1a2d72cff5b@ideasonboard.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -58,123 +57,203 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi Kieran,
 
-On Wed, Mar 13, 2019 at 11:26:14AM +0000, Kieran Bingham wrote:
+On Wed, Mar 13, 2019 at 11:42:34AM +0000, Kieran Bingham wrote:
 > On 13/03/2019 00:05, Laurent Pinchart wrote:
-> > The VSP1 driver will need to pass extra flags to the DU through the
-> > frame completion API. Replace the completed bool flag by a bitmask to
-> > support this.
+> > Extend the vsp1_du_atomic_flush() API with writeback support by adding
+> > format, pitch and memory addresses of the writeback framebuffer.
+> > Writeback completion is reported through the existing frame completion
+> > callback with a new VSP1_DU_STATUS_WRITEBACK status flag.
 > > 
 > > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 > > ---
-> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 4 ++--
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 4 ++--
-> >  drivers/media/platform/vsp1/vsp1_drm.h | 2 +-
-> >  include/media/vsp1.h                   | 4 +++-
-> >  4 files changed, 8 insertions(+), 6 deletions(-)
+> >  drivers/media/platform/vsp1/vsp1_dl.c  | 14 ++++++++++++++
+> >  drivers/media/platform/vsp1/vsp1_dl.h  |  3 ++-
+> >  drivers/media/platform/vsp1/vsp1_drm.c | 25 ++++++++++++++++++++++++-
+> >  include/media/vsp1.h                   | 15 +++++++++++++++
+> >  4 files changed, 55 insertions(+), 2 deletions(-)
 > > 
-> > diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> > index 76a39eee7c9c..28bfeb8c24fb 100644
-> > --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> > +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> > @@ -26,14 +26,14 @@
-> >  #include "rcar_du_kms.h"
-> >  #include "rcar_du_vsp.h"
-> >  
-> > -static void rcar_du_vsp_complete(void *private, bool completed, u32 crc)
-> > +static void rcar_du_vsp_complete(void *private, unsigned int status, u32 crc)
+> > diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+> > index ed7cda4130f2..104b6f514536 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> > @@ -958,6 +958,9 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, unsigned int dl_flags)
+> >   *
+> >   * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the display list that just
+> >   * became active had been queued with the internal notification flag.
+> > + *
+> > + * The VSP1_DL_FRAME_END_WRITEBACK flag indicates that the previously active
+> > + * display list had been queued with the writeback flag.
+> 
+> How does this interact with the possibility of the writeback being
+> disabled by the WPF in the event of it failing to get a DL.
+> 
+> It's only a small corner case, but will the 'writeback' report back as
+> though it succeeded? (without writing to memory, and thus giving an
+> unmodified buffer back?)
+
+Wrteback completion will never be reported in that case. This shouldn't
+happen as we should never fail to get a display list. Do you think it
+would be better to fake completion ?
+
+> >   */
+> >  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
 > >  {
-> >  	struct rcar_du_crtc *crtc = private;
+> > @@ -995,6 +998,17 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+> >  	if (status & VI6_STATUS_FLD_STD(dlm->index))
+> >  		goto done;
 > >  
-> >  	if (crtc->vblank_enable)
-> >  		drm_crtc_handle_vblank(&crtc->crtc);
+> > +	/*
+> > +	 * If the active display list has the writeback flag set, the frame
+> > +	 * completion marks the end of the writeback capture. Return the
+> > +	 * VSP1_DL_FRAME_END_WRITEBACK flag and reset the display list's
+> > +	 * writeback flag.
+> > +	 */
+> > +	if (dlm->active && (dlm->active->flags & VSP1_DL_FRAME_END_WRITEBACK)) {
+> > +		flags |= VSP1_DL_FRAME_END_WRITEBACK;
+> > +		dlm->active->flags &= ~VSP1_DL_FRAME_END_WRITEBACK;
+> > +	}
+> > +
+> >  	/*
+> >  	 * The device starts processing the queued display list right after the
+> >  	 * frame end interrupt. The display list thus becomes active.
+> > diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+> > index e0fdb145e6ed..4d7bcfdc9bd9 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> > +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> > @@ -18,7 +18,8 @@ struct vsp1_dl_list;
+> >  struct vsp1_dl_manager;
 > >  
-> > -	if (completed)
-> > +	if (status & VSP1_DU_STATUS_COMPLETE)
-> >  		rcar_du_crtc_finish_page_flip(crtc);
+> >  #define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
+> > -#define VSP1_DL_FRAME_END_INTERNAL		BIT(1)
+> > +#define VSP1_DL_FRAME_END_WRITEBACK		BIT(1)
+> 
+> So below BIT(2) (code above) the flags match the externally exposed
+> bitfield for the VSP1_DU_STATUS_
+> 
+> While above (code below), are 'private' bitfields.
+> 
+> Should this requirement be documented here somehow? especially the
+> mapping of FRAME_END_{COMPLETED,WRITEBACK} to
+> DU_STATUS_{COMPLETED,WRITEBACK}.
+
+I've added a comment here, as explained in my reply to your review of
+10/18, to document this.
+
+> > +#define VSP1_DL_FRAME_END_INTERNAL		BIT(2)
 > >  
-> >  	drm_crtc_add_crc_entry(&crtc->crtc, false, 0, &crc);
+> >  /**
+> >   * struct vsp1_dl_ext_cmd - Extended Display command
 > > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> > index 5601a787688b..0367f88135bf 100644
+> > index 0367f88135bf..16826bf184c7 100644
 > > --- a/drivers/media/platform/vsp1/vsp1_drm.c
 > > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -34,14 +34,14 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
-> >  				       unsigned int completion)
-> >  {
-> >  	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
-> > -	bool complete = completion & VSP1_DL_FRAME_END_COMPLETED;
+> > @@ -37,7 +37,9 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
 > >  
 > >  	if (drm_pipe->du_complete) {
 > >  		struct vsp1_entity *uif = drm_pipe->uif;
-> > +		unsigned int status = completion & VSP1_DU_STATUS_COMPLETE;
-> 
-> 
-> Why do you mask the bit(s) here?
-> 
-> Can't we just pass completion into
->   drm_pipe->du_complete(p, completion, c); ?
-> 
-> [(edit: no, because completion contains things such as
-> VSP1_DL_FRAME_END_INTERNAL)]
-> 
-> Or are you relying on the fact that,
->  VSP1_DL_FRAME_END_COMPLETED == VSP1_DU_STATUS_COMPLETE
-> 
-> in which case perhaps we should be more explicit somehow, either in code
-> or with a comment that this section is converting between the two
-> bitfield types.
-
-Good point. I'll add the following comment above the definition of
-VSP1_DL_FRAME_END_COMPLETED:
-
-/* Keep these flags in sync with VSP1_DU_STATUS_* in include/media/vsp1.h. */
-
-> However you resolve, the rest looks fine:
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
+> > -		unsigned int status = completion & VSP1_DU_STATUS_COMPLETE;
+> > +		unsigned int status = completion
+> > +				    & (VSP1_DU_STATUS_COMPLETE |
+> > +				       VSP1_DU_STATUS_WRITEBACK);
 > >  		u32 crc;
 > >  
 > >  		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
-> > -		drm_pipe->du_complete(drm_pipe->du_private, complete, crc);
-> > +		drm_pipe->du_complete(drm_pipe->du_private, status, crc);
-> >  	}
+> > @@ -541,6 +543,8 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
 > >  
-> >  	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-> > index 8dfd274a59e2..e85ad4366fbb 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.h
-> > @@ -42,7 +42,7 @@ struct vsp1_drm_pipeline {
-> >  	struct vsp1_du_crc_config crc;
+> >  	if (drm_pipe->force_brx_release)
+> >  		dl_flags |= VSP1_DL_FRAME_END_INTERNAL;
+> > +	if (pipe->output->writeback)
+> > +		dl_flags |= VSP1_DL_FRAME_END_WRITEBACK;
 > >  
-> >  	/* Frame synchronisation */
-> > -	void (*du_complete)(void *data, bool completed, u32 crc);
-> > +	void (*du_complete)(void *data, unsigned int status, u32 crc);
-> >  	void *du_private;
-> >  };
+> >  	dl = vsp1_dl_list_get(pipe->output->dlm);
+> >  	dlb = vsp1_dl_list_get_body0(dl);
+> > @@ -870,12 +874,31 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
+> >  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> >  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+> >  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+> > +	int ret;
 > >  
+> >  	drm_pipe->crc = cfg->crc;
+> >  
+> >  	mutex_lock(&vsp1->drm->lock);
+> > +
+> > +	if (pipe->output->has_writeback && cfg->writeback.pixelformat) {
+> 
+> Is pipe->output->has_writeback necessary here? Can
+> cfg->writeback.pixelformat be set if pipe->output->has_writeback is false?
+> 
+> Hrm ... actually - Perhaps it is useful. It validates both sides of the
+> system.
+> 
+> pipe->output->has_writeback is a capability of the VSP, where as
+> cfg->writeback.pixelformat is a 'request' from the DU.
+
+Correct, I think it's best to check both, to ensure we don't try to
+queue a writeback request on a system that doesn't support writeback. On
+the other hand this shouldn't happen as the DU driver shouldn't expose
+writeback to userspace in that case, so if you don't think the check is
+worth it I can remove the has_writeback field completely.
+
+> > +		const struct vsp1_du_writeback_config *wb_cfg = &cfg->writeback;
+> > +
+> > +		ret = vsp1_du_pipeline_set_rwpf_format(vsp1, pipe->output,
+> > +						       wb_cfg->pixelformat,
+> > +						       wb_cfg->pitch);
+> > +		if (WARN_ON(ret < 0))
+> > +			goto done;
+> > +
+> > +		pipe->output->mem.addr[0] = wb_cfg->mem[0];
+> > +		pipe->output->mem.addr[1] = wb_cfg->mem[1];
+> > +		pipe->output->mem.addr[2] = wb_cfg->mem[2];
+> > +		pipe->output->writeback = true;
+> > +	}
+> > +
+> >  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+> >  	vsp1_du_pipeline_configure(pipe);
+> > +
+> > +done:
+> >  	mutex_unlock(&vsp1->drm->lock);
+> >  }
+> >  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
 > > diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-> > index 1cf868360701..877496936487 100644
+> > index 877496936487..cc1b0d42ce95 100644
 > > --- a/include/media/vsp1.h
 > > +++ b/include/media/vsp1.h
-> > @@ -17,6 +17,8 @@ struct device;
-> >  
+> > @@ -18,6 +18,7 @@ struct device;
 > >  int vsp1_du_init(struct device *dev);
 > >  
-> > +#define VSP1_DU_STATUS_COMPLETE		BIT(0)
-> > +
+> >  #define VSP1_DU_STATUS_COMPLETE		BIT(0)
+> > +#define VSP1_DU_STATUS_WRITEBACK	BIT(1)
+> >  
 > >  /**
 > >   * struct vsp1_du_lif_config - VSP LIF configuration
-> >   * @width: output frame width
-> > @@ -32,7 +34,7 @@ struct vsp1_du_lif_config {
-> >  	unsigned int height;
-> >  	bool interlaced;
-> >  
-> > -	void (*callback)(void *data, bool completed, u32 crc);
-> > +	void (*callback)(void *data, unsigned int status, u32 crc);
-> >  	void *callback_data;
+> > @@ -83,12 +84,26 @@ struct vsp1_du_crc_config {
+> >  	unsigned int index;
 > >  };
 > >  
+> > +/**
+> > + * struct vsp1_du_writeback_config - VSP writeback configuration parameters
+> > + * @pixelformat: plane pixel format (V4L2 4CC)
+> > + * @pitch: line pitch in bytes for the first plane
+> > + * @mem: DMA memory address for each plane of the frame buffer
+> > + */
+> > +struct vsp1_du_writeback_config {
+> > +	u32 pixelformat;
+> > +	unsigned int pitch;
+> > +	dma_addr_t mem[3];
+> > +};
+> > +
+> >  /**
+> >   * struct vsp1_du_atomic_pipe_config - VSP atomic pipe configuration parameters
+> >   * @crc: CRC computation configuration
+> > + * @writeback: writeback configuration
+> >   */
+> >  struct vsp1_du_atomic_pipe_config {
+> >  	struct vsp1_du_crc_config crc;
+> > +	struct vsp1_du_writeback_config writeback;
+> >  };
+> >  
+> >  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
 
 -- 
 Regards,
