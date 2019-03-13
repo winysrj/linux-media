@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C48C4360F
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4553BC4360F
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:16:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7058F2177E
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:14:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 141362173C
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:16:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="iZ2K5seT"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="EVcKj0zS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726411AbfCMAOC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 20:14:02 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42378 "EHLO
+        id S1726573AbfCMAQ3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 20:16:29 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42414 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726008AbfCMAOC (ORCPT
+        with ESMTP id S1726490AbfCMAQ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 20:14:02 -0400
+        Tue, 12 Mar 2019 20:16:29 -0400
 Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 686B322;
-        Wed, 13 Mar 2019 01:14:00 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0A2AD49;
+        Wed, 13 Mar 2019 01:16:26 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552436040;
-        bh=KXOo5x6UlG2EqjP4fRxoIoLHGijb4d2W60fZrtsVnTI=;
+        s=mail; t=1552436187;
+        bh=8Ge3JC4BlOo5XeZoDqS/Awd+WHSWtMBnuEjY0QS7p6U=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=iZ2K5seTt46f6Vj7t+T75mRqRBlhUn0t5JX9IabW/YGkfLxLOP0CxZVzP4tKQtKsA
-         oirMuMh7GW9LkxrC/4TGcOBu3w2Bvu20MYxgors5oIxP93U/U/h/WoJLlluDbGZKna
-         zEK/6pibjhJdJfvPWTDMpBBcAIa1nTVV/Qqrk2Pg=
-Date:   Wed, 13 Mar 2019 02:13:53 +0200
+        b=EVcKj0zSydrgeiZV4EjFHhfukupDueCsXbIbBoEoYDHZWtQSPIYww095CPEFTCpF2
+         PbpSOi06e0F6/DckqWs5jUPshgjnc6fMjcQa+Tglsiss1m6s+AAXNHv7oyenNJ46MC
+         x7gNW6YoNYN08zpvdGwe2AqFxtXA02Gxqis3OSIY=
+Date:   Wed, 13 Mar 2019 02:16:20 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3] rcar-csi2: Propagate the FLD signal for NTSC and PAL
-Message-ID: <20190313001353.GF891@pendragon.ideasonboard.com>
-References: <20190312234955.23310-1-niklas.soderlund+renesas@ragnatech.se>
+Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3 2/3] rcar-csi2: Update start procedure for H3 ES2
+Message-ID: <20190313001620.GG891@pendragon.ideasonboard.com>
+References: <20190312235019.23420-1-niklas.soderlund+renesas@ragnatech.se>
+ <20190312235019.23420-3-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190312234955.23310-1-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20190312235019.23420-3-niklas.soderlund+renesas@ragnatech.se>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -55,82 +57,110 @@ Hi Niklas,
 
 Thank you for the patch.
 
-On Wed, Mar 13, 2019 at 12:49:55AM +0100, Niklas Söderlund wrote:
-> Depending on which video standard is used the driver needs to setup the
-> hardware to correctly handle fields. If stream is identified as NTSC
-> or PAL setup field detection and propagate the field detection signal.
-> 
-> Later versions of the datasheet have been updated to make it clear
-> that FLD register should be set to 0 when dealing with non-interlaced
-> field formats.
+On Wed, Mar 13, 2019 at 12:50:18AM +0100, Niklas Söderlund wrote:
+> Latest information from hardware engineers reveals that H3 ES2 and ES3
+> behave differently when working with link speeds bellow 250 Mpbs.
+> Add a SoC match for H3 ES2.* and use the correct startup sequence.
 > 
 > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 16 +++++++++++++---
->  1 file changed, 13 insertions(+), 3 deletions(-)
-> ---
-> Hi,
-> 
-> This patch depends on '[PATCH v3 0/2] rcar-csi2: Use standby mode 
-> instead of resetting'.
-> 
-> * Changes since v2
-> - Set FLD_DET_SEL = 01
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 35 +++++++++++++++++----
+>  1 file changed, 29 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index 10f1b4978ed7dcc6..6c7c7e6072ffb09e 100644
+> index aaf35afc6c87b3c0..0a4a71be60bee89b 100644
 > --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
 > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -68,6 +68,7 @@ struct rcar_csi2;
->  /* Field Detection Control */
->  #define FLD_REG				0x1c
->  #define FLD_FLD_NUM(n)			(((n) & 0xff) << 16)
-> +#define FLD_DET_SEL(n)			(((n) & 0x3) << 4)
->  #define FLD_FLD_EN4			BIT(3)
->  #define FLD_FLD_EN3			BIT(2)
->  #define FLD_FLD_EN2			BIT(1)
-> @@ -475,7 +476,7 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
->  static int rcsi2_start_receiver(struct rcar_csi2 *priv)
+> @@ -875,7 +875,8 @@ static int rcsi2_phtw_write_mbps(struct rcar_csi2 *priv, unsigned int mbps,
+>  	return rcsi2_phtw_write(priv, value->reg, code);
+>  }
+>  
+> -static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
+> +static int __rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv,
+> +					unsigned int mbps)
 >  {
->  	const struct rcar_csi2_format *format;
-> -	u32 phycnt, vcdt = 0, vcdt2 = 0;
-> +	u32 phycnt, vcdt = 0, vcdt2 = 0, fld = 0;
->  	unsigned int i;
->  	int mbps, ret;
+>  	static const struct phtw_value step1[] = {
+>  		{ .data = 0xcc, .code = 0xe2 },
+> @@ -901,7 +902,7 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
+>  	if (ret)
+>  		return ret;
 >  
-> @@ -507,6 +508,16 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
->  			vcdt2 |= vcdt_part << ((i % 2) * 16);
->  	}
->  
-> +	if (priv->mf.field == V4L2_FIELD_ALTERNATE) {
-> +		fld = FLD_DET_SEL(1) | FLD_FLD_EN4 | FLD_FLD_EN3 | FLD_FLD_EN2
-> +			| FLD_FLD_EN;
-> +
-> +		if (priv->mf.height == 240)
-> +			fld |= FLD_FLD_NUM(2);
+> -	if (mbps <= 250) {
+> +	if (mbps != 0 && mbps <= 250) {
 
-Should this be FLD_FLD_NUM(0) ? It won't make a difference in practice
-as FLD_DET_SEL(1) ensures that only bit 0 is taken into account, but I
-think the intent would be clearer (and the compiler will optimize it out
-as FLD_FLD_NUM(0) == 0).
+I would have gone for a third argument, but this works too, and is
+probably a tad more efficient. If we later need mbps here for other
+reasons on ES2.0 we can always change the code, so
 
-> +		else
-> +			fld |= FLD_FLD_NUM(1);
-> +	}
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  		ret = rcsi2_phtw_write(priv, 0x39, 0x05);
+>  		if (ret)
+>  			return ret;
+> @@ -915,6 +916,16 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
+>  	return rcsi2_phtw_write_array(priv, step2);
+>  }
+>  
+> +static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
+> +{
+> +	return __rcsi2_init_phtw_h3_v3h_m3n(priv, mbps);
+> +}
 > +
->  	phycnt = PHYCNT_ENABLECLK;
->  	phycnt |= (1 << priv->lanes) - 1;
+> +static int rcsi2_init_phtw_h3es2(struct rcar_csi2 *priv, unsigned int mbps)
+> +{
+> +	return __rcsi2_init_phtw_h3_v3h_m3n(priv, 0);
+> +}
+> +
+>  static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2 *priv, unsigned int mbps)
+>  {
+>  	return rcsi2_phtw_write_mbps(priv, mbps, phtw_mbps_v3m_e3, 0x44);
+> @@ -977,6 +988,14 @@ static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
+>  	.num_channels = 4,
+>  };
 >  
-> @@ -519,8 +530,7 @@ static int rcsi2_start_receiver(struct rcar_csi2 *priv)
->  	rcsi2_write(priv, PHTC_REG, 0);
+> +static const struct rcar_csi2_info rcar_csi2_info_r8a7795es2 = {
+> +	.init_phtw = rcsi2_init_phtw_h3es2,
+> +	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
+> +	.csi0clkfreqrange = 0x20,
+> +	.num_channels = 4,
+> +	.clear_ulps = true,
+> +};
+> +
+>  static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
+>  	.hsfreqrange = hsfreqrange_m3w_h3es1,
+>  	.num_channels = 4,
+> @@ -1042,11 +1061,15 @@ static const struct of_device_id rcar_csi2_of_table[] = {
+>  };
+>  MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
 >  
->  	/* Configure */
-> -	rcsi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
-> -		    FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
-> +	rcsi2_write(priv, FLD_REG, fld);
->  	rcsi2_write(priv, VCDT_REG, vcdt);
->  	if (vcdt2)
->  		rcsi2_write(priv, VCDT2_REG, vcdt2);
+> -static const struct soc_device_attribute r8a7795es1[] = {
+> +static const struct soc_device_attribute r8a7795[] = {
+>  	{
+>  		.soc_id = "r8a7795", .revision = "ES1.*",
+>  		.data = &rcar_csi2_info_r8a7795es1,
+>  	},
+> +	{
+> +		.soc_id = "r8a7795", .revision = "ES2.*",
+> +		.data = &rcar_csi2_info_r8a7795es2,
+> +	},
+>  	{ /* sentinel */ },
+>  };
+>  
+> @@ -1064,10 +1087,10 @@ static int rcsi2_probe(struct platform_device *pdev)
+>  	priv->info = of_device_get_match_data(&pdev->dev);
+>  
+>  	/*
+> -	 * r8a7795 ES1.x behaves differently than the ES2.0+ but doesn't
+> -	 * have it's own compatible string.
+> +	 * The different ES versions of r8a7795 (H3) behave differently but
+> +	 * share the same compatible string.
+>  	 */
+> -	attr = soc_device_match(r8a7795es1);
+> +	attr = soc_device_match(r8a7795);
+>  	if (attr)
+>  		priv->info = attr->data;
+>  
 
 -- 
 Regards,
