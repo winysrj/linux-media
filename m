@@ -2,93 +2,144 @@ Return-Path: <SRS0=adTL=RQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97937C10F03
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 16:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D5CC4360F
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 16:08:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 658B620643
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 16:01:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B636F206DF
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 16:08:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="bgj+5BUD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726655AbfCMQA7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 12:00:59 -0400
-Received: from gofer.mess.org ([88.97.38.141]:60095 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726349AbfCMQA7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 12:00:59 -0400
-Received: by gofer.mess.org (Postfix, from userid 1000)
-        id C55F36076A; Wed, 13 Mar 2019 16:00:57 +0000 (GMT)
-From:   Sean Young <sean@mess.org>
-To:     linux-media@vger.kernel.org
-Subject: [PATCH v4l-utils 2/2] lircd2toml: detect NEC if bit 0 and 1 are inverted
-Date:   Wed, 13 Mar 2019 16:00:57 +0000
-Message-Id: <20190313160057.3470-2-sean@mess.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190313160057.3470-1-sean@mess.org>
-References: <20190313160057.3470-1-sean@mess.org>
+        id S1726109AbfCMQIe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 12:08:34 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56070 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725893AbfCMQId (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Mar 2019 12:08:33 -0400
+Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5F85F5AA;
+        Wed, 13 Mar 2019 17:08:31 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1552493311;
+        bh=ODSUg5zqu3rNwpMkV16HNS3Ziqe8c//LRwI/ItxvdJM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=bgj+5BUDGP3nJ8PvbaPj8K3etCLEIjatRIqbU/B/99dGCtK64g9ujPiLQEk9zjkgW
+         Succ7z6dviImaZejq7NYe8rvgWLch5KeWHyycz9v3hodERGcIOsuSDXjb9RcwmQlII
+         jeJEeV0ZiSKUmZ7J4HxT/9kC92NxQw6OL/dmVg3Q=
+Date:   Wed, 13 Mar 2019 18:08:24 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Liviu Dudau <Liviu.Dudau@arm.com>,
+        Brian Starkey <brian.starkey@arm.com>
+Subject: Re: [PATCH v6 18/18] drm: rcar-du: Add writeback support for R-Car
+ Gen3
+Message-ID: <20190313160824.GG4722@pendragon.ideasonboard.com>
+References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20190313000532.7087-19-laurent.pinchart+renesas@ideasonboard.com>
+ <b2c70be1-f423-e3ad-9ad8-ef7a074f10a0@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <b2c70be1-f423-e3ad-9ad8-ef7a074f10a0@ideasonboard.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This fixes conversion of:
+Hi Kieran,
 
-	http://lirc.sourceforge.net/remotes/goldstar/VCR
+On Wed, Mar 13, 2019 at 12:06:40PM +0000, Kieran Bingham wrote:
+> On 13/03/2019 00:05, Laurent Pinchart wrote:
+> > Implement writeback support for R-Car Gen3 by exposing writeback
+> > connectors. Behind the scene the calls are forwarded to the VSP
+> > backend.
+> > 
+> > Using writeback connectors will allow implemented writeback support for
+> > R-Car Gen2 with a consistent API if desired.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> An extra blank line, and I was a bit concerned about a function naming
+> below - but other than that:
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> > ---
+> > Changes since v5:
+> > 
+> > - Skip writeback connector when configuring output routing
+> > - Implement writeback connector atomic state operations
+> > ---
+> >  drivers/gpu/drm/rcar-du/Kconfig             |   4 +
+> >  drivers/gpu/drm/rcar-du/Makefile            |   3 +-
+> >  drivers/gpu/drm/rcar-du/rcar_du_crtc.c      |   7 +-
+> >  drivers/gpu/drm/rcar-du/rcar_du_crtc.h      |   7 +-
+> >  drivers/gpu/drm/rcar-du/rcar_du_kms.c       |  12 +
+> >  drivers/gpu/drm/rcar-du/rcar_du_vsp.c       |   5 +
+> >  drivers/gpu/drm/rcar-du/rcar_du_writeback.c | 243 ++++++++++++++++++++
+> >  drivers/gpu/drm/rcar-du/rcar_du_writeback.h |  39 ++++
+> >  8 files changed, 317 insertions(+), 3 deletions(-)
+> >  create mode 100644 drivers/gpu/drm/rcar-du/rcar_du_writeback.c
+> >  create mode 100644 drivers/gpu/drm/rcar-du/rcar_du_writeback.h
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- contrib/lircd2toml.py | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+[snip]
 
-diff --git a/contrib/lircd2toml.py b/contrib/lircd2toml.py
-index f2f7cdd3..b1aa2403 100755
---- a/contrib/lircd2toml.py
-+++ b/contrib/lircd2toml.py
-@@ -340,6 +340,42 @@ class Converter:
- 
-             if variant:
-                 res['params']['variant'] = "'" + variant + "'"
-+        elif ('header_pulse' in res['params'] and
-+            'header_space' in res['params'] and
-+            'reverse' not in res['params'] and
-+            'trailer_pulse' in res['params'] and
-+            'header_optional' not in res['params'] and
-+            'pulse_distance' == res['protocol'] and
-+            eq_margin(res['params']['header_pulse'], 9000, 1000) and
-+            eq_margin(res['params']['header_space'], 4500, 1000) and
-+            eq_margin(res['params']['bit_pulse'], 560, 300) and
-+            eq_margin(res['params']['bit_1_space'], 560, 300) and
-+            eq_margin(res['params']['bit_0_space'], 1680, 300) and
-+            eq_margin(res['params']['trailer_pulse'], 560, 300) and
-+            res['params']['bits'] == 32 and
-+            ('repeat_pulse' not in res['params'] or
-+             (eq_margin(res['params']['repeat_pulse'], 9000, 1000) and
-+              eq_margin(res['params']['repeat_space'], 2250, 1000)))):
-+            self.warning('remote looks exactly like NEC, converting')
-+            res['protocol'] = 'nec'
-+            res['params'] = {}
-+            # bit_0_space and bit_1_space have been swapped, scancode
-+            # will need to be inverted
-+
-+            variant = None
-+
-+            for s in self.remote['codes']:
-+                p = (s<<post_data_bits)|pre_data
-+                v, n = decode_nec_scancode(~p)
-+                if variant == None:
-+                    variant = v
-+                elif v != variant:
-+                    variant = ""
-+
-+                res['map'][n] = self.remote['codes'][s]
-+
-+            if variant:
-+                res['params']['variant'] = "'" + variant + "'"
-         else:
-             for s in self.remote['codes']:
-                 p = (s<<post_data_bits)|pre_data
+> > diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> > index 0806a69c4679..99ae03a1713a 100644
+> > --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> > +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> > @@ -25,6 +25,7 @@
+> >  #include "rcar_du_drv.h"
+> >  #include "rcar_du_kms.h"
+> >  #include "rcar_du_vsp.h"
+> > +#include "rcar_du_writeback.h"
+> >  
+> >  static void rcar_du_vsp_complete(void *private, unsigned int status, u32 crc)
+> >  {
+> > @@ -35,6 +36,8 @@ static void rcar_du_vsp_complete(void *private, unsigned int status, u32 crc)
+> >  
+> >  	if (status & VSP1_DU_STATUS_COMPLETE)
+> >  		rcar_du_crtc_finish_page_flip(crtc);
+> > +	if (status & VSP1_DU_STATUS_WRITEBACK)
+> > +		rcar_du_writeback_complete(crtc);
+> >  
+> >  	drm_crtc_add_crc_entry(&crtc->crtc, false, 0, &crc);
+> >  }
+> > @@ -106,6 +109,8 @@ void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
+> >  	state = to_rcar_crtc_state(crtc->crtc.state);
+> >  	cfg.crc = state->crc;
+> >  
+> > +	rcar_du_writeback_atomic_flush(crtc, &cfg.writeback);
+> 
+> Hrm ...the naming here worries me a bit. This doesn't do the actual
+> flushing (execution?) of the writeback operation, it just configures the
+> writeback into the VSP cfg structure. The 'flush' to hardware takes
+> place in vsp1_du_atomic_flush().
+> 
+> Or maybe it is ok becuase it calls drm_writeback_queue_job() as well as
+> setting up the cfg...
+
+You've got a point. I've renamed the function to
+rcar_du_writeback_setup().
+
+> > +
+> >  	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe, &cfg);
+> >  }
+> >  
+
+[snip]
+
 -- 
-2.11.0
+Regards,
 
+Laurent Pinchart
