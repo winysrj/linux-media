@@ -2,99 +2,131 @@ Return-Path: <SRS0=adTL=RQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E165C43381
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 14:59:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 986FDC43381
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:31:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 52FEE20854
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 14:59:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75B6220693
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725889AbfCMO7X (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 10:59:23 -0400
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46088 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725832AbfCMO7X (ORCPT
+        id S1726033AbfCMPbh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 11:31:37 -0400
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:41917 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725856AbfCMPbg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 10:59:23 -0400
-Received: from [IPv6:2001:420:44c1:2579:e8a7:494:d652:7065] ([IPv6:2001:420:44c1:2579:e8a7:494:d652:7065])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id 45LihlVTS4HFn45LlhPsm5; Wed, 13 Mar 2019 15:59:22 +0100
-Subject: Re: [PATCH v5 03/23] cedrus: set requires_requests
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Dafna Hirschfeld <dafna3@gmail.com>,
-        linux-media@vger.kernel.org
-Cc:     helen.koike@collabora.com, Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-References: <20190306211343.15302-1-dafna3@gmail.com>
- <20190306211343.15302-4-dafna3@gmail.com>
- <87eee8a06fba3882cbba472922d81cfeecd0c950.camel@bootlin.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <37ad8e24-c79c-ed76-76fb-9cc2755a37b9@xs4all.nl>
-Date:   Wed, 13 Mar 2019 15:59:18 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Wed, 13 Mar 2019 11:31:36 -0400
+X-Originating-IP: 90.88.22.102
+Received: from localhost (aaubervilliers-681-1-80-102.w90-88.abo.wanadoo.fr [90.88.22.102])
+        (Authenticated sender: maxime.ripard@bootlin.com)
+        by relay7-d.mail.gandi.net (Postfix) with ESMTPSA id 188DB2001C;
+        Wed, 13 Mar 2019 15:31:30 +0000 (UTC)
+Date:   Wed, 13 Mar 2019 16:31:30 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Tomasz Figa <tfiga@chromium.org>
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        jenskuske@gmail.com, Jernej Skrabec <jernej.skrabec@gmail.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Subject: Re: [PATCH v5 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
+Message-ID: <20190313153130.hnp5eybcgjm34i4n@flea>
+References: <cover.f011581516bfe7650c9d4c6054bb828e6227e309.1551964740.git-series.maxime.ripard@bootlin.com>
+ <1d374e71ffcc396b71461ea916cac3d957f8d86c.1551964740.git-series.maxime.ripard@bootlin.com>
+ <CAAFQd5AKXz5QmqnSEkChf8DqPkhEuUQg--q9dZKPmB1kBR1hzA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <87eee8a06fba3882cbba472922d81cfeecd0c950.camel@bootlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfKYT+mdXvvXHf2oJMn4zflYbk7MqUI6BopvLBtJlnfyI+td8ECZU/t4wMsYQnAB0hKFzTsnRJOABM8VdKz86cSebPeL6elr5nilf8TCYy/ZiE4BYlcbG
- /H3ryZwGcw3+0jxoz6GoKhZW4WLAXF7Gb44n1ozfhWQccoDRx0NQx3hB0t1ny8avr5yQlafkbd/dO34KP7Ntr08tnzSMoC27VBC1LQI6mu2vyH64Fp4pzJjP
- Ar7toppd0ZyG2vrnVwpkRCVLdAS90x/GpY1bxHqO6YxmwZJxeNV/Jeu/kWy8eugeOYYf2J9ohRTSVhaPYwI1oLfVbdYSoRG+2aomWqjJC1nKupBQQVMD4Mih
- 2qSxBt4T4DfXYWgLkiFR63DEJNDUx5UPR+28RdjFXcjSxmcDLwHqyJotoWXX8ys+jqM2ZInWIoT7hczh6UM1SWibi3/Gsrab1CuBgchFOhgxxj9ghS4=
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ajdvt5cmol7qlvjq"
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5AKXz5QmqnSEkChf8DqPkhEuUQg--q9dZKPmB1kBR1hzA@mail.gmail.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 3/12/19 4:32 PM, Paul Kocialkowski wrote:
-> Hi,
-> 
-> On Wed, 2019-03-06 at 13:13 -0800, Dafna Hirschfeld wrote:
->> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->>
->> The cedrus stateless decoder requires the use of request, so
->> indicate this by setting requires_requests to 1.
->>
->> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> 
-> Note that this is true for now, but we might need to get rid of the
-> flag when adding support for decoding JPEG, which may not require the
-> request API.
 
-I thought about this some more, and the flag can just be set or cleared
-whenever a new format is set. I.e. when JPEG is selected, then both the
-supports_requests and requires_requests flags can be set to false, and
-set to true again when a non-JPEG format is set.
+--ajdvt5cmol7qlvjq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi Tomasz,
 
-	Hans
+On Fri, Mar 08, 2019 at 03:12:18PM +0900, Tomasz Figa wrote:
+> > +.. _v4l2-mpeg-h264:
+> > +
+> > +``V4L2_CID_MPEG_VIDEO_H264_SPS (struct)``
+> > +    Specifies the sequence parameter set (as extracted from the
+> > +    bitstream) for the associated H264 slice data. This includes the
+> > +    necessary parameters for configuring a stateless hardware decoding
+> > +    pipeline for H264.  The bitstream parameters are defined according
+> > +    to :ref:`h264`. Unless there's a specific comment, refer to the
+> > +    specification for the documentation of these fields, section 7.4.2=
+=2E1.1
+> > +    "Sequence Parameter Set Data Semantics".
+>=20
+> I don't see this section being added by this patch. Where does it come fr=
+om?
 
-> 
-> Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> 
-> Cheers,
-> 
-> Paul
-> 
->> ---
->>  drivers/staging/media/sunxi/cedrus/cedrus_video.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_video.c b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
->> index b47854b3bce4..9673874ece10 100644
->> --- a/drivers/staging/media/sunxi/cedrus/cedrus_video.c
->> +++ b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
->> @@ -536,6 +536,7 @@ int cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
->>  	src_vq->lock = &ctx->dev->dev_mutex;
->>  	src_vq->dev = ctx->dev->dev;
->>  	src_vq->supports_requests = true;
->> +	src_vq->requires_requests = true;
->>  
->>  	ret = vb2_queue_init(src_vq);
->>  	if (ret)
+This is referring to the the H264 spec itself, as I was trying to
+point out with the reference in that paragraph. How would you write
+this down to make it more obvious?
 
+> > +.. c:type:: v4l2_ctrl_h264_decode_param
+> > +
+> > +.. cssclass:: longtable
+> > +
+> > +.. flat-table:: struct v4l2_ctrl_h264_decode_param
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +    :widths:       1 1 2
+> > +
+> > +    * - __u32
+> > +      - ``num_slices``
+> > +      - Number of slices needed to decode the current frame
+> > +    * - __u16
+> > +      - ``idr_pic_flag``
+> > +      - Is the picture an IDR picture?
+>=20
+> Sounds like this could be made a flag to be consistent with how this
+> kind of fields are represented in the other structs.
+
+I'll change that, thanks!
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--ajdvt5cmol7qlvjq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXIkiUgAKCRDj7w1vZxhR
+xavfAP9bhwdJ2wUQuKw5TknAoBpc78H/fFPXVIjzIJB9zLWosAD+LGJ77nFYbr6A
+GbMjIdwf9GK8AmGTtx8y3/M3koyr9A4=
+=AolL
+-----END PGP SIGNATURE-----
+
+--ajdvt5cmol7qlvjq--
