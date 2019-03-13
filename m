@@ -3,143 +3,98 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3EFC43381
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:10:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4C0C43381
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:17:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D653F2070D
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:10:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD9132146E
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726717AbfCMVKz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 17:10:55 -0400
-Received: from mout.kundenserver.de ([212.227.126.187]:54921 "EHLO
+        id S1727391AbfCMVR3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 17:17:29 -0400
+Received: from mout.kundenserver.de ([212.227.17.24]:37893 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726125AbfCMVKz (ORCPT
+        with ESMTP id S1726994AbfCMVR3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 17:10:55 -0400
+        Wed, 13 Mar 2019 17:17:29 -0400
 Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
- (mreue011 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1Mw9Dg-1gnkgq23iW-00sAMA; Wed, 13 Mar 2019 22:10:44 +0100
+ (mreue107 [212.227.15.145]) with ESMTPA (Nemesis) id
+ 1MKszj-1hKLaP2FXZ-00LAnW; Wed, 13 Mar 2019 22:17:12 +0100
 From:   Arnd Bergmann <arnd@arndb.de>
 To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ioannis Valasakis <code@wizofe.uk>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: davinci_vpfe: fix large stack usage with clang
-Date:   Wed, 13 Mar 2019 22:10:29 +0100
-Message-Id: <20190313211042.4131426-1-arnd@arndb.de>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Kees Cook <keescook@chromium.org>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Sean Young <sean@mess.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: dib0700: fix link error for dibx000_i2c_set_speed
+Date:   Wed, 13 Mar 2019 22:16:53 +0100
+Message-Id: <20190313211709.486583-1-arnd@arndb.de>
 X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:lkFtZ02KwH1msqPwqlwjI46jemgyHH4J05FGQBctqc9zB0J5Fpf
- ueQ1nCWMGBXusl6ENO51MeoDfU1x+klPcSsfb6ob4hotfYvu34ODl8XcmT69yLjtT7dz9nE
- Uyl35RDH2FXDUsQmxaLDtwDKXxaOMDcbOjXjR8IcAkGDUPArpWLW6A0V8JIzsezlsxa+jEl
- 2IdrDcKmAWOsex4E9LGfA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:pwev2Tadjn0=:kXoQG77WPUw0wtSKyiRJyx
- UBeXoUaPnJEfItRBtPix+6f4HYQyF/L5Mi3rEPaXkZDDPaVkwNsbC8hxKlVGbfWL2ycgdIIJ7
- hascc3qSaM9r8J1e1Bx13GfrfSVQkM54TrYYxOfEVc3hdEgNak1s9tTdNh8wZz+3TdI1/jAYj
- byYmZJvpMcx1pNmKzvyypHZUQVdZWsmOVlyZ9YW7Oo0rbOFGEv/reNMO6p7b33YE4tIoetfAA
- 0r9oyLf/eN4chRMVDORNIt3sSznvvAf4s9LIDNMdBkspQ23L9DBRdbsTTArLfy97K6VPm3KER
- rUmAIZJP01U5ATPuNP09T7ARsty5/M5Zr9/Ut7ecayuI/VAJK7eQwiQwqr5fW5OyMhyo6GdAg
- PU3Lt7rCetSCVituhBCzNPP7TvpCzleXAgdUBmDgHKThRkyOSQmu25eg5oLGTIuqqfdLBAOxR
- /W2nNKhHatwe7A3WVSn0aKWJ1vaoX/syS0H0zZjyS0uW0+B5LoCFVH25pWte6n8ZYNSSLxUpX
- RZj6HCDPq8dSm8IHlBvq7I4EPSNasC9013H2nxXK972SuwHDN5O+GusAlbWGRtvBjGO4HH1Lm
- uKUrQH6r2gZ8Rwr9xtp9/Gzc27OJVGnqoWHV6gFdJKPKkXwRjwIjfLneG2aJMCMRL1zFsbJ9e
- DFkQxfKYBY7ll7bt6yWBJLKB961NcRRCtWJj20GrbBovImUx6VvZiJX4Wudq0ci6Nw/B8U4RN
- y15fgjUGpqVaDTgKd6S/hml8y9TKhYi67TsnCg==
+X-Provags-ID: V03:K1:RMZUATCnG99VGNTOjTvIXdQyLvNkz779PJ7UrqeFNzigEIq+XwK
+ Qrc6xpWdDA7wT+UmwrzUKSZRnr2COE43+K9gx88kdhsyao2GaMmqT/2zdkJ2hdADapTs8EJ
+ 7fiIyKVesw08XrNlHPQK9VL/vSLQ8mFRb4+K+0RMvweguTrKO6gZhfWcoHBGucKi89fCQtm
+ kJ7qj6msl9N/5LFnFHEJA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:2JM+skA71oo=:jff/z63rLEksqJkilsE1E4
+ G/WhGLSSjPQKPI7S6zH8ujmEB/FqRKFp4TGo3U0bNCzmlErRCvYvyzCYgvAjLgWZNPgIaSEoX
+ 8bhKHOXapS2bG8DufigK8+LTE6zahP7L6lwl+fBUoxeR1CluEGWIKdR2E0GcKQLFzv8/b2rO6
+ JKhE6eVWGsGNaaoTt9osgDGEf1ZDQtr6YkCUkiEudoEyc2JwkX8N9j6Et/RiTyhzPrLpC6bye
+ o0E6hmKgsF/16HOFDDb0mGpbgd7bKhOum2FMnZVF7ZVhB/eePtMLIdNe/hcJ8SsTwYYKqE5m6
+ 5tVExEz4UqUMEIAMm6TCPcOBDBOqttwlNFfgun55TkUBqW3t32IJrUE8UbqflyT9zFdFwL+vb
+ Pg+5ahKGyVXlDIcwtNoAawhfU+ugrH4nVs6t8X+YEeqYD9rCqLX+uJr33M68BPJr7qyun0Mx1
+ qJj+gJluKR3Keqo7u8ySxHvaAfhBc5ofopA7TniAPYPL3gBmZcmYD0HGCbJ8zRnM+30af6QMR
+ FrhAy1YUmss/rXM07FNQL8KamnOR60QNuppXaTwS1GwXaehWImtSuveLwzIOtY31NU03tGFyB
+ j70fPQ23Co4gGjLCnfuaVpz8FyWbU0d8ye8QdNxS+L2jqVz31i6jDFz8Xheiclf74yGReKpfN
+ poTJGI8u+bwqw6qC8fB38q1DGeNqUvg+8fLC+fsbCr9Qtjg3AVUFW2PprSPmA8OFs4Uk8docP
+ tjGgNXeDN4tkEYcP5jsPa6G8ihKaj75kDxZAKg==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-clang is unable to optimize the isif_ioctl() in the same way that
-gcc does, as it fails to prove that the local copy of
-the 'struct vpfe_isif_raw_config' argument is unnecessary:
+When CONFIG_DVB_DIB9000 is disabled, we can still compile code that
+now fails to link against dibx000_i2c_set_speed:
 
-drivers/staging/media/davinci_vpfe/dm365_isif.c:622:13: error: stack frame size of 1344 bytes in function 'isif_ioctl' [-Werror,-Wframe-larger-than=]
+drivers/media/usb/dvb-usb/dib0700_devices.o: In function `dib01x0_pmu_update.constprop.7':
+dib0700_devices.c:(.text.unlikely+0x1c9c): undefined reference to `dibx000_i2c_set_speed'
 
-Marking it as 'const' while passing the data down clearly shows us that
-the copy is never modified, and we can skip copying it entirely, which
-reduces the stack usage to just eight bytes.
+The call sites are both through dib01x0_pmu_update(), which gets
+passed an 'i2c' pointer from dib9000_get_i2c_master(), which has
+returned NULL. Checking this pointer seems to be a good idea
+anyway, and it avoids the link failure.
 
+Fixes: b7f54910ce01 ("V4L/DVB (4647): Added module for DiB0700 based devices")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- .../staging/media/davinci_vpfe/dm365_isif.c   | 20 +++++++++----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-index 0a6d038fcec9..46fd8184fc77 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-@@ -433,9 +433,9 @@ static int isif_get_params(struct v4l2_subdev *sd, void *params)
- 	return 0;
- }
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 9311f7d4bba5..4cbc64ea17d7 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -2445,6 +2445,8 @@ static int dib9090_tuner_attach(struct dvb_usb_adapter *adap)
+ 	if (dvb_attach(dib0090_fw_register, adap->fe_adap[0].fe, i2c, &dib9090_dib0090_config) == NULL)
+ 		return -ENODEV;
+ 	i2c = dib9000_get_i2c_master(adap->fe_adap[0].fe, DIBX000_I2C_INTERFACE_GPIO_1_2, 0);
++	if (!i2c)
++		return -ENODEV;
+ 	if (dib01x0_pmu_update(i2c, data_dib190, 10) != 0)
+ 		return -ENODEV;
+ 	dib0700_set_i2c_speed(adap->dev, 1500);
+@@ -2524,6 +2526,8 @@ static int nim9090md_tuner_attach(struct dvb_usb_adapter *adap)
+ 	if (dvb_attach(dib0090_fw_register, adap->fe_adap[0].fe, i2c, &nim9090md_dib0090_config[0]) == NULL)
+ 		return -ENODEV;
+ 	i2c = dib9000_get_i2c_master(adap->fe_adap[0].fe, DIBX000_I2C_INTERFACE_GPIO_1_2, 0);
++	if (!i2c)
++		return -ENODEV;
+ 	if (dib01x0_pmu_update(i2c, data_dib190, 10) < 0)
+ 		return -ENODEV;
  
--static int isif_validate_df_csc_params(struct vpfe_isif_df_csc *df_csc)
-+static int isif_validate_df_csc_params(const struct vpfe_isif_df_csc *df_csc)
- {
--	struct vpfe_isif_color_space_conv *csc;
-+	const struct vpfe_isif_color_space_conv *csc;
- 	int err = -EINVAL;
- 	int i;
- 
-@@ -481,7 +481,7 @@ static int isif_validate_df_csc_params(struct vpfe_isif_df_csc *df_csc)
- #define DM365_ISIF_MAX_DFCMEM0		0x1fff
- #define DM365_ISIF_MAX_DFCMEM1		0x1fff
- 
--static int isif_validate_dfc_params(struct vpfe_isif_dfc *dfc)
-+static int isif_validate_dfc_params(const struct vpfe_isif_dfc *dfc)
- {
- 	int err = -EINVAL;
- 	int i;
-@@ -532,7 +532,7 @@ static int isif_validate_dfc_params(struct vpfe_isif_dfc *dfc)
- #define DM365_ISIF_MAX_CLVSV			0x1fff
- #define DM365_ISIF_MAX_HEIGHT_BLACK_REGION	0x1fff
- 
--static int isif_validate_bclamp_params(struct vpfe_isif_black_clamp *bclamp)
-+static int isif_validate_bclamp_params(const struct vpfe_isif_black_clamp *bclamp)
- {
- 	int err = -EINVAL;
- 
-@@ -580,7 +580,7 @@ static int isif_validate_bclamp_params(struct vpfe_isif_black_clamp *bclamp)
- }
- 
- static int
--isif_validate_raw_params(struct vpfe_isif_raw_config *params)
-+isif_validate_raw_params(const struct vpfe_isif_raw_config *params)
- {
- 	int ret;
- 
-@@ -593,20 +593,18 @@ isif_validate_raw_params(struct vpfe_isif_raw_config *params)
- 	return isif_validate_bclamp_params(&params->bclamp);
- }
- 
--static int isif_set_params(struct v4l2_subdev *sd, void *params)
-+static int isif_set_params(struct v4l2_subdev *sd, const struct vpfe_isif_raw_config *params)
- {
- 	struct vpfe_isif_device *isif = v4l2_get_subdevdata(sd);
--	struct vpfe_isif_raw_config isif_raw_params;
- 	int ret = -EINVAL;
- 
- 	/* only raw module parameters can be set through the IOCTL */
- 	if (isif->formats[ISIF_PAD_SINK].code != MEDIA_BUS_FMT_SGRBG12_1X12)
- 		return ret;
- 
--	memcpy(&isif_raw_params, params, sizeof(isif_raw_params));
--	if (!isif_validate_raw_params(&isif_raw_params)) {
--		memcpy(&isif->isif_cfg.bayer.config_params, &isif_raw_params,
--			sizeof(isif_raw_params));
-+	if (!isif_validate_raw_params(params)) {
-+		memcpy(&isif->isif_cfg.bayer.config_params, params,
-+			sizeof(*params));
- 		ret = 0;
- 	}
- 	return ret;
 -- 
 2.20.0
 
