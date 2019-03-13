@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BF6FC4360F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79445C43381
 	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:06:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12B952177E
+	by mail.kernel.org (Postfix) with ESMTP id 498B1217F4
 	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:06:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="JF0ZnF0N"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="eSTi5iob"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727469AbfCMAGB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 20:06:01 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42062 "EHLO
+        id S1727452AbfCMAGA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 20:06:00 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42054 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727315AbfCMAF7 (ORCPT
+        with ESMTP id S1726971AbfCMAF6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 20:05:59 -0400
+        Tue, 12 Mar 2019 20:05:58 -0400
 Received: from pendragon.bb.dnainternet.fi (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EB66433C;
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 252B59E5;
         Wed, 13 Mar 2019 01:05:52 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552435553;
-        bh=3kwtNxhh66XnvzCIFHxRiWXrQ5907zNY7PvbMUM3XXg=;
+        s=mail; t=1552435552;
+        bh=yfE2KNDjlDPMKSnmLmFhTXuTqMzrzTxl0sL5vZ/jyhY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JF0ZnF0NYNZU0HgZMcgg2JLceqC10TSXAF+4h455j10H8pvUvARBNbqV9SI2lhADp
-         lPQmbbqX9dig2AXiZSWQNcFo1lwqbmFYe9t8v69CbV1aDVgSr+DoOSp9wQ0+AZP1Fv
-         /DPSJY8XLd1bFuwKm5a8uY3KrniDcJRJ7SMIDZzs=
+        b=eSTi5iobdBYXlQPvAzWvNNSDcHkYW+IVxssml9IXNqKfj8UGRY1N7FhNG4iPi9W/N
+         9DHxl9cgSCIrllyjXxgj4t1FlfXoQzXne9X97MdvNrjkEykiLjCEsUmZwA4/01hTGl
+         dNRrkNtFsMuMjc2Jw/QTLaGuwYdWtB4prGUoOpDA=
 From:   Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To:     dri-devel@lists.freedesktop.org
 Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Liviu Dudau <Liviu.Dudau@arm.com>,
         Brian Starkey <brian.starkey@arm.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v6 14/18] drm: writeback: Add job prepare and cleanup operations
-Date:   Wed, 13 Mar 2019 02:05:28 +0200
-Message-Id: <20190313000532.7087-15-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v6 13/18] drm: writeback: Fix leak of writeback job
+Date:   Wed, 13 Mar 2019 02:05:27 +0200
+Message-Id: <20190313000532.7087-14-laurent.pinchart+renesas@ideasonboard.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
 References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
@@ -51,290 +51,89 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-As writeback jobs contain a framebuffer, drivers may need to prepare and
-cleanup them the same way they can prepare and cleanup framebuffers for
-planes. Add two new optional connector helper operations,
-.prepare_writeback_job() and .cleanup_writeback_job() to support this.
+Writeback jobs are allocated when the WRITEBACK_FB_ID is set, and
+deleted when the jobs complete. This results in both a memory leak of
+the job and a leak of the framebuffer if the atomic commit returns
+before the job is queued for processing, for instance if the atomic
+check fails or if the commit runs in test-only mode.
 
-The job prepare operation is called from
-drm_atomic_helper_prepare_planes() to avoid a new atomic commit helper
-that would need to be called by all drivers not using
-drm_atomic_helper_commit(). The job cleanup operation is called from the
-existing drm_writeback_cleanup_job() function, invoked both when
-destroying the job as part of a aborted commit, or when the job
-completes.
+Fix this by implementing the drm_writeback_cleanup_job() function and
+calling it from __drm_atomic_helper_connector_destroy_state(). As
+writeback jobs are removed from the state when they're queued for
+processing, any job left in the state when the state gets destroyed
+needs to be cleaned up.
 
-The drm_writeback_job structure is extended with a priv field to let
-drivers store per-job data, such as mappings related to the writeback
-framebuffer.
-
-For internal plumbing reasons the drm_writeback_job structure needs to
-store a back-pointer to the drm_writeback_connector. To avoid pushing
-too much writeback-specific knowledge to drm_atomic_uapi.c, create a
-drm_writeback_set_fb() function, move the writeback job setup code
-there, and set the connector backpointer. The prepare_signaling()
-function doesn't need to allocate writeback jobs and can ignore
-connectors without a job, as it is called after the writeback jobs are
-allocated to store framebuffers, and a writeback fence with a
-framebuffer is an invalid configuration that gets rejected by the commit
-check.
+The existing declaration of the drm_writeback_cleanup_job() function
+without an implementation hints that this problem was considered, but
+never addressed.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Brian Starkey <brian.starkey@arm.com>
+Acked-by: Liviu Dudau <liviu.dudau@arm.com>
 ---
 Changes since v5:
 
-- Export drm_writeback_prepare_job()
-- Check for .prepare_writeback_job() in drm_writeback_prepare_job()
+- Export drm_writeback_cleanup_job()
 ---
- drivers/gpu/drm/drm_atomic_helper.c      | 11 ++++++
- drivers/gpu/drm/drm_atomic_uapi.c        | 31 +++++------------
- drivers/gpu/drm/drm_writeback.c          | 44 ++++++++++++++++++++++++
- include/drm/drm_modeset_helper_vtables.h |  7 ++++
- include/drm/drm_writeback.h              | 28 ++++++++++++++-
- 5 files changed, 97 insertions(+), 24 deletions(-)
+ drivers/gpu/drm/drm_atomic_state_helper.c |  4 ++++
+ drivers/gpu/drm/drm_writeback.c           | 14 +++++++++++---
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
-index 6fe2303fccd9..70a4886c6e65 100644
---- a/drivers/gpu/drm/drm_atomic_helper.c
-+++ b/drivers/gpu/drm/drm_atomic_helper.c
-@@ -2245,10 +2245,21 @@ EXPORT_SYMBOL(drm_atomic_helper_commit_cleanup_done);
- int drm_atomic_helper_prepare_planes(struct drm_device *dev,
- 				     struct drm_atomic_state *state)
- {
-+	struct drm_connector *connector;
-+	struct drm_connector_state *new_conn_state;
- 	struct drm_plane *plane;
- 	struct drm_plane_state *new_plane_state;
- 	int ret, i, j;
+diff --git a/drivers/gpu/drm/drm_atomic_state_helper.c b/drivers/gpu/drm/drm_atomic_state_helper.c
+index 4985384e51f6..59ffb6b9c745 100644
+--- a/drivers/gpu/drm/drm_atomic_state_helper.c
++++ b/drivers/gpu/drm/drm_atomic_state_helper.c
+@@ -30,6 +30,7 @@
+ #include <drm/drm_connector.h>
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_device.h>
++#include <drm/drm_writeback.h>
  
-+	for_each_new_connector_in_state(state, connector, new_conn_state, i) {
-+		if (!new_conn_state->writeback_job)
-+			continue;
-+
-+		ret = drm_writeback_prepare_job(new_conn_state->writeback_job);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
- 	for_each_new_plane_in_state(state, plane, new_plane_state, i) {
- 		const struct drm_plane_helper_funcs *funcs;
+ #include <linux/slab.h>
+ #include <linux/dma-fence.h>
+@@ -412,6 +413,9 @@ __drm_atomic_helper_connector_destroy_state(struct drm_connector_state *state)
  
-diff --git a/drivers/gpu/drm/drm_atomic_uapi.c b/drivers/gpu/drm/drm_atomic_uapi.c
-index c40889888a16..e802152a01ad 100644
---- a/drivers/gpu/drm/drm_atomic_uapi.c
-+++ b/drivers/gpu/drm/drm_atomic_uapi.c
-@@ -647,28 +647,15 @@ drm_atomic_plane_get_property(struct drm_plane *plane,
- 	return 0;
+ 	if (state->commit)
+ 		drm_crtc_commit_put(state->commit);
++
++	if (state->writeback_job)
++		drm_writeback_cleanup_job(state->writeback_job);
  }
+ EXPORT_SYMBOL(__drm_atomic_helper_connector_destroy_state);
  
--static struct drm_writeback_job *
--drm_atomic_get_writeback_job(struct drm_connector_state *conn_state)
--{
--	WARN_ON(conn_state->connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK);
--
--	if (!conn_state->writeback_job)
--		conn_state->writeback_job =
--			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
--
--	return conn_state->writeback_job;
--}
--
- static int drm_atomic_set_writeback_fb_for_connector(
- 		struct drm_connector_state *conn_state,
- 		struct drm_framebuffer *fb)
- {
--	struct drm_writeback_job *job =
--		drm_atomic_get_writeback_job(conn_state);
--	if (!job)
--		return -ENOMEM;
-+	int ret;
- 
--	drm_framebuffer_assign(&job->fb, fb);
-+	ret = drm_writeback_set_fb(conn_state, fb);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (fb)
- 		DRM_DEBUG_ATOMIC("Set [FB:%d] for connector state %p\n",
-@@ -1158,19 +1145,17 @@ static int prepare_signaling(struct drm_device *dev,
- 
- 	for_each_new_connector_in_state(state, conn, conn_state, i) {
- 		struct drm_writeback_connector *wb_conn;
--		struct drm_writeback_job *job;
- 		struct drm_out_fence_state *f;
- 		struct dma_fence *fence;
- 		s32 __user *fence_ptr;
- 
-+		if (!conn_state->writeback_job)
-+			continue;
-+
- 		fence_ptr = get_out_fence_for_connector(state, conn);
- 		if (!fence_ptr)
- 			continue;
- 
--		job = drm_atomic_get_writeback_job(conn_state);
--		if (!job)
--			return -ENOMEM;
--
- 		f = krealloc(*fence_state, sizeof(**fence_state) *
- 			     (*num_fences + 1), GFP_KERNEL);
- 		if (!f)
-@@ -1192,7 +1177,7 @@ static int prepare_signaling(struct drm_device *dev,
- 			return ret;
- 		}
- 
--		job->out_fence = fence;
-+		conn_state->writeback_job->out_fence = fence;
- 	}
- 
- 	/*
 diff --git a/drivers/gpu/drm/drm_writeback.c b/drivers/gpu/drm/drm_writeback.c
-index 1b497d3530b5..79ac014701c8 100644
+index 338b993d7c9f..1b497d3530b5 100644
 --- a/drivers/gpu/drm/drm_writeback.c
 +++ b/drivers/gpu/drm/drm_writeback.c
-@@ -239,6 +239,43 @@ int drm_writeback_connector_init(struct drm_device *dev,
+@@ -273,6 +273,15 @@ void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
  }
- EXPORT_SYMBOL(drm_writeback_connector_init);
+ EXPORT_SYMBOL(drm_writeback_queue_job);
  
-+int drm_writeback_set_fb(struct drm_connector_state *conn_state,
-+			 struct drm_framebuffer *fb)
++void drm_writeback_cleanup_job(struct drm_writeback_job *job)
 +{
-+	WARN_ON(conn_state->connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK);
++	if (job->fb)
++		drm_framebuffer_put(job->fb);
 +
-+	if (!conn_state->writeback_job) {
-+		conn_state->writeback_job =
-+			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
-+		if (!conn_state->writeback_job)
-+			return -ENOMEM;
-+
-+		conn_state->writeback_job->connector =
-+			drm_connector_to_writeback(conn_state->connector);
-+	}
-+
-+	drm_framebuffer_assign(&conn_state->writeback_job->fb, fb);
-+	return 0;
++	kfree(job);
 +}
++EXPORT_SYMBOL(drm_writeback_cleanup_job);
 +
-+int drm_writeback_prepare_job(struct drm_writeback_job *job)
-+{
-+	struct drm_writeback_connector *connector = job->connector;
-+	const struct drm_connector_helper_funcs *funcs =
-+		connector->base.helper_private;
-+	int ret;
-+
-+	if (funcs->prepare_writeback_job) {
-+		ret = funcs->prepare_writeback_job(connector, job);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	job->prepared = true;
-+	return 0;
+ /*
+  * @cleanup_work: deferred cleanup of a writeback job
+  *
+@@ -285,10 +294,9 @@ static void cleanup_work(struct work_struct *work)
+ 	struct drm_writeback_job *job = container_of(work,
+ 						     struct drm_writeback_job,
+ 						     cleanup_work);
+-	drm_framebuffer_put(job->fb);
+-	kfree(job);
+-}
+ 
++	drm_writeback_cleanup_job(job);
 +}
-+EXPORT_SYMBOL(drm_writeback_prepare_job);
-+
- /**
-  * drm_writeback_queue_job - Queue a writeback job for later signalling
-  * @wb_connector: The writeback connector to queue a job on
-@@ -275,6 +312,13 @@ EXPORT_SYMBOL(drm_writeback_queue_job);
- 
- void drm_writeback_cleanup_job(struct drm_writeback_job *job)
- {
-+	struct drm_writeback_connector *connector = job->connector;
-+	const struct drm_connector_helper_funcs *funcs =
-+		connector->base.helper_private;
-+
-+	if (job->prepared && funcs->cleanup_writeback_job)
-+		funcs->cleanup_writeback_job(connector, job);
-+
- 	if (job->fb)
- 		drm_framebuffer_put(job->fb);
- 
-diff --git a/include/drm/drm_modeset_helper_vtables.h b/include/drm/drm_modeset_helper_vtables.h
-index 61142aa0ab23..73d03fe66799 100644
---- a/include/drm/drm_modeset_helper_vtables.h
-+++ b/include/drm/drm_modeset_helper_vtables.h
-@@ -49,6 +49,8 @@
-  */
- 
- enum mode_set_atomic;
-+struct drm_writeback_connector;
-+struct drm_writeback_job;
  
  /**
-  * struct drm_crtc_helper_funcs - helper operations for CRTCs
-@@ -989,6 +991,11 @@ struct drm_connector_helper_funcs {
- 	 */
- 	void (*atomic_commit)(struct drm_connector *connector,
- 			      struct drm_connector_state *state);
-+
-+	int (*prepare_writeback_job)(struct drm_writeback_connector *connector,
-+				     struct drm_writeback_job *job);
-+	void (*cleanup_writeback_job)(struct drm_writeback_connector *connector,
-+				      struct drm_writeback_job *job);
- };
- 
- /**
-diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
-index 47662c362743..777c14c847f0 100644
---- a/include/drm/drm_writeback.h
-+++ b/include/drm/drm_writeback.h
-@@ -79,6 +79,20 @@ struct drm_writeback_connector {
- };
- 
- struct drm_writeback_job {
-+	/**
-+	 * @connector:
-+	 *
-+	 * Back-pointer to the writeback connector associated with the job
-+	 */
-+	struct drm_writeback_connector *connector;
-+
-+	/**
-+	 * @prepared:
-+	 *
-+	 * Set when the job has been prepared with drm_writeback_prepare_job()
-+	 */
-+	bool prepared;
-+
- 	/**
- 	 * @cleanup_work:
- 	 *
-@@ -98,7 +112,7 @@ struct drm_writeback_job {
- 	 * @fb:
- 	 *
- 	 * Framebuffer to be written to by the writeback connector. Do not set
--	 * directly, use drm_atomic_set_writeback_fb_for_connector()
-+	 * directly, use drm_writeback_set_fb()
- 	 */
- 	struct drm_framebuffer *fb;
- 
-@@ -108,6 +122,13 @@ struct drm_writeback_job {
- 	 * Fence which will signal once the writeback has completed
- 	 */
- 	struct dma_fence *out_fence;
-+
-+	/**
-+	 * @priv:
-+	 *
-+	 * Driver-private data
-+	 */
-+	void *priv;
- };
- 
- static inline struct drm_writeback_connector *
-@@ -122,6 +143,11 @@ int drm_writeback_connector_init(struct drm_device *dev,
- 				 const struct drm_encoder_helper_funcs *enc_helper_funcs,
- 				 const u32 *formats, int n_formats);
- 
-+int drm_writeback_set_fb(struct drm_connector_state *conn_state,
-+			 struct drm_framebuffer *fb);
-+
-+int drm_writeback_prepare_job(struct drm_writeback_job *job);
-+
- void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
- 			     struct drm_connector_state *conn_state);
- 
+  * drm_writeback_signal_completion - Signal the completion of a writeback job
 -- 
 Regards,
 
