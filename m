@@ -4,43 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C246FC43381
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87DB8C10F00
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:05:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 924E3217D9
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:05:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58F0F214AE
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:05:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="eiaSK4XH"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="l2FGixrt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726960AbfCMAFs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 20:05:48 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42054 "EHLO
+        id S1726976AbfCMAFu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 20:05:50 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42062 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726571AbfCMAFr (ORCPT
+        with ESMTP id S1726581AbfCMAFt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 20:05:47 -0400
+        Tue, 12 Mar 2019 20:05:49 -0400
 Received: from pendragon.bb.dnainternet.fi (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id E493997F;
-        Wed, 13 Mar 2019 01:05:43 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 765D99BC;
+        Wed, 13 Mar 2019 01:05:45 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552435544;
-        bh=2j8OdR+H6+aPQbIwq6Sj0C4PAxEcp3yjTvTbiQB0rfY=;
+        s=mail; t=1552435546;
+        bh=u09heQYq+C7zTmzZNVRQ2mIAGrvh95La/wGQkjWJxiw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eiaSK4XH5Z+J1tYfXmDPNSCea+0rWXKwSPvLMPmB4qvO5dFrisy2ps989J8qHbsKI
-         HbF/1zNloq76Uabp3+a2LET0Dfxw8kI61MaqjRlvJqpg50xCBKPhpX6SEcSe6rR+sq
-         UmQzHUrms42h0D5UzhqTUZQ49kl4Y8cuMf96To84=
+        b=l2FGixrtJfNmLqrRnPzsL5rzz2tNkzZ/QkcLGUa30Y4thRBLQFBYDqAGMa8sR/zkP
+         0b91NCtkpkuJ7neMpu6Squ1iEHbvHX44JCNk1yy4nvX4lE+tgP589kNE6ak1EHBhgA
+         LNUTOpMNmf8xcoogkVh/6/7tLPFLXYXn0xblmbZA=
 From:   Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To:     dri-devel@lists.freedesktop.org
 Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Liviu Dudau <Liviu.Dudau@arm.com>,
         Brian Starkey <brian.starkey@arm.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v6 02/18] media: vsp1: wpf: Fix partition configuration for display pipelines
-Date:   Wed, 13 Mar 2019 02:05:16 +0200
-Message-Id: <20190313000532.7087-3-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v6 04/18] media: vsp1: Fix addresses of display-related registers for VSP-DL
+Date:   Wed, 13 Mar 2019 02:05:18 +0200
+Message-Id: <20190313000532.7087-5-laurent.pinchart+renesas@ideasonboard.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
 References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
@@ -51,75 +51,74 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-When configuring partitions for memory-to-memory pipelines, the WPF
-accesses data of the current partition through pipe->partition.
-Writeback support will require full configuration of the WPF while not
-providing a valid pipe->partition. Rework the configuration code to fall
-back to the full image width in that case, as is already done for the
-part of the configuration currently relevant for display pipelines.
+The VSP-DL instances have two LIFs, and thus two copies of the
+VI6_DISP_IRQ_ENB, VI6_DISP_IRQ_STA and VI6_WPF_WRBCK_CTRL registers. Fix
+the corresponding macros accordingly.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/platform/vsp1/vsp1_wpf.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/media/platform/vsp1/vsp1_drm.c  | 4 ++--
+ drivers/media/platform/vsp1/vsp1_regs.h | 6 +++---
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 8d86f618ec77..048190fd3a2d 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -700,8 +700,8 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	drm_pipe->du_private = cfg->callback_data;
+ 
+ 	/* Disable the display interrupts. */
+-	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
+-	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
++	vsp1_write(vsp1, VI6_DISP_IRQ_STA(pipe_index), 0);
++	vsp1_write(vsp1, VI6_DISP_IRQ_ENB(pipe_index), 0);
+ 
+ 	/* Configure all entities in the pipeline. */
+ 	vsp1_du_pipeline_configure(pipe);
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index f6e4157095cc..1bb1d39c60d9 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -39,12 +39,12 @@
+ #define VI6_WFP_IRQ_STA_DFE		(1 << 1)
+ #define VI6_WFP_IRQ_STA_FRE		(1 << 0)
+ 
+-#define VI6_DISP_IRQ_ENB		0x0078
++#define VI6_DISP_IRQ_ENB(n)		(0x0078 + (n) * 60)
+ #define VI6_DISP_IRQ_ENB_DSTE		(1 << 8)
+ #define VI6_DISP_IRQ_ENB_MAEE		(1 << 5)
+ #define VI6_DISP_IRQ_ENB_LNEE(n)	(1 << (n))
+ 
+-#define VI6_DISP_IRQ_STA		0x007c
++#define VI6_DISP_IRQ_STA(n)		(0x007c + (n) * 60)
+ #define VI6_DISP_IRQ_STA_DST		(1 << 8)
+ #define VI6_DISP_IRQ_STA_MAE		(1 << 5)
+ #define VI6_DISP_IRQ_STA_LNE(n)		(1 << (n))
+@@ -307,7 +307,7 @@
+ #define VI6_WPF_DSTM_ADDR_C0		0x1028
+ #define VI6_WPF_DSTM_ADDR_C1		0x102c
+ 
+-#define VI6_WPF_WRBCK_CTRL		0x1034
++#define VI6_WPF_WRBCK_CTRL(n)		(0x1034 + (n) * 0x100)
+ #define VI6_WPF_WRBCK_CTRL_WBMD		(1 << 0)
+ 
+ /* -----------------------------------------------------------------------------
 diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 32bb207b2007..a07c5944b598 100644
+index a07c5944b598..18c49e3a7875 100644
 --- a/drivers/media/platform/vsp1/vsp1_wpf.c
 +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -362,6 +362,7 @@ static void wpf_configure_partition(struct vsp1_entity *entity,
- 	const struct vsp1_format_info *fmtinfo = wpf->fmtinfo;
- 	unsigned int width;
- 	unsigned int height;
-+	unsigned int left;
- 	unsigned int offset;
- 	unsigned int flip;
- 	unsigned int i;
-@@ -371,13 +372,16 @@ static void wpf_configure_partition(struct vsp1_entity *entity,
- 						 RWPF_PAD_SINK);
- 	width = sink_format->width;
- 	height = sink_format->height;
-+	left = 0;
+@@ -291,7 +291,7 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
+ 	vsp1_dl_body_write(dlb, VI6_DPR_WPF_FPORCH(wpf->entity.index),
+ 			   VI6_DPR_WPF_FPORCH_FP_WPFN);
+ 
+-	vsp1_dl_body_write(dlb, VI6_WPF_WRBCK_CTRL, 0);
++	vsp1_dl_body_write(dlb, VI6_WPF_WRBCK_CTRL(wpf->entity.index), 0);
  
  	/*
- 	 * Cropping. The partition algorithm can split the image into
- 	 * multiple slices.
- 	 */
--	if (pipe->partitions > 1)
-+	if (pipe->partitions > 1) {
- 		width = pipe->partition->wpf.width;
-+		left = pipe->partition->wpf.left;
-+	}
- 
- 	vsp1_wpf_write(wpf, dlb, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
- 		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
-@@ -408,13 +412,11 @@ static void wpf_configure_partition(struct vsp1_entity *entity,
- 	flip = wpf->flip.active;
- 
- 	if (flip & BIT(WPF_CTRL_HFLIP) && !wpf->flip.rotate)
--		offset = format->width - pipe->partition->wpf.left
--			- pipe->partition->wpf.width;
-+		offset = format->width - left - width;
- 	else if (flip & BIT(WPF_CTRL_VFLIP) && wpf->flip.rotate)
--		offset = format->height - pipe->partition->wpf.left
--			- pipe->partition->wpf.width;
-+		offset = format->height - left - width;
- 	else
--		offset = pipe->partition->wpf.left;
-+		offset = left;
- 
- 	for (i = 0; i < format->num_planes; ++i) {
- 		unsigned int hsub = i > 0 ? fmtinfo->hsub : 1;
-@@ -436,7 +438,7 @@ static void wpf_configure_partition(struct vsp1_entity *entity,
- 		 * image height.
- 		 */
- 		if (wpf->flip.rotate)
--			height = pipe->partition->wpf.width;
-+			height = width;
- 		else
- 			height = format->height;
- 
+ 	 * Sources. If the pipeline has a single input and BRx is not used,
 -- 
 Regards,
 
