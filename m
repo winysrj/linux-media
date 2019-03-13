@@ -4,44 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D132C10F03
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 11:46:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3440CC4360F
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 11:54:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 155F3214AE
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 11:46:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC9802177E
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 11:54:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="oYRe2hNz"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="PaRpLZaZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726477AbfCMLqF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 07:46:05 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51836 "EHLO
+        id S1726421AbfCMLy0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 07:54:26 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51904 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725856AbfCMLqF (ORCPT
+        with ESMTP id S1726125AbfCMLyZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 07:46:05 -0400
+        Wed, 13 Mar 2019 07:54:25 -0400
 Received: from [192.168.0.20] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4285A5AA;
-        Wed, 13 Mar 2019 12:46:01 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id C561C22;
+        Wed, 13 Mar 2019 12:54:20 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552477561;
-        bh=sWStaSBf/gJk5mtdCar0wbZXukXK3kuUNZTDigYRzRE=;
+        s=mail; t=1552478061;
+        bh=xe82pEbsyzRGnG9vq4pew5zdLl1X1oAUUrvhqPf0uX4=;
         h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=oYRe2hNzpDTnW27zTAH6aPpxOuViCGYGMXRqIoO4ZOjn9nbrEFy2uqbRfJyDKNFLj
-         pJV0/ntyLbMOFgvJyNifj2/kZpZ0d4nljyf/SPF934lmitrezwHiEtp817utEK7446
-         uHKMy5/iUoDpIjvTcrGuLte3HzqekkVdAsFmrftc=
+        b=PaRpLZaZkqDmkJ+O09A/20G5JnyJxyvfCeaoew4YtgskLBmqeJyjEkLfnzmUVt8xR
+         UoNlnGnNn2z53QkTeK8Uz1MRJdwHGSJMUMM2D6VXouA5lYmhJZpVcCvJ+bGMBVmpqn
+         9YJxjAhmt5bJbdthdhzMInlXudNdgIAAdRElVSec=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v6 12/18] drm: writeback: Cleanup job ownership handling
- when queuing job
+Subject: Re: [PATCH v6 17/18] drm: rcar-du: vsp: Extract framebuffer
+ (un)mapping to separate functions
 To:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         dri-devel@lists.freedesktop.org
 Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Liviu Dudau <Liviu.Dudau@arm.com>,
         Brian Starkey <brian.starkey@arm.com>
 References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190313000532.7087-13-laurent.pinchart+renesas@ideasonboard.com>
+ <20190313000532.7087-18-laurent.pinchart+renesas@ideasonboard.com>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -88,15 +88,15 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <f452a3bb-2732-5dae-bf78-98a884bd54b0@ideasonboard.com>
-Date:   Wed, 13 Mar 2019 11:45:57 +0000
+Message-ID: <ae7b2f15-55db-a5d0-6701-deaf2fce0524@ideasonboard.com>
+Date:   Wed, 13 Mar 2019 11:54:18 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190313000532.7087-13-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20190313000532.7087-18-laurent.pinchart+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -105,105 +105,185 @@ X-Mailing-List: linux-media@vger.kernel.org
 Hi Laurent,
 
 On 13/03/2019 00:05, Laurent Pinchart wrote:
-> The drm_writeback_queue_job() function takes ownership of the passed job
-> and requires the caller to manually set the connector state
-> writeback_job pointer to NULL. To simplify drivers and avoid errors
-> (such as the missing NULL set in the vc4 driver), pass the connector
-> state pointer to the function instead of the job pointer, and set the
-> writeback_job pointer to NULL internally.
+> The rcar_du_vsp_plane_prepare_fb() and rcar_du_vsp_plane_cleanup_fb()
+> functions implement the DRM plane .prepare_fb() and .cleanup_fb()
+> operations. They map and unmap the framebuffer to/from the VSP
+> internally, which will be useful to implement writeback support. Split
+> the mapping and unmapping out to separate functions.
 > 
 > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Reviewed-by: Brian Starkey <brian.starkey@arm.com>
-> Acked-by: Eric Anholt <eric@anholt.net>
-> Acked-by: Liviu Dudau <liviu.dudau@arm.com>
+
+Looks good to me, Just a refactor and nothing controversial.
 
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
 
+
 > ---
->  drivers/gpu/drm/arm/malidp_mw.c |  3 +--
->  drivers/gpu/drm/drm_writeback.c | 15 ++++++++++-----
->  drivers/gpu/drm/vc4/vc4_txp.c   |  2 +-
->  include/drm/drm_writeback.h     |  2 +-
->  4 files changed, 13 insertions(+), 9 deletions(-)
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 68 ++++++++++++++++-----------
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.h | 17 +++++++
+>  2 files changed, 58 insertions(+), 27 deletions(-)
 > 
-> diff --git a/drivers/gpu/drm/arm/malidp_mw.c b/drivers/gpu/drm/arm/malidp_mw.c
-> index 041a64dc7167..87627219ce3b 100644
-> --- a/drivers/gpu/drm/arm/malidp_mw.c
-> +++ b/drivers/gpu/drm/arm/malidp_mw.c
-> @@ -252,8 +252,7 @@ void malidp_mw_atomic_commit(struct drm_device *drm,
->  				     &mw_state->addrs[0],
->  				     mw_state->format);
->  
-> -		drm_writeback_queue_job(mw_conn, conn_state->writeback_job);
-> -		conn_state->writeback_job = NULL;
-> +		drm_writeback_queue_job(mw_conn, conn_state);
->  		hwdev->hw->enable_memwrite(hwdev, mw_state->addrs,
->  					   mw_state->pitches, mw_state->n_planes,
->  					   fb->width, fb->height, mw_state->format,
-> diff --git a/drivers/gpu/drm/drm_writeback.c b/drivers/gpu/drm/drm_writeback.c
-> index c20e6fe00cb3..338b993d7c9f 100644
-> --- a/drivers/gpu/drm/drm_writeback.c
-> +++ b/drivers/gpu/drm/drm_writeback.c
-> @@ -242,11 +242,12 @@ EXPORT_SYMBOL(drm_writeback_connector_init);
->  /**
->   * drm_writeback_queue_job - Queue a writeback job for later signalling
->   * @wb_connector: The writeback connector to queue a job on
-> - * @job: The job to queue
-> + * @conn_state: The connector state containing the job to queue
->   *
-> - * This function adds a job to the job_queue for a writeback connector. It
-> - * should be considered to take ownership of the writeback job, and so any other
-> - * references to the job must be cleared after calling this function.
-> + * This function adds the job contained in @conn_state to the job_queue for a
-> + * writeback connector. It takes ownership of the writeback job and sets the
-> + * @conn_state->writeback_job to NULL, and so no access to the job may be
-> + * performed by the caller after this function returns.
->   *
->   * Drivers must ensure that for a given writeback connector, jobs are queued in
->   * exactly the same order as they will be completed by the hardware (and
-> @@ -258,10 +259,14 @@ EXPORT_SYMBOL(drm_writeback_connector_init);
->   * See also: drm_writeback_signal_completion()
->   */
->  void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
-> -			     struct drm_writeback_job *job)
-> +			     struct drm_connector_state *conn_state)
->  {
-> +	struct drm_writeback_job *job;
->  	unsigned long flags;
->  
-> +	job = conn_state->writeback_job;
-> +	conn_state->writeback_job = NULL;
-> +
->  	spin_lock_irqsave(&wb_connector->job_lock, flags);
->  	list_add_tail(&job->list_entry, &wb_connector->job_queue);
->  	spin_unlock_irqrestore(&wb_connector->job_lock, flags);
-> diff --git a/drivers/gpu/drm/vc4/vc4_txp.c b/drivers/gpu/drm/vc4/vc4_txp.c
-> index aa279b5b0de7..5dabd91f2d7e 100644
-> --- a/drivers/gpu/drm/vc4/vc4_txp.c
-> +++ b/drivers/gpu/drm/vc4/vc4_txp.c
-> @@ -327,7 +327,7 @@ static void vc4_txp_connector_atomic_commit(struct drm_connector *conn,
->  
->  	TXP_WRITE(TXP_DST_CTRL, ctrl);
->  
-> -	drm_writeback_queue_job(&txp->connector, conn_state->writeback_job);
-> +	drm_writeback_queue_job(&txp->connector, conn_state);
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> index 29a08f7b0761..0806a69c4679 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> @@ -173,26 +173,16 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+>  			      plane->index, &cfg);
 >  }
 >  
->  static const struct drm_connector_helper_funcs vc4_txp_connector_helper_funcs = {
-> diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
-> index 23df9d463003..47662c362743 100644
-> --- a/include/drm/drm_writeback.h
-> +++ b/include/drm/drm_writeback.h
-> @@ -123,7 +123,7 @@ int drm_writeback_connector_init(struct drm_device *dev,
->  				 const u32 *formats, int n_formats);
+> -static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
+> -					struct drm_plane_state *state)
+> +int rcar_du_vsp_map_fb(struct rcar_du_vsp *vsp, struct drm_framebuffer *fb,
+> +		       struct sg_table sg_tables[3])
+>  {
+> -	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
+> -	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
+>  	struct rcar_du_device *rcdu = vsp->dev;
+>  	unsigned int i;
+>  	int ret;
 >  
->  void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
-> -			     struct drm_writeback_job *job);
-> +			     struct drm_connector_state *conn_state);
+> -	/*
+> -	 * There's no need to prepare (and unprepare) the framebuffer when the
+> -	 * plane is not visible, as it will not be displayed.
+> -	 */
+> -	if (!state->visible)
+> -		return 0;
+> -
+> -	for (i = 0; i < rstate->format->planes; ++i) {
+> -		struct drm_gem_cma_object *gem =
+> -			drm_fb_cma_get_gem_obj(state->fb, i);
+> -		struct sg_table *sgt = &rstate->sg_tables[i];
+> +	for (i = 0; i < fb->format->num_planes; ++i) {
+> +		struct drm_gem_cma_object *gem = drm_fb_cma_get_gem_obj(fb, i);
+> +		struct sg_table *sgt = &sg_tables[i];
 >  
->  void drm_writeback_cleanup_job(struct drm_writeback_job *job);
+>  		ret = dma_get_sgtable(rcdu->dev, sgt, gem->vaddr, gem->paddr,
+>  				      gem->base.size);
+> @@ -207,15 +197,11 @@ static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
+>  		}
+>  	}
 >  
+> -	ret = drm_gem_fb_prepare_fb(plane, state);
+> -	if (ret)
+> -		goto fail;
+> -
+>  	return 0;
+>  
+>  fail:
+>  	while (i--) {
+> -		struct sg_table *sgt = &rstate->sg_tables[i];
+> +		struct sg_table *sgt = &sg_tables[i];
+>  
+>  		vsp1_du_unmap_sg(vsp->vsp, sgt);
+>  		sg_free_table(sgt);
+> @@ -224,22 +210,50 @@ static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
+>  	return ret;
+>  }
+>  
+> +static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
+> +					struct drm_plane_state *state)
+> +{
+> +	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
+> +	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
+> +	int ret;
+> +
+> +	/*
+> +	 * There's no need to prepare (and unprepare) the framebuffer when the
+> +	 * plane is not visible, as it will not be displayed.
+> +	 */
+> +	if (!state->visible)
+> +		return 0;
+
+What about writeback?
+
+- Never mind - that doesn't call through here.
+
+> +
+> +	ret = rcar_du_vsp_map_fb(vsp, state->fb, rstate->sg_tables);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return drm_gem_fb_prepare_fb(plane, state);
+> +}
+> +
+> +void rcar_du_vsp_unmap_fb(struct rcar_du_vsp *vsp, struct drm_framebuffer *fb,
+> +			  struct sg_table sg_tables[3])
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < fb->format->num_planes; ++i) {
+> +		struct sg_table *sgt = &sg_tables[i];
+> +
+> +		vsp1_du_unmap_sg(vsp->vsp, sgt);
+> +		sg_free_table(sgt);
+> +	}
+> +}
+> +
+>  static void rcar_du_vsp_plane_cleanup_fb(struct drm_plane *plane,
+>  					 struct drm_plane_state *state)
+>  {
+>  	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
+>  	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
+> -	unsigned int i;
+>  
+>  	if (!state->visible)
+>  		return;
+>  
+> -	for (i = 0; i < rstate->format->planes; ++i) {
+> -		struct sg_table *sgt = &rstate->sg_tables[i];
+> -
+> -		vsp1_du_unmap_sg(vsp->vsp, sgt);
+> -		sg_free_table(sgt);
+> -	}
+> +	rcar_du_vsp_unmap_fb(vsp, state->fb, rstate->sg_tables);
+>  }
+>  
+>  static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+> index db232037f24a..9b4724159378 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+> @@ -12,8 +12,10 @@
+>  
+>  #include <drm/drm_plane.h>
+>  
+> +struct drm_framebuffer;
+>  struct rcar_du_format_info;
+>  struct rcar_du_vsp;
+> +struct sg_table;
+>  
+>  struct rcar_du_vsp_plane {
+>  	struct drm_plane plane;
+> @@ -60,6 +62,10 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc);
+>  void rcar_du_vsp_disable(struct rcar_du_crtc *crtc);
+>  void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc);
+>  void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc);
+> +int rcar_du_vsp_map_fb(struct rcar_du_vsp *vsp, struct drm_framebuffer *fb,
+> +		       struct sg_table sg_tables[3]);
+> +void rcar_du_vsp_unmap_fb(struct rcar_du_vsp *vsp, struct drm_framebuffer *fb,
+> +			  struct sg_table sg_tables[3]);
+>  #else
+>  static inline int rcar_du_vsp_init(struct rcar_du_vsp *vsp,
+>  				   struct device_node *np,
+> @@ -71,6 +77,17 @@ static inline void rcar_du_vsp_enable(struct rcar_du_crtc *crtc) { };
+>  static inline void rcar_du_vsp_disable(struct rcar_du_crtc *crtc) { };
+>  static inline void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc) { };
+>  static inline void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc) { };
+> +static inline int rcar_du_vsp_map_fb(struct rcar_du_vsp *vsp,
+> +				     struct drm_framebuffer *fb,
+> +				     struct sg_table sg_tables[3])
+> +{
+> +	return -ENXIO;
+> +}
+> +static inline void rcar_du_vsp_unmap_fb(struct rcar_du_vsp *vsp,
+> +					struct drm_framebuffer *fb,
+> +					struct sg_table sg_tables[3])
+> +{
+> +}
+>  #endif
+>  
+>  #endif /* __RCAR_DU_VSP_H__ */
 > 
 
 -- 
