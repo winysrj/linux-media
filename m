@@ -2,173 +2,149 @@ Return-Path: <SRS0=adTL=RQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74C71C43381
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 04:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99C80C43381
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 04:50:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C30D2070D
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 04:25:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D8EF2173C
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 04:50:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725888AbfCMEZn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 00:25:43 -0400
-Received: from mga05.intel.com ([192.55.52.43]:56657 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725785AbfCMEZn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 00:25:43 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Mar 2019 21:25:42 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,473,1544515200"; 
-   d="scan'208";a="122207187"
-Received: from ipu5-build.bj.intel.com (HELO [10.238.232.171]) ([10.238.232.171])
-  by orsmga007.jf.intel.com with ESMTP; 12 Mar 2019 21:25:40 -0700
-Subject: Re: [PATCH] media:staging/intel-ipu3: parameter buffer refactoring
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Cao Bing Bu <bingbu.cao@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Yeh, Andy" <andy.yeh@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-References: <1550221729-29240-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5BOJmE51nrbK+3KGeQWN88iOt--xervThtxrRx3AohFPw@mail.gmail.com>
- <bc3117f8-fd74-2b61-07c0-926fba898d5d@linux.intel.com>
- <CAAFQd5DQwBZFOzH6oztHhPR1MLQaAWS0MXDOWt8p5E3vibLFBg@mail.gmail.com>
- <2b90b4b3-a844-b3fb-5158-6818cf84f43d@linux.intel.com>
- <CAAFQd5AOrYukx=+5Hk9Qw8yWZ=PgjESYNcBv3iR_vUcQn74_zg@mail.gmail.com>
-From:   Bingbu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <1b666a30-689e-d46c-f564-ae0848f92d54@linux.intel.com>
-Date:   Wed, 13 Mar 2019 12:32:19 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.9.1
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AOrYukx=+5Hk9Qw8yWZ=PgjESYNcBv3iR_vUcQn74_zg@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        id S1726013AbfCMEui (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 00:50:38 -0400
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55067 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725856AbfCMEuh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Mar 2019 00:50:37 -0400
+Received: from localhost ([IPv6:2001:983:e9a7:1:790e:f28c:485c:6055])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id 3vqchgnXF4HFn3vqehMyf0; Wed, 13 Mar 2019 05:50:36 +0100
+Message-ID: <3705a4947d318c535a5451f46c66c352@smtp-cloud8.xs4all.net>
+Date:   Wed, 13 Mar 2019 05:50:34 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+X-CMAE-Envelope: MS4wfPvZAcpy5pJDSUrHQNgfd71ujw3GMEX9S5agGXEE+xRGLsTen40LkHDUW/Fkftzy7kOerTyMSGn5U/u2EgC7ElSG4nUdlg7yJXt1MiKiKmIG9jf2jLfQ
+ 4n8yqmz3bW48X1uWauvYblTqzQJR1KRu3b2RXxtv3oyyWzfhMPXU4XZysa0EWuo/ghgxeV7w8VQQpzLFjXbw+2ex70Or+prszJuFi172jhij8aMC1gP5c+gx
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 03/12/2019 04:54 PM, Tomasz Figa wrote:
-> On Tue, Mar 12, 2019 at 5:48 PM Bingbu Cao <bingbu.cao@linux.intel.com> wrote:
->>
->>
->> On 03/12/2019 03:43 PM, Tomasz Figa wrote:
->>> On Tue, Mar 12, 2019 at 3:48 PM Bingbu Cao <bingbu.cao@linux.intel.com> wrote:
->>>>
->>>> On 03/12/2019 01:33 PM, Tomasz Figa wrote:
->>>>> Hi Bingbu,
->>>>>
->>>>> On Fri, Feb 15, 2019 at 6:02 PM <bingbu.cao@intel.com> wrote:
->>>>>> From: Bingbu Cao <bingbu.cao@intel.com>
->>>>>>
->>>>>> Current ImgU driver processes and releases the parameter buffer
->>>>>> immediately after queued from user. This does not align with other
->>>>>> image buffers which are grouped in sets and used for the same frame.
->>>>>> If user queues multiple parameter buffers continuously, only the last
->>>>>> one will take effect.
->>>>>> To make consistent buffers usage, this patch changes the parameter
->>>>>> buffer handling and group parameter buffer with other image buffers
->>>>>> for each frame.
->>>>> Thanks for the patch. Please see my comments inline.
->>>>>
->>>>>> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
->>>>>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
->>>>>> ---
->>>>>>     drivers/staging/media/ipu3/ipu3-css.c  |  5 -----
->>>>>>     drivers/staging/media/ipu3/ipu3-v4l2.c | 41 ++++++++--------------------------
->>>>>>     drivers/staging/media/ipu3/ipu3.c      | 24 ++++++++++++++++++++
->>>>>>     3 files changed, 33 insertions(+), 37 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
->>>>>> index b9354d2bb692..bcb1d436bc98 100644
->>>>>> --- a/drivers/staging/media/ipu3/ipu3-css.c
->>>>>> +++ b/drivers/staging/media/ipu3/ipu3-css.c
->>>>>> @@ -2160,11 +2160,6 @@ int ipu3_css_set_parameters(struct ipu3_css *css, unsigned int pipe,
->>>>>>            obgrid_size = ipu3_css_fw_obgrid_size(bi);
->>>>>>            stripes = bi->info.isp.sp.iterator.num_stripes ? : 1;
->>>>>>
->>>>>> -       /*
->>>>>> -        * TODO(b/118782861): If userspace queues more than 4 buffers, the
->>>>>> -        * parameters from previous buffers will be overwritten. Fix the driver
->>>>>> -        * not to allow this.
->>>>>> -        */
->>>>> Wouldn't this still happen even with current patch?
->>>>> imgu_queue_buffers() supposedly queues "as many buffers to CSS as
->>>>> possible". This means that if the userspace queues more than 4
->>>>> complete frames, we still end up overwriting the parameter buffers in
->>>>> the pool. Please correct me if I'm wrong.
->>>> The parameter buffers are queued to CSS sequentially and queue one
->>>> parameter along with one input buffer once ready, all the data and
->>>> parameter buffers are tied together to queue to the CSS. If userspace
->>>> queue more parameter buffers then input buffer, they are pending on the
->>>> buffer list.
->>> It doesn't seem to be what the code does. I'm talking about the
->>> following example:
->>>
->>> Queue OUT buffer 1
->>> Queue PARAM buffer 1
->>> Queue IN buffer 1
->>> Queue OUT buffer 2
->>> Queue PARAM buffer 2
->>> Queue IN buffer 2
->>> Queue OUT buffer 3
->>> Queue PARAM buffer 3
->>> Queue IN buffer 3
->>> Queue OUT buffer 4
->>> Queue PARAM buffer 4
->>> Queue IN buffer 4
->>> Queue OUT buffer 5
->>> Queue PARAM buffer 5
->>> Queue IN buffer 5
->>>
->>> All the operations happening exactly one after each other. How would
->>> the code prevent the 5th PARAM buffer to be queued to the IMGU, after
->>> the 5th IN buffer is queued? As I said, imgu_queue_buffers() just
->>> queues as many buffers of each type as there are IN buffers available.
->> So the parameter pool now is only used as record last valid parameter not
->> used as a list or cached, all the parameters will be queued to CSS as soon as
->> possible(if queue for CSS is not full).
->> As the size of pool now is a bit confusing, I think we can shrink the its value
->> for each pipe to 2.
-> I don't follow. Don't we take one buffer from the pool, fill in the
-> parameters in hardware format there and then queue that buffer from
-> the pool to the ISP? The ISP wouldn't read those parameters from the
-> buffer until the previous frame is processed, would it?
-Hi, Tomasz,
+date:			Wed Mar 13 05:00:13 CET 2019
+media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	b6c13019f4879eb3e17b70dd8b4f68559928b0c6
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.3.0
+sparse version:		0.6.0
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-2-amd64
 
-Currently, driver did not take the buffer from pool to queue to ISP,
-it just queue the parameter buffer along with input frame buffer depends
-on each user queue request.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: WARNINGS
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0.1-i686: OK
+linux-5.0.1-x86_64: OK
+apps: OK
+spec-git: OK
+virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 14
+sparse: OK
+smatch: ERRORS
 
-You are right, if user queue massive buffers one time, it will cause
-the firmware queue full. Driver should keep the buffer in its list
-instead of returning back to user irresponsibly.
+Detailed results are available here:
 
-We are thinking about queue one group of buffers(input, output and params)
-to ISP one time and wait the pipeline finished and then queue next group
-of buffers. All the buffers are pending on the buffer list.
-What do you think about this behavior?
->
->> The buffer queue size is limited for CSS, if massive buffers from
->> user pass down and the css queue is full, driver will get -EBUSY
->> and return the buffers to user with error.
->>
-> That's not a correct behavior. If the VB2 queue has N buffers, the
-> userspace needs to be able to queue all the N buffers. The driver
-> should account the queued buffers internally and queue them to the
-> hardware/firmware only as much as the hardware/firmware allows.
-Got it, thanks.
->
-> Best regards,
-> Tomasz
->
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Detailed regression test results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday-test-media.log
+http://www.xs4all.nl/~hverkuil/logs/Wednesday-test-media-dmesg.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
