@@ -2,260 +2,84 @@ Return-Path: <SRS0=adTL=RQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC25C10F03
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:56:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3657C43381
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 16:00:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A4585206DF
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 15:56:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="Z+wMoUkv"
+	by mail.kernel.org (Postfix) with ESMTP id BB5DA206DF
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 16:00:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726284AbfCMP4P (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 11:56:15 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54608 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725856AbfCMP4P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 11:56:15 -0400
-Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id CC1715AA;
-        Wed, 13 Mar 2019 16:56:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552492573;
-        bh=LDJGPkhP1UyT0m2rmzYmmM1bO2G4MbQjdphdcwC97LY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Z+wMoUkvaQK8L2XMFUyN7B8HOJ7nW3Fr0xgVkLyZWp3la+aCgdoOVzdbbTlM/y+td
-         M7jknkYf7LAIiHghY18Pak0KCUvJt4TUkEhmfQ+LlDMVrkPfJiPkVKvJbY/3bzDsud
-         lS6+EBuDzMMDfCvXGsFkQbleVm5shzRoyckPiVdk=
-Date:   Wed, 13 Mar 2019 17:56:06 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Liviu Dudau <Liviu.Dudau@arm.com>,
-        Brian Starkey <brian.starkey@arm.com>
-Subject: Re: [PATCH v6 11/18] media: vsp1: drm: Implement writeback support
-Message-ID: <20190313155606.GF4722@pendragon.ideasonboard.com>
-References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190313000532.7087-12-laurent.pinchart+renesas@ideasonboard.com>
- <ab98c192-9615-809c-2bdd-c1a2d72cff5b@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ab98c192-9615-809c-2bdd-c1a2d72cff5b@ideasonboard.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S1726654AbfCMQA7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 12:00:59 -0400
+Received: from gofer.mess.org ([88.97.38.141]:52131 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726074AbfCMQA7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Mar 2019 12:00:59 -0400
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id AB37160DAC; Wed, 13 Mar 2019 16:00:57 +0000 (GMT)
+From:   Sean Young <sean@mess.org>
+To:     linux-media@vger.kernel.org
+Subject: [PATCH v4l-utils 1/2] lircd2toml: honour pre_data for rc-mm remote definitions
+Date:   Wed, 13 Mar 2019 16:00:56 +0000
+Message-Id: <20190313160057.3470-1-sean@mess.org>
+X-Mailer: git-send-email 2.11.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Kieran,
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ contrib/lircd2toml.py | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-On Wed, Mar 13, 2019 at 11:42:34AM +0000, Kieran Bingham wrote:
-> On 13/03/2019 00:05, Laurent Pinchart wrote:
-> > Extend the vsp1_du_atomic_flush() API with writeback support by adding
-> > format, pitch and memory addresses of the writeback framebuffer.
-> > Writeback completion is reported through the existing frame completion
-> > callback with a new VSP1_DU_STATUS_WRITEBACK status flag.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> >  drivers/media/platform/vsp1/vsp1_dl.c  | 14 ++++++++++++++
-> >  drivers/media/platform/vsp1/vsp1_dl.h  |  3 ++-
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 25 ++++++++++++++++++++++++-
-> >  include/media/vsp1.h                   | 15 +++++++++++++++
-> >  4 files changed, 55 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-> > index ed7cda4130f2..104b6f514536 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> > @@ -958,6 +958,9 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, unsigned int dl_flags)
-> >   *
-> >   * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the display list that just
-> >   * became active had been queued with the internal notification flag.
-> > + *
-> > + * The VSP1_DL_FRAME_END_WRITEBACK flag indicates that the previously active
-> > + * display list had been queued with the writeback flag.
-> 
-> How does this interact with the possibility of the writeback being
-> disabled by the WPF in the event of it failing to get a DL.
-> 
-> It's only a small corner case, but will the 'writeback' report back as
-> though it succeeded? (without writing to memory, and thus giving an
-> unmodified buffer back?)
-
-Wrteback completion will never be reported in that case. This shouldn't
-happen as we should never fail to get a display list. Do you think it
-would be better to fake completion ?
-
-> >   */
-> >  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
-> >  {
-> > @@ -995,6 +998,17 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
-> >  	if (status & VI6_STATUS_FLD_STD(dlm->index))
-> >  		goto done;
-> >  
-> > +	/*
-> > +	 * If the active display list has the writeback flag set, the frame
-> > +	 * completion marks the end of the writeback capture. Return the
-> > +	 * VSP1_DL_FRAME_END_WRITEBACK flag and reset the display list's
-> > +	 * writeback flag.
-> > +	 */
-> > +	if (dlm->active && (dlm->active->flags & VSP1_DL_FRAME_END_WRITEBACK)) {
-> > +		flags |= VSP1_DL_FRAME_END_WRITEBACK;
-> > +		dlm->active->flags &= ~VSP1_DL_FRAME_END_WRITEBACK;
-> > +	}
-> > +
-> >  	/*
-> >  	 * The device starts processing the queued display list right after the
-> >  	 * frame end interrupt. The display list thus becomes active.
-> > diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-> > index e0fdb145e6ed..4d7bcfdc9bd9 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_dl.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_dl.h
-> > @@ -18,7 +18,8 @@ struct vsp1_dl_list;
-> >  struct vsp1_dl_manager;
-> >  
-> >  #define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
-> > -#define VSP1_DL_FRAME_END_INTERNAL		BIT(1)
-> > +#define VSP1_DL_FRAME_END_WRITEBACK		BIT(1)
-> 
-> So below BIT(2) (code above) the flags match the externally exposed
-> bitfield for the VSP1_DU_STATUS_
-> 
-> While above (code below), are 'private' bitfields.
-> 
-> Should this requirement be documented here somehow? especially the
-> mapping of FRAME_END_{COMPLETED,WRITEBACK} to
-> DU_STATUS_{COMPLETED,WRITEBACK}.
-
-I've added a comment here, as explained in my reply to your review of
-10/18, to document this.
-
-> > +#define VSP1_DL_FRAME_END_INTERNAL		BIT(2)
-> >  
-> >  /**
-> >   * struct vsp1_dl_ext_cmd - Extended Display command
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> > index 0367f88135bf..16826bf184c7 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -37,7 +37,9 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
-> >  
-> >  	if (drm_pipe->du_complete) {
-> >  		struct vsp1_entity *uif = drm_pipe->uif;
-> > -		unsigned int status = completion & VSP1_DU_STATUS_COMPLETE;
-> > +		unsigned int status = completion
-> > +				    & (VSP1_DU_STATUS_COMPLETE |
-> > +				       VSP1_DU_STATUS_WRITEBACK);
-> >  		u32 crc;
-> >  
-> >  		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
-> > @@ -541,6 +543,8 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
-> >  
-> >  	if (drm_pipe->force_brx_release)
-> >  		dl_flags |= VSP1_DL_FRAME_END_INTERNAL;
-> > +	if (pipe->output->writeback)
-> > +		dl_flags |= VSP1_DL_FRAME_END_WRITEBACK;
-> >  
-> >  	dl = vsp1_dl_list_get(pipe->output->dlm);
-> >  	dlb = vsp1_dl_list_get_body0(dl);
-> > @@ -870,12 +874,31 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
-> >  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-> >  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
-> >  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
-> > +	int ret;
-> >  
-> >  	drm_pipe->crc = cfg->crc;
-> >  
-> >  	mutex_lock(&vsp1->drm->lock);
-> > +
-> > +	if (pipe->output->has_writeback && cfg->writeback.pixelformat) {
-> 
-> Is pipe->output->has_writeback necessary here? Can
-> cfg->writeback.pixelformat be set if pipe->output->has_writeback is false?
-> 
-> Hrm ... actually - Perhaps it is useful. It validates both sides of the
-> system.
-> 
-> pipe->output->has_writeback is a capability of the VSP, where as
-> cfg->writeback.pixelformat is a 'request' from the DU.
-
-Correct, I think it's best to check both, to ensure we don't try to
-queue a writeback request on a system that doesn't support writeback. On
-the other hand this shouldn't happen as the DU driver shouldn't expose
-writeback to userspace in that case, so if you don't think the check is
-worth it I can remove the has_writeback field completely.
-
-> > +		const struct vsp1_du_writeback_config *wb_cfg = &cfg->writeback;
-> > +
-> > +		ret = vsp1_du_pipeline_set_rwpf_format(vsp1, pipe->output,
-> > +						       wb_cfg->pixelformat,
-> > +						       wb_cfg->pitch);
-> > +		if (WARN_ON(ret < 0))
-> > +			goto done;
-> > +
-> > +		pipe->output->mem.addr[0] = wb_cfg->mem[0];
-> > +		pipe->output->mem.addr[1] = wb_cfg->mem[1];
-> > +		pipe->output->mem.addr[2] = wb_cfg->mem[2];
-> > +		pipe->output->writeback = true;
-> > +	}
-> > +
-> >  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
-> >  	vsp1_du_pipeline_configure(pipe);
-> > +
-> > +done:
-> >  	mutex_unlock(&vsp1->drm->lock);
-> >  }
-> >  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
-> > diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-> > index 877496936487..cc1b0d42ce95 100644
-> > --- a/include/media/vsp1.h
-> > +++ b/include/media/vsp1.h
-> > @@ -18,6 +18,7 @@ struct device;
-> >  int vsp1_du_init(struct device *dev);
-> >  
-> >  #define VSP1_DU_STATUS_COMPLETE		BIT(0)
-> > +#define VSP1_DU_STATUS_WRITEBACK	BIT(1)
-> >  
-> >  /**
-> >   * struct vsp1_du_lif_config - VSP LIF configuration
-> > @@ -83,12 +84,26 @@ struct vsp1_du_crc_config {
-> >  	unsigned int index;
-> >  };
-> >  
-> > +/**
-> > + * struct vsp1_du_writeback_config - VSP writeback configuration parameters
-> > + * @pixelformat: plane pixel format (V4L2 4CC)
-> > + * @pitch: line pitch in bytes for the first plane
-> > + * @mem: DMA memory address for each plane of the frame buffer
-> > + */
-> > +struct vsp1_du_writeback_config {
-> > +	u32 pixelformat;
-> > +	unsigned int pitch;
-> > +	dma_addr_t mem[3];
-> > +};
-> > +
-> >  /**
-> >   * struct vsp1_du_atomic_pipe_config - VSP atomic pipe configuration parameters
-> >   * @crc: CRC computation configuration
-> > + * @writeback: writeback configuration
-> >   */
-> >  struct vsp1_du_atomic_pipe_config {
-> >  	struct vsp1_du_crc_config crc;
-> > +	struct vsp1_du_writeback_config writeback;
-> >  };
-> >  
-> >  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
-
+diff --git a/contrib/lircd2toml.py b/contrib/lircd2toml.py
+index 72ee50e3..f2f7cdd3 100755
+--- a/contrib/lircd2toml.py
++++ b/contrib/lircd2toml.py
+@@ -349,7 +349,7 @@ class Converter:
+ 
+     def convert_rcmm(self):
+         res  = {
+-            'protocol': 'rc_mm',
++            'protocol': 'rc-mm',
+             'params': {},
+             'map': {}
+         }
+@@ -368,16 +368,24 @@ class Converter:
+         if 'toggle_bit' in self.remote:
+             toggle_bit = bits - int(self.remote['toggle_bit'][0])
+ 
+-        if toggle_bit > 0 and toggle_bit < bits:
+-            res['params']['toggle_bit'] = toggle_bit
+-
+-        res['params']['bits'] = bits
+-
+         if 'codes' not in self.remote or len(self.remote['codes']) == 0:
+             self.error("missing codes section")
+             return None
+ 
+-        res['map'] = self.remote['codes']
++        if 'pre_data_bits' in self.remote:
++            pre_data_bits = int(self.remote['pre_data_bits'][0])
++            pre_data = int(self.remote['pre_data'][0]) << bits
++            bits += pre_data_bits
++            for s in self.remote['codes']:
++                res['map'][s|pre_data] = self.remote['codes'][s]
++        else:
++            res['map'] = self.remote['codes']
++
++        res['params']['bits'] = bits
++        res['params']['variant'] = "'rc-mm-" + str(bits) + "'"
++
++        if toggle_bit > 0 and toggle_bit < bits:
++            res['params']['toggle_bit'] = toggle_bit
+ 
+         return res
+ 
 -- 
-Regards,
+2.11.0
 
-Laurent Pinchart
