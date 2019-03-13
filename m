@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4553BC4360F
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:16:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96B6AC10F00
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:18:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 141362173C
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:16:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 679292173C
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 00:18:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="EVcKj0zS"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="CrN/lc/i"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726573AbfCMAQ3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Mar 2019 20:16:29 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42414 "EHLO
+        id S1726738AbfCMASu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Mar 2019 20:18:50 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42440 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726490AbfCMAQ3 (ORCPT
+        with ESMTP id S1726506AbfCMASu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Mar 2019 20:16:29 -0400
+        Tue, 12 Mar 2019 20:18:50 -0400
 Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0A2AD49;
-        Wed, 13 Mar 2019 01:16:26 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EBB1E49;
+        Wed, 13 Mar 2019 01:18:47 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552436187;
-        bh=8Ge3JC4BlOo5XeZoDqS/Awd+WHSWtMBnuEjY0QS7p6U=;
+        s=mail; t=1552436328;
+        bh=WLJ/A3KoCEhH6K1C84kH3ARY3GITuovSpl0s/gwcKrs=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=EVcKj0zSydrgeiZV4EjFHhfukupDueCsXbIbBoEoYDHZWtQSPIYww095CPEFTCpF2
-         PbpSOi06e0F6/DckqWs5jUPshgjnc6fMjcQa+Tglsiss1m6s+AAXNHv7oyenNJ46MC
-         x7gNW6YoNYN08zpvdGwe2AqFxtXA02Gxqis3OSIY=
-Date:   Wed, 13 Mar 2019 02:16:20 +0200
+        b=CrN/lc/iN8/aZfrhDc7+Hq3GzRHkpfg7LpKNnwkWPRljpvvoJBPgUEMIVUsnh+ZpC
+         SQME6A3IHABIKvq8yG97EEfGEB3EQ1FSSAQCvRVO94ELI6sdZoPWZEbLiCdiqMjMw3
+         jZHeb9VF3qcgv1kUpjVURXuzbHxXMW4bCVpi+pPY=
+Date:   Wed, 13 Mar 2019 02:18:41 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v3 2/3] rcar-csi2: Update start procedure for H3 ES2
-Message-ID: <20190313001620.GG891@pendragon.ideasonboard.com>
-References: <20190312235019.23420-1-niklas.soderlund+renesas@ragnatech.se>
- <20190312235019.23420-3-niklas.soderlund+renesas@ragnatech.se>
+Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] rcar-csi2: Use standby mode instead of resetting
+Message-ID: <20190313001841.GH891@pendragon.ideasonboard.com>
+References: <20190312234930.23193-1-niklas.soderlund+renesas@ragnatech.se>
+ <20190312234930.23193-3-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190312235019.23420-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20190312234930.23193-3-niklas.soderlund+renesas@ragnatech.se>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -57,109 +56,179 @@ Hi Niklas,
 
 Thank you for the patch.
 
-On Wed, Mar 13, 2019 at 12:50:18AM +0100, Niklas Söderlund wrote:
-> Latest information from hardware engineers reveals that H3 ES2 and ES3
-> behave differently when working with link speeds bellow 250 Mpbs.
-> Add a SoC match for H3 ES2.* and use the correct startup sequence.
+On Wed, Mar 13, 2019 at 12:49:30AM +0100, Niklas Söderlund wrote:
+> Later versions of the datasheet updates the reset procedure to more
+> closely resemble the standby mode. Update the driver to enter and exit
+> the standby mode instead of resetting the hardware before and after
+> streaming is started and stopped. This replaces the software reset
+> (SRST.SRST) control.
+> 
+> While at it break out the full start and stop procedures from
+> rcsi2_s_stream() into the existing helper functions.
 > 
 > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 35 +++++++++++++++++----
->  1 file changed, 29 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index aaf35afc6c87b3c0..0a4a71be60bee89b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -875,7 +875,8 @@ static int rcsi2_phtw_write_mbps(struct rcar_csi2 *priv, unsigned int mbps,
->  	return rcsi2_phtw_write(priv, value->reg, code);
->  }
->  
-> -static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
-> +static int __rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv,
-> +					unsigned int mbps)
->  {
->  	static const struct phtw_value step1[] = {
->  		{ .data = 0xcc, .code = 0xe2 },
-> @@ -901,7 +902,7 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
->  	if (ret)
->  		return ret;
->  
-> -	if (mbps <= 250) {
-> +	if (mbps != 0 && mbps <= 250) {
-
-I would have gone for a third argument, but this works too, and is
-probably a tad more efficient. If we later need mbps here for other
-reasons on ES2.0 we can always change the code, so
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
->  		ret = rcsi2_phtw_write(priv, 0x39, 0x05);
->  		if (ret)
->  			return ret;
-> @@ -915,6 +916,16 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
->  	return rcsi2_phtw_write_array(priv, step2);
+> ---
+>  drivers/media/platform/rcar-vin/Kconfig     |  1 +
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 69 +++++++++++++--------
+>  2 files changed, 43 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+> index e3eb8fee253658da..f26f47e3bcf44825 100644
+> --- a/drivers/media/platform/rcar-vin/Kconfig
+> +++ b/drivers/media/platform/rcar-vin/Kconfig
+> @@ -3,6 +3,7 @@ config VIDEO_RCAR_CSI2
+>  	tristate "R-Car MIPI CSI-2 Receiver"
+>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
+>  	depends on ARCH_RENESAS || COMPILE_TEST
+> +	select RESET_CONTROLLER
+>  	select V4L2_FWNODE
+>  	help
+>  	  Support for Renesas R-Car MIPI CSI-2 receiver.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> index f64528d2be3c95dd..10f1b4978ed7dcc6 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/of_graph.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/reset.h>
+>  #include <linux/sys_soc.h>
+>  
+>  #include <media/v4l2-ctrls.h>
+> @@ -350,6 +351,7 @@ struct rcar_csi2 {
+>  	struct device *dev;
+>  	void __iomem *base;
+>  	const struct rcar_csi2_info *info;
+> +	struct reset_control *rstc;
+>  
+>  	struct v4l2_subdev subdev;
+>  	struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
+> @@ -387,11 +389,19 @@ static void rcsi2_write(struct rcar_csi2 *priv, unsigned int reg, u32 data)
+>  	iowrite32(data, priv->base + reg);
 >  }
 >  
-> +static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_csi2 *priv, unsigned int mbps)
-> +{
-> +	return __rcsi2_init_phtw_h3_v3h_m3n(priv, mbps);
-> +}
-> +
-> +static int rcsi2_init_phtw_h3es2(struct rcar_csi2 *priv, unsigned int mbps)
-> +{
-> +	return __rcsi2_init_phtw_h3_v3h_m3n(priv, 0);
-> +}
-> +
->  static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2 *priv, unsigned int mbps)
+> -static void rcsi2_reset(struct rcar_csi2 *priv)
+> +static void rcsi2_enter_standby(struct rcar_csi2 *priv)
 >  {
->  	return rcsi2_phtw_write_mbps(priv, mbps, phtw_mbps_v3m_e3, 0x44);
-> @@ -977,6 +988,14 @@ static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
->  	.num_channels = 4,
->  };
->  
-> +static const struct rcar_csi2_info rcar_csi2_info_r8a7795es2 = {
-> +	.init_phtw = rcsi2_init_phtw_h3es2,
-> +	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
-> +	.csi0clkfreqrange = 0x20,
-> +	.num_channels = 4,
-> +	.clear_ulps = true,
-> +};
+> -	rcsi2_write(priv, SRST_REG, SRST_SRST);
+> +	rcsi2_write(priv, PHYCNT_REG, 0);
+> +	rcsi2_write(priv, PHTC_REG, PHTC_TESTCLR);
+> +	reset_control_assert(priv->rstc);
+>  	usleep_range(100, 150);
+> -	rcsi2_write(priv, SRST_REG, 0);
+> +	pm_runtime_put(priv->dev);
+> +}
 > +
->  static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
->  	.hsfreqrange = hsfreqrange_m3w_h3es1,
->  	.num_channels = 4,
-> @@ -1042,11 +1061,15 @@ static const struct of_device_id rcar_csi2_of_table[] = {
->  };
->  MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
+> +static void rcsi2_exit_standby(struct rcar_csi2 *priv)
+> +{
+> +	pm_runtime_get_sync(priv->dev);
+> +	reset_control_deassert(priv->rstc);
+>  }
 >  
-> -static const struct soc_device_attribute r8a7795es1[] = {
-> +static const struct soc_device_attribute r8a7795[] = {
->  	{
->  		.soc_id = "r8a7795", .revision = "ES1.*",
->  		.data = &rcar_csi2_info_r8a7795es1,
->  	},
-> +	{
-> +		.soc_id = "r8a7795", .revision = "ES2.*",
-> +		.data = &rcar_csi2_info_r8a7795es2,
-> +	},
->  	{ /* sentinel */ },
->  };
+>  static int rcsi2_wait_phy_start(struct rcar_csi2 *priv)
+> @@ -462,7 +472,7 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
+>  	return mbps;
+>  }
 >  
-> @@ -1064,10 +1087,10 @@ static int rcsi2_probe(struct platform_device *pdev)
->  	priv->info = of_device_get_match_data(&pdev->dev);
+> -static int rcsi2_start(struct rcar_csi2 *priv)
+> +static int rcsi2_start_receiver(struct rcar_csi2 *priv)
+>  {
+>  	const struct rcar_csi2_format *format;
+>  	u32 phycnt, vcdt = 0, vcdt2 = 0;
+> @@ -506,7 +516,6 @@ static int rcsi2_start(struct rcar_csi2 *priv)
 >  
->  	/*
-> -	 * r8a7795 ES1.x behaves differently than the ES2.0+ but doesn't
-> -	 * have it's own compatible string.
-> +	 * The different ES versions of r8a7795 (H3) behave differently but
-> +	 * share the same compatible string.
->  	 */
-> -	attr = soc_device_match(r8a7795es1);
-> +	attr = soc_device_match(r8a7795);
->  	if (attr)
->  		priv->info = attr->data;
+>  	/* Init */
+>  	rcsi2_write(priv, TREF_REG, TREF_TREF);
+> -	rcsi2_reset(priv);
+>  	rcsi2_write(priv, PHTC_REG, 0);
+>  
+>  	/* Configure */
+> @@ -564,19 +573,36 @@ static int rcsi2_start(struct rcar_csi2 *priv)
+>  	return 0;
+>  }
+>  
+> +static int rcsi2_start(struct rcar_csi2 *priv)
+> +{
+> +	int ret;
+> +
+> +	rcsi2_exit_standby(priv);
+> +
+> +	ret = rcsi2_start_receiver(priv);
+> +	if (ret) {
+> +		rcsi2_enter_standby(priv);
+> +		return ret;
+> +	}
+> +
+> +	ret = v4l2_subdev_call(priv->remote, video, s_stream, 1);
+> +	if (ret) {
+> +		rcsi2_enter_standby(priv);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static void rcsi2_stop(struct rcar_csi2 *priv)
+>  {
+> -	rcsi2_write(priv, PHYCNT_REG, 0);
+> -
+> -	rcsi2_reset(priv);
+> -
+> -	rcsi2_write(priv, PHTC_REG, PHTC_TESTCLR);
+> +	rcsi2_enter_standby(priv);
+> +	v4l2_subdev_call(priv->remote, video, s_stream, 0);
+>  }
+>  
+>  static int rcsi2_s_stream(struct v4l2_subdev *sd, int enable)
+>  {
+>  	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> -	struct v4l2_subdev *nextsd;
+>  	int ret = 0;
+>  
+>  	mutex_lock(&priv->lock);
+> @@ -586,27 +612,12 @@ static int rcsi2_s_stream(struct v4l2_subdev *sd, int enable)
+>  		goto out;
+>  	}
+>  
+> -	nextsd = priv->remote;
+> -
+>  	if (enable && priv->stream_count == 0) {
+> -		pm_runtime_get_sync(priv->dev);
+> -
+>  		ret = rcsi2_start(priv);
+> -		if (ret) {
+> -			pm_runtime_put(priv->dev);
+> +		if (ret)
+>  			goto out;
+> -		}
+> -
+> -		ret = v4l2_subdev_call(nextsd, video, s_stream, 1);
+> -		if (ret) {
+> -			rcsi2_stop(priv);
+> -			pm_runtime_put(priv->dev);
+> -			goto out;
+> -		}
+>  	} else if (!enable && priv->stream_count == 1) {
+>  		rcsi2_stop(priv);
+> -		v4l2_subdev_call(nextsd, video, s_stream, 0);
+> -		pm_runtime_put(priv->dev);
+>  	}
+>  
+>  	priv->stream_count += enable ? 1 : -1;
+> @@ -936,6 +947,10 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
+>  	if (irq < 0)
+>  		return irq;
+>  
+> +	priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
+> +	if (IS_ERR(priv->rstc))
+> +		return PTR_ERR(priv->rstc);
+> +
+>  	return 0;
+>  }
 >  
 
 -- 
