@@ -3,98 +3,137 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4C0C43381
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:17:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B52C43381
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:18:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD9132146E
-	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:17:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B338B213A2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Mar 2019 21:18:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727391AbfCMVR3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Mar 2019 17:17:29 -0400
-Received: from mout.kundenserver.de ([212.227.17.24]:37893 "EHLO
+        id S1727452AbfCMVSF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Mar 2019 17:18:05 -0400
+Received: from mout.kundenserver.de ([212.227.126.187]:51379 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726994AbfCMVR3 (ORCPT
+        with ESMTP id S1726994AbfCMVSF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Mar 2019 17:17:29 -0400
+        Wed, 13 Mar 2019 17:18:05 -0400
 Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
- (mreue107 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1MKszj-1hKLaP2FXZ-00LAnW; Wed, 13 Mar 2019 22:17:12 +0100
+ (mreue011 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1M6DrU-1h6N6r3iMi-006dm8; Wed, 13 Mar 2019 22:17:50 +0100
 From:   Arnd Bergmann <arnd@arndb.de>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Kees Cook <keescook@chromium.org>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Sean Young <sean@mess.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dib0700: fix link error for dibx000_i2c_set_speed
-Date:   Wed, 13 Mar 2019 22:16:53 +0100
-Message-Id: <20190313211709.486583-1-arnd@arndb.de>
+To:     Rui Miguel Silva <rmfrfs@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: media: imx7-mipi-csis: fix debugfs compilation
+Date:   Wed, 13 Mar 2019 22:17:32 +0100
+Message-Id: <20190313211748.534491-1-arnd@arndb.de>
 X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:RMZUATCnG99VGNTOjTvIXdQyLvNkz779PJ7UrqeFNzigEIq+XwK
- Qrc6xpWdDA7wT+UmwrzUKSZRnr2COE43+K9gx88kdhsyao2GaMmqT/2zdkJ2hdADapTs8EJ
- 7fiIyKVesw08XrNlHPQK9VL/vSLQ8mFRb4+K+0RMvweguTrKO6gZhfWcoHBGucKi89fCQtm
- kJ7qj6msl9N/5LFnFHEJA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:2JM+skA71oo=:jff/z63rLEksqJkilsE1E4
- G/WhGLSSjPQKPI7S6zH8ujmEB/FqRKFp4TGo3U0bNCzmlErRCvYvyzCYgvAjLgWZNPgIaSEoX
- 8bhKHOXapS2bG8DufigK8+LTE6zahP7L6lwl+fBUoxeR1CluEGWIKdR2E0GcKQLFzv8/b2rO6
- JKhE6eVWGsGNaaoTt9osgDGEf1ZDQtr6YkCUkiEudoEyc2JwkX8N9j6Et/RiTyhzPrLpC6bye
- o0E6hmKgsF/16HOFDDb0mGpbgd7bKhOum2FMnZVF7ZVhB/eePtMLIdNe/hcJ8SsTwYYKqE5m6
- 5tVExEz4UqUMEIAMm6TCPcOBDBOqttwlNFfgun55TkUBqW3t32IJrUE8UbqflyT9zFdFwL+vb
- Pg+5ahKGyVXlDIcwtNoAawhfU+ugrH4nVs6t8X+YEeqYD9rCqLX+uJr33M68BPJr7qyun0Mx1
- qJj+gJluKR3Keqo7u8ySxHvaAfhBc5ofopA7TniAPYPL3gBmZcmYD0HGCbJ8zRnM+30af6QMR
- FrhAy1YUmss/rXM07FNQL8KamnOR60QNuppXaTwS1GwXaehWImtSuveLwzIOtY31NU03tGFyB
- j70fPQ23Co4gGjLCnfuaVpz8FyWbU0d8ye8QdNxS+L2jqVz31i6jDFz8Xheiclf74yGReKpfN
- poTJGI8u+bwqw6qC8fB38q1DGeNqUvg+8fLC+fsbCr9Qtjg3AVUFW2PprSPmA8OFs4Uk8docP
- tjGgNXeDN4tkEYcP5jsPa6G8ihKaj75kDxZAKg==
+X-Provags-ID: V03:K1:SNoTQV7pLQFErYrCNqEuueldEPoz3NgvQS/zQAfLXbLZtg4/4XZ
+ NqyoHVcn7AhLm+pyB8v/i+4lhKm/81zxi7RYUUZK3aFFrNBiW7EDRJ6+bbH1hVAC/pThdxT
+ LDC7HAy5Yn9SKZt5gTSSRdrlRL8si9GPCpFsFMz1D9q3jnjjsOzRAKJ1y4E9ZtegvjqIOUv
+ BjjFfwbmoU3Xa3bnRuQ7A==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:kKpUg2pwm14=:LFCX4kSxrSCpSEmc9VbExf
+ yI1hzlHRzBM71i49cew+IL6e+igPq7iprPxL9WpUqjUNlfrgdbOcoLoXy2U4/pXs8/5ejCphj
+ ZKroi7Dw1Nn9md4uITL6kaAPAfxOuMmxgqeobcc7tRQwS06UdkcWUml3vZR7rdnuT/oSPDnpl
+ ycUDJzWdnMqzJt4LOxNLKLgcqC5FtNPjDAIfRYR690u11WCZatOLiqN1mA4pYXFa6VJp4GH3W
+ SDOX/M6Q81ceWPq/e5m8/2B8dN2m37TEK3dmXzHLuvDPjMWXy5uK4tGV7H0o8l9oZVwYDKgcc
+ FmssSwF63XYckaMbI6wn3cqs9UXqk+PTq68YKESA/JETOqcZkgzvjQ5syAmXcXx1qbozcyefJ
+ brnCqZ4a/TBrTQUW5d5vCl4ETDoPmHbhJEzsCELg2fIo06WWP1wrdpKOWnE2dqioFTh2i1zVK
+ Kai6qWu7hHDIVOkTN8IgAwafDRE221Z9R5PGMj4sj+tEjd+WVS+EwKZBPYUCEmSQNMUna9dTe
+ yP1KFvz+3pKzRFw8JqLsLYf/2hiUI8Cls6bJKhjxHS3sBuWuwmOn68RZrEeptjb6frb+RVLAk
+ Fc4vHTHq04VgFmnddxekI3vMkpfBVZQg9NoELIElX8kNVhOxAS435UvKDuG73fajoneYnUqu+
+ xCPLcCt491MLFJ1Qepf6kOMHcMXbf9fu3Sd+myniIxQHxangIPOAqzyPHM5pKDGmKgiv7AcKF
+ diQGrDy9NGJyDMGiHM22m/hTuQi2WvRVSQ2t3Q==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-When CONFIG_DVB_DIB9000 is disabled, we can still compile code that
-now fails to link against dibx000_i2c_set_speed:
+When CONFIG_DEBUGFS is enabled, we get a warning about an
+incorrect section annotation that can lead to undefined
+behavior:
 
-drivers/media/usb/dvb-usb/dib0700_devices.o: In function `dib01x0_pmu_update.constprop.7':
-dib0700_devices.c:(.text.unlikely+0x1c9c): undefined reference to `dibx000_i2c_set_speed'
+WARNING: vmlinux.o(.text+0xd3c7c4): Section mismatch in reference from the function mipi_csis_probe() to the function .init.text:mipi_csis_debugfs_init()
+The function mipi_csis_probe() references
+the function __init mipi_csis_debugfs_init().
+This is often because mipi_csis_probe lacks a __init
+annotation or the annotation of mipi_csis_debugfs_init is wrong.
 
-The call sites are both through dib01x0_pmu_update(), which gets
-passed an 'i2c' pointer from dib9000_get_i2c_master(), which has
-returned NULL. Checking this pointer seems to be a good idea
-anyway, and it avoids the link failure.
+The same function for an unknown reason has a different
+version for !CONFIG_DEBUGFS, which does not have this problem,
+but behaves the same way otherwise (it does nothing when debugfs
+is disabled).
+Consolidate the two versions, using the correct section from
+one version, and the implementation from the other.
 
-Fixes: b7f54910ce01 ("V4L/DVB (4647): Added module for DiB0700 based devices")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/usb/dvb-usb/dib0700_devices.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/staging/media/imx/imx7-mipi-csis.c | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 9311f7d4bba5..4cbc64ea17d7 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -2445,6 +2445,8 @@ static int dib9090_tuner_attach(struct dvb_usb_adapter *adap)
- 	if (dvb_attach(dib0090_fw_register, adap->fe_adap[0].fe, i2c, &dib9090_dib0090_config) == NULL)
- 		return -ENODEV;
- 	i2c = dib9000_get_i2c_master(adap->fe_adap[0].fe, DIBX000_I2C_INTERFACE_GPIO_1_2, 0);
-+	if (!i2c)
-+		return -ENODEV;
- 	if (dib01x0_pmu_update(i2c, data_dib190, 10) != 0)
- 		return -ENODEV;
- 	dib0700_set_i2c_speed(adap->dev, 1500);
-@@ -2524,6 +2526,8 @@ static int nim9090md_tuner_attach(struct dvb_usb_adapter *adap)
- 	if (dvb_attach(dib0090_fw_register, adap->fe_adap[0].fe, i2c, &nim9090md_dib0090_config[0]) == NULL)
- 		return -ENODEV;
- 	i2c = dib9000_get_i2c_master(adap->fe_adap[0].fe, DIBX000_I2C_INTERFACE_GPIO_1_2, 0);
-+	if (!i2c)
-+		return -ENODEV;
- 	if (dib01x0_pmu_update(i2c, data_dib190, 10) < 0)
- 		return -ENODEV;
+diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c b/drivers/staging/media/imx/imx7-mipi-csis.c
+index 2ddcc42ab8ff..001ce369ec45 100644
+--- a/drivers/staging/media/imx/imx7-mipi-csis.c
++++ b/drivers/staging/media/imx/imx7-mipi-csis.c
+@@ -9,6 +9,7 @@
+  */
  
+ #include <linux/clk.h>
++#include <linux/debugfs.h>
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
+@@ -889,8 +890,6 @@ static int mipi_csis_subdev_init(struct v4l2_subdev *mipi_sd,
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_DEBUG_FS
+-#include <linux/debugfs.h>
+ 
+ static int mipi_csis_dump_regs_show(struct seq_file *m, void *private)
+ {
+@@ -900,7 +899,7 @@ static int mipi_csis_dump_regs_show(struct seq_file *m, void *private)
+ }
+ DEFINE_SHOW_ATTRIBUTE(mipi_csis_dump_regs);
+ 
+-static int __init_or_module mipi_csis_debugfs_init(struct csi_state *state)
++static int mipi_csis_debugfs_init(struct csi_state *state)
+ {
+ 	struct dentry *d;
+ 
+@@ -934,17 +933,6 @@ static void mipi_csis_debugfs_exit(struct csi_state *state)
+ 	debugfs_remove_recursive(state->debugfs_root);
+ }
+ 
+-#else
+-static int mipi_csis_debugfs_init(struct csi_state *state __maybe_unused)
+-{
+-	return 0;
+-}
+-
+-static void mipi_csis_debugfs_exit(struct csi_state *state __maybe_unused)
+-{
+-}
+-#endif
+-
+ static int mipi_csis_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
 -- 
 2.20.0
 
