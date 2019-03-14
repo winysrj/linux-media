@@ -2,348 +2,166 @@ Return-Path: <SRS0=Jwgu=RR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B705C10F06
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 08:28:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66ED5C43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 08:37:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C8A8E2184C
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 08:28:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="Ya9e69t3"
+	by mail.kernel.org (Postfix) with ESMTP id 22851204FD
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 08:37:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726814AbfCNI2e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 14 Mar 2019 04:28:34 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43582 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726638AbfCNI2d (ORCPT
+        id S1726606AbfCNIhb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Mar 2019 04:37:31 -0400
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47623 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726083AbfCNIha (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Mar 2019 04:28:33 -0400
-Received: from [192.168.0.20] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id CB5F631C;
-        Thu, 14 Mar 2019 09:28:29 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552552110;
-        bh=C+UrxM4Ltc5pXgtZy1nLanpmcRX6Kbu4BbLBdDIxXDg=;
-        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=Ya9e69t3pn7Ift4TiQwJDZ1hon84iLpHZU1YXBJEnmuWhGqeXEqmmMDXQiTXHvnx2
-         AhCGsjyZPmS0UoIWyXhiRBbuCyJQn/wxKwlL+FdtSB3dGT/2IS/VuXM6x4qSGZjO0Q
-         IqFtdixmhMzFMCn/zvH6JD+wXtCcTxiIi0rJlPjg=
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v6 11/18] media: vsp1: drm: Implement writeback support
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Liviu Dudau <Liviu.Dudau@arm.com>,
-        Brian Starkey <brian.starkey@arm.com>
-References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190313000532.7087-12-laurent.pinchart+renesas@ideasonboard.com>
- <ab98c192-9615-809c-2bdd-c1a2d72cff5b@ideasonboard.com>
- <20190313155606.GF4722@pendragon.ideasonboard.com>
-From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
-Openpgp: preference=signencrypt
-Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
- 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
- sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
-Organization: Ideas on Board
-Message-ID: <2fe9b232-36be-bb0d-6c33-91d0050b35c1@ideasonboard.com>
-Date:   Thu, 14 Mar 2019 08:28:27 +0000
+        Thu, 14 Mar 2019 04:37:30 -0400
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id 4Lrdhq4vlLMwI4LrghHqq9; Thu, 14 Mar 2019 09:37:28 +0100
+Subject: Re: [RFC v1 0/4] media: mediatek: support mdp3 on mt8183 platform
+To:     Daoyuan Huang <daoyuan.huang@mediatek.com>,
+        laurent.pinchart+renesas@ideasonboard.com, tfiga@chromium.org,
+        matthias.bgg@gmail.com, mchehab@kernel.org
+Cc:     yuzhao@chromium.org, zwisler@chromium.org,
+        linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, Sean.Cheng@mediatek.com,
+        sj.huang@mediatek.com, christie.yu@mediatek.com,
+        holmes.chiou@mediatek.com, frederic.chen@mediatek.com,
+        Jerry-ch.Chen@mediatek.com, jungo.lin@mediatek.com,
+        Rynn.Wu@mediatek.com, linux-media@vger.kernel.org,
+        srv_heupstream@mediatek.com, devicetree@vger.kernel.org,
+        ping-hsun.wu@mediatek.com
+References: <1552024160-33055-1-git-send-email-daoyuan.huang@mediatek.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <176c023b-d734-c5a0-bf40-e190eff00278@xs4all.nl>
+Date:   Thu, 14 Mar 2019 09:37:20 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190313155606.GF4722@pendragon.ideasonboard.com>
+In-Reply-To: <1552024160-33055-1-git-send-email-daoyuan.huang@mediatek.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNiVOH6qbiOqPsLfxXr17xsaF2A/EreR7lAZmr7S24uVJMiiq43dDScXdKRVLPpBXE9IETxKuiH8gilq0XgB+AiGteU+1B5MpZj3IVU6Z0Wz18zV6jLR
+ 25Rkd3MNWihbsFeDqDzyfWDZZ6r3kLRiIJ4fjZGoPLxzih83X2scECMZRM01Ku1PbbY0Q9C6vbvUWCRGPZvvEU5Y8n+zt/0i/+dqSaRBZ+P0L9ZOyEXcN8Q2
+ Xzl2T1Kt0we6/tnhDqCBZg07oDyGtMkI4gNEaBVMhcAODz2NARjTQOoPtvtG5wTNliU+fbSPpBaeuPu9EegIPdh66MlTpJCOs5rjWdHXNS06i8aEhThIV6vF
+ QMDj06jD6pXl3OpspVOB4lFMvmVuGAFE4sjm875RoLW5ZqAOlnBXuewzWTY1NmnWy9cGbKT/LtcneVzFhGYpCbwWCgFK5F4tTFM/stIzBEIOqOyX5y1yA+St
+ sXFDDGVEtWVSjVolCbWdtziuba106gZr3tc+YYJRoIQP01a3i0/KbUFfWa7jZ13oTGG354ym7nzdRlBMMgj8r3o7mQiPLJRHlKrbVLjhD7apCnZXI3k1oPY/
+ wLL634W7/JS79M88EA893i2MhLUqL3TSC9mJpxq03XlE3rCxp0uAcQUta1Oq91g9Ba1UZ2jAmeJctoe+RX6uuGSdePI0LqFvPzD2FCpMFs/Dxy270tGfcAPk
+ 6Fb0tMeMC+yDNP9m79/ND1Qn2EuPVPGWdA1m1ODJItyTrc4SXwvyNjXZ0wdmw4KYgAmbLHaOrDG6SU4j5K2/TMgw7Tn3Hg66V/D0Ffq6w7QV5/rIyA1zdrNp
+ 8TyXqz/EOk1jEVP/5Bc/2QtHGHvS+Sbhir3p6jXMG3pP+nw+UCRth/iQU35d/ZTuqsmg4E27SMU0JbzzehTCRe1nFTuJcQj+nPloIoPEnEp8B/r2o7uSrmYI
+ 3c8k2A==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Laurent,
+Hi Daoyuan Huang,
 
-On 13/03/2019 15:56, Laurent Pinchart wrote:
-> Hi Kieran,
+On 3/8/19 6:49 AM, Daoyuan Huang wrote:
+> From: daoyuan huang <daoyuan.huang@mediatek.com>
 > 
-> On Wed, Mar 13, 2019 at 11:42:34AM +0000, Kieran Bingham wrote:
->> On 13/03/2019 00:05, Laurent Pinchart wrote:
->>> Extend the vsp1_du_atomic_flush() API with writeback support by adding
->>> format, pitch and memory addresses of the writeback framebuffer.
->>> Writeback completion is reported through the existing frame completion
->>> callback with a new VSP1_DU_STATUS_WRITEBACK status flag.
->>>
->>> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> This is the first version of RFC patch for Media Data Path 3 (MDP3),
+> MDP3 is used for scaling and color format conversion.
+> support using GCE to write register in critical time limitation.
+> support V4L2 m2m device control.
 
-My concerns have been addressed here:
+Just a high-level comment before you post the next version of this series:
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Please compile the latest version of v4l2-compliance (part of
+git://linuxtv.org/v4l-utils.git) and run it against your driver:
 
+v4l2-compliance -d /dev/videoX -s10 -f
 
->>> ---
->>>  drivers/media/platform/vsp1/vsp1_dl.c  | 14 ++++++++++++++
->>>  drivers/media/platform/vsp1/vsp1_dl.h  |  3 ++-
->>>  drivers/media/platform/vsp1/vsp1_drm.c | 25 ++++++++++++++++++++++++-
->>>  include/media/vsp1.h                   | 15 +++++++++++++++
->>>  4 files changed, 55 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
->>> index ed7cda4130f2..104b6f514536 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
->>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
->>> @@ -958,6 +958,9 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, unsigned int dl_flags)
->>>   *
->>>   * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the display list that just
->>>   * became active had been queued with the internal notification flag.
->>> + *
->>> + * The VSP1_DL_FRAME_END_WRITEBACK flag indicates that the previously active
->>> + * display list had been queued with the writeback flag.
->>
->> How does this interact with the possibility of the writeback being
->> disabled by the WPF in the event of it failing to get a DL.
->>
->> It's only a small corner case, but will the 'writeback' report back as
->> though it succeeded? (without writing to memory, and thus giving an
->> unmodified buffer back?)
+(I hope the -f option works, it tests all combinations of pixelformats, but those
+tests are new so there may be issues, just let me know if that's the case).
+
+Whenever you post a new version of this series, please do a 'git pull' of
+the v4l-utils repo, recompile and retest with v4l2-compliance and post the
+test results in the cover letter.
+
+Obviously, there should be no FAILs and probably no warnings.
+
+Regards,
+
+	Hans
+
 > 
-> Wrteback completion will never be reported in that case. This shouldn't
-> happen as we should never fail to get a display list. Do you think it
-> would be better to fake completion ?
-
-Would this lack of completion cause a hang while DRM waits for the
-completion to occur? I guess this would timeout after some period.
-
-I'm not sure what's worse. To hang / block for a timeout - or just
-return a 'bad buffer'. We would know in the VSP that the completion has
-failed, so we could signal a failure, but I think as the rest of the DRM
-model goes with a timeout if the flip_done fails to complete for
-example, we should follow that.
-
-So leave this as is, and perhaps lets make sure the core writeback
-framework will report a warning if it hits a time out.
-
-If we ever fail to get a display list - we will have bigger issues which
-will propogate elsewhere :)
-
-
->>>   */
->>>  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
->>>  {
->>> @@ -995,6 +998,17 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
->>>  	if (status & VI6_STATUS_FLD_STD(dlm->index))
->>>  		goto done;
->>>  
->>> +	/*
->>> +	 * If the active display list has the writeback flag set, the frame
->>> +	 * completion marks the end of the writeback capture. Return the
->>> +	 * VSP1_DL_FRAME_END_WRITEBACK flag and reset the display list's
->>> +	 * writeback flag.
->>> +	 */
->>> +	if (dlm->active && (dlm->active->flags & VSP1_DL_FRAME_END_WRITEBACK)) {
->>> +		flags |= VSP1_DL_FRAME_END_WRITEBACK;
->>> +		dlm->active->flags &= ~VSP1_DL_FRAME_END_WRITEBACK;
->>> +	}
->>> +
->>>  	/*
->>>  	 * The device starts processing the queued display list right after the
->>>  	 * frame end interrupt. The display list thus becomes active.
->>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
->>> index e0fdb145e6ed..4d7bcfdc9bd9 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_dl.h
->>> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
->>> @@ -18,7 +18,8 @@ struct vsp1_dl_list;
->>>  struct vsp1_dl_manager;
->>>  
->>>  #define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
->>> -#define VSP1_DL_FRAME_END_INTERNAL		BIT(1)
->>> +#define VSP1_DL_FRAME_END_WRITEBACK		BIT(1)
->>
->> So below BIT(2) (code above) the flags match the externally exposed
->> bitfield for the VSP1_DU_STATUS_
->>
->> While above (code below), are 'private' bitfields.
->>
->> Should this requirement be documented here somehow? especially the
->> mapping of FRAME_END_{COMPLETED,WRITEBACK} to
->> DU_STATUS_{COMPLETED,WRITEBACK}.
+> ---
+> Based on v5.0-rc1 and these series:
+> device tree:
+> http://lists.infradead.org/pipermail/linux-mediatek/2019-February/017570.html
+> clock control:
+> http://lists.infradead.org/pipermail/linux-mediatek/2019-February/017320.html
+> system control processor (SCP):
+> http://lists.infradead.org/pipermail/linux-mediatek/2019-February/017774.html
+> global command engine (GCE):
+> http://lists.infradead.org/pipermail/linux-mediatek/2019-January/017143.html
+> ---
 > 
-> I've added a comment here, as explained in my reply to your review of
-> 10/18, to document this.
-
-Great.
-
-
->>> +#define VSP1_DL_FRAME_END_INTERNAL		BIT(2)
->>>  
->>>  /**
->>>   * struct vsp1_dl_ext_cmd - Extended Display command
->>> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
->>> index 0367f88135bf..16826bf184c7 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_drm.c
->>> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
->>> @@ -37,7 +37,9 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
->>>  
->>>  	if (drm_pipe->du_complete) {
->>>  		struct vsp1_entity *uif = drm_pipe->uif;
->>> -		unsigned int status = completion & VSP1_DU_STATUS_COMPLETE;
->>> +		unsigned int status = completion
->>> +				    & (VSP1_DU_STATUS_COMPLETE |
->>> +				       VSP1_DU_STATUS_WRITEBACK);
->>>  		u32 crc;
->>>  
->>>  		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
->>> @@ -541,6 +543,8 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
->>>  
->>>  	if (drm_pipe->force_brx_release)
->>>  		dl_flags |= VSP1_DL_FRAME_END_INTERNAL;
->>> +	if (pipe->output->writeback)
->>> +		dl_flags |= VSP1_DL_FRAME_END_WRITEBACK;
->>>  
->>>  	dl = vsp1_dl_list_get(pipe->output->dlm);
->>>  	dlb = vsp1_dl_list_get_body0(dl);
->>> @@ -870,12 +874,31 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
->>>  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
->>>  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
->>>  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
->>> +	int ret;
->>>  
->>>  	drm_pipe->crc = cfg->crc;
->>>  
->>>  	mutex_lock(&vsp1->drm->lock);
->>> +
->>> +	if (pipe->output->has_writeback && cfg->writeback.pixelformat) {
->>
->> Is pipe->output->has_writeback necessary here? Can
->> cfg->writeback.pixelformat be set if pipe->output->has_writeback is false?
->>
->> Hrm ... actually - Perhaps it is useful. It validates both sides of the
->> system.
->>
->> pipe->output->has_writeback is a capability of the VSP, where as
->> cfg->writeback.pixelformat is a 'request' from the DU.
+> daoyuan huang (4):
+>   dt-binding: mt8183: Add Mediatek MDP3 dt-bindings
+>   dts: arm64: mt8183: Add Mediatek MDP3 nodes
+>   media: platform: Add Mediatek MDP3 driver KConfig
+>   media: platform: mtk-mdp3: Add Mediatek MDP3 driver
 > 
-> Correct, I think it's best to check both, to ensure we don't try to
-> queue a writeback request on a system that doesn't support writeback. On
-> the other hand this shouldn't happen as the DU driver shouldn't expose
-> writeback to userspace in that case, so if you don't think the check is
-> worth it I can remove the has_writeback field completely.
-
-It's a cheap check, I don't think it is too much of an issue - but I
-agree (if we don't already) then we should make sure userspace does not
-see a writeback functionality if it is not supported through the whole
-pipeline (i.e. including the capability in the VSP1).
-
-That would make me lean towards removing this check here - *iff* we
-guarantee that the VSP will only be asked to do write back when it's
-possible.
-
-
-
->>> +		const struct vsp1_du_writeback_config *wb_cfg = &cfg->writeback;
->>> +
->>> +		ret = vsp1_du_pipeline_set_rwpf_format(vsp1, pipe->output,
->>> +						       wb_cfg->pixelformat,
->>> +						       wb_cfg->pitch);
->>> +		if (WARN_ON(ret < 0))
->>> +			goto done;
->>> +
->>> +		pipe->output->mem.addr[0] = wb_cfg->mem[0];
->>> +		pipe->output->mem.addr[1] = wb_cfg->mem[1];
->>> +		pipe->output->mem.addr[2] = wb_cfg->mem[2];
->>> +		pipe->output->writeback = true;
->>> +	}
->>> +
->>>  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
->>>  	vsp1_du_pipeline_configure(pipe);
->>> +
->>> +done:
->>>  	mutex_unlock(&vsp1->drm->lock);
->>>  }
->>>  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
->>> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
->>> index 877496936487..cc1b0d42ce95 100644
->>> --- a/include/media/vsp1.h
->>> +++ b/include/media/vsp1.h
->>> @@ -18,6 +18,7 @@ struct device;
->>>  int vsp1_du_init(struct device *dev);
->>>  
->>>  #define VSP1_DU_STATUS_COMPLETE		BIT(0)
->>> +#define VSP1_DU_STATUS_WRITEBACK	BIT(1)
->>>  
->>>  /**
->>>   * struct vsp1_du_lif_config - VSP LIF configuration
->>> @@ -83,12 +84,26 @@ struct vsp1_du_crc_config {
->>>  	unsigned int index;
->>>  };
->>>  
->>> +/**
->>> + * struct vsp1_du_writeback_config - VSP writeback configuration parameters
->>> + * @pixelformat: plane pixel format (V4L2 4CC)
->>> + * @pitch: line pitch in bytes for the first plane
->>> + * @mem: DMA memory address for each plane of the frame buffer
->>> + */
->>> +struct vsp1_du_writeback_config {
->>> +	u32 pixelformat;
->>> +	unsigned int pitch;
->>> +	dma_addr_t mem[3];
->>> +};
->>> +
->>>  /**
->>>   * struct vsp1_du_atomic_pipe_config - VSP atomic pipe configuration parameters
->>>   * @crc: CRC computation configuration
->>> + * @writeback: writeback configuration
->>>   */
->>>  struct vsp1_du_atomic_pipe_config {
->>>  	struct vsp1_du_crc_config crc;
->>> +	struct vsp1_du_writeback_config writeback;
->>>  };
->>>  
->>>  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
+>  .../bindings/media/mediatek,mt8183-mdp3.txt        |  217 ++++
+>  arch/arm64/boot/dts/mediatek/mt8183.dtsi           |  109 ++
+>  drivers/media/platform/Kconfig                     |   18 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/mtk-mdp3/Makefile           |    9 +
+>  drivers/media/platform/mtk-mdp3/isp_reg.h          |   38 +
+>  drivers/media/platform/mtk-mdp3/mdp-platform.h     |   67 ++
+>  drivers/media/platform/mtk-mdp3/mdp_reg_ccorr.h    |   76 ++
+>  drivers/media/platform/mtk-mdp3/mdp_reg_rdma.h     |  207 ++++
+>  drivers/media/platform/mtk-mdp3/mdp_reg_rsz.h      |  110 ++
+>  drivers/media/platform/mtk-mdp3/mdp_reg_wdma.h     |  126 +++
+>  drivers/media/platform/mtk-mdp3/mdp_reg_wrot.h     |  116 ++
+>  drivers/media/platform/mtk-mdp3/mmsys_config.h     |  189 ++++
+>  drivers/media/platform/mtk-mdp3/mmsys_mutex.h      |   36 +
+>  drivers/media/platform/mtk-mdp3/mmsys_reg_base.h   |   39 +
+>  drivers/media/platform/mtk-mdp3/mtk-img-ipi.h      |  272 +++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-cmdq.c    |  407 +++++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-cmdq.h    |   52 +
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-comp.c    | 1180 ++++++++++++++++++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-comp.h    |  176 +++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-core.c    |  257 +++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-core.h    |   89 ++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-m2m.c     |  784 +++++++++++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-m2m.h     |   52 +
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-regs.c    |  778 +++++++++++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-regs.h    |  382 +++++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-vpu.c     |  277 +++++
+>  drivers/media/platform/mtk-mdp3/mtk-mdp3-vpu.h     |   90 ++
+>  28 files changed, 6155 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/mediatek,mt8183-mdp3.txt
+>  create mode 100644 drivers/media/platform/mtk-mdp3/Makefile
+>  create mode 100644 drivers/media/platform/mtk-mdp3/isp_reg.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mdp-platform.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mdp_reg_ccorr.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mdp_reg_rdma.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mdp_reg_rsz.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mdp_reg_wdma.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mdp_reg_wrot.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mmsys_config.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mmsys_mutex.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mmsys_reg_base.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-img-ipi.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-cmdq.c
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-cmdq.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-comp.c
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-comp.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-core.c
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-core.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-m2m.c
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-m2m.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-regs.c
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-regs.h
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-vpu.c
+>  create mode 100644 drivers/media/platform/mtk-mdp3/mtk-mdp3-vpu.h
 > 
 
--- 
-Regards
---
-Kieran
