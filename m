@@ -2,171 +2,134 @@ Return-Path: <SRS0=Jwgu=RR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A7A2C43381
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 12:19:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3911C43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 13:11:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5D94F21852
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 12:19:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G5+FYVVi"
+	by mail.kernel.org (Postfix) with ESMTP id CF30F2184C
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 13:11:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727263AbfCNMTG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 14 Mar 2019 08:19:06 -0400
-Received: from mail-it1-f194.google.com ([209.85.166.194]:36085 "EHLO
-        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726688AbfCNMTG (ORCPT
+        id S1726932AbfCNNLL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Mar 2019 09:11:11 -0400
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:54161 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726786AbfCNNLL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Mar 2019 08:19:06 -0400
-Received: by mail-it1-f194.google.com with SMTP id h9so4484562itl.1;
-        Thu, 14 Mar 2019 05:19:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=oTUtf7DHMNapR1bLHHVDG7LJIcXxif1N0TzQwlX+4c4=;
-        b=G5+FYVViK7D58YD6RMA5DfXScrAysWzivL/loaA/MJ69IlYFfB2Iz0s6zV2vPnlygH
-         jLvgkHQT2Q41xYPnGpSkADxvHEfkS6jfgdoalLYufhnhDTjNXh19onuxBGul1HxW/iwc
-         vdppNdxoC/OBC7Xcl4YcZ6X59J1CQ5uWh+D0NjyMMoAzIP4asvg/AcId3RjOvG2ti++G
-         5nSe+7xnHtEinWrFyZNtB4o8pjWw8A6HQBhcdH/KyhVRcMiaIu0c4j6FUovGzHkKkIYT
-         0E41sB7kuVw4PWRrYrga9ghueXuNLM/GqEIheCvWIqOZtCIqD5QXjVdWPK8LRWUJ0icd
-         lSqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=oTUtf7DHMNapR1bLHHVDG7LJIcXxif1N0TzQwlX+4c4=;
-        b=gtVGElPBdI+hyWg9McCKaBEZZRM1lOJ0RNRnHRjnDKcV/f8TOO+//ssW07OOwJv8/6
-         nV+KcZHdcEayKwvknCxQ35tUmyj7GG+FYGyckVd13MGjiFGgxmlvbrc8FeU9FnwSga9y
-         pJsZayOcs+nTQFtfK4beaCNrCqz1p15TKrIHdzo7b/g/JYlO7oFu5UnwrAfrtWGCI57C
-         PvOXMLxgZE9nqpGiilhrDU10sFsaKa15kL+eTt5VPWwnvSAq0nHDKq02xM+K0bTi67C9
-         XmB3uHnqeCdwNlKGYLqZXOFcdHy/2oK52akvBDksJnyl/Vn/5MskK8JTQNP/G66uzqAJ
-         a8TQ==
-X-Gm-Message-State: APjAAAXrL0dvAQvbZdAGSZsUtqIgEJ6JFgmbxEMhj8PhdGcFoapMMlHZ
-        WAI02zPKaggYAdYzzaKzXB+sfc8lMMN2VTk0fsU=
-X-Google-Smtp-Source: APXvYqzyVnFGZXamqKcgQC6vQ6JnprSS4GG5QO6oXogT/Phak4extsCcyYLL9e+J5zpqhwMrjgO0gxxCDeQF2WTzLWk=
-X-Received: by 2002:a02:a903:: with SMTP id n3mr947770jam.3.1552565944487;
- Thu, 14 Mar 2019 05:19:04 -0700 (PDT)
+        Thu, 14 Mar 2019 09:11:11 -0400
+Received: from [IPv6:2001:420:44c1:2579:e8a7:494:d652:7065] ([IPv6:2001:420:44c1:2579:e8a7:494:d652:7065])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id 4Q8WhgPY0I8AW4Q8ahjWoD; Thu, 14 Mar 2019 14:11:09 +0100
+Subject: Re: [RFC PATCH] media/doc: Allow sizeimage to be set by v4l clients
+To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        linux-media@vger.kernel.org
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Malathi Gottam <mgottam@codeaurora.org>
+References: <20190116123701.10344-1-stanimir.varbanov@linaro.org>
+ <299e8aeb-6deb-b383-8f63-cf2cbf5d2e9f@xs4all.nl>
+ <adecdc4e-1aed-fc33-b14b-083322797c70@linaro.org>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c103b0d8-0020-17e0-4584-e5c3ca6bbc51@xs4all.nl>
+Date:   Thu, 14 Mar 2019 14:11:04 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-References: <20181221011752.25627-1-sre@kernel.org> <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
-In-Reply-To: <4f47f7f2-3abb-856c-4db5-675caf8057c7@xs4all.nl>
-From:   Adam Ford <aford173@gmail.com>
-Date:   Thu, 14 Mar 2019 07:18:53 -0500
-Message-ID: <CAHCN7x+KeHBYH-QxAsRNL2KB_qDud2LTqdtjC4FZ08KvxGtEdA@mail.gmail.com>
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Sebastian Reichel <sre@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marcel Holtmann <marcel@holtmann.org>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <adecdc4e-1aed-fc33-b14b-083322797c70@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNDkJ5evP5sBZWMgZyXh26c5RxV10K9mYOgGtfEhfvmUEuJq5UWoXIsiGetaHLoAhaoGHr7mMwhStLptAbLwI4nOtndjyhahk5GTSe5KHIwCGzJLJjDj
+ QqDePI2GezC5MnOJ/gr4mGx/+WC6JFvxZFz4kd0kDkopN4h27pAHbiefYTt9kl2/pihMaiHVN3LXSHvKTZ/RbLJYVmvwFjGPCJpzPyEtfLS+CYvfIZ4kwPFt
+ dR8aebEmzrusmZ9H0BMHbFZXLfqJsJNHw8CTpArThwJcaB9usrJw1QOLfipYZfLQPCnnMsmbEWY9rHvolFN/Jp0Kn6kcy3f/mr+vwOs0W4UGLZNDUMm95NV2
+ 0AaWVSjSOzfRwQGg62I0TkIHQzAJ2/OwrxpvP2sAAmaPTzd2NIY/A2BBmYPic9FY5XCNMaxetnQc6RLyERq4p1LInuqcBVwbxRVQIBFf4gOnWsnruOVMW1/0
+ tfVQUb9A8p3me4Jus5uw6eKKsecVLP7sDafERqbLr5mZcVkIBVsuZKK/K6d1+0OgkZOA3xp1qCgNLqdpcfmxv4yE/hv8QvwAxVlY7g==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Mar 14, 2019 at 3:21 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Hi Sebastian,
->
-> On 12/21/18 2:17 AM, Sebastian Reichel wrote:
-> > Hi,
-> >
-> > This moves all remaining users of the legacy TI_ST driver to hcill (patches
-> > 1-3). Then patches 4-7 convert wl128x-radio driver to a standard platform
-> > device driver with support for multiple instances. Patch 7 will result in
-> > (userless) TI_ST driver no longer supporting radio at runtime. Patch 8-11 do
-> > some cleanups in the wl128x-radio driver. Finally patch 12 removes the TI_ST
-> > specific parts from wl128x-radio and adds the required infrastructure to use it
-> > with the serdev hcill driver instead. The remaining patches 13 and 14 remove
-> > the old TI_ST code.
-> >
-> > The new code has been tested on the Motorola Droid 4. For testing the audio
-> > should be configured to route Ext to Speaker or Headphone. Then you need to
-> > plug headphone, since its cable is used as antenna. For testing there is a
-> > 'radio' utility packages in Debian. When you start the utility you need to
-> > specify a frequency, since initial get_frequency returns an error:
->
-> What is the status of this series?
->
-> Based on some of the replies (from Adam Ford in particular) it appears that
-> this isn't ready to be merged, so is a v2 planned?
+On 1/21/19 11:48 AM, Stanimir Varbanov wrote:
+> Hi Hans,
+> 
+> On 1/18/19 11:13 AM, Hans Verkuil wrote:
+>> On 1/16/19 1:37 PM, Stanimir Varbanov wrote:
+>>> This changes v4l2_pix_format and v4l2_plane_pix_format sizeimage
+>>> field description to allow v4l clients to set bigger image size
+>>> in case of variable length compressed data.
+>>>
+>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>>> ---
+>>>  Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst | 5 ++++-
+>>>  Documentation/media/uapi/v4l/pixfmt-v4l2.rst        | 3 ++-
+>>>  2 files changed, 6 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+>>> index 7f82dad9013a..dbe0b74e9ba4 100644
+>>> --- a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+>>> +++ b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+>>> @@ -30,7 +30,10 @@ describing all planes of that format.
+>>>  
+>>>      * - __u32
+>>>        - ``sizeimage``
+>>> -      - Maximum size in bytes required for image data in this plane.
+>>> +      - Maximum size in bytes required for image data in this plane,
+>>> +        set by the driver. When the image consists of variable length
+>>> +        compressed data this is the maximum number of bytes required
+>>> +        to hold an image, and it is allowed to be set by the client.
+>>>      * - __u32
+>>>        - ``bytesperline``
+>>>        - Distance in bytes between the leftmost pixels in two adjacent
+>>> diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+>>> index 71eebfc6d853..54b6d2b67bd7 100644
+>>> --- a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+>>> +++ b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+>>> @@ -89,7 +89,8 @@ Single-planar format structure
+>>>        - Size in bytes of the buffer to hold a complete image, set by the
+>>>  	driver. Usually this is ``bytesperline`` times ``height``. When
+>>>  	the image consists of variable length compressed data this is the
+>>> -	maximum number of bytes required to hold an image.
+>>> +	maximum number of bytes required to hold an image, and it is
+>>> +	allowed to be set by the client.
+>>>      * - __u32
+>>>        - ``colorspace``
+>>>        - Image colorspace, from enum :c:type:`v4l2_colorspace`.
+>>>
+>>
+>> Hmm. "maximum number of bytes required to hold an image": that's not actually true
+>> for bitstream formats like MPEG. It's just the size of the buffer used to store the
+>> bitstream, i.e. one buffer may actually contain multiple compressed images, or a
+>> compressed image is split over multiple buffers.
+>>
+> 
+> Do you want me to change something in the current documentation, i.e.
+> the quoted above?
 
-If you can leave the Logic PD Torpedo board alone and don't remove the
-legacy st driver for now, go ahead and migrate the others.  I know
-what you proposed 'should' work on my board, but I don't know why it
-doesn't.  In fact other boards I maintain use your method, but it just
-doesn't work on the Torpedo and I don't know why.  (it's not for lack
-of trying)
+Hmm, it looks like this discussion stalled (i.e. I forgot to reply).
 
-adam
->
-> Regards,
->
->         Hans
->
-> >
-> > $ radio -f 100.0
-> >
-> > Merry Christmas!
-> >
-> > -- Sebastian
-> >
-> > Sebastian Reichel (14):
-> >   ARM: dts: LogicPD Torpedo: Add WiLink UART node
-> >   ARM: dts: IGEP: Add WiLink UART node
-> >   ARM: OMAP2+: pdata-quirks: drop TI_ST/KIM support
-> >   media: wl128x-radio: remove module version
-> >   media: wl128x-radio: remove global radio_disconnected
-> >   media: wl128x-radio: remove global radio_dev
-> >   media: wl128x-radio: convert to platform device
-> >   media: wl128x-radio: use device managed memory allocation
-> >   media: wl128x-radio: load firmware from ti-connectivity/
-> >   media: wl128x-radio: simplify fmc_prepare/fmc_release
-> >   media: wl128x-radio: fix skb debug printing
-> >   media: wl128x-radio: move from TI_ST to hci_ll driver
-> >   Bluetooth: btwilink: drop superseded driver
-> >   misc: ti-st: Drop superseded driver
-> >
-> >  .../boot/dts/logicpd-torpedo-37xx-devkit.dts  |   8 +
-> >  arch/arm/boot/dts/omap3-igep0020-rev-f.dts    |   8 +
-> >  arch/arm/boot/dts/omap3-igep0030-rev-g.dts    |   8 +
-> >  arch/arm/mach-omap2/pdata-quirks.c            |  52 -
-> >  drivers/bluetooth/Kconfig                     |  11 -
-> >  drivers/bluetooth/Makefile                    |   1 -
-> >  drivers/bluetooth/btwilink.c                  | 350 -------
-> >  drivers/bluetooth/hci_ll.c                    | 115 ++-
-> >  drivers/media/radio/wl128x/Kconfig            |   2 +-
-> >  drivers/media/radio/wl128x/fmdrv.h            |   5 +-
-> >  drivers/media/radio/wl128x/fmdrv_common.c     | 211 ++--
-> >  drivers/media/radio/wl128x/fmdrv_common.h     |   4 +-
-> >  drivers/media/radio/wl128x/fmdrv_v4l2.c       |  55 +-
-> >  drivers/media/radio/wl128x/fmdrv_v4l2.h       |   2 +-
-> >  drivers/misc/Kconfig                          |   1 -
-> >  drivers/misc/Makefile                         |   1 -
-> >  drivers/misc/ti-st/Kconfig                    |  18 -
-> >  drivers/misc/ti-st/Makefile                   |   6 -
-> >  drivers/misc/ti-st/st_core.c                  | 922 ------------------
-> >  drivers/misc/ti-st/st_kim.c                   | 868 -----------------
-> >  drivers/misc/ti-st/st_ll.c                    | 169 ----
-> >  include/linux/ti_wilink_st.h                  | 337 +------
-> >  22 files changed, 213 insertions(+), 2941 deletions(-)
-> >  delete mode 100644 drivers/bluetooth/btwilink.c
-> >  delete mode 100644 drivers/misc/ti-st/Kconfig
-> >  delete mode 100644 drivers/misc/ti-st/Makefile
-> >  delete mode 100644 drivers/misc/ti-st/st_core.c
-> >  delete mode 100644 drivers/misc/ti-st/st_kim.c
-> >  delete mode 100644 drivers/misc/ti-st/st_ll.c
-> >
->
+How about this:
+
+"When the image consists of variable length compressed data this is the
+number of bytes required by the encoder to support the worst-case
+compression scenario. Clients are allowed to set this field. However,
+drivers may ignore the value or modify it."
+
+Regards,
+
+	Hans
+
+> 
+>> Only for MJPEG is this statement true since each buffer will contain a single
+>> compressed JPEG image.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+> 
+
