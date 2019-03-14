@@ -2,180 +2,134 @@ Return-Path: <SRS0=Jwgu=RR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E883C43381
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 14:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AA1C43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 17:49:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0BFE02075C
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 14:45:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D074218A1
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 17:49:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=lucaceresoli.net header.i=@lucaceresoli.net header.b="PuHQXWJx"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Z4Filnma"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726938AbfCNOpa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 14 Mar 2019 10:45:30 -0400
-Received: from hostingweb31-40.netsons.net ([89.40.174.40]:57360 "EHLO
-        hostingweb31-40.netsons.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726914AbfCNOpa (ORCPT
+        id S1727598AbfCNRtT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Mar 2019 13:49:19 -0400
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:38753 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726753AbfCNRtS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Mar 2019 10:45:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=lucaceresoli.net; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=XO36dUqpemmQOl5cLg10KeAF5OwtzuVBXZk1o19UR/4=; b=PuHQXWJxwrpXvi6mye7gdDgJ8b
-        a/t/CYDN6SLdKfjh9mejhrh1MFjWenBeGI7/TiOiWMH0fbo/B9gaEs6TR5U700V5PKBqLcC0CeYzJ
-        F48wsvSzI99tQZx9iViZONG+mmUdhHBlcUckqKh0xd6J+B8CdWpLSzXwMOwcg7kc0KGg=;
-Received: from [109.168.11.45] (port=50900 helo=[192.168.101.76])
-        by hostingweb31.netsons.net with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
-        (Exim 4.91)
-        (envelope-from <luca@lucaceresoli.net>)
-        id 1h4Rbr-00HHHe-PO; Thu, 14 Mar 2019 15:45:27 +0100
-Subject: Re: [PATCH v3 26/31] adv748x: csi2: add internal routing
- configuration
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
- <20190305185150.20776-27-jacopo+renesas@jmondi.org>
-From:   Luca Ceresoli <luca@lucaceresoli.net>
-Message-ID: <4f5b5763-be90-4040-7d55-986471168de1@lucaceresoli.net>
-Date:   Thu, 14 Mar 2019 15:45:27 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Thu, 14 Mar 2019 13:49:18 -0400
+Received: by mail-ot1-f68.google.com with SMTP id e80so776150ote.5
+        for <linux-media@vger.kernel.org>; Thu, 14 Mar 2019 10:49:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=7QeesPBLVC4Xvhqsvje2fdOGstxWInZX/y0Xrblk/lI=;
+        b=Z4FilnmaoC0PufNfruldxw5igd6C4XDa/FOoEve6mdpYGblElx6ydzZDxg4RqIR9Gf
+         2E7lZlZ3sVy8YawqgimGeS1LrBPV1NAuigwiAnhUpn8S14ctJc0/WT5lB+++wHch1J00
+         MIQHLFs94TTzY6LslQO+98zz7Q6O+KCYB3SViKgFYtPu/svYHFtSFcexXqPilMNx5xuj
+         DBa09dd0thbr897DRNt9LJKRljVK36DCcMjJVLYskNB+zszmlxqhmOWCW0bunF6RQ9mg
+         okrCyz2XDQznUBDlEgtSew2vATKJPm0y8axW59QvW5Jm7ElOh11/LyLA37lfE4F3oGB6
+         BWBw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=7QeesPBLVC4Xvhqsvje2fdOGstxWInZX/y0Xrblk/lI=;
+        b=uQTDY3QcYPQwI680ZJAPzC+myRjMYHNDkko+nnzZN9Dx6wzlSJC4No5lkcpqO0kt32
+         9tAaRKH1wbKw6xUqU1KrK3MBve2lJirclEj4upsTo3Oz/wRSor+Q40Y0il63PF2hHwqA
+         omDL9pvpswyNt7BXQzUC0YmvzcKN2dbYTBiErUJnURnVH1/SwT6LLC1riDNqjHHc+TxO
+         2BPpnSehFZFY6koipNmy9Uogxm8vKqEWjN53cNanT6bG2Vru7ST99N5wX0aALdhR4zhl
+         Zpm8MHQ9BssqiZ9X1zuDPpKTQXTp/BuAAYM9FtVh9fOjIvO2xKbswsCaSm7KS4SRGyY2
+         BbCg==
+X-Gm-Message-State: APjAAAXgMZ0S0GEJsYWKpka7bOaSsIoFYKP/TSh5tUkCO86PB4NwYMqg
+        COFJycY5S7cdyIjNr3ElGGxWgtUH5qIbFdf7m7WudA==
+X-Google-Smtp-Source: APXvYqypN5gRTVXMBasPnYVXvqpdTgnEHZyxkOD4BvffdxS744MKMbHgfTQaH8osoGbqSyjY4jJrJiyuH3VG0QZeiZs=
+X-Received: by 2002:a05:6830:1493:: with SMTP id s19mr32952288otq.117.1552585757971;
+ Thu, 14 Mar 2019 10:49:17 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20190305185150.20776-27-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - hostingweb31.netsons.net
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lucaceresoli.net
-X-Get-Message-Sender-Via: hostingweb31.netsons.net: authenticated_id: luca+lucaceresoli.net/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: hostingweb31.netsons.net: luca@lucaceresoli.net
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+References: <20190227035448.117169-1-fengc@google.com>
+In-Reply-To: <20190227035448.117169-1-fengc@google.com>
+From:   Sumit Semwal <sumit.semwal@linaro.org>
+Date:   Thu, 14 Mar 2019 23:19:06 +0530
+Message-ID: <CAO_48GG0sW3AJNVJnydjuWUQHcmWe5aQrB=X0Wo7uBtDnPtoYg@mail.gmail.com>
+Subject: Re: [RFC dma-buf 0/3] Improve the dma-buf tracking
+To:     Chenbo Feng <fengc@google.com>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        DRI mailing list <dri-devel@lists.freedesktop.org>,
+        linux-media@vger.kernel.org, erickreyes@google.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+Hello Chenbo,Thank you for your RFC series.
 
-begging your pardon for the noob question below...
+On Wed, 27 Feb 2019 at 09:24, Chenbo Feng <fengc@google.com> wrote:
+>
+> Currently, all dma-bufs share the same anonymous inode. While we can coun=
+t
+> how many dma-buf fds or mappings a process has, we can't get the size of
+> the backing buffers or tell if two entries point to the same dma-buf. And
+> in debugfs, we can get a per-buffer breakdown of size and reference count=
+,
+> but can't tell which processes are actually holding the references to eac=
+h
+> buffer.
+>
+> To resolve the issue above and provide better method for userspace to tra=
+ck
+> the dma-buf usage across different processes, the following changes are
+> proposed in dma-buf kernel side. First of all, replace the singleton inod=
+e
+> inside the dma-buf subsystem with a mini-filesystem, and assign each
+> dma-buf a unique inode out of this filesystem.  With this change, calling
+> stat(2) on each entry gives the caller a unique ID (st_ino), the buffer's
+> size (st_size), and even the number of pages assigned to each dma-buffer.
+> Secoundly, add the inode information to /sys/kernel/debug/dma_buf/bufinfo
+> so in the case where a buffer is mmap()ed into a process=E2=80=99s addres=
+s space
+> but all remaining fds have been closed, we can still get the dma-buf
+> information and try to accociate it with the process by searching the
+> proc/pid/maps and looking for the corresponding inode number exposed in
+> dma-buf debug fs. Thirdly, created an ioctl to assign names to dma-bufs
+> which lets userspace assign short names (e.g., "CAMERA") to buffers. This
+> information can be extremely helpful for tracking and accounting shared
+> buffers based on their usage and original purpose. Last but not least, ad=
+d
+> dma-buf information to /proc/pid/fdinfo by adding a show_fdinfo() handler
+> to dma_buf_file_operations. The handler will print the file_count and nam=
+e
+> of each buffer.
 
-On 05/03/19 19:51, Jacopo Mondi wrote:
-> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> Add support to get and set the internal routing between the adv748x
-> CSI-2 transmitters sink pad and its multiplexed source pad. This routing
-> includes which stream of the multiplexed pad to use, allowing the user
-> to select which CSI-2 virtual channel to use when transmitting the
-> stream.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 65 ++++++++++++++++++++++++
->  1 file changed, 65 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index d8f7cbee86e7..13454af72c6e 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -14,6 +14,8 @@
->  
->  #include "adv748x.h"
->  
-> +#define ADV748X_CSI2_ROUTES_MAX 4
-> +
->  struct adv748x_csi2_format {
->  	unsigned int code;
->  	unsigned int datatype;
-> @@ -253,10 +255,73 @@ static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
->  	return 0;
->  }
->  
-> +static int adv748x_csi2_get_routing(struct v4l2_subdev *sd,
-> +				    struct v4l2_subdev_krouting *routing)
-> +{
-> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-> +	struct v4l2_subdev_route *r = routing->routes;
-> +	unsigned int vc;
-> +
-> +	if (routing->num_routes < ADV748X_CSI2_ROUTES_MAX) {
-> +		routing->num_routes = ADV748X_CSI2_ROUTES_MAX;
-> +		return -ENOSPC;
-> +	}
-> +
-> +	routing->num_routes = ADV748X_CSI2_ROUTES_MAX;
-> +
-> +	for (vc = 0; vc < ADV748X_CSI2_ROUTES_MAX; vc++) {
-> +		r->sink_pad = ADV748X_CSI2_SINK;
-> +		r->sink_stream = 0;
-> +		r->source_pad = ADV748X_CSI2_SOURCE;
-> +		r->source_stream = vc;
-> +		r->flags = vc == tx->vc ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
-> +		r++;Begging your pardon for the noob question...
+In general, I think I like the idea as it contributes to a much more
+relevant usage analysis of dma-buf backed buffers.
+I will get to doing a more detailed review soon, but immediately, we
+might want to think a bit about the get/set_name IOCTLS - do we need
+to think of disallowing multiple renaming of buffers once they start
+getting used? It could otherwise make the whole metrics a lot
+confused?
 
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv748x_csi2_set_routing(struct v4l2_subdev *sd,
-> +				    struct v4l2_subdev_krouting *routing)
-> +{
-> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-> +	struct v4l2_subdev_route *r = routing->routes;
-> +	unsigned int i;
-> +	int vc = -1;
-> +
-> +	if (routing->num_routes > ADV748X_CSI2_ROUTES_MAX)
-> +		return -ENOSPC;
-> +
-> +	for (i = 0; i < routing->num_routes; i++) {
-> +		if (r->sink_pad != ADV748X_CSI2_SINK ||
-> +		    r->sink_stream != 0 ||
-> +		    r->source_pad != ADV748X_CSI2_SOURCE ||
-> +		    r->source_stream >= ADV748X_CSI2_ROUTES_MAX)
-> +			return -EINVAL;
-> +
-> +		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
-> +			if (vc != -1)
-> +				return -EMLINK;
-> +
-> +			vc = r->source_stream;
-> +		}
-> +		r++;
-> +	}
-> +
-> +	if (vc != -1)
-> +		tx->vc = vc;
-> +
-> +	adv748x_csi2_set_virtual_channel(tx, tx->vc);
-> +
-> +	return 0;
-> +}
+>
+> Greg Hackmann (3):
+>   dma-buf: give each buffer a full-fledged inode
+>   dma-buf: add DMA_BUF_{GET,SET}_NAME ioctls
+>   dma-buf: add show_fdinfo handler
+>
+>  drivers/dma-buf/dma-buf.c    | 121 ++++++++++++++++++++++++++++++++---
+>  include/linux/dma-buf.h      |   5 +-
+>  include/uapi/linux/dma-buf.h |   4 ++
+>  include/uapi/linux/magic.h   |   1 +
+>  4 files changed, 122 insertions(+), 9 deletions(-)
+>
+> --
+> 2.21.0.rc2.261.ga7da99ff1b-goog
+>
 
-Not specific to this patch but rather to the set_routing idea as a
-whole: can the set_routing ioctl be called while the stream is running?
-
-If it cannot, I find it a limiting factor for nowadays use cases. I also
-didn't find where the ioctl is rejected.
-
-If it can, then shouldn't this function call s_stream(stop) through the
-sink pad whose route becomes disabled, and a s_stream(start) through the
-one that gets enabled?
-
-Thanks,
--- 
-Luca
+Best,
+Sumit.
