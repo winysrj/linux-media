@@ -2,126 +2,148 @@ Return-Path: <SRS0=Jwgu=RR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63A6AC43381
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 04:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 394DBC43381
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 04:54:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1DB0E217F5
-	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 04:13:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="mJeqQKdk"
+	by mail.kernel.org (Postfix) with ESMTP id 0EB402087C
+	for <linux-media@archiver.kernel.org>; Thu, 14 Mar 2019 04:54:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725928AbfCNENt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 14 Mar 2019 00:13:49 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:35474 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725897AbfCNENt (ORCPT
+        id S1725928AbfCNEyY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 14 Mar 2019 00:54:24 -0400
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47420 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725817AbfCNEyY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Mar 2019 00:13:49 -0400
-Received: by mail-oi1-f194.google.com with SMTP id j132so305231oib.2
-        for <linux-media@vger.kernel.org>; Wed, 13 Mar 2019 21:13:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=pnLTFhnEsKldNLbdUAUAkEIkD6mIrlEW5IhOy35tzCo=;
-        b=mJeqQKdkK4IQ70UvOEKETmLQ1JL9+3HPnUch9Xp0expLLDAmdsnAB+i4WzXF8EwzOO
-         tUeeFvJZAgN7AGEbpr3NhfiQp3qN/p+D1LoEVlIbUn6aHDwXJXLnkhj3EVy8MKGVUWxo
-         8Obt6BH14ejUF1RBG0a3zSpHS/0ovU/DhSoYo=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pnLTFhnEsKldNLbdUAUAkEIkD6mIrlEW5IhOy35tzCo=;
-        b=kFgWwJ7XyY6Vc0WEOk7v3/QOxTo2gjGJPhMsGtSaE8u7sR/TAMq+Hv6wS2VCr3vBxE
-         EWnTjt3rAiHWHQ9rBxwqJ7RazZELqlD/O7zVoTnu4xni8cA2eyPIe97Se43E1I+O2adt
-         cS3lndBDNOa8J4mSJtOlgZJ11Golhjb8sTpzy4tlA8zlJabhBkEzV8pBFV5OBl8lLulX
-         GiOQdliglD/s6w7eLE/z+oC1K3l/Oy7wx4ANIUyR8/x/mU/2zrN9o/GNcnqTGArAf4tc
-         BtiMGDhEIuinF1NoMKS1FBesFkJ/62o1lFu1xqCh/nZ2GDlApvidzwZ8hcjzUI9YKlA1
-         S7xA==
-X-Gm-Message-State: APjAAAW/VpGYiVbBZuUqFS+gIXUkW5rxaqwamJKomkIF5XWvCDPM+pYs
-        jocqlQCoBvk/rW5LXAn3bapgT8+2Uo0=
-X-Google-Smtp-Source: APXvYqznZIRc0iLL5rI6RWEz548Xy7YpGPs/yHm/DykZZnwumCBuQXMNvrhxgygMJlfQjoSZkBljyw==
-X-Received: by 2002:aca:fd91:: with SMTP id b139mr876371oii.170.1552536827988;
-        Wed, 13 Mar 2019 21:13:47 -0700 (PDT)
-Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com. [209.85.210.54])
-        by smtp.gmail.com with ESMTPSA id z6sm5256633otq.68.2019.03.13.21.13.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 13 Mar 2019 21:13:46 -0700 (PDT)
-Received: by mail-ot1-f54.google.com with SMTP id g1so3876301otj.11
-        for <linux-media@vger.kernel.org>; Wed, 13 Mar 2019 21:13:46 -0700 (PDT)
-X-Received: by 2002:a9d:760a:: with SMTP id k10mr5570644otl.367.1552536825939;
- Wed, 13 Mar 2019 21:13:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.f011581516bfe7650c9d4c6054bb828e6227e309.1551964740.git-series.maxime.ripard@bootlin.com>
- <1d374e71ffcc396b71461ea916cac3d957f8d86c.1551964740.git-series.maxime.ripard@bootlin.com>
- <CAAFQd5AKXz5QmqnSEkChf8DqPkhEuUQg--q9dZKPmB1kBR1hzA@mail.gmail.com> <20190313153130.hnp5eybcgjm34i4n@flea>
-In-Reply-To: <20190313153130.hnp5eybcgjm34i4n@flea>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Thu, 14 Mar 2019 13:13:33 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5BeiGVvDcZTFVYg_Qbw1NxRcWFybW2FcDGE=ohFWHFbYA@mail.gmail.com>
-Message-ID: <CAAFQd5BeiGVvDcZTFVYg_Qbw1NxRcWFybW2FcDGE=ohFWHFbYA@mail.gmail.com>
-Subject: Re: [PATCH v5 1/2] media: uapi: Add H264 low-level decoder API
- compound controls.
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        jenskuske@gmail.com, Jernej Skrabec <jernej.skrabec@gmail.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Guenter Roeck <groeck@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 14 Mar 2019 00:54:24 -0400
+Received: from localhost ([IPv6:2001:983:e9a7:1:a8e0:554b:2770:b9bb])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id 4INphqL5n4HFn4INqhSKS6; Thu, 14 Mar 2019 05:54:22 +0100
+Message-ID: <8e0e089b98e95e893d1622d23acf4d62@smtp-cloud8.xs4all.net>
+Date:   Thu, 14 Mar 2019 05:54:21 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+X-CMAE-Envelope: MS4wfNsNP2J4vQ8Jg5fU2C+alsrMz1iQBbwCg19DnBd7J2yCYpNorXNF09FRJi3dPHGAyKmNcpK2ZXVWUFxHDIqRS7N4XBRp1+CQz8ouImSIwmQ1IQDkJtSY
+ ULi6FyG2BJEwLsrAbnV6W+uI/pR+UFQP3ekmjd6a2Y8EPzf9TphB/iklLAdoZE01Q/vrq8iLsgWVQOAjvofmjBlMnq+EBtKeRrYmXCH6fbiXmrxqhcymJb1q
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Mar 14, 2019 at 12:31 AM Maxime Ripard
-<maxime.ripard@bootlin.com> wrote:
->
-> Hi Tomasz,
->
-> On Fri, Mar 08, 2019 at 03:12:18PM +0900, Tomasz Figa wrote:
-> > > +.. _v4l2-mpeg-h264:
-> > > +
-> > > +``V4L2_CID_MPEG_VIDEO_H264_SPS (struct)``
-> > > +    Specifies the sequence parameter set (as extracted from the
-> > > +    bitstream) for the associated H264 slice data. This includes the
-> > > +    necessary parameters for configuring a stateless hardware decoding
-> > > +    pipeline for H264.  The bitstream parameters are defined according
-> > > +    to :ref:`h264`. Unless there's a specific comment, refer to the
-> > > +    specification for the documentation of these fields, section 7.4.2.1.1
-> > > +    "Sequence Parameter Set Data Semantics".
-> >
-> > I don't see this section being added by this patch. Where does it come from?
->
-> This is referring to the the H264 spec itself, as I was trying to
-> point out with the reference in that paragraph. How would you write
-> this down to make it more obvious?
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Aha, somehow it didn't come to my mind when reading it. How about
-something like below?
+Results of the daily build of media_tree:
 
-Unless there is a specific comment, refer to the ITU-T Rec. H.264
-specification, section "7.4.2.1.1 Sequence parameter set data semantics"
-(as of the 04/2017 edition).
+date:			Thu Mar 14 05:00:10 CET 2019
+media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	f85040e18e937a12367d80c3895216e3cf8d4a7d
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.3.0
+sparse version:		0.6.0
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-2-amd64
 
-Best regards,
-Tomasz
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.63-i686: OK
+linux-3.16.63-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.136-i686: OK
+linux-3.18.136-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.176-i686: ERRORS
+linux-4.4.176-x86_64: ERRORS
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.162-i686: OK
+linux-4.9.162-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.105-i686: OK
+linux-4.14.105-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.20-i686: OK
+linux-4.18.20-x86_64: OK
+linux-4.19.28-i686: OK
+linux-4.19.28-x86_64: OK
+linux-4.20.15-i686: OK
+linux-4.20.15-x86_64: OK
+linux-5.0.1-i686: OK
+linux-5.0.1-x86_64: OK
+apps: OK
+spec-git: OK
+virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 14
+sparse: OK
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Detailed regression test results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday-test-media.log
+http://www.xs4all.nl/~hverkuil/logs/Thursday-test-media-dmesg.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
