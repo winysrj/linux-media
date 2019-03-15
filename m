@@ -3,36 +3,35 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08AD3C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCA6AC43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:31:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C27D521871
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:31:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BDB6218D0
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:31:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727276AbfCOTb2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 15:31:28 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49634 "EHLO
+        id S1727112AbfCOTbf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 15:31:35 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49642 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726616AbfCOTb1 (ORCPT
+        with ESMTP id S1726360AbfCOTbf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 15:31:27 -0400
+        Fri, 15 Mar 2019 15:31:35 -0400
 Received: from [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc] (unknown [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: koike)
-        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 6EBF728143A;
-        Fri, 15 Mar 2019 19:31:23 +0000 (GMT)
-Subject: Re: [PATCH 08/16] media: vimc: cap: Add handler for multiplanar fmt
- ioctls
+        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id E62692815E2;
+        Fri, 15 Mar 2019 19:31:31 +0000 (GMT)
+Subject: Re: [PATCH 09/16] media: vimc: cap: Add multiplanar formats
 To:     =?UTF-8?Q?Andr=c3=a9_Almeida?= <andrealmeid@collabora.com>,
         linux-media@vger.kernel.org
 Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, lucmaga@gmail.com,
         linux-kernel@vger.kernel.org, kernel@collabora.com
 References: <20190315164359.626-1-andrealmeid@collabora.com>
- <20190315164359.626-9-andrealmeid@collabora.com>
+ <20190315164359.626-10-andrealmeid@collabora.com>
 From:   Helen Koike <helen.koike@collabora.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=helen.koike@collabora.com; keydata=
@@ -109,12 +108,12 @@ Autocrypt: addr=helen.koike@collabora.com; keydata=
  iR1nXfMxENVYnM5ag7mBZyD/kru5W1Uj34L6AFaDMXFPwedSCpzzqUiHb0f+nYkfOodf5xy0
  46+3THy/NUS/ZZp/rI4F7Y77+MQPVg7vARfHHX1AxYUKfRVW5j88QUB70txn8Vgi1tDrOr4J
  eD+xr0CvIGa5lKqgQacQtGkpOpJ8zY4ObSvpNubey/qYUE3DCXD0n2Xxk4muTvqlkFpOYA==
-Message-ID: <54eca6ff-3bff-ef0d-9c73-8726df1c2017@collabora.com>
-Date:   Fri, 15 Mar 2019 16:31:19 -0300
+Message-ID: <c0bef649-0ea6-49e5-d0e7-77584034ca3a@collabora.com>
+Date:   Fri, 15 Mar 2019 16:31:28 -0300
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
-In-Reply-To: <20190315164359.626-9-andrealmeid@collabora.com>
+In-Reply-To: <20190315164359.626-10-andrealmeid@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
@@ -126,131 +125,78 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 
 On 3/15/19 1:43 PM, André Almeida wrote:
-> Add functions to handle multiplanar format ioctls, calling
-> the generic format ioctls functions when possible.
+> Add multiplanar formats to be exposed to the userspace as
+> supported formats. Since we don't want to support multiplanar
+> formats when the driver is in singleplanar mode, we only access
+> the multiplanar formats array if the multiplanar mode is enabled.
 > 
 > Signed-off-by: André Almeida <andrealmeid@collabora.com>
 > ---
->  drivers/media/platform/vimc/vimc-capture.c | 79 ++++++++++++++++++++++
->  1 file changed, 79 insertions(+)
+>  drivers/media/platform/vimc/vimc-capture.c | 30 ++++++++++++++++++++--
+>  1 file changed, 28 insertions(+), 2 deletions(-)
 > 
 > diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-> index 47acf50f1ad2..09a8fd618b12 100644
+> index 09a8fd618b12..2d668012e9e9 100644
 > --- a/drivers/media/platform/vimc/vimc-capture.c
 > +++ b/drivers/media/platform/vimc/vimc-capture.c
-> @@ -114,6 +114,10 @@ static void vimc_cap_get_format(struct vimc_ent_device *ved,
->  	*fmt = vcap->format.fmt.pix;
+> @@ -54,6 +54,19 @@ static const u32 vimc_cap_supported_pixfmt[] = {
+>  	V4L2_PIX_FMT_SRGGB12,
+>  };
+>  
+> +static const u32 vimc_cap_supported_pixfmt_mp[] = {
+> +	V4L2_PIX_FMT_YUV420M,
+> +	V4L2_PIX_FMT_YVU420M,
+> +	V4L2_PIX_FMT_YUV422M,
+> +	V4L2_PIX_FMT_YVU422M,
+> +	V4L2_PIX_FMT_YUV444M,
+> +	V4L2_PIX_FMT_YVU444M,
+> +	V4L2_PIX_FMT_NV12M,
+> +	V4L2_PIX_FMT_NV21M,
+> +	V4L2_PIX_FMT_NV16M,
+> +	V4L2_PIX_FMT_NV61M,
+> +};
+> +
+>  struct vimc_cap_device {
+>  	struct vimc_ent_device ved;
+>  	struct video_device vdev;
+> @@ -153,13 +166,26 @@ static int vimc_cap_try_fmt_vid_cap(struct file *file, void *priv,
+>  				format->width, format->height);
 >  }
 >  
-> +/*
-> + * Functions to handle both single- and multi-planar VIDIOC FMT
+> +/**
+> + * When multiplanar is true, consider that the vimc_cap_enum_fmt_vid_cap_mp
+> + * is concantenate in the vimc_cap_enum_fmt_vid_cap array. Otherwise, just
+> + * consider the single-planar array
 > + */
-> +
->  static int vimc_cap_g_fmt_vid_cap(struct file *file, void *priv,
->  				  struct v4l2_format *f)
+>  static int vimc_cap_enum_fmt_vid_cap(struct file *file, void *priv,
+>  				     struct v4l2_fmtdesc *f)
 >  {
-> @@ -237,6 +241,71 @@ static bool vimc_cap_is_pixfmt_supported(u32 pixelformat)
->  			return true;
->  	return false;
->  }
-> +/*
-> + * VIDIOC handlers for multi-planar formats
-> + */
+> -	if (f->index >= ARRAY_SIZE(vimc_cap_supported_pixfmt))
+> +	const unsigned int sp_size = ARRAY_SIZE(vimc_cap_supported_pixfmt);
+> +	const unsigned int mp_size = ARRAY_SIZE(vimc_cap_supported_pixfmt_mp);
 > +
-> +static int vimc_cap_g_fmt_vid_cap_mp(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
+> +	if (f->index >= sp_size + (multiplanar ? mp_size : 0))
+>  		return -EINVAL;
+>  
+> -	f->pixelformat = vimc_cap_supported_pixfmt[f->index];
+> +	if (f->index >= sp_size)
+> +		f->pixelformat = vimc_cap_supported_pixfmt_mp[f->index -
+> +							      sp_size];
 
-Please align this second line with the parameters of the function (this
-also applies to other places).
+I think it would be better if you break the line like this:
+
+		f->pixelformat =
+			vimc_cap_supported_pixfmt_mp[f->index - sp_size];
+
+but this is a matter of style.
 
 Regards,
 Helen
 
-> +{
-> +	if (!multiplanar)
-> +		return -EINVAL;
+> +	else
+> +		f->pixelformat = vimc_cap_supported_pixfmt[f->index];
 > +
-> +	return vimc_cap_g_fmt_vid_cap(file, priv, f);
-> +}
-> +
-> +static int vimc_cap_try_fmt_vid_cap_mp(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
-> +{
-> +	if (!multiplanar)
-> +		return -EINVAL;
-> +
-> +	return vimc_cap_try_fmt_vid_cap(file, priv, f);
-> +}
-> +
-> +static int vimc_cap_s_fmt_vid_cap_mp(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
-> +{
-> +	struct vimc_cap_device *vcap = video_drvdata(file);
-> +
-> +	if (!multiplanar)
-> +		return -EINVAL;
-> +
-> +	/* Do not change the format while stream is on */
-> +	if (vb2_is_busy(&vcap->queue))
-> +		return -EBUSY;
-> +
-> +	vimc_cap_try_fmt_vid_cap(file, priv, f);
-> +
-> +	dev_dbg(vcap->dev, "%s: format update: "
-> +		"old:%dx%d (0x%x, %d, %d, %d, %d) "
-> +		"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vcap->vdev.name,
-> +		/* old */
-> +		vcap->format.fmt.pix_mp.width, vcap->format.fmt.pix_mp.height,
-> +		vcap->format.fmt.pix_mp.pixelformat,
-> +		vcap->format.fmt.pix_mp.colorspace,
-> +		vcap->format.fmt.pix_mp.quantization,
-> +		vcap->format.fmt.pix_mp.xfer_func,
-> +		vcap->format.fmt.pix_mp.ycbcr_enc,
-> +		/* new */
-> +		f->fmt.pix_mp.width, f->fmt.pix_mp.height,
-> +		f->fmt.pix_mp.pixelformat, f->fmt.pix_mp.colorspace,
-> +		f->fmt.pix_mp.quantization, f->fmt.pix_mp.xfer_func,
-> +		f->fmt.pix_mp.ycbcr_enc);
-> +
-> +	vcap->format = *f;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vimc_cap_enum_fmt_vid_cap_mp(struct file *file, void *priv,
-> +				     struct v4l2_fmtdesc *f)
-> +{
-> +	if (!multiplanar)
-> +		return -EINVAL;
-> +
-> +	return vimc_cap_enum_fmt_vid_cap(file, priv, f);
-> +}
+>  	strncpy(f->description, v4l2_get_fourcc_name(f->pixelformat), 4);
+>  	f->description[4] = '\0';
 >  
->  static int vimc_cap_enum_framesizes(struct file *file, void *fh,
->  				    struct v4l2_frmsizeenum *fsize)
-> @@ -268,14 +337,24 @@ static const struct v4l2_file_operations vimc_cap_fops = {
->  	.mmap           = vb2_fop_mmap,
->  };
->  
-> +
->  static const struct v4l2_ioctl_ops vimc_cap_ioctl_ops = {
->  	.vidioc_querycap = vimc_cap_querycap,
->  
-> +	/**
-> +	 * The vidioc_*_vid_cap* functions acts as a front end to
-> +	 * vimc_*_vid_cap, dealing with the single- and multi-planar
-> +	 */
->  	.vidioc_g_fmt_vid_cap = vimc_cap_g_fmt_vid_cap_sp,
->  	.vidioc_s_fmt_vid_cap = vimc_cap_s_fmt_vid_cap_sp,
->  	.vidioc_try_fmt_vid_cap = vimc_cap_try_fmt_vid_cap_sp,
->  	.vidioc_enum_fmt_vid_cap = vimc_cap_enum_fmt_vid_cap_sp,
->  
-> +	.vidioc_g_fmt_vid_cap_mplane = vimc_cap_g_fmt_vid_cap_mp,
-> +	.vidioc_s_fmt_vid_cap_mplane = vimc_cap_s_fmt_vid_cap_mp,
-> +	.vidioc_try_fmt_vid_cap_mplane = vimc_cap_try_fmt_vid_cap_mp,
-> +	.vidioc_enum_fmt_vid_cap_mplane = vimc_cap_enum_fmt_vid_cap_mp,
-> +
->  	.vidioc_enum_framesizes = vimc_cap_enum_framesizes,
->  
->  	.vidioc_reqbufs = vb2_ioctl_reqbufs,
 > 
