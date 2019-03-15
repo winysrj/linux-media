@@ -2,102 +2,356 @@ Return-Path: <SRS0=7C2H=RS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5394CC43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 17:30:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2ECEC10F00
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 17:55:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 319E3218D3
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 17:30:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C2FE218A1
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 17:55:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729661AbfCORaC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 13:30:02 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49266 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729517AbfCORaB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 13:30:01 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: tonyk)
-        with ESMTPSA id 23EC8281581
-Subject: Re: [PATCH 00/16] media: vimc: Add support for multiplanar formats
-From:   =?UTF-8?Q?Andr=c3=a9_Almeida?= <andrealmeid@collabora.com>
-To:     linux-media@vger.kernel.org
-Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, helen.koike@collabora.com,
-        lucmaga@gmail.com, linux-kernel@vger.kernel.org,
-        kernel@collabora.com
-References: <20190315164359.626-1-andrealmeid@collabora.com>
-Message-ID: <b0c03df5-ae1b-3123-1737-a37b4911f10d@collabora.com>
-Date:   Fri, 15 Mar 2019 14:29:03 -0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.3
+        id S1726671AbfCORzA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 13:55:00 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:34422 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726466AbfCORzA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Mar 2019 13:55:00 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5B09AA78;
+        Fri, 15 Mar 2019 10:54:59 -0700 (PDT)
+Received: from e110455-lin.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 082E73F71D;
+        Fri, 15 Mar 2019 10:54:59 -0700 (PDT)
+Received: by e110455-lin.cambridge.arm.com (Postfix, from userid 1000)
+        id 60EB2680208; Fri, 15 Mar 2019 17:54:57 +0000 (GMT)
+Date:   Fri, 15 Mar 2019 17:54:57 +0000
+From:   Liviu Dudau <Liviu.Dudau@arm.com>
+To:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc:     dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v6 14/18] drm: writeback: Add job prepare and cleanup
+ operations
+Message-ID: <20190315175457.GG26454@e110455-lin.cambridge.arm.com>
+References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20190313000532.7087-15-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20190315164359.626-1-andrealmeid@collabora.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190313000532.7087-15-laurent.pinchart+renesas@ideasonboard.com>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On Wed, Mar 13, 2019 at 02:05:28AM +0200, Laurent Pinchart wrote:
+> As writeback jobs contain a framebuffer, drivers may need to prepare and
+> cleanup them the same way they can prepare and cleanup framebuffers for
+> planes. Add two new optional connector helper operations,
+> .prepare_writeback_job() and .cleanup_writeback_job() to support this.
+> 
+> The job prepare operation is called from
+> drm_atomic_helper_prepare_planes() to avoid a new atomic commit helper
+> that would need to be called by all drivers not using
+> drm_atomic_helper_commit(). The job cleanup operation is called from the
+> existing drm_writeback_cleanup_job() function, invoked both when
+> destroying the job as part of a aborted commit, or when the job
+> completes.
+> 
+> The drm_writeback_job structure is extended with a priv field to let
+> drivers store per-job data, such as mappings related to the writeback
+> framebuffer.
+> 
+> For internal plumbing reasons the drm_writeback_job structure needs to
+> store a back-pointer to the drm_writeback_connector. To avoid pushing
+> too much writeback-specific knowledge to drm_atomic_uapi.c, create a
+> drm_writeback_set_fb() function, move the writeback job setup code
+> there, and set the connector backpointer. The prepare_signaling()
+> function doesn't need to allocate writeback jobs and can ignore
+> connectors without a job, as it is called after the writeback jobs are
+> allocated to store framebuffers, and a writeback fence with a
+> framebuffer is an invalid configuration that gets rejected by the commit
+> check.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
+Reviewed-by: Liviu Dudau <liviu.dudau@arm.com>
 
-On 3/15/19 1:43 PM, André Almeida wrote:
-> Hello,
+Best regards,
+Liviu
+
+> ---
+> Changes since v5:
 > 
-> This series implements support for multiplane pixel formats at vimc.
-> A lot of changes were required since vimc support for singleplane
-> was "hardcoded". The code has been adapted in order to support both
-> formats. When was possible, the functions were written generically,
-> avoiding functions for just one type of pixel format (single/multi)
-> and favoring code reuse.
+> - Export drm_writeback_prepare_job()
+> - Check for .prepare_writeback_job() in drm_writeback_prepare_job()
+> ---
+>  drivers/gpu/drm/drm_atomic_helper.c      | 11 ++++++
+>  drivers/gpu/drm/drm_atomic_uapi.c        | 31 +++++------------
+>  drivers/gpu/drm/drm_writeback.c          | 44 ++++++++++++++++++++++++
+>  include/drm/drm_modeset_helper_vtables.h |  7 ++++
+>  include/drm/drm_writeback.h              | 28 ++++++++++++++-
+>  5 files changed, 97 insertions(+), 24 deletions(-)
 > 
-> The debayer subdevice is the only one that currently doesn't supports
-> multiplanar formats. Documentation to each device will be made in a
-> future patch.
+> diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
+> index 6fe2303fccd9..70a4886c6e65 100644
+> --- a/drivers/gpu/drm/drm_atomic_helper.c
+> +++ b/drivers/gpu/drm/drm_atomic_helper.c
+> @@ -2245,10 +2245,21 @@ EXPORT_SYMBOL(drm_atomic_helper_commit_cleanup_done);
+>  int drm_atomic_helper_prepare_planes(struct drm_device *dev,
+>  				     struct drm_atomic_state *state)
+>  {
+> +	struct drm_connector *connector;
+> +	struct drm_connector_state *new_conn_state;
+>  	struct drm_plane *plane;
+>  	struct drm_plane_state *new_plane_state;
+>  	int ret, i, j;
+>  
+> +	for_each_new_connector_in_state(state, connector, new_conn_state, i) {
+> +		if (!new_conn_state->writeback_job)
+> +			continue;
+> +
+> +		ret = drm_writeback_prepare_job(new_conn_state->writeback_job);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+>  	for_each_new_plane_in_state(state, plane, new_plane_state, i) {
+>  		const struct drm_plane_helper_funcs *funcs;
+>  
+> diff --git a/drivers/gpu/drm/drm_atomic_uapi.c b/drivers/gpu/drm/drm_atomic_uapi.c
+> index c40889888a16..e802152a01ad 100644
+> --- a/drivers/gpu/drm/drm_atomic_uapi.c
+> +++ b/drivers/gpu/drm/drm_atomic_uapi.c
+> @@ -647,28 +647,15 @@ drm_atomic_plane_get_property(struct drm_plane *plane,
+>  	return 0;
+>  }
+>  
+> -static struct drm_writeback_job *
+> -drm_atomic_get_writeback_job(struct drm_connector_state *conn_state)
+> -{
+> -	WARN_ON(conn_state->connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK);
+> -
+> -	if (!conn_state->writeback_job)
+> -		conn_state->writeback_job =
+> -			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
+> -
+> -	return conn_state->writeback_job;
+> -}
+> -
+>  static int drm_atomic_set_writeback_fb_for_connector(
+>  		struct drm_connector_state *conn_state,
+>  		struct drm_framebuffer *fb)
+>  {
+> -	struct drm_writeback_job *job =
+> -		drm_atomic_get_writeback_job(conn_state);
+> -	if (!job)
+> -		return -ENOMEM;
+> +	int ret;
+>  
+> -	drm_framebuffer_assign(&job->fb, fb);
+> +	ret = drm_writeback_set_fb(conn_state, fb);
+> +	if (ret < 0)
+> +		return ret;
+>  
+>  	if (fb)
+>  		DRM_DEBUG_ATOMIC("Set [FB:%d] for connector state %p\n",
+> @@ -1158,19 +1145,17 @@ static int prepare_signaling(struct drm_device *dev,
+>  
+>  	for_each_new_connector_in_state(state, conn, conn_state, i) {
+>  		struct drm_writeback_connector *wb_conn;
+> -		struct drm_writeback_job *job;
+>  		struct drm_out_fence_state *f;
+>  		struct dma_fence *fence;
+>  		s32 __user *fence_ptr;
+>  
+> +		if (!conn_state->writeback_job)
+> +			continue;
+> +
+>  		fence_ptr = get_out_fence_for_connector(state, conn);
+>  		if (!fence_ptr)
+>  			continue;
+>  
+> -		job = drm_atomic_get_writeback_job(conn_state);
+> -		if (!job)
+> -			return -ENOMEM;
+> -
+>  		f = krealloc(*fence_state, sizeof(**fence_state) *
+>  			     (*num_fences + 1), GFP_KERNEL);
+>  		if (!f)
+> @@ -1192,7 +1177,7 @@ static int prepare_signaling(struct drm_device *dev,
+>  			return ret;
+>  		}
+>  
+> -		job->out_fence = fence;
+> +		conn_state->writeback_job->out_fence = fence;
+>  	}
+>  
+>  	/*
+> diff --git a/drivers/gpu/drm/drm_writeback.c b/drivers/gpu/drm/drm_writeback.c
+> index 1b497d3530b5..79ac014701c8 100644
+> --- a/drivers/gpu/drm/drm_writeback.c
+> +++ b/drivers/gpu/drm/drm_writeback.c
+> @@ -239,6 +239,43 @@ int drm_writeback_connector_init(struct drm_device *dev,
+>  }
+>  EXPORT_SYMBOL(drm_writeback_connector_init);
+>  
+> +int drm_writeback_set_fb(struct drm_connector_state *conn_state,
+> +			 struct drm_framebuffer *fb)
+> +{
+> +	WARN_ON(conn_state->connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK);
+> +
+> +	if (!conn_state->writeback_job) {
+> +		conn_state->writeback_job =
+> +			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
+> +		if (!conn_state->writeback_job)
+> +			return -ENOMEM;
+> +
+> +		conn_state->writeback_job->connector =
+> +			drm_connector_to_writeback(conn_state->connector);
+> +	}
+> +
+> +	drm_framebuffer_assign(&conn_state->writeback_job->fb, fb);
+> +	return 0;
+> +}
+> +
+> +int drm_writeback_prepare_job(struct drm_writeback_job *job)
+> +{
+> +	struct drm_writeback_connector *connector = job->connector;
+> +	const struct drm_connector_helper_funcs *funcs =
+> +		connector->base.helper_private;
+> +	int ret;
+> +
+> +	if (funcs->prepare_writeback_job) {
+> +		ret = funcs->prepare_writeback_job(connector, job);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+> +	job->prepared = true;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(drm_writeback_prepare_job);
+> +
+>  /**
+>   * drm_writeback_queue_job - Queue a writeback job for later signalling
+>   * @wb_connector: The writeback connector to queue a job on
+> @@ -275,6 +312,13 @@ EXPORT_SYMBOL(drm_writeback_queue_job);
+>  
+>  void drm_writeback_cleanup_job(struct drm_writeback_job *job)
+>  {
+> +	struct drm_writeback_connector *connector = job->connector;
+> +	const struct drm_connector_helper_funcs *funcs =
+> +		connector->base.helper_private;
+> +
+> +	if (job->prepared && funcs->cleanup_writeback_job)
+> +		funcs->cleanup_writeback_job(connector, job);
+> +
+>  	if (job->fb)
+>  		drm_framebuffer_put(job->fb);
+>  
+> diff --git a/include/drm/drm_modeset_helper_vtables.h b/include/drm/drm_modeset_helper_vtables.h
+> index 61142aa0ab23..73d03fe66799 100644
+> --- a/include/drm/drm_modeset_helper_vtables.h
+> +++ b/include/drm/drm_modeset_helper_vtables.h
+> @@ -49,6 +49,8 @@
+>   */
+>  
+>  enum mode_set_atomic;
+> +struct drm_writeback_connector;
+> +struct drm_writeback_job;
+>  
+>  /**
+>   * struct drm_crtc_helper_funcs - helper operations for CRTCs
+> @@ -989,6 +991,11 @@ struct drm_connector_helper_funcs {
+>  	 */
+>  	void (*atomic_commit)(struct drm_connector *connector,
+>  			      struct drm_connector_state *state);
+> +
+> +	int (*prepare_writeback_job)(struct drm_writeback_connector *connector,
+> +				     struct drm_writeback_job *job);
+> +	void (*cleanup_writeback_job)(struct drm_writeback_connector *connector,
+> +				      struct drm_writeback_job *job);
+>  };
+>  
+>  /**
+> diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
+> index 47662c362743..777c14c847f0 100644
+> --- a/include/drm/drm_writeback.h
+> +++ b/include/drm/drm_writeback.h
+> @@ -79,6 +79,20 @@ struct drm_writeback_connector {
+>  };
+>  
+>  struct drm_writeback_job {
+> +	/**
+> +	 * @connector:
+> +	 *
+> +	 * Back-pointer to the writeback connector associated with the job
+> +	 */
+> +	struct drm_writeback_connector *connector;
+> +
+> +	/**
+> +	 * @prepared:
+> +	 *
+> +	 * Set when the job has been prepared with drm_writeback_prepare_job()
+> +	 */
+> +	bool prepared;
+> +
+>  	/**
+>  	 * @cleanup_work:
+>  	 *
+> @@ -98,7 +112,7 @@ struct drm_writeback_job {
+>  	 * @fb:
+>  	 *
+>  	 * Framebuffer to be written to by the writeback connector. Do not set
+> -	 * directly, use drm_atomic_set_writeback_fb_for_connector()
+> +	 * directly, use drm_writeback_set_fb()
+>  	 */
+>  	struct drm_framebuffer *fb;
+>  
+> @@ -108,6 +122,13 @@ struct drm_writeback_job {
+>  	 * Fence which will signal once the writeback has completed
+>  	 */
+>  	struct dma_fence *out_fence;
+> +
+> +	/**
+> +	 * @priv:
+> +	 *
+> +	 * Driver-private data
+> +	 */
+> +	void *priv;
+>  };
+>  
+>  static inline struct drm_writeback_connector *
+> @@ -122,6 +143,11 @@ int drm_writeback_connector_init(struct drm_device *dev,
+>  				 const struct drm_encoder_helper_funcs *enc_helper_funcs,
+>  				 const u32 *formats, int n_formats);
+>  
+> +int drm_writeback_set_fb(struct drm_connector_state *conn_state,
+> +			 struct drm_framebuffer *fb);
+> +
+> +int drm_writeback_prepare_job(struct drm_writeback_job *job);
+> +
+>  void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
+>  			     struct drm_connector_state *conn_state);
+>  
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
 > 
 
-Forgot to mention that this patch series depends on this one:
-
-"[PATCH] media: vimc: propagate pixel format in the stream"
-
-> Thanks,
-> 	André
-> 
-> André Almeida (16):
->    media: Move sp2mp functions to v4l2-common
->    media: vimc: Remove unnecessary stream check
->    media: vimc: Check if the stream is on using ved.stream
->    media: vimc: cap: Change vimc_cap_device.format type
->    media: vimc: Create multiplanar parameter
->    media: vimc: cap: Dynamically define stream pixelformat
->    media: vimc: cap: Add handler for singleplanar fmt ioctls
->    media: vimc: cap: Add handler for multiplanar fmt ioctls
->    media: vimc: cap: Add multiplanar formats
->    media: vimc: cap: Add multiplanar default format
->    media: vimc: cap: Allocate and verify mplanar buffers
->    media: vimc: Add and use new struct vimc_frame
->    media: vimc: sen: Add support for multiplanar formats
->    media: vimc: sca: Add support for multiplanar formats
->    media: vimc: cap: Add support for multiplanar formats
->    media: vimc: cap: Dynamically define device caps
-> 
->   drivers/media/platform/vimc/vimc-capture.c    | 310 +++++++++++++++---
->   drivers/media/platform/vimc/vimc-common.c     |  37 +++
->   drivers/media/platform/vimc/vimc-common.h     |  50 ++-
->   drivers/media/platform/vimc/vimc-core.c       |   8 +
->   drivers/media/platform/vimc/vimc-debayer.c    |  38 +--
->   drivers/media/platform/vimc/vimc-scaler.c     | 125 ++++---
->   drivers/media/platform/vimc/vimc-sensor.c     |  62 ++--
->   drivers/media/platform/vimc/vimc-streamer.c   |   2 +-
->   drivers/media/platform/vivid/vivid-vid-cap.c  |   6 +-
->   .../media/platform/vivid/vivid-vid-common.c   |  59 ----
->   .../media/platform/vivid/vivid-vid-common.h   |   9 -
->   drivers/media/platform/vivid/vivid-vid-out.c  |   6 +-
->   drivers/media/v4l2-core/v4l2-common.c         |  62 ++++
->   include/media/v4l2-common.h                   |  31 ++
->   14 files changed, 580 insertions(+), 225 deletions(-)
-> 
+-- 
+====================
+| I would like to |
+| fix the world,  |
+| but they're not |
+| giving me the   |
+ \ source code!  /
+  ---------------
+    ¯\_(ツ)_/¯
