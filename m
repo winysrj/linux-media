@@ -2,356 +2,428 @@ Return-Path: <SRS0=7C2H=RS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2ECEC10F00
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 17:55:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 409DFC43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:30:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C2FE218A1
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 17:55:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07A1B218D3
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:30:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726671AbfCORzA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 13:55:00 -0400
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:34422 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726466AbfCORzA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 13:55:00 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5B09AA78;
-        Fri, 15 Mar 2019 10:54:59 -0700 (PDT)
-Received: from e110455-lin.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.72.51.249])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 082E73F71D;
-        Fri, 15 Mar 2019 10:54:59 -0700 (PDT)
-Received: by e110455-lin.cambridge.arm.com (Postfix, from userid 1000)
-        id 60EB2680208; Fri, 15 Mar 2019 17:54:57 +0000 (GMT)
-Date:   Fri, 15 Mar 2019 17:54:57 +0000
-From:   Liviu Dudau <Liviu.Dudau@arm.com>
-To:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc:     dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v6 14/18] drm: writeback: Add job prepare and cleanup
- operations
-Message-ID: <20190315175457.GG26454@e110455-lin.cambridge.arm.com>
-References: <20190313000532.7087-1-laurent.pinchart+renesas@ideasonboard.com>
- <20190313000532.7087-15-laurent.pinchart+renesas@ideasonboard.com>
+        id S1727012AbfCOTaR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 15:30:17 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49596 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726799AbfCOTaQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Mar 2019 15:30:16 -0400
+Received: from [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc] (unknown [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: koike)
+        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 802DE28143A;
+        Fri, 15 Mar 2019 19:30:12 +0000 (GMT)
+Subject: Re: [PATCH 01/16] media: Move sp2mp functions to v4l2-common
+To:     =?UTF-8?Q?Andr=c3=a9_Almeida?= <andrealmeid@collabora.com>,
+        linux-media@vger.kernel.org
+Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, lucmaga@gmail.com,
+        linux-kernel@vger.kernel.org, kernel@collabora.com
+References: <20190315164359.626-1-andrealmeid@collabora.com>
+ <20190315164359.626-2-andrealmeid@collabora.com>
+From:   Helen Koike <helen.koike@collabora.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=helen.koike@collabora.com; keydata=
+ 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
+Message-ID: <31ce0b97-4b1d-8f1e-0f0e-cbd2a4bcf6ce@collabora.com>
+Date:   Fri, 15 Mar 2019 16:30:08 -0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
+In-Reply-To: <20190315164359.626-2-andrealmeid@collabora.com>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190313000532.7087-15-laurent.pinchart+renesas@ideasonboard.com>
-User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Mar 13, 2019 at 02:05:28AM +0200, Laurent Pinchart wrote:
-> As writeback jobs contain a framebuffer, drivers may need to prepare and
-> cleanup them the same way they can prepare and cleanup framebuffers for
-> planes. Add two new optional connector helper operations,
-> .prepare_writeback_job() and .cleanup_writeback_job() to support this.
-> 
-> The job prepare operation is called from
-> drm_atomic_helper_prepare_planes() to avoid a new atomic commit helper
-> that would need to be called by all drivers not using
-> drm_atomic_helper_commit(). The job cleanup operation is called from the
-> existing drm_writeback_cleanup_job() function, invoked both when
-> destroying the job as part of a aborted commit, or when the job
-> completes.
-> 
-> The drm_writeback_job structure is extended with a priv field to let
-> drivers store per-job data, such as mappings related to the writeback
-> framebuffer.
-> 
-> For internal plumbing reasons the drm_writeback_job structure needs to
-> store a back-pointer to the drm_writeback_connector. To avoid pushing
-> too much writeback-specific knowledge to drm_atomic_uapi.c, create a
-> drm_writeback_set_fb() function, move the writeback job setup code
-> there, and set the connector backpointer. The prepare_signaling()
-> function doesn't need to allocate writeback jobs and can ignore
-> connectors without a job, as it is called after the writeback jobs are
-> allocated to store framebuffers, and a writeback fence with a
-> framebuffer is an invalid configuration that gets rejected by the commit
-> check.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Reviewed-by: Liviu Dudau <liviu.dudau@arm.com>
 
-Best regards,
-Liviu
+On 3/15/19 1:43 PM, André Almeida wrote:
+> Move sp2mp functions from vivid cote to v4l2-common as it will be reused
+> by vimc driver for multiplanar support.
 
+s/cote/code
+
+> 
+> Signed-off-by: André Almeida <andrealmeid@collabora.com>
 > ---
-> Changes since v5:
+>  drivers/media/platform/vivid/vivid-vid-cap.c  |  6 +-
+>  .../media/platform/vivid/vivid-vid-common.c   | 59 ------------------
+>  .../media/platform/vivid/vivid-vid-common.h   |  9 ---
+>  drivers/media/platform/vivid/vivid-vid-out.c  |  6 +-
+>  drivers/media/v4l2-core/v4l2-common.c         | 62 +++++++++++++++++++
+>  include/media/v4l2-common.h                   | 31 ++++++++++
+>  6 files changed, 99 insertions(+), 74 deletions(-)
 > 
-> - Export drm_writeback_prepare_job()
-> - Check for .prepare_writeback_job() in drm_writeback_prepare_job()
-> ---
->  drivers/gpu/drm/drm_atomic_helper.c      | 11 ++++++
->  drivers/gpu/drm/drm_atomic_uapi.c        | 31 +++++------------
->  drivers/gpu/drm/drm_writeback.c          | 44 ++++++++++++++++++++++++
->  include/drm/drm_modeset_helper_vtables.h |  7 ++++
->  include/drm/drm_writeback.h              | 28 ++++++++++++++-
->  5 files changed, 97 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
-> index 6fe2303fccd9..70a4886c6e65 100644
-> --- a/drivers/gpu/drm/drm_atomic_helper.c
-> +++ b/drivers/gpu/drm/drm_atomic_helper.c
-> @@ -2245,10 +2245,21 @@ EXPORT_SYMBOL(drm_atomic_helper_commit_cleanup_done);
->  int drm_atomic_helper_prepare_planes(struct drm_device *dev,
->  				     struct drm_atomic_state *state)
->  {
-> +	struct drm_connector *connector;
-> +	struct drm_connector_state *new_conn_state;
->  	struct drm_plane *plane;
->  	struct drm_plane_state *new_plane_state;
->  	int ret, i, j;
+> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+> index 52eeda624d7e..b5ad71bbf7bf 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> @@ -815,7 +815,7 @@ int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
 >  
-> +	for_each_new_connector_in_state(state, connector, new_conn_state, i) {
-> +		if (!new_conn_state->writeback_job)
-> +			continue;
-> +
-> +		ret = drm_writeback_prepare_job(new_conn_state->writeback_job);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +
->  	for_each_new_plane_in_state(state, plane, new_plane_state, i) {
->  		const struct drm_plane_helper_funcs *funcs;
->  
-> diff --git a/drivers/gpu/drm/drm_atomic_uapi.c b/drivers/gpu/drm/drm_atomic_uapi.c
-> index c40889888a16..e802152a01ad 100644
-> --- a/drivers/gpu/drm/drm_atomic_uapi.c
-> +++ b/drivers/gpu/drm/drm_atomic_uapi.c
-> @@ -647,28 +647,15 @@ drm_atomic_plane_get_property(struct drm_plane *plane,
->  	return 0;
+>  	if (dev->multiplanar)
+>  		return -ENOTTY;
+> -	return fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_cap);
+> +	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_cap);
 >  }
 >  
-> -static struct drm_writeback_job *
-> -drm_atomic_get_writeback_job(struct drm_connector_state *conn_state)
+>  int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+> @@ -825,7 +825,7 @@ int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  
+>  	if (dev->multiplanar)
+>  		return -ENOTTY;
+> -	return fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_cap);
+> +	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_cap);
+>  }
+>  
+>  int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+> @@ -835,7 +835,7 @@ int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+>  
+>  	if (dev->multiplanar)
+>  		return -ENOTTY;
+> -	return fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_cap);
+> +	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_cap);
+>  }
+>  
+>  int vivid_vid_cap_g_selection(struct file *file, void *priv,
+> diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+> index 74b83bcc6119..3dd3a05d2e67 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-common.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-common.c
+> @@ -674,65 +674,6 @@ void vivid_send_source_change(struct vivid_dev *dev, unsigned type)
+>  	}
+>  }
+>  
+> -/*
+> - * Conversion function that converts a single-planar format to a
+> - * single-plane multiplanar format.
+> - */
+> -void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt)
 > -{
-> -	WARN_ON(conn_state->connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK);
+> -	struct v4l2_pix_format_mplane *mp = &mp_fmt->fmt.pix_mp;
+> -	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
+> -	const struct v4l2_pix_format *pix = &sp_fmt->fmt.pix;
+> -	bool is_out = sp_fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT;
 > -
-> -	if (!conn_state->writeback_job)
-> -		conn_state->writeback_job =
-> -			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
-> -
-> -	return conn_state->writeback_job;
+> -	memset(mp->reserved, 0, sizeof(mp->reserved));
+> -	mp_fmt->type = is_out ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+> -			   V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+> -	mp->width = pix->width;
+> -	mp->height = pix->height;
+> -	mp->pixelformat = pix->pixelformat;
+> -	mp->field = pix->field;
+> -	mp->colorspace = pix->colorspace;
+> -	mp->xfer_func = pix->xfer_func;
+> -	/* Also copies hsv_enc */
+> -	mp->ycbcr_enc = pix->ycbcr_enc;
+> -	mp->quantization = pix->quantization;
+> -	mp->num_planes = 1;
+> -	mp->flags = pix->flags;
+> -	ppix->sizeimage = pix->sizeimage;
+> -	ppix->bytesperline = pix->bytesperline;
+> -	memset(ppix->reserved, 0, sizeof(ppix->reserved));
 > -}
 > -
->  static int drm_atomic_set_writeback_fb_for_connector(
->  		struct drm_connector_state *conn_state,
->  		struct drm_framebuffer *fb)
->  {
-> -	struct drm_writeback_job *job =
-> -		drm_atomic_get_writeback_job(conn_state);
-> -	if (!job)
-> -		return -ENOMEM;
-> +	int ret;
->  
-> -	drm_framebuffer_assign(&job->fb, fb);
-> +	ret = drm_writeback_set_fb(conn_state, fb);
-> +	if (ret < 0)
-> +		return ret;
->  
->  	if (fb)
->  		DRM_DEBUG_ATOMIC("Set [FB:%d] for connector state %p\n",
-> @@ -1158,19 +1145,17 @@ static int prepare_signaling(struct drm_device *dev,
->  
->  	for_each_new_connector_in_state(state, conn, conn_state, i) {
->  		struct drm_writeback_connector *wb_conn;
-> -		struct drm_writeback_job *job;
->  		struct drm_out_fence_state *f;
->  		struct dma_fence *fence;
->  		s32 __user *fence_ptr;
->  
-> +		if (!conn_state->writeback_job)
-> +			continue;
-> +
->  		fence_ptr = get_out_fence_for_connector(state, conn);
->  		if (!fence_ptr)
->  			continue;
->  
-> -		job = drm_atomic_get_writeback_job(conn_state);
-> -		if (!job)
-> -			return -ENOMEM;
+> -int fmt_sp2mp_func(struct file *file, void *priv,
+> -		struct v4l2_format *f, fmtfunc func)
+> -{
+> -	struct v4l2_format fmt;
+> -	struct v4l2_pix_format_mplane *mp = &fmt.fmt.pix_mp;
+> -	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
+> -	struct v4l2_pix_format *pix = &f->fmt.pix;
+> -	int ret;
 > -
->  		f = krealloc(*fence_state, sizeof(**fence_state) *
->  			     (*num_fences + 1), GFP_KERNEL);
->  		if (!f)
-> @@ -1192,7 +1177,7 @@ static int prepare_signaling(struct drm_device *dev,
->  			return ret;
->  		}
+> -	/* Converts to a mplane format */
+> -	fmt_sp2mp(f, &fmt);
+> -	/* Passes it to the generic mplane format function */
+> -	ret = func(file, priv, &fmt);
+> -	/* Copies back the mplane data to the single plane format */
+> -	pix->width = mp->width;
+> -	pix->height = mp->height;
+> -	pix->pixelformat = mp->pixelformat;
+> -	pix->field = mp->field;
+> -	pix->colorspace = mp->colorspace;
+> -	pix->xfer_func = mp->xfer_func;
+> -	/* Also copies hsv_enc */
+> -	pix->ycbcr_enc = mp->ycbcr_enc;
+> -	pix->quantization = mp->quantization;
+> -	pix->sizeimage = ppix->sizeimage;
+> -	pix->bytesperline = ppix->bytesperline;
+> -	pix->flags = mp->flags;
+> -	return ret;
+> -}
+> -
+>  int vivid_vid_adjust_sel(unsigned flags, struct v4l2_rect *r)
+>  {
+>  	unsigned w = r->width;
+> diff --git a/drivers/media/platform/vivid/vivid-vid-common.h b/drivers/media/platform/vivid/vivid-vid-common.h
+> index 29b6c0b40a1b..13adea56baa0 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-common.h
+> +++ b/drivers/media/platform/vivid/vivid-vid-common.h
+> @@ -8,15 +8,6 @@
+>  #ifndef _VIVID_VID_COMMON_H_
+>  #define _VIVID_VID_COMMON_H_
 >  
-> -		job->out_fence = fence;
-> +		conn_state->writeback_job->out_fence = fence;
->  	}
+> -typedef int (*fmtfunc)(struct file *file, void *priv, struct v4l2_format *f);
+> -
+> -/*
+> - * Conversion function that converts a single-planar format to a
+> - * single-plane multiplanar format.
+> - */
+> -void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt);
+> -int fmt_sp2mp_func(struct file *file, void *priv,
+> -		struct v4l2_format *f, fmtfunc func);
 >  
->  	/*
-> diff --git a/drivers/gpu/drm/drm_writeback.c b/drivers/gpu/drm/drm_writeback.c
-> index 1b497d3530b5..79ac014701c8 100644
-> --- a/drivers/gpu/drm/drm_writeback.c
-> +++ b/drivers/gpu/drm/drm_writeback.c
-> @@ -239,6 +239,43 @@ int drm_writeback_connector_init(struct drm_device *dev,
+>  extern const struct v4l2_dv_timings_cap vivid_dv_timings_cap;
+>  
+> diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+> index e61b91b414f9..c42ba5ade6cf 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-out.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-out.c
+> @@ -612,7 +612,7 @@ int vidioc_g_fmt_vid_out(struct file *file, void *priv,
+>  
+>  	if (dev->multiplanar)
+>  		return -ENOTTY;
+> -	return fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_out);
+> +	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_out);
 >  }
->  EXPORT_SYMBOL(drm_writeback_connector_init);
 >  
-> +int drm_writeback_set_fb(struct drm_connector_state *conn_state,
-> +			 struct drm_framebuffer *fb)
+>  int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+> @@ -622,7 +622,7 @@ int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+>  
+>  	if (dev->multiplanar)
+>  		return -ENOTTY;
+> -	return fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_out);
+> +	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_out);
+>  }
+>  
+>  int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+> @@ -632,7 +632,7 @@ int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+>  
+>  	if (dev->multiplanar)
+>  		return -ENOTTY;
+> -	return fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_out);
+> +	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_out);
+>  }
+>  
+>  int vivid_vid_out_g_selection(struct file *file, void *priv,
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index 779e44d6db43..d118f8f34d32 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -653,3 +653,65 @@ int v4l2_fill_pixfmt(struct v4l2_pix_format *pixfmt, int pixelformat, int width,
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fill_pixfmt);
+> +
+> +/*
+> + * Conversion functions that convert a single-planar format to a
+> + * multi-planar format.
+> + */
+> +void v4l2_fmt_sp2mp(const struct v4l2_format *sp_fmt,
+> +		struct v4l2_format *mp_fmt)
 > +{
-> +	WARN_ON(conn_state->connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK);
+> +	struct v4l2_pix_format_mplane *mp = &mp_fmt->fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
+> +	const struct v4l2_pix_format *pix = &sp_fmt->fmt.pix;
+> +	bool is_out = sp_fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT;
 > +
-> +	if (!conn_state->writeback_job) {
-> +		conn_state->writeback_job =
-> +			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
-> +		if (!conn_state->writeback_job)
-> +			return -ENOMEM;
-> +
-> +		conn_state->writeback_job->connector =
-> +			drm_connector_to_writeback(conn_state->connector);
-> +	}
-> +
-> +	drm_framebuffer_assign(&conn_state->writeback_job->fb, fb);
-> +	return 0;
+> +	memset(mp->reserved, 0, sizeof(mp->reserved));
+> +	mp_fmt->type = is_out ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+> +			   V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+> +	mp->width = pix->width;
+> +	mp->height = pix->height;
+> +	mp->pixelformat = pix->pixelformat;
+> +	mp->field = pix->field;
+> +	mp->colorspace = pix->colorspace;
+> +	mp->xfer_func = pix->xfer_func;
+> +	/* Also copies hsv_enc */
+> +	mp->ycbcr_enc = pix->ycbcr_enc;
+> +	mp->quantization = pix->quantization;
+> +	mp->num_planes = 1;
+> +	mp->flags = pix->flags;
+> +	ppix->sizeimage = pix->sizeimage;
+> +	ppix->bytesperline = pix->bytesperline;
+> +	memset(ppix->reserved, 0, sizeof(ppix->reserved));
 > +}
+> +EXPORT_SYMBOL_GPL(v4l2_fmt_sp2mp);
 > +
-> +int drm_writeback_prepare_job(struct drm_writeback_job *job)
+> +int v4l2_fmt_sp2mp_func(struct file *file, void *priv,
+> +		struct v4l2_format *f, v4l2_fmtfunc func)
 > +{
-> +	struct drm_writeback_connector *connector = job->connector;
-> +	const struct drm_connector_helper_funcs *funcs =
-> +		connector->base.helper_private;
+> +	struct v4l2_format fmt;
+> +	struct v4l2_pix_format_mplane *mp = &fmt.fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
+> +	struct v4l2_pix_format *pix = &f->fmt.pix;
 > +	int ret;
 > +
-> +	if (funcs->prepare_writeback_job) {
-> +		ret = funcs->prepare_writeback_job(connector, job);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +
-> +	job->prepared = true;
-> +	return 0;
+> +	/* Converts to a mplane format */
+> +	v4l2_fmt_sp2mp(f, &fmt);
+> +	/* Passes it to the generic mplane format function */
+> +	ret = func(file, priv, &fmt);
+> +	/* Copies back the mplane data to the single plane format */
+> +	pix->width = mp->width;
+> +	pix->height = mp->height;
+> +	pix->pixelformat = mp->pixelformat;
+> +	pix->field = mp->field;
+> +	pix->colorspace = mp->colorspace;
+> +	pix->xfer_func = mp->xfer_func;
+> +	/* Also copies hsv_enc */
+> +	pix->ycbcr_enc = mp->ycbcr_enc;
+> +	pix->quantization = mp->quantization;
+> +	pix->sizeimage = ppix->sizeimage;
+> +	pix->bytesperline = ppix->bytesperline;
+> +	pix->flags = mp->flags;
+> +	return ret;
 > +}
-> +EXPORT_SYMBOL(drm_writeback_prepare_job);
-> +
->  /**
->   * drm_writeback_queue_job - Queue a writeback job for later signalling
->   * @wb_connector: The writeback connector to queue a job on
-> @@ -275,6 +312,13 @@ EXPORT_SYMBOL(drm_writeback_queue_job);
+> +EXPORT_SYMBOL_GPL(v4l2_fmt_sp2mp_func);
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index 937b74a946cd..d106f36ebaf4 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -424,4 +424,35 @@ int v4l2_fill_pixfmt(struct v4l2_pix_format *pixfmt, int pixelformat,
+>  int v4l2_fill_pixfmt_mp(struct v4l2_pix_format_mplane *pixfmt, int pixelformat,
+>  			int width, int height);
 >  
->  void drm_writeback_cleanup_job(struct drm_writeback_job *job)
->  {
-> +	struct drm_writeback_connector *connector = job->connector;
-> +	const struct drm_connector_helper_funcs *funcs =
-> +		connector->base.helper_private;
-> +
-> +	if (job->prepared && funcs->cleanup_writeback_job)
-> +		funcs->cleanup_writeback_job(connector, job);
-> +
->  	if (job->fb)
->  		drm_framebuffer_put(job->fb);
->  
-> diff --git a/include/drm/drm_modeset_helper_vtables.h b/include/drm/drm_modeset_helper_vtables.h
-> index 61142aa0ab23..73d03fe66799 100644
-> --- a/include/drm/drm_modeset_helper_vtables.h
-> +++ b/include/drm/drm_modeset_helper_vtables.h
-> @@ -49,6 +49,8 @@
->   */
->  
->  enum mode_set_atomic;
-> +struct drm_writeback_connector;
-> +struct drm_writeback_job;
->  
->  /**
->   * struct drm_crtc_helper_funcs - helper operations for CRTCs
-> @@ -989,6 +991,11 @@ struct drm_connector_helper_funcs {
->  	 */
->  	void (*atomic_commit)(struct drm_connector *connector,
->  			      struct drm_connector_state *state);
-> +
-> +	int (*prepare_writeback_job)(struct drm_writeback_connector *connector,
-> +				     struct drm_writeback_job *job);
-> +	void (*cleanup_writeback_job)(struct drm_writeback_connector *connector,
-> +				      struct drm_writeback_job *job);
->  };
->  
->  /**
-> diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
-> index 47662c362743..777c14c847f0 100644
-> --- a/include/drm/drm_writeback.h
-> +++ b/include/drm/drm_writeback.h
-> @@ -79,6 +79,20 @@ struct drm_writeback_connector {
->  };
->  
->  struct drm_writeback_job {
-> +	/**
-> +	 * @connector:
-> +	 *
-> +	 * Back-pointer to the writeback connector associated with the job
-> +	 */
-> +	struct drm_writeback_connector *connector;
-> +
-> +	/**
-> +	 * @prepared:
-> +	 *
-> +	 * Set when the job has been prepared with drm_writeback_prepare_job()
-> +	 */
-> +	bool prepared;
-> +
->  	/**
->  	 * @cleanup_work:
->  	 *
-> @@ -98,7 +112,7 @@ struct drm_writeback_job {
->  	 * @fb:
->  	 *
->  	 * Framebuffer to be written to by the writeback connector. Do not set
-> -	 * directly, use drm_atomic_set_writeback_fb_for_connector()
-> +	 * directly, use drm_writeback_set_fb()
->  	 */
->  	struct drm_framebuffer *fb;
->  
-> @@ -108,6 +122,13 @@ struct drm_writeback_job {
->  	 * Fence which will signal once the writeback has completed
->  	 */
->  	struct dma_fence *out_fence;
-> +
-> +	/**
-> +	 * @priv:
-> +	 *
-> +	 * Driver-private data
-> +	 */
-> +	void *priv;
->  };
->  
->  static inline struct drm_writeback_connector *
-> @@ -122,6 +143,11 @@ int drm_writeback_connector_init(struct drm_device *dev,
->  				 const struct drm_encoder_helper_funcs *enc_helper_funcs,
->  				 const u32 *formats, int n_formats);
->  
-> +int drm_writeback_set_fb(struct drm_connector_state *conn_state,
-> +			 struct drm_framebuffer *fb);
-> +
-> +int drm_writeback_prepare_job(struct drm_writeback_job *job);
-> +
->  void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
->  			     struct drm_connector_state *conn_state);
->  
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+> +/**
+> + * v4l2_fmtfunc - type to be used by v4l2_fmt_sp2mp_func to pass the generic
+> + * mp function as argument
 
--- 
-====================
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    ¯\_(ツ)_/¯
+You can use a shorter title, e.g.
+Function pointer type for v4l2_fmt_sp2mp()
+
+And you can add a better description below,
+e.g.https://git.linuxtv.org/media_tree.git/tree/include/media/v4l2-common.h#n287
+
+this also applies to other docs.
+
+> + * @file: device's descriptor file
+> + * @priv: private data pointer
+> + * @f: format that holds a mp pixel format
+> + */
+> +typedef int (*v4l2_fmtfunc)(struct file *file, void *priv,
+> +		struct v4l2_format *f);
+
+It would be nice if you could align the second line with the arguments
+of the function in the first line.
+
+> +
+> +/**
+> + * v4l2_fmt_sp2mp - transforms a single-planar format struct into a multi-planar
+> + * struct
+> + * @sp_fmt: pointer to the single-planar format struct (in)
+> + * @mp_fmt: pointer to the multi-planar format struct (out)
+> + */
+> +void v4l2_fmt_sp2mp(const struct v4l2_format *sp_fmt,
+> +		struct v4l2_format *mp_fmt);
+
+same here regarding alignment.
+
+> +
+> +/**
+> + * v4l2_fmt_sp2mp_func - handler to call a generic multi-planar format function
+> + * using single-planar format. It converts the sp to a mp, calls the
+> + * function and converts mp back to sp.
+> + * @file: device's descriptor file
+> + * @priv: private data pointer
+> + * @f: format that holds a sp pixel format
+> + * @func: generic mp function
+> + */
+> +int v4l2_fmt_sp2mp_func(struct file *file, void *priv,
+> +		struct v4l2_format *f, v4l2_fmtfunc func);
+
+same here regarding alignment.
+
+Regards,
+Helen
+
+> +
+>  #endif /* V4L2_COMMON_H_ */
+> 
