@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62564C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:45:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43016C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:45:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 232B9218D4
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:45:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11A40218D8
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:45:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729648AbfCOQpD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 12:45:03 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:48972 "EHLO
+        id S1729678AbfCOQpO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 12:45:14 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:48994 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728182AbfCOQpC (ORCPT
+        with ESMTP id S1729690AbfCOQpM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 12:45:02 -0400
+        Fri, 15 Mar 2019 12:45:12 -0400
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: tonyk)
-        with ESMTPSA id E2325260215
+        with ESMTPSA id B929528157F
 From:   =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>
 To:     linux-media@vger.kernel.org
 Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, helen.koike@collabora.com,
         lucmaga@gmail.com, linux-kernel@vger.kernel.org,
         kernel@collabora.com
-Subject: [PATCH 01/16] media: Move sp2mp functions to v4l2-common
-Date:   Fri, 15 Mar 2019 13:43:44 -0300
-Message-Id: <20190315164359.626-2-andrealmeid@collabora.com>
+Subject: [PATCH 04/16] media: vimc: cap: Change vimc_cap_device.format type
+Date:   Fri, 15 Mar 2019 13:43:47 -0300
+Message-Id: <20190315164359.626-5-andrealmeid@collabora.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190315164359.626-1-andrealmeid@collabora.com>
 References: <20190315164359.626-1-andrealmeid@collabora.com>
@@ -41,281 +41,174 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Move sp2mp functions from vivid cote to v4l2-common as it will be reused
-by vimc driver for multiplanar support.
+vimc_cap_device.format field was defined as v4l2_pix_format,
+a struct to handle single planar pixel formats. It turns out that
+if v4l2_format is used, we can reuse functions for both
+v4l2_pix_format and v4l2_pix_format_mplane. This change will
+help at future commits implementing multiplanar pixel
+format support.
 
 Signed-off-by: André Almeida <andrealmeid@collabora.com>
 ---
- drivers/media/platform/vivid/vivid-vid-cap.c  |  6 +-
- .../media/platform/vivid/vivid-vid-common.c   | 59 ------------------
- .../media/platform/vivid/vivid-vid-common.h   |  9 ---
- drivers/media/platform/vivid/vivid-vid-out.c  |  6 +-
- drivers/media/v4l2-core/v4l2-common.c         | 62 +++++++++++++++++++
- include/media/v4l2-common.h                   | 31 ++++++++++
- 6 files changed, 99 insertions(+), 74 deletions(-)
+ drivers/media/platform/vimc/vimc-capture.c | 56 ++++++++++++----------
+ 1 file changed, 31 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 52eeda624d7e..b5ad71bbf7bf 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -815,7 +815,7 @@ int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index c955feea4508..c7ec55c4fe13 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -58,7 +58,7 @@ struct vimc_cap_device {
+ 	struct vimc_ent_device ved;
+ 	struct video_device vdev;
+ 	struct device *dev;
+-	struct v4l2_pix_format format;
++	struct v4l2_format format;
+ 	struct vb2_queue queue;
+ 	struct list_head buf_list;
+ 	/*
+@@ -74,12 +74,13 @@ struct vimc_cap_device {
+ 	struct vimc_stream stream;
+ };
  
- 	if (dev->multiplanar)
- 		return -ENOTTY;
--	return fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_cap);
-+	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_cap);
+-static const struct v4l2_pix_format fmt_default = {
+-	.width = 640,
+-	.height = 480,
+-	.pixelformat = V4L2_PIX_FMT_RGB24,
+-	.field = V4L2_FIELD_NONE,
+-	.colorspace = V4L2_COLORSPACE_DEFAULT,
++static const struct v4l2_format fmt_default = {
++	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
++	.fmt.pix.width = 640,
++	.fmt.pix.height = 480,
++	.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24,
++	.fmt.pix.field = V4L2_FIELD_NONE,
++	.fmt.pix.colorspace = V4L2_COLORSPACE_DEFAULT,
+ };
+ 
+ struct vimc_cap_buffer {
+@@ -110,7 +111,7 @@ static void vimc_cap_get_format(struct vimc_ent_device *ved,
+ 	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
+ 						    ved);
+ 
+-	*fmt = vcap->format;
++	*fmt = vcap->format.fmt.pix;
  }
  
- int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-@@ -825,7 +825,7 @@ int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 
- 	if (dev->multiplanar)
- 		return -ENOTTY;
--	return fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_cap);
-+	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_cap);
- }
- 
- int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-@@ -835,7 +835,7 @@ int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	if (dev->multiplanar)
- 		return -ENOTTY;
--	return fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_cap);
-+	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_cap);
- }
- 
- int vivid_vid_cap_g_selection(struct file *file, void *priv,
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 74b83bcc6119..3dd3a05d2e67 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -674,65 +674,6 @@ void vivid_send_source_change(struct vivid_dev *dev, unsigned type)
- 	}
- }
- 
--/*
-- * Conversion function that converts a single-planar format to a
-- * single-plane multiplanar format.
-- */
--void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt)
--{
--	struct v4l2_pix_format_mplane *mp = &mp_fmt->fmt.pix_mp;
--	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
--	const struct v4l2_pix_format *pix = &sp_fmt->fmt.pix;
--	bool is_out = sp_fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT;
--
--	memset(mp->reserved, 0, sizeof(mp->reserved));
--	mp_fmt->type = is_out ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
--			   V4L2_CAP_VIDEO_CAPTURE_MPLANE;
--	mp->width = pix->width;
--	mp->height = pix->height;
--	mp->pixelformat = pix->pixelformat;
--	mp->field = pix->field;
--	mp->colorspace = pix->colorspace;
--	mp->xfer_func = pix->xfer_func;
--	/* Also copies hsv_enc */
--	mp->ycbcr_enc = pix->ycbcr_enc;
--	mp->quantization = pix->quantization;
--	mp->num_planes = 1;
--	mp->flags = pix->flags;
--	ppix->sizeimage = pix->sizeimage;
--	ppix->bytesperline = pix->bytesperline;
--	memset(ppix->reserved, 0, sizeof(ppix->reserved));
--}
--
--int fmt_sp2mp_func(struct file *file, void *priv,
--		struct v4l2_format *f, fmtfunc func)
--{
--	struct v4l2_format fmt;
--	struct v4l2_pix_format_mplane *mp = &fmt.fmt.pix_mp;
--	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
--	struct v4l2_pix_format *pix = &f->fmt.pix;
--	int ret;
--
--	/* Converts to a mplane format */
--	fmt_sp2mp(f, &fmt);
--	/* Passes it to the generic mplane format function */
--	ret = func(file, priv, &fmt);
--	/* Copies back the mplane data to the single plane format */
--	pix->width = mp->width;
--	pix->height = mp->height;
--	pix->pixelformat = mp->pixelformat;
--	pix->field = mp->field;
--	pix->colorspace = mp->colorspace;
--	pix->xfer_func = mp->xfer_func;
--	/* Also copies hsv_enc */
--	pix->ycbcr_enc = mp->ycbcr_enc;
--	pix->quantization = mp->quantization;
--	pix->sizeimage = ppix->sizeimage;
--	pix->bytesperline = ppix->bytesperline;
--	pix->flags = mp->flags;
--	return ret;
--}
--
- int vivid_vid_adjust_sel(unsigned flags, struct v4l2_rect *r)
+ static int vimc_cap_g_fmt_vid_cap(struct file *file, void *priv,
+@@ -118,7 +119,7 @@ static int vimc_cap_g_fmt_vid_cap(struct file *file, void *priv,
  {
- 	unsigned w = r->width;
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.h b/drivers/media/platform/vivid/vivid-vid-common.h
-index 29b6c0b40a1b..13adea56baa0 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.h
-+++ b/drivers/media/platform/vivid/vivid-vid-common.h
-@@ -8,15 +8,6 @@
- #ifndef _VIVID_VID_COMMON_H_
- #define _VIVID_VID_COMMON_H_
+ 	struct vimc_cap_device *vcap = video_drvdata(file);
  
--typedef int (*fmtfunc)(struct file *file, void *priv, struct v4l2_format *f);
--
--/*
-- * Conversion function that converts a single-planar format to a
-- * single-plane multiplanar format.
-- */
--void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt);
--int fmt_sp2mp_func(struct file *file, void *priv,
--		struct v4l2_format *f, fmtfunc func);
+-	f->fmt.pix = vcap->format;
++	*f = vcap->format;
  
- extern const struct v4l2_dv_timings_cap vivid_dv_timings_cap;
- 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index e61b91b414f9..c42ba5ade6cf 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -612,7 +612,7 @@ int vidioc_g_fmt_vid_out(struct file *file, void *priv,
- 
- 	if (dev->multiplanar)
- 		return -ENOTTY;
--	return fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_out);
-+	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_out);
- }
- 
- int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-@@ -622,7 +622,7 @@ int vidioc_try_fmt_vid_out(struct file *file, void *priv,
- 
- 	if (dev->multiplanar)
- 		return -ENOTTY;
--	return fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_out);
-+	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_out);
- }
- 
- int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-@@ -632,7 +632,7 @@ int vidioc_s_fmt_vid_out(struct file *file, void *priv,
- 
- 	if (dev->multiplanar)
- 		return -ENOTTY;
--	return fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_out);
-+	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_out);
- }
- 
- int vivid_vid_out_g_selection(struct file *file, void *priv,
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 779e44d6db43..d118f8f34d32 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -653,3 +653,65 @@ int v4l2_fill_pixfmt(struct v4l2_pix_format *pixfmt, int pixelformat, int width,
  	return 0;
  }
- EXPORT_SYMBOL_GPL(v4l2_fill_pixfmt);
-+
-+/*
-+ * Conversion functions that convert a single-planar format to a
-+ * multi-planar format.
-+ */
-+void v4l2_fmt_sp2mp(const struct v4l2_format *sp_fmt,
-+		struct v4l2_format *mp_fmt)
-+{
-+	struct v4l2_pix_format_mplane *mp = &mp_fmt->fmt.pix_mp;
-+	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
-+	const struct v4l2_pix_format *pix = &sp_fmt->fmt.pix;
-+	bool is_out = sp_fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+
-+	memset(mp->reserved, 0, sizeof(mp->reserved));
-+	mp_fmt->type = is_out ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
-+			   V4L2_CAP_VIDEO_CAPTURE_MPLANE;
-+	mp->width = pix->width;
-+	mp->height = pix->height;
-+	mp->pixelformat = pix->pixelformat;
-+	mp->field = pix->field;
-+	mp->colorspace = pix->colorspace;
-+	mp->xfer_func = pix->xfer_func;
-+	/* Also copies hsv_enc */
-+	mp->ycbcr_enc = pix->ycbcr_enc;
-+	mp->quantization = pix->quantization;
-+	mp->num_planes = 1;
-+	mp->flags = pix->flags;
-+	ppix->sizeimage = pix->sizeimage;
-+	ppix->bytesperline = pix->bytesperline;
-+	memset(ppix->reserved, 0, sizeof(ppix->reserved));
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fmt_sp2mp);
-+
-+int v4l2_fmt_sp2mp_func(struct file *file, void *priv,
-+		struct v4l2_format *f, v4l2_fmtfunc func)
-+{
-+	struct v4l2_format fmt;
-+	struct v4l2_pix_format_mplane *mp = &fmt.fmt.pix_mp;
-+	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
-+	int ret;
-+
-+	/* Converts to a mplane format */
-+	v4l2_fmt_sp2mp(f, &fmt);
-+	/* Passes it to the generic mplane format function */
-+	ret = func(file, priv, &fmt);
-+	/* Copies back the mplane data to the single plane format */
-+	pix->width = mp->width;
-+	pix->height = mp->height;
-+	pix->pixelformat = mp->pixelformat;
-+	pix->field = mp->field;
-+	pix->colorspace = mp->colorspace;
-+	pix->xfer_func = mp->xfer_func;
-+	/* Also copies hsv_enc */
-+	pix->ycbcr_enc = mp->ycbcr_enc;
-+	pix->quantization = mp->quantization;
-+	pix->sizeimage = ppix->sizeimage;
-+	pix->bytesperline = ppix->bytesperline;
-+	pix->flags = mp->flags;
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fmt_sp2mp_func);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 937b74a946cd..d106f36ebaf4 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -424,4 +424,35 @@ int v4l2_fill_pixfmt(struct v4l2_pix_format *pixfmt, int pixelformat,
- int v4l2_fill_pixfmt_mp(struct v4l2_pix_format_mplane *pixfmt, int pixelformat,
- 			int width, int height);
+@@ -136,13 +137,13 @@ static int vimc_cap_try_fmt_vid_cap(struct file *file, void *priv,
+ 	vimc_colorimetry_clamp(format);
  
-+/**
-+ * v4l2_fmtfunc - type to be used by v4l2_fmt_sp2mp_func to pass the generic
-+ * mp function as argument
-+ * @file: device's descriptor file
-+ * @priv: private data pointer
-+ * @f: format that holds a mp pixel format
-+ */
-+typedef int (*v4l2_fmtfunc)(struct file *file, void *priv,
-+		struct v4l2_format *f);
+ 	if (format->field == V4L2_FIELD_ANY)
+-		format->field = fmt_default.field;
++		format->field = fmt_default.fmt.pix.field;
+ 
+ 	/* TODO: Add support for custom bytesperline values */
+ 
+ 	/* Don't accept a pixelformat that is not on the table */
+ 	if (!v4l2_format_info(format->pixelformat))
+-		format->pixelformat = fmt_default.pixelformat;
++		format->pixelformat = fmt_default.fmt.pix.pixelformat;
+ 
+ 	return v4l2_fill_pixfmt(format, format->pixelformat,
+ 				format->width, format->height);
+@@ -163,17 +164,19 @@ static int vimc_cap_s_fmt_vid_cap(struct file *file, void *priv,
+ 		"old:%dx%d (0x%x, %d, %d, %d, %d) "
+ 		"new:%dx%d (0x%x, %d, %d, %d, %d)\n", vcap->vdev.name,
+ 		/* old */
+-		vcap->format.width, vcap->format.height,
+-		vcap->format.pixelformat, vcap->format.colorspace,
+-		vcap->format.quantization, vcap->format.xfer_func,
+-		vcap->format.ycbcr_enc,
++		vcap->format.fmt.pix.width, vcap->format.fmt.pix.height,
++		vcap->format.fmt.pix.pixelformat,
++		vcap->format.fmt.pix.colorspace,
++		vcap->format.fmt.pix.quantization,
++		vcap->format.fmt.pix.xfer_func,
++		vcap->format.fmt.pix.ycbcr_enc,
+ 		/* new */
+ 		f->fmt.pix.width, f->fmt.pix.height,
+ 		f->fmt.pix.pixelformat,	f->fmt.pix.colorspace,
+ 		f->fmt.pix.quantization, f->fmt.pix.xfer_func,
+ 		f->fmt.pix.ycbcr_enc);
+ 
+-	vcap->format = f->fmt.pix;
++	vcap->format = *f;
+ 
+ 	return 0;
+ }
+@@ -279,7 +282,8 @@ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		return ret;
+ 	}
+ 
+-	vcap->stream.producer_pixfmt = vcap->format.pixelformat;
++	vcap->stream.producer_pixfmt = vcap->format.fmt.pix.pixelformat;
 +
-+/**
-+ * v4l2_fmt_sp2mp - transforms a single-planar format struct into a multi-planar
-+ * struct
-+ * @sp_fmt: pointer to the single-planar format struct (in)
-+ * @mp_fmt: pointer to the multi-planar format struct (out)
-+ */
-+void v4l2_fmt_sp2mp(const struct v4l2_format *sp_fmt,
-+		struct v4l2_format *mp_fmt);
-+
-+/**
-+ * v4l2_fmt_sp2mp_func - handler to call a generic multi-planar format function
-+ * using single-planar format. It converts the sp to a mp, calls the
-+ * function and converts mp back to sp.
-+ * @file: device's descriptor file
-+ * @priv: private data pointer
-+ * @f: format that holds a sp pixel format
-+ * @func: generic mp function
-+ */
-+int v4l2_fmt_sp2mp_func(struct file *file, void *priv,
-+		struct v4l2_format *f, v4l2_fmtfunc func);
-+
- #endif /* V4L2_COMMON_H_ */
+ 	ret = vimc_streamer_s_stream(&vcap->stream, &vcap->ved, 1);
+ 	if (ret) {
+ 		media_pipeline_stop(entity);
+@@ -326,10 +330,10 @@ static int vimc_cap_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+ 	struct vimc_cap_device *vcap = vb2_get_drv_priv(vq);
+ 
+ 	if (*nplanes)
+-		return sizes[0] < vcap->format.sizeimage ? -EINVAL : 0;
++		return sizes[0] < vcap->format.fmt.pix.sizeimage ? -EINVAL : 0;
+ 	/* We don't support multiplanes for now */
+ 	*nplanes = 1;
+-	sizes[0] = vcap->format.sizeimage;
++	sizes[0] = vcap->format.fmt.pix.sizeimage;
+ 
+ 	return 0;
+ }
+@@ -337,7 +341,7 @@ static int vimc_cap_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+ static int vimc_cap_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vimc_cap_device *vcap = vb2_get_drv_priv(vb->vb2_queue);
+-	unsigned long size = vcap->format.sizeimage;
++	unsigned long size = vcap->format.fmt.pix.sizeimage;
+ 
+ 	if (vb2_plane_size(vb, 0) < size) {
+ 		dev_err(vcap->dev, "%s: buffer too small (%lu < %lu)\n",
+@@ -405,15 +409,15 @@ static void *vimc_cap_process_frame(struct vimc_ent_device *ved,
+ 	/* Fill the buffer */
+ 	vimc_buf->vb2.vb2_buf.timestamp = ktime_get_ns();
+ 	vimc_buf->vb2.sequence = vcap->sequence++;
+-	vimc_buf->vb2.field = vcap->format.field;
++	vimc_buf->vb2.field = vcap->format.fmt.pix.field;
+ 
+ 	vbuf = vb2_plane_vaddr(&vimc_buf->vb2.vb2_buf, 0);
+ 
+-	memcpy(vbuf, frame, vcap->format.sizeimage);
++	memcpy(vbuf, frame, vcap->format.fmt.pix.sizeimage);
+ 
+ 	/* Set it as ready */
+ 	vb2_set_plane_payload(&vimc_buf->vb2.vb2_buf, 0,
+-			      vcap->format.sizeimage);
++			      vcap->format.fmt.pix.sizeimage);
+ 	vb2_buffer_done(&vimc_buf->vb2.vb2_buf, VB2_BUF_STATE_DONE);
+ 	return NULL;
+ }
+@@ -477,8 +481,10 @@ static int vimc_cap_comp_bind(struct device *comp, struct device *master,
+ 
+ 	/* Set default frame format */
+ 	vcap->format = fmt_default;
+-	v4l2_fill_pixfmt(&vcap->format, vcap->format.pixelformat,
+-			 vcap->format.width, vcap->format.height);
++	v4l2_fill_pixfmt(&vcap->format.fmt.pix,
++			 vcap->format.fmt.pix.pixelformat,
++			 vcap->format.fmt.pix.width,
++			 vcap->format.fmt.pix.height);
+ 
+ 	/* Fill the vimc_ent_device struct */
+ 	vcap->ved.ent = &vcap->vdev.entity;
 -- 
 2.21.0
 
