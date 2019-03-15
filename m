@@ -2,189 +2,109 @@ Return-Path: <SRS0=7C2H=RS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5853C10F00
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 09:22:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01CB3C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 09:32:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E02E2184C
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 09:22:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2A5921872
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 09:32:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="CVZOhr/S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728627AbfCOJWA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 05:22:00 -0400
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:60553 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727455AbfCOJWA (ORCPT
+        id S1728714AbfCOJch (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 05:32:37 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:55800 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728713AbfCOJcb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 05:22:00 -0400
-X-Originating-IP: 2.224.242.101
-Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id 3F9F1240006;
-        Fri, 15 Mar 2019 09:21:38 +0000 (UTC)
-Date:   Fri, 15 Mar 2019 10:22:15 +0100
-From:   Jacopo Mondi <jacopo@jmondi.org>
-To:     Luca Ceresoli <luca@lucaceresoli.net>
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH v3 09/31] media: entity: Add media_has_route() function
-Message-ID: <20190315092215.5mhrqnz5oqa4j2iu@uno.localdomain>
-References: <20190305185150.20776-1-jacopo+renesas@jmondi.org>
- <20190305185150.20776-10-jacopo+renesas@jmondi.org>
- <d297c850-8af5-f435-861a-644fb64933e3@lucaceresoli.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="qbkhm5bsxkyai4pk"
-Content-Disposition: inline
-In-Reply-To: <d297c850-8af5-f435-861a-644fb64933e3@lucaceresoli.net>
-User-Agent: NeoMutt/20180716
+        Fri, 15 Mar 2019 05:32:31 -0400
+Received: by mail-wm1-f65.google.com with SMTP id 4so5731070wmf.5
+        for <linux-media@vger.kernel.org>; Fri, 15 Mar 2019 02:32:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=lnYpdY1RvqL9G6kpqzscMSNBpa01+DuYhbiy+zc6reA=;
+        b=CVZOhr/Smx8dnmAp5WnKgUwdvbARVBQO53nRixMB4xJx6o2ynLjXC5uuyEVre78K9I
+         M5CbOi33w0IrvRNpd2gIGUoAcB67fNLBdM9BvBepDe+LWTFSJUvixqxlzTKxL/BKaj3l
+         GE25Rt53sSoNO2+cTCXN+o4hN+iC1jHwnVNP5LKDWoMnu5q+cqUSywASR2q/By7FUK2o
+         xjVVyt85EDnppnCaoZqhivE8TrOIl0XFAR8i+IzeeYymGsJKGT+7TUi/HsTMQgDuK51S
+         ggv18DfxJjWZ9XccriXGeQGAqKLrWloaTKehStJxQsZ4XhCeaf+FxAu/a17p97k0rPTR
+         vLvg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=lnYpdY1RvqL9G6kpqzscMSNBpa01+DuYhbiy+zc6reA=;
+        b=reT9lzcwgpNZF2yD8JHlLvLCcHpTuFC1iqUQVF5P4Uk7pBDylllJ//urrXMtXrwSIi
+         pHK3XJk3zY/QvtsWHCP/gdlJJwUbcH6BgHQyJLcMx+lUZ5RS7/ixAuYm5V+mJwDSpxaT
+         g/5nOwxvj7LeLKkRMqCmEErhIuUXSOIgP05qbiF89naPoWKZCfmsALIlzmNCNdJzLbiR
+         7HbKcAXOTW6yyrFCLiQOlMOcb0Eo+N/joEuXQCNB4hihQAL4wYsei6FrGCoRB5jON/Xo
+         UHiRoxCZ4PkZatMlbanIcyF3bd2q32Tzt7lDF3y7qS4vp63YIAZH78jn51Qhlfih+itB
+         zBdg==
+X-Gm-Message-State: APjAAAV+G6xwU+pyoASOtm1G8nWI8pM2v+qkfqnu9sq5djJiKDyCAKzY
+        PxsfZcSamh7t9N0xaYca6QeJwXBLGEs=
+X-Google-Smtp-Source: APXvYqzTl0DrTcU5AbIb4hx5JYSMowbNVDD7JQgAL3TT2uUfFMTYeOqmL2X5N4Kxj67atccCizwQ/g==
+X-Received: by 2002:a1c:b403:: with SMTP id d3mr1389069wmf.85.1552642349088;
+        Fri, 15 Mar 2019 02:32:29 -0700 (PDT)
+Received: from mms-0440.qualcomm.mm-sol.com ([37.157.136.206])
+        by smtp.gmail.com with ESMTPSA id d10sm3640890wrh.83.2019.03.15.02.32.27
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 15 Mar 2019 02:32:28 -0700 (PDT)
+From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To:     linux-media@vger.kernel.org
+Cc:     linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2] venus: hfi_parser: fix Source Matcher errors
+Date:   Fri, 15 Mar 2019 11:32:07 +0200
+Message-Id: <20190315093207.2730-1-stanimir.varbanov@linaro.org>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This fixes following two smatch errors:
 
---qbkhm5bsxkyai4pk
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+hfi_parser.c:103 parse_profile_level() error: memcpy() 'proflevel'
+too small (8 vs 128)
 
-Hi Luca,
-   thanks for the comments
+hfi_parser.c:129 parse_caps() error: memcpy() 'cap'
+too small (16 vs 512)
 
-On Thu, Mar 14, 2019 at 03:45:00PM +0100, Luca Ceresoli wrote:
-> Hi,
->
-> in the Subject line:
-> s/media_has_route/media_entity_has_route/
+by modifying structure members to flexible array members.
 
-Ah! Thanks for noticing this.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi_helper.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->
-> On 05/03/19 19:51, Jacopo Mondi wrote:
-> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >
-> > This is a wrapper around the media entity has_route operation.
-> >
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/media-entity.c | 19 +++++++++++++++++++
-> >  include/media/media-entity.h | 17 +++++++++++++++++
-> >  2 files changed, 36 insertions(+)
-> >
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 6f5196d05894..8e0ca8b1cfa2 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -238,6 +238,25 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-> >   * Graph traversal
-> >   */
-> >
-> > +bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-> > +			    unsigned int pad1)
-> > +{
-> > +	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-> > +		return false;
-> > +
-> > +	if (pad0 == pad1)
-> > +		return true;
-> > +
-> > +	if (!entity->ops || !entity->ops->has_route)
-> > +		return true;
->
-> Entities that implement has_route in following patches return false if
-> called with two sink pads or two source pads. This code behaves
-> differently. Which behavior is correct? IOW, how do you define "two
-> entity pads are connected internally"?
+diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h b/drivers/media/platform/qcom/venus/hfi_helper.h
+index 15804ad7e65d..a2b95ff79c4a 100644
+--- a/drivers/media/platform/qcom/venus/hfi_helper.h
++++ b/drivers/media/platform/qcom/venus/hfi_helper.h
+@@ -569,7 +569,7 @@ struct hfi_capability {
+ 
+ struct hfi_capabilities {
+ 	u32 num_capabilities;
+-	struct hfi_capability data[1];
++	struct hfi_capability data[];
+ };
+ 
+ #define HFI_DEBUG_MSG_LOW	0x01
+@@ -726,7 +726,7 @@ struct hfi_profile_level {
+ 
+ struct hfi_profile_level_supported {
+ 	u32 profile_count;
+-	struct hfi_profile_level profile_level[1];
++	struct hfi_profile_level profile_level[];
+ };
+ 
+ struct hfi_quality_vs_speed {
+-- 
+2.17.1
 
-The handling of "indirect routes" (aka routes that connects two
-sources or two sinks) is totally up to the device driver and we
-decided not to make any assumption (nor introduce helpers, as it was
-in v2) to support that in the framework.
-
-Have a look at:
-[PATCH v2 15/30] media: entity: Look for indirect routes
-where Sakari implemented an helper to support the most common use case
-of two source pads connected to the same sink pad. In this case the
-two sources are reported as connected, but we decided for now to let
-the drivers handle this, and more complex indirect routes, internaly.
-
-The devices for which "has_route" has been implemented in this series
-do not support indirect routes, for now, but the framework does not
-make assumptions on this.
-
-Thanks
-   j
-
->
-> > +	if (entity->pads[pad1].index < entity->pads[pad0].index)
-> > +		swap(pad0, pad1);
-> > +
-> > +	return entity->ops->has_route(entity, pad0, pad1);
-> > +}
-> > +EXPORT_SYMBOL_GPL(media_entity_has_route);
-> > +
-> >  static struct media_pad *
-> >  media_pad_other(struct media_pad *pad, struct media_link *link)
-> >  {
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 675bc27b8b3c..205561545d7e 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -919,6 +919,23 @@ int media_entity_get_fwnode_pad(struct media_entity *entity,
-> >  __must_check int media_graph_walk_init(
-> >  	struct media_graph *graph, struct media_device *mdev);
-> >
-> > +/**
-> > + * media_entity_has_route - Check if two entity pads are connected internally
-> > + *
-> > + * @entity: The entity
-> > + * @pad0: The first pad index
-> > + * @pad1: The second pad index
-> > + *
-> > + * This function can be used to check whether two pads of an entity are
-> > + * connected internally in the entity.
-> > + *
-> > + * The caller must hold entity->graph_obj.mdev->mutex.
-> > + *
-> > + * Return: true if the pads are connected internally and false otherwise.
-> > + */
-> > +bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-> > +			    unsigned int pad1);
-> > +
-> >  /**
-> >   * media_graph_walk_cleanup - Release resources used by graph walk.
-> >   *
-> >
->
-> --
-> Luca
-
---qbkhm5bsxkyai4pk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlyLbscACgkQcjQGjxah
-Vjzwlw//b5zNTHPcyUdtJpElwYFpRWcYFvvx/L/2YuKWXlzVyNMPy+vU6dWfifUa
-lPKkkQGDFG5TGBNUE+KhPL6ecS9jore+Fr76uXcPKx5bMMG22oB2OXeDBusyY60r
-MTpyG+fCLPOYIpr9wLSl3Jge+s63o9btmD0F9Q97lb5IooYh79rUhLJDZ2BBNxol
-CeHsDla3uQKqj5AIDOrAcAeUKHyoY/h2njVjt+ApBAVDB0SRWUBj5rFPjNnAW2dy
-kHbTDvGOMHTY+LCk7kcsgCnz1d80ZAy/OVDcxXyLAgHxoIPWxK9m792rj+b25sof
-NRJrUInApupVS6jB+5a5hNCHXkZwJ6GCSbulEjXd9CyEOVlOthzEtL6y2G2ZU4l5
-Dx1Z2jH/cVjFcbZ0B+8WncJJBJGK0U+oxfcQxkpTnGwx5JKJWqTy1WjZpzBbtJNZ
-MEfOEXq7/TUIA2aKhiWTpQ0/N0/WoBkanQ3WBeTcop00wRFf6HWpXUanfUMWrCv/
-fqYGO5EY0bm+v9GyhCbgvZ6aiIPiK0GFBzuLCm/kPSpVCPn6NNTlBjKvFvKGT8C3
-TT3kJP33sMNgLRl6nC+hjJzYjFBD8U+fFRtdchlYtimFkYybKZE26nBM1IQ60Ewa
-/HAC7VUFbW07vbmZNvsUnrXz4blYZ33w1zLd/VSM4xA3wv71q3s=
-=Mcxh
------END PGP SIGNATURE-----
-
---qbkhm5bsxkyai4pk--
