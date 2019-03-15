@@ -2,230 +2,320 @@ Return-Path: <SRS0=7C2H=RS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44E52C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 14:46:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62564C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:45:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A9F8218AC
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 14:46:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1552661200;
-	bh=CQQ1zyvRtxQefHP7cpK0C7nBWNKKQWbaMPqPaMCJ2n8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=REZobhSIiyElUFFb/ZPTRyBKFe9TitIT2iOp+bdcvVxucO7F3WR52bZkdvpaz0EdH
-	 N1CFp+fSdenjV2wYIlb/ihFGBUHXoxhDTdPtTIyVDEJ5igmwTxm4d5oBuqeZmN0ZMr
-	 UCKyJCTDEeBzV/kIf2ApDBUH8K5ryvOCOrZim9T0=
+	by mail.kernel.org (Postfix) with ESMTP id 232B9218D4
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:45:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728914AbfCOOqf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 10:46:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58930 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727518AbfCOOqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 10:46:34 -0400
-Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0A245218D3;
-        Fri, 15 Mar 2019 14:46:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1552661193;
-        bh=CQQ1zyvRtxQefHP7cpK0C7nBWNKKQWbaMPqPaMCJ2n8=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=p7a6s2/8Q9IlFyABaOhAF7CUIG6a2HOtVy0XqbTIRzCPdfjz4Dgs44wAJqrUEaAvd
-         RjRd3/GjrMsBXLlSNT6BkY0ULslWPSjFzlvYULfB9SXXCe6VqhDqZ9BX/xZ0PpWLlG
-         AxuowyGFkuuEk058savfcAM5u2f1ioJHEN3KJszY=
-Received: by mail-qt1-f182.google.com with SMTP id f11so10319195qti.7;
-        Fri, 15 Mar 2019 07:46:32 -0700 (PDT)
-X-Gm-Message-State: APjAAAUEt8m4+rVzPPZfPz4qvOdfzW+DxStNEzVQYq6yP9HrcsPD/jx/
-        hzwW38uIiYRBnbmiGa8ZkaoxpXrtVmcYDFjFOg==
-X-Google-Smtp-Source: APXvYqwmfaPaWDnYZM5ZlafszvIWz9WqS5oNWEqNYNPxyNj6l44DhJGJCK8kD90YTZ3c7QcEI+YZaZsyjNtgQbpZknA=
-X-Received: by 2002:ac8:7647:: with SMTP id i7mr696021qtr.38.1552661192168;
- Fri, 15 Mar 2019 07:46:32 -0700 (PDT)
+        id S1729648AbfCOQpD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 12:45:03 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:48972 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728182AbfCOQpC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Mar 2019 12:45:02 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: tonyk)
+        with ESMTPSA id E2325260215
+From:   =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>
+To:     linux-media@vger.kernel.org
+Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, helen.koike@collabora.com,
+        lucmaga@gmail.com, linux-kernel@vger.kernel.org,
+        kernel@collabora.com
+Subject: [PATCH 01/16] media: Move sp2mp functions to v4l2-common
+Date:   Fri, 15 Mar 2019 13:43:44 -0300
+Message-Id: <20190315164359.626-2-andrealmeid@collabora.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190315164359.626-1-andrealmeid@collabora.com>
+References: <20190315164359.626-1-andrealmeid@collabora.com>
 MIME-Version: 1.0
-References: <cover.f6227e6c3d38ac887e358a1f54c5581c254da1bd.1552598161.git-series.maxime.ripard@bootlin.com>
- <6d73b7f5688e9e8424f09e11f12302268939d917.1552598161.git-series.maxime.ripard@bootlin.com>
-In-Reply-To: <6d73b7f5688e9e8424f09e11f12302268939d917.1552598161.git-series.maxime.ripard@bootlin.com>
-From:   Rob Herring <robh+dt@kernel.org>
-Date:   Fri, 15 Mar 2019 09:46:20 -0500
-X-Gmail-Original-Message-ID: <CAL_Jsq+DR=m2zo8aZ5F-aKxjRwViOMvg2RwR757WL9K6+pS-oQ@mail.gmail.com>
-Message-ID: <CAL_Jsq+DR=m2zo8aZ5F-aKxjRwViOMvg2RwR757WL9K6+pS-oQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/5] dt-bindings: media: Add Allwinner A10 CSI binding
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" 
-        <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Frank Rowand <frowand.list@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Mar 14, 2019 at 4:17 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
->
-> The Allwinner A10 CMOS Sensor Interface is a camera capture interface also
-> used in later (A10s, A13, A20, R8 and GR8) SoCs.
->
-> On some SoCs, like the A10, there's multiple instances of that controller,
-> with one instance supporting more channels and having an ISP.
->
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml | 115 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 115 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
->
-> diff --git a/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
-> new file mode 100644
-> index 000000000000..30c5dc1406cf
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
-> @@ -0,0 +1,115 @@
-> +# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/arm/allwinner,sun4i-a10-csi.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> +
-> +title: Allwinner A10 CMOS Sensor Interface (CSI) Device Tree Bindings
-> +
-> +maintainers:
-> +  - Chen-Yu Tsai <wens@csie.org>
-> +  - Maxime Ripard <maxime.ripard@bootlin.com>
-> +
-> +properties:
-> +  compatible:
-> +    oneOf:
-> +      - items:
-> +        - enum:
+Move sp2mp functions from vivid cote to v4l2-common as it will be reused
+by vimc driver for multiplanar support.
 
-The 'standard' formatting is 2 more spaces of indentation here. IOW,
-the '-' goes under the 'e' in items. yaml-format in the yaml-bindings
-repo should reformat this correctly for you.
+Signed-off-by: André Almeida <andrealmeid@collabora.com>
+---
+ drivers/media/platform/vivid/vivid-vid-cap.c  |  6 +-
+ .../media/platform/vivid/vivid-vid-common.c   | 59 ------------------
+ .../media/platform/vivid/vivid-vid-common.h   |  9 ---
+ drivers/media/platform/vivid/vivid-vid-out.c  |  6 +-
+ drivers/media/v4l2-core/v4l2-common.c         | 62 +++++++++++++++++++
+ include/media/v4l2-common.h                   | 31 ++++++++++
+ 6 files changed, 99 insertions(+), 74 deletions(-)
 
-Both ways are valid, but the main advantage to that I see is it makes
-it a bit more obvious when you have a list. It's easy to look at a
-schema and miss the '-'.
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 52eeda624d7e..b5ad71bbf7bf 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -815,7 +815,7 @@ int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	if (dev->multiplanar)
+ 		return -ENOTTY;
+-	return fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_cap);
++	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_cap);
+ }
+ 
+ int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+@@ -825,7 +825,7 @@ int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	if (dev->multiplanar)
+ 		return -ENOTTY;
+-	return fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_cap);
++	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_cap);
+ }
+ 
+ int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+@@ -835,7 +835,7 @@ int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	if (dev->multiplanar)
+ 		return -ENOTTY;
+-	return fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_cap);
++	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_cap);
+ }
+ 
+ int vivid_vid_cap_g_selection(struct file *file, void *priv,
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 74b83bcc6119..3dd3a05d2e67 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -674,65 +674,6 @@ void vivid_send_source_change(struct vivid_dev *dev, unsigned type)
+ 	}
+ }
+ 
+-/*
+- * Conversion function that converts a single-planar format to a
+- * single-plane multiplanar format.
+- */
+-void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt)
+-{
+-	struct v4l2_pix_format_mplane *mp = &mp_fmt->fmt.pix_mp;
+-	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
+-	const struct v4l2_pix_format *pix = &sp_fmt->fmt.pix;
+-	bool is_out = sp_fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-
+-	memset(mp->reserved, 0, sizeof(mp->reserved));
+-	mp_fmt->type = is_out ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+-			   V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+-	mp->width = pix->width;
+-	mp->height = pix->height;
+-	mp->pixelformat = pix->pixelformat;
+-	mp->field = pix->field;
+-	mp->colorspace = pix->colorspace;
+-	mp->xfer_func = pix->xfer_func;
+-	/* Also copies hsv_enc */
+-	mp->ycbcr_enc = pix->ycbcr_enc;
+-	mp->quantization = pix->quantization;
+-	mp->num_planes = 1;
+-	mp->flags = pix->flags;
+-	ppix->sizeimage = pix->sizeimage;
+-	ppix->bytesperline = pix->bytesperline;
+-	memset(ppix->reserved, 0, sizeof(ppix->reserved));
+-}
+-
+-int fmt_sp2mp_func(struct file *file, void *priv,
+-		struct v4l2_format *f, fmtfunc func)
+-{
+-	struct v4l2_format fmt;
+-	struct v4l2_pix_format_mplane *mp = &fmt.fmt.pix_mp;
+-	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
+-	struct v4l2_pix_format *pix = &f->fmt.pix;
+-	int ret;
+-
+-	/* Converts to a mplane format */
+-	fmt_sp2mp(f, &fmt);
+-	/* Passes it to the generic mplane format function */
+-	ret = func(file, priv, &fmt);
+-	/* Copies back the mplane data to the single plane format */
+-	pix->width = mp->width;
+-	pix->height = mp->height;
+-	pix->pixelformat = mp->pixelformat;
+-	pix->field = mp->field;
+-	pix->colorspace = mp->colorspace;
+-	pix->xfer_func = mp->xfer_func;
+-	/* Also copies hsv_enc */
+-	pix->ycbcr_enc = mp->ycbcr_enc;
+-	pix->quantization = mp->quantization;
+-	pix->sizeimage = ppix->sizeimage;
+-	pix->bytesperline = ppix->bytesperline;
+-	pix->flags = mp->flags;
+-	return ret;
+-}
+-
+ int vivid_vid_adjust_sel(unsigned flags, struct v4l2_rect *r)
+ {
+ 	unsigned w = r->width;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.h b/drivers/media/platform/vivid/vivid-vid-common.h
+index 29b6c0b40a1b..13adea56baa0 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.h
++++ b/drivers/media/platform/vivid/vivid-vid-common.h
+@@ -8,15 +8,6 @@
+ #ifndef _VIVID_VID_COMMON_H_
+ #define _VIVID_VID_COMMON_H_
+ 
+-typedef int (*fmtfunc)(struct file *file, void *priv, struct v4l2_format *f);
+-
+-/*
+- * Conversion function that converts a single-planar format to a
+- * single-plane multiplanar format.
+- */
+-void fmt_sp2mp(const struct v4l2_format *sp_fmt, struct v4l2_format *mp_fmt);
+-int fmt_sp2mp_func(struct file *file, void *priv,
+-		struct v4l2_format *f, fmtfunc func);
+ 
+ extern const struct v4l2_dv_timings_cap vivid_dv_timings_cap;
+ 
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index e61b91b414f9..c42ba5ade6cf 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -612,7 +612,7 @@ int vidioc_g_fmt_vid_out(struct file *file, void *priv,
+ 
+ 	if (dev->multiplanar)
+ 		return -ENOTTY;
+-	return fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_out);
++	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_g_fmt_vid_out);
+ }
+ 
+ int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+@@ -622,7 +622,7 @@ int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+ 
+ 	if (dev->multiplanar)
+ 		return -ENOTTY;
+-	return fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_out);
++	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_try_fmt_vid_out);
+ }
+ 
+ int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+@@ -632,7 +632,7 @@ int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+ 
+ 	if (dev->multiplanar)
+ 		return -ENOTTY;
+-	return fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_out);
++	return v4l2_fmt_sp2mp_func(file, priv, f, vivid_s_fmt_vid_out);
+ }
+ 
+ int vivid_vid_out_g_selection(struct file *file, void *priv,
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 779e44d6db43..d118f8f34d32 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -653,3 +653,65 @@ int v4l2_fill_pixfmt(struct v4l2_pix_format *pixfmt, int pixelformat, int width,
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fill_pixfmt);
++
++/*
++ * Conversion functions that convert a single-planar format to a
++ * multi-planar format.
++ */
++void v4l2_fmt_sp2mp(const struct v4l2_format *sp_fmt,
++		struct v4l2_format *mp_fmt)
++{
++	struct v4l2_pix_format_mplane *mp = &mp_fmt->fmt.pix_mp;
++	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
++	const struct v4l2_pix_format *pix = &sp_fmt->fmt.pix;
++	bool is_out = sp_fmt->type == V4L2_BUF_TYPE_VIDEO_OUTPUT;
++
++	memset(mp->reserved, 0, sizeof(mp->reserved));
++	mp_fmt->type = is_out ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
++			   V4L2_CAP_VIDEO_CAPTURE_MPLANE;
++	mp->width = pix->width;
++	mp->height = pix->height;
++	mp->pixelformat = pix->pixelformat;
++	mp->field = pix->field;
++	mp->colorspace = pix->colorspace;
++	mp->xfer_func = pix->xfer_func;
++	/* Also copies hsv_enc */
++	mp->ycbcr_enc = pix->ycbcr_enc;
++	mp->quantization = pix->quantization;
++	mp->num_planes = 1;
++	mp->flags = pix->flags;
++	ppix->sizeimage = pix->sizeimage;
++	ppix->bytesperline = pix->bytesperline;
++	memset(ppix->reserved, 0, sizeof(ppix->reserved));
++}
++EXPORT_SYMBOL_GPL(v4l2_fmt_sp2mp);
++
++int v4l2_fmt_sp2mp_func(struct file *file, void *priv,
++		struct v4l2_format *f, v4l2_fmtfunc func)
++{
++	struct v4l2_format fmt;
++	struct v4l2_pix_format_mplane *mp = &fmt.fmt.pix_mp;
++	struct v4l2_plane_pix_format *ppix = &mp->plane_fmt[0];
++	struct v4l2_pix_format *pix = &f->fmt.pix;
++	int ret;
++
++	/* Converts to a mplane format */
++	v4l2_fmt_sp2mp(f, &fmt);
++	/* Passes it to the generic mplane format function */
++	ret = func(file, priv, &fmt);
++	/* Copies back the mplane data to the single plane format */
++	pix->width = mp->width;
++	pix->height = mp->height;
++	pix->pixelformat = mp->pixelformat;
++	pix->field = mp->field;
++	pix->colorspace = mp->colorspace;
++	pix->xfer_func = mp->xfer_func;
++	/* Also copies hsv_enc */
++	pix->ycbcr_enc = mp->ycbcr_enc;
++	pix->quantization = mp->quantization;
++	pix->sizeimage = ppix->sizeimage;
++	pix->bytesperline = ppix->bytesperline;
++	pix->flags = mp->flags;
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_fmt_sp2mp_func);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 937b74a946cd..d106f36ebaf4 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -424,4 +424,35 @@ int v4l2_fill_pixfmt(struct v4l2_pix_format *pixfmt, int pixelformat,
+ int v4l2_fill_pixfmt_mp(struct v4l2_pix_format_mplane *pixfmt, int pixelformat,
+ 			int width, int height);
+ 
++/**
++ * v4l2_fmtfunc - type to be used by v4l2_fmt_sp2mp_func to pass the generic
++ * mp function as argument
++ * @file: device's descriptor file
++ * @priv: private data pointer
++ * @f: format that holds a mp pixel format
++ */
++typedef int (*v4l2_fmtfunc)(struct file *file, void *priv,
++		struct v4l2_format *f);
++
++/**
++ * v4l2_fmt_sp2mp - transforms a single-planar format struct into a multi-planar
++ * struct
++ * @sp_fmt: pointer to the single-planar format struct (in)
++ * @mp_fmt: pointer to the multi-planar format struct (out)
++ */
++void v4l2_fmt_sp2mp(const struct v4l2_format *sp_fmt,
++		struct v4l2_format *mp_fmt);
++
++/**
++ * v4l2_fmt_sp2mp_func - handler to call a generic multi-planar format function
++ * using single-planar format. It converts the sp to a mp, calls the
++ * function and converts mp back to sp.
++ * @file: device's descriptor file
++ * @priv: private data pointer
++ * @f: format that holds a sp pixel format
++ * @func: generic mp function
++ */
++int v4l2_fmt_sp2mp_func(struct file *file, void *priv,
++		struct v4l2_format *f, v4l2_fmtfunc func);
++
+ #endif /* V4L2_COMMON_H_ */
+-- 
+2.21.0
 
-> +          - allwinner,sun7i-a20-csi0
-> +        - const: allwinner,sun4i-a10-csi0
-> +
-> +      - items:
-> +        - const: allwinner,sun4i-a10-csi0
-> +
-> +  reg:
-> +    maxItems: 1
-> +
-> +  interrupts:
-> +    maxItems: 1
-> +
-> +  clocks:
-> +    items:
-> +      - description: The CSI interface clock
-> +      - description: The CSI module clock
-> +      - description: The CSI ISP clock
-> +      - description: The CSI DRAM clock
-> +
-> +  clock-names:
-> +    items:
-> +      - const: bus
-> +      - const: mod
-> +      - const: isp
-> +      - const: ram
-> +
-> +  resets:
-> +    description: The reset line driver this IP
-> +    maxItems: 1
-> +
-> +  pinctrl-0:
-> +    minItems: 1
-> +
-> +  pinctrl-names:
-> +    const: default
-> +
-> +  port:
-> +    additionalProperties: false
-
-Nodes should have a 'type: object'.
-
-I'm adding a meta-schema to check this.
-
-> +
-> +    properties:
-> +      endpoint:
-> +        properties:
-> +          bus-width:
-> +            const: 8
-> +            description:
-> +              Number of data lines actively used.
-> +
-
-> +          data-active:
-> +            description: Polarity of the data lines, 0 for active low,
-> +              1 for active high.
-> +            allOf:
-> +              - $ref: /schemas/types.yaml#/definitions/uint32
-> +              - enum: [0, 1]
-> +
-> +          hsync-active:
-> +            description: Active state of the HSYNC signal, 0 for
-> +              active low, 1 for active high.
-> +            allOf:
-> +              - $ref: /schemas/types.yaml#/definitions/uint32
-> +              - enum: [0, 1]
-> +
-> +          pclk-sample:
-> +            description: Sample data on the rising (1) or falling (0)
-> +              edge of the pixel clock signal
-> +            allOf:
-> +              - $ref: /schemas/types.yaml#/definitions/uint32
-> +              - enum: [0, 1]
-> +
-> +          remote-endpoint:
-> +            $ref: '/schemas/types.yaml#/definitions/phandle'
-> +            description: Phandle to an endpoint subnode of a remote
-> +              device node.
-> +
-> +          vsync-active:
-> +            description: Active state of the VSYNC signal, 0 for
-> +              active low, 1 for active high.
-> +            allOf:
-> +              - $ref: /schemas/types.yaml#/definitions/uint32
-> +              - enum: [0, 1]
-
-These are all common properties, so we shouldn't be defining the type
-here. And since you don't have any further constraints, just
-'vsync-sample: true' would suffice.
-
-> +
-> +        required:
-> +          - bus-width
-> +          - data-active
-> +          - hsync-active
-> +          - pclk-sample
-> +          - remote-endpoint
-> +          - vsync-active
-> +
-> +    required:
-> +      - endpoint
-> +
-> +required:
-> +  - compatible
-> +  - reg
-> +  - interrupts
-> +  - clocks
-> +
-> +additionalProperties: false
-> --
-> git-series 0.9.1
