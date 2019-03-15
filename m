@@ -4,35 +4,34 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10BBDC43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:30:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43202C43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:30:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC94F218D0
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:30:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 105DC218D0
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:30:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727182AbfCOTab (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 15:30:31 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49602 "EHLO
+        id S1727220AbfCOTax (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 15:30:53 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49608 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726799AbfCOTaa (ORCPT
+        with ESMTP id S1727173AbfCOTax (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 15:30:30 -0400
+        Fri, 15 Mar 2019 15:30:53 -0400
 Received: from [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc] (unknown [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: koike)
-        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 33B9B28143A;
-        Fri, 15 Mar 2019 19:30:26 +0000 (GMT)
-Subject: Re: [PATCH 03/16] media: vimc: Check if the stream is on using
- ved.stream
+        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 10EC028143A;
+        Fri, 15 Mar 2019 19:30:48 +0000 (GMT)
+Subject: Re: [PATCH 05/16] media: vimc: Create multiplanar parameter
 To:     =?UTF-8?Q?Andr=c3=a9_Almeida?= <andrealmeid@collabora.com>,
         linux-media@vger.kernel.org
 Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, lucmaga@gmail.com,
         linux-kernel@vger.kernel.org, kernel@collabora.com
 References: <20190315164359.626-1-andrealmeid@collabora.com>
- <20190315164359.626-4-andrealmeid@collabora.com>
+ <20190315164359.626-6-andrealmeid@collabora.com>
 From:   Helen Koike <helen.koike@collabora.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=helen.koike@collabora.com; keydata=
@@ -109,12 +108,12 @@ Autocrypt: addr=helen.koike@collabora.com; keydata=
  iR1nXfMxENVYnM5ag7mBZyD/kru5W1Uj34L6AFaDMXFPwedSCpzzqUiHb0f+nYkfOodf5xy0
  46+3THy/NUS/ZZp/rI4F7Y77+MQPVg7vARfHHX1AxYUKfRVW5j88QUB70txn8Vgi1tDrOr4J
  eD+xr0CvIGa5lKqgQacQtGkpOpJ8zY4ObSvpNubey/qYUE3DCXD0n2Xxk4muTvqlkFpOYA==
-Message-ID: <04a201b7-d31d-65a4-a1aa-d837f4419533@collabora.com>
-Date:   Fri, 15 Mar 2019 16:30:23 -0300
+Message-ID: <2f895cc7-651f-37a2-4d79-bb267b21111e@collabora.com>
+Date:   Fri, 15 Mar 2019 16:30:45 -0300
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
-In-Reply-To: <20190315164359.626-4-andrealmeid@collabora.com>
+In-Reply-To: <20190315164359.626-6-andrealmeid@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
@@ -126,77 +125,66 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 
 On 3/15/19 1:43 PM, André Almeida wrote:
-> Change the way that the subdevices check if the stream is running in set
-> format functions. It uses the *stream in vimc_deb_device, the more
-> appropriate pointer. This also makes easier to get rid of the void* and u8*
-> in the subdevices structs.
-
-I would just reword this a bit, how about:
-
-Change the way subdevices check if the stream is running.
-Verify the stream pointer instead of src_frame.
-This makes easier to get rid of the void* and u8* in the subdevices structs.
-
-I also think you can squash this patch with the previous one, and just
-mention in the patch you are removing unnecessary checks.
-
-Regards,
-Helen
-
+> Create multiplanar kernel module parameter to define if
+> the driver is running in single planar or in multiplanar mode.
 > 
 > Signed-off-by: André Almeida <andrealmeid@collabora.com>
 > ---
->  drivers/media/platform/vimc/vimc-debayer.c | 2 +-
->  drivers/media/platform/vimc/vimc-scaler.c  | 4 ++--
->  drivers/media/platform/vimc/vimc-sensor.c  | 2 +-
->  3 files changed, 4 insertions(+), 4 deletions(-)
+>  drivers/media/platform/vimc/vimc-common.h | 2 ++
+>  drivers/media/platform/vimc/vimc-core.c   | 8 ++++++++
+>  2 files changed, 10 insertions(+)
 > 
-> diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-> index 5f84cb38f0f9..f72f888ba5a6 100644
-> --- a/drivers/media/platform/vimc/vimc-debayer.c
-> +++ b/drivers/media/platform/vimc/vimc-debayer.c
-> @@ -270,7 +270,7 @@ static int vimc_deb_set_fmt(struct v4l2_subdev *sd,
+> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+> index 7ceb9ea937e2..25e47c8691dd 100644
+> --- a/drivers/media/platform/vimc/vimc-common.h
+> +++ b/drivers/media/platform/vimc/vimc-common.h
+> @@ -26,6 +26,8 @@
 >  
->  	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->  		/* Do not change the format while stream is on */
-> -		if (vdeb->src_frame)
-> +		if (vdeb->ved.stream)
->  			return -EBUSY;
+>  #define VIMC_PDEV_NAME "vimc"
 >  
->  		sink_fmt = &vdeb->sink_fmt;
-> diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-> index 3102febefd63..6e88328dca5c 100644
-> --- a/drivers/media/platform/vimc/vimc-scaler.c
-> +++ b/drivers/media/platform/vimc/vimc-scaler.c
-> @@ -158,7 +158,7 @@ static int vimc_sca_set_fmt(struct v4l2_subdev *sd,
+> +extern unsigned int multiplanar;
+> +
+>  /* VIMC-specific controls */
+>  #define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
+>  #define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
+> diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+> index 0fbb7914098f..34ca90fa6e79 100644
+> --- a/drivers/media/platform/vimc/vimc-core.c
+> +++ b/drivers/media/platform/vimc/vimc-core.c
+> @@ -26,6 +26,11 @@
 >  
->  	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->  		/* Do not change the format while stream is on */
-> -		if (vsca->src_frame)
-> +		if (vsca->ved.stream)
->  			return -EBUSY;
+>  #define VIMC_MDEV_MODEL_NAME "VIMC MDEV"
 >  
->  		sink_fmt = &vsca->sink_fmt;
-> @@ -334,7 +334,7 @@ static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
->  						    ved);
+> +unsigned int multiplanar;
+> +module_param(multiplanar, uint, 0000);
+> +MODULE_PARM_DESC(sca_mult, "0 (default) creates a single planar device, 1 creates a multiplanar device.");
+> +
+> +
+>  #define VIMC_ENT_LINK(src, srcpad, sink, sinkpad, link_flags) {	\
+>  	.src_ent = src,						\
+>  	.src_pad = srcpad,					\
+> @@ -388,6 +393,9 @@ static int __init vimc_init(void)
+>  		return ret;
+>  	}
 >  
->  	/* If the stream in this node is not active, just return */
-> -	if (!vsca->src_frame)
-> +	if (!ved->stream)
->  		return ERR_PTR(-EINVAL);
+> +	dev_dbg(&vimc_dev.pdev.dev, "vimc: multiplanar mode is %s\n",
+> +		multiplanar ? "ON" : "OFF");
+> +
+>  	return 0;
+>  }
 >  
->  	vimc_sca_fill_src_frame(vsca, sink_frame);
-> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-> index 44a75099ce7f..e60f1985edb0 100644
-> --- a/drivers/media/platform/vimc/vimc-sensor.c
-> +++ b/drivers/media/platform/vimc/vimc-sensor.c
-> @@ -141,7 +141,7 @@ static int vimc_sen_set_fmt(struct v4l2_subdev *sd,
->  
->  	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->  		/* Do not change the format while stream is on */
-> -		if (vsen->frame)
-> +		if (vsen->ved.stream)
->  			return -EBUSY;
->  
->  		mf = &vsen->mbus_format;
 > 
+
+It just came to me that instead of using the multiplanar variable
+everywhere, you can just check the vcap->vdev.device_caps to see if
+multiplanar is supported. This way, you can add this multiplanar
+variable together with the capability in the [PATCH 16/16] media: vimc:
+cap: Dynamically define device caps.
+
+Like this, we won't have the weird state where user can set
+multiplanar=1 but the capabilities says it doesn't really support
+multiplanar.
+
+
+Regards,
+Helen
