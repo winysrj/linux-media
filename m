@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95210C10F00
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A80EFC43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63EBF218D0
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A6BD218D4
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729628AbfCOQpe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 12:45:34 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49042 "EHLO
+        id S1729792AbfCOQpa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 12:45:30 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49036 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729783AbfCOQpd (ORCPT
+        with ESMTP id S1729783AbfCOQp3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 12:45:33 -0400
+        Fri, 15 Mar 2019 12:45:29 -0400
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: tonyk)
-        with ESMTPSA id 3A20D260215
+        with ESMTPSA id 0F6D7281585
 From:   =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>
 To:     linux-media@vger.kernel.org
 Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, helen.koike@collabora.com,
         lucmaga@gmail.com, linux-kernel@vger.kernel.org,
         kernel@collabora.com
-Subject: [PATCH 10/16] media: vimc: cap: Add multiplanar default format
-Date:   Fri, 15 Mar 2019 13:43:53 -0300
-Message-Id: <20190315164359.626-11-andrealmeid@collabora.com>
+Subject: [PATCH 09/16] media: vimc: cap: Add multiplanar formats
+Date:   Fri, 15 Mar 2019 13:43:52 -0300
+Message-Id: <20190315164359.626-10-andrealmeid@collabora.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190315164359.626-1-andrealmeid@collabora.com>
 References: <20190315164359.626-1-andrealmeid@collabora.com>
@@ -42,71 +42,69 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-vimc already have a default single planar default format.
-Add a multiplanar default pixel format to perfom those
-same actions.
+Add multiplanar formats to be exposed to the userspace as
+supported formats. Since we don't want to support multiplanar
+formats when the driver is in singleplanar mode, we only access
+the multiplanar formats array if the multiplanar mode is enabled.
 
 Signed-off-by: André Almeida <andrealmeid@collabora.com>
 ---
- drivers/media/platform/vimc/vimc-capture.c | 31 +++++++++++++++++-----
- 1 file changed, 25 insertions(+), 6 deletions(-)
+ drivers/media/platform/vimc/vimc-capture.c | 30 ++++++++++++++++++++--
+ 1 file changed, 28 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-index 2d668012e9e9..24052f15c4cf 100644
+index 09a8fd618b12..2d668012e9e9 100644
 --- a/drivers/media/platform/vimc/vimc-capture.c
 +++ b/drivers/media/platform/vimc/vimc-capture.c
-@@ -96,6 +96,15 @@ static const struct v4l2_format fmt_default = {
- 	.fmt.pix.colorspace = V4L2_COLORSPACE_DEFAULT,
+@@ -54,6 +54,19 @@ static const u32 vimc_cap_supported_pixfmt[] = {
+ 	V4L2_PIX_FMT_SRGGB12,
  };
  
-+static const struct v4l2_format fmt_default_mp = {
-+	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-+	.fmt.pix_mp.width = 640,
-+	.fmt.pix_mp.height = 480,
-+	.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_YVU420M,
-+	.fmt.pix_mp.field = V4L2_FIELD_NONE,
-+	.fmt.pix_mp.colorspace = V4L2_COLORSPACE_DEFAULT,
++static const u32 vimc_cap_supported_pixfmt_mp[] = {
++	V4L2_PIX_FMT_YUV420M,
++	V4L2_PIX_FMT_YVU420M,
++	V4L2_PIX_FMT_YUV422M,
++	V4L2_PIX_FMT_YVU422M,
++	V4L2_PIX_FMT_YUV444M,
++	V4L2_PIX_FMT_YVU444M,
++	V4L2_PIX_FMT_NV12M,
++	V4L2_PIX_FMT_NV21M,
++	V4L2_PIX_FMT_NV16M,
++	V4L2_PIX_FMT_NV61M,
 +};
 +
- struct vimc_cap_buffer {
- 	/*
- 	 * struct vb2_v4l2_buffer must be the first element
-@@ -160,7 +169,9 @@ static int vimc_cap_try_fmt_vid_cap(struct file *file, void *priv,
- 
- 	/* Don't accept a pixelformat that is not on the table */
- 	if (!v4l2_format_info(format->pixelformat))
--		format->pixelformat = fmt_default.fmt.pix.pixelformat;
-+		format->pixelformat = multiplanar ?
-+				fmt_default_mp.fmt.pix_mp.pixelformat :
-+				fmt_default.fmt.pix.pixelformat;
- 
- 	return v4l2_fill_pixfmt_mp(format, format->pixelformat,
+ struct vimc_cap_device {
+ 	struct vimc_ent_device ved;
+ 	struct video_device vdev;
+@@ -153,13 +166,26 @@ static int vimc_cap_try_fmt_vid_cap(struct file *file, void *priv,
  				format->width, format->height);
-@@ -627,11 +638,19 @@ static int vimc_cap_comp_bind(struct device *comp, struct device *master,
- 	spin_lock_init(&vcap->qlock);
+ }
  
- 	/* Set default frame format */
--	vcap->format = fmt_default;
--	v4l2_fill_pixfmt(&vcap->format.fmt.pix,
--			 vcap->format.fmt.pix.pixelformat,
--			 vcap->format.fmt.pix.width,
--			 vcap->format.fmt.pix.height);
-+	if (multiplanar) {
-+		vcap->format = fmt_default_mp;
-+		v4l2_fill_pixfmt_mp(&vcap->format.fmt.pix_mp,
-+				vcap->format.fmt.pix_mp.pixelformat,
-+				vcap->format.fmt.pix_mp.width,
-+				vcap->format.fmt.pix_mp.height);
-+	} else {
-+		vcap->format = fmt_default;
-+		v4l2_fill_pixfmt(&vcap->format.fmt.pix,
-+				vcap->format.fmt.pix.pixelformat,
-+				vcap->format.fmt.pix.width,
-+				vcap->format.fmt.pix.height);
-+	}
++/**
++ * When multiplanar is true, consider that the vimc_cap_enum_fmt_vid_cap_mp
++ * is concantenate in the vimc_cap_enum_fmt_vid_cap array. Otherwise, just
++ * consider the single-planar array
++ */
+ static int vimc_cap_enum_fmt_vid_cap(struct file *file, void *priv,
+ 				     struct v4l2_fmtdesc *f)
+ {
+-	if (f->index >= ARRAY_SIZE(vimc_cap_supported_pixfmt))
++	const unsigned int sp_size = ARRAY_SIZE(vimc_cap_supported_pixfmt);
++	const unsigned int mp_size = ARRAY_SIZE(vimc_cap_supported_pixfmt_mp);
++
++	if (f->index >= sp_size + (multiplanar ? mp_size : 0))
+ 		return -EINVAL;
  
- 	/* Fill the vimc_ent_device struct */
- 	vcap->ved.ent = &vcap->vdev.entity;
+-	f->pixelformat = vimc_cap_supported_pixfmt[f->index];
++	if (f->index >= sp_size)
++		f->pixelformat = vimc_cap_supported_pixfmt_mp[f->index -
++							      sp_size];
++	else
++		f->pixelformat = vimc_cap_supported_pixfmt[f->index];
++
+ 	strncpy(f->description, v4l2_get_fourcc_name(f->pixelformat), 4);
+ 	f->description[4] = '\0';
+ 
 -- 
 2.21.0
 
