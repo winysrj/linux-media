@@ -3,35 +3,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66588C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1038BC43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:32:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1EA2D218D0
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:32:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C125E21871
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 19:32:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727111AbfCOTb6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 15:31:58 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49650 "EHLO
+        id S1727324AbfCOTcL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 15:32:11 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49658 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726360AbfCOTb5 (ORCPT
+        with ESMTP id S1726360AbfCOTcK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 15:31:57 -0400
+        Fri, 15 Mar 2019 15:32:10 -0400
 Received: from [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc] (unknown [IPv6:2804:431:9718:4c54:5b9b:61a:a071:48bc])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: koike)
-        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 4F08028143A;
-        Fri, 15 Mar 2019 19:31:53 +0000 (GMT)
-Subject: Re: [PATCH 12/16] media: vimc: Add and use new struct vimc_frame
+        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 3726A28143A;
+        Fri, 15 Mar 2019 19:32:05 +0000 (GMT)
+Subject: Re: [PATCH 13/16] media: vimc: sen: Add support for multiplanar
+ formats
 To:     =?UTF-8?Q?Andr=c3=a9_Almeida?= <andrealmeid@collabora.com>,
         linux-media@vger.kernel.org
 Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, lucmaga@gmail.com,
         linux-kernel@vger.kernel.org, kernel@collabora.com
 References: <20190315164359.626-1-andrealmeid@collabora.com>
- <20190315164359.626-13-andrealmeid@collabora.com>
+ <20190315164359.626-14-andrealmeid@collabora.com>
 From:   Helen Koike <helen.koike@collabora.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=helen.koike@collabora.com; keydata=
@@ -108,12 +109,12 @@ Autocrypt: addr=helen.koike@collabora.com; keydata=
  iR1nXfMxENVYnM5ag7mBZyD/kru5W1Uj34L6AFaDMXFPwedSCpzzqUiHb0f+nYkfOodf5xy0
  46+3THy/NUS/ZZp/rI4F7Y77+MQPVg7vARfHHX1AxYUKfRVW5j88QUB70txn8Vgi1tDrOr4J
  eD+xr0CvIGa5lKqgQacQtGkpOpJ8zY4ObSvpNubey/qYUE3DCXD0n2Xxk4muTvqlkFpOYA==
-Message-ID: <64d08f2a-b673-2ec9-0e35-7399c5cb1aa1@collabora.com>
-Date:   Fri, 15 Mar 2019 16:31:48 -0300
+Message-ID: <0d9ddd78-7090-d481-e2f7-7bc8a73a7c6d@collabora.com>
+Date:   Fri, 15 Mar 2019 16:32:01 -0300
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
-In-Reply-To: <20190315164359.626-13-andrealmeid@collabora.com>
+In-Reply-To: <20190315164359.626-14-andrealmeid@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
@@ -125,432 +126,140 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 
 On 3/15/19 1:43 PM, André Almeida wrote:
-> Struct vimc_frame is intended to hold metadata about a frame,
-> such as memory address of a plane, number of planes and size
-> of each plane, to better integrated with the multiplanar operations.
-> The struct can be also used with singleplanar formats, making the
-> implementation of frame manipulation generic for both type of
-> formats.
-> 
-> vimc_fill_frame function fills a vimc_frame structure given a
-> pixelformat, height and width. This is done once to avoid recalculations
-> and provide enough information to subdevices work with
-> the frame.
-> 
-> Change the return and argument type of process_frame from void* to
-> vimc_frame*. Change the frame in subdevices structs from u8* to vimc_frame.
+> This commit adapts vimc-sensor to handle multiplanar pixel formats,
+> adapting the memory allocation and TPG configuration.
 > 
 > Signed-off-by: André Almeida <andrealmeid@collabora.com>
 > ---
->  drivers/media/platform/vimc/vimc-capture.c  |  6 +--
->  drivers/media/platform/vimc/vimc-common.c   | 37 ++++++++++++++++
->  drivers/media/platform/vimc/vimc-common.h   | 48 +++++++++++++++++++--
->  drivers/media/platform/vimc/vimc-debayer.c  | 33 +++++++-------
->  drivers/media/platform/vimc/vimc-scaler.c   | 26 +++++------
->  drivers/media/platform/vimc/vimc-sensor.c   | 18 ++++----
->  drivers/media/platform/vimc/vimc-streamer.c |  2 +-
->  7 files changed, 126 insertions(+), 44 deletions(-)
+>  drivers/media/platform/vimc/vimc-sensor.c | 48 +++++++++++++----------
+>  1 file changed, 28 insertions(+), 20 deletions(-)
 > 
-> diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-> index 83196b8c31b5..bb982761562e 100644
-> --- a/drivers/media/platform/vimc/vimc-capture.c
-> +++ b/drivers/media/platform/vimc/vimc-capture.c
-> @@ -571,8 +571,8 @@ static void vimc_cap_comp_unbind(struct device *comp, struct device *master,
->  	kfree(vcap);
->  }
->  
-> -static void *vimc_cap_process_frame(struct vimc_ent_device *ved,
-> -				    const void *frame)
-> +static struct vimc_frame *vimc_cap_process_frame(struct vimc_ent_device *ved,
-> +						 const struct vimc_frame *frame)
+> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+> index 020651320ac9..33cbe2cd42ee 100644
+> --- a/drivers/media/platform/vimc/vimc-sensor.c
+> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+> @@ -97,16 +97,16 @@ static int vimc_sen_get_fmt(struct v4l2_subdev *sd,
+>  static void vimc_sen_tpg_s_format(struct vimc_sen_device *vsen)
 >  {
->  	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
->  						    ved);
-> @@ -601,7 +601,7 @@ static void *vimc_cap_process_frame(struct vimc_ent_device *ved,
->  
->  	vbuf = vb2_plane_vaddr(&vimc_buf->vb2.vb2_buf, 0);
->  
-> -	memcpy(vbuf, frame, vcap->format.fmt.pix.sizeimage);
-> +	memcpy(vbuf, frame->plane_addr[0], vcap->format.fmt.pix.sizeimage);
->  
->  	/* Set it as ready */
->  	vb2_set_plane_payload(&vimc_buf->vb2.vb2_buf, 0,
-> diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-> index f664f23ee0ca..96247302f6c9 100644
-> --- a/drivers/media/platform/vimc/vimc-common.c
-> +++ b/drivers/media/platform/vimc/vimc-common.c
-> @@ -378,6 +378,43 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
->  }
->  EXPORT_SYMBOL_GPL(vimc_ent_sd_register);
->  
-> +void vimc_fill_frame(struct vimc_frame *frame, u32 pixelformat,
-> +			u32 width, u32 height)
-> +{
+>  	u32 pixelformat = vsen->ved.stream->producer_pixfmt;
+> -	const struct v4l2_format_info *pix_info;
+> -
+> -	pix_info = v4l2_format_info(pixelformat);
 > +	unsigned int i;
-> +	const struct v4l2_format_info *pix_info;
-> +
-> +	pix_info = v4l2_format_info(pixelformat);
-> +	frame->pixelformat = pixelformat;
-> +
-> +	if (multiplanar) {
-> +		struct v4l2_pix_format_mplane pix_fmt_mp;
-> +
-> +		v4l2_fill_pixfmt_mp(&pix_fmt_mp, pixelformat, width, height);
-> +
-> +		frame->pixelformat = pixelformat;
+>  
+> +	tpg_s_fourcc(&vsen->tpg, pixelformat);
+>  	tpg_reset_source(&vsen->tpg, vsen->mbus_format.width,
+>  			 vsen->mbus_format.height, vsen->mbus_format.field);
+> -	tpg_s_bytesperline(&vsen->tpg, 0,
+> -			   vsen->mbus_format.width * pix_info->bpp[0]);
+>  	tpg_s_buf_height(&vsen->tpg, vsen->mbus_format.height);
+> -	tpg_s_fourcc(&vsen->tpg, pixelformat);
 
-This assigned was already done outside the if block
+You don't need to move this line to the top.
 
-> +		frame->num_planes = pix_fmt_mp.num_planes;
-> +		for (i = 0; i < pix_fmt_mp.num_planes; i++) {
-> +			frame->sizeimage[i] =
-> +				pix_fmt_mp.plane_fmt[i].sizeimage;
-
-You can use a single line here, it will fix 80 chars exact :)
-
-> +			frame->bytesperline[i] =
-> +				pix_fmt_mp.plane_fmt[i].bytesperline;
-> +			frame->bpp[i] = pix_info->bpp[i];
-> +			frame->plane_addr[i] = NULL;
-> +		}
-> +	} else {
-> +		struct v4l2_pix_format pix_fmt;
 > +
-> +		v4l2_fill_pixfmt(&pix_fmt, pixelformat, width, height);
+> +	for (i = 0; i < tpg_g_planes(&vsen->tpg); i++)
+> +		tpg_s_bytesperline(&vsen->tpg, i, vsen->frame.bytesperline[i]);
 > +
-> +		frame->num_planes = 1;
-> +		frame->sizeimage[0] = pix_fmt.sizeimage;
-> +		frame->bytesperline[0] = pix_fmt.bytesperline;
-> +		frame->bpp[0] = pix_info->bpp[0];
-> +		frame->plane_addr[0] = NULL;
-> +	}
-> +}
-> +
->  void vimc_ent_sd_unregister(struct vimc_ent_device *ved, struct v4l2_subdev *sd)
+>  	/* TODO: add support for V4L2_FIELD_ALTERNATE */
+>  	tpg_s_field(&vsen->tpg, vsen->mbus_format.field, false);
+>  	tpg_s_colorspace(&vsen->tpg, vsen->mbus_format.colorspace);
+> @@ -182,8 +182,12 @@ static struct vimc_frame *vimc_sen_process_frame(struct vimc_ent_device *ved,
 >  {
->  	v4l2_device_unregister_subdev(sd);
-> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-> index 25e47c8691dd..c891701e95a5 100644
-> --- a/drivers/media/platform/vimc/vimc-common.h
-> +++ b/drivers/media/platform/vimc/vimc-common.h
-> @@ -21,6 +21,7 @@
->  #include <linux/slab.h>
->  #include <media/media-device.h>
->  #include <media/v4l2-device.h>
-> +#include <media/tpg/v4l2-tpg.h>
->  
->  #include "vimc-streamer.h"
->  
-> @@ -81,6 +82,31 @@ struct vimc_platform_data {
->  	char entity_name[32];
->  };
->  
-> +/**
-> + * struct vimc_frame - metadata about frame components
-> + *
-> + * @pixelformat:	fourcc pixelformat code
-> + * @plane_addr:		pointer to kernel address of the plane
-> + * @num_planes:		number of valid planes on a frame
-> + * @sizeimage:		size in bytes of a plane
-> + * @bytesperline:	number of bytes per line of a plane
-> + * @bpp:		number of bytes per pixel of a plane
-> + *
-> + * This struct helps subdevices to get information about the frame on
-> + * multiplanar formats. If a singleplanar format is used, only the first
-> + * index of each array is used and num_planes is set to 1, so the
-> + * implementation is generic and the code will work for both formats.
-> + */
+>  	struct vimc_sen_device *vsen = container_of(ved, struct vimc_sen_device,
+>  						    ved);
+> +	unsigned int i;
 > +
-> +struct vimc_frame {
-> +	u32 pixelformat;
-> +	u8 *plane_addr[TPG_MAX_PLANES];
-> +	u8 num_planes;
+> +	for (i = 0; i < tpg_g_planes(&vsen->tpg); i++)
+> +		tpg_fill_plane_buffer(&vsen->tpg, 0, i,
+> +					vsen->frame.plane_addr[i]);
 
-please move u8 to the end to avoid weird padding in the struct.
+alignment
 
-> +	u32 sizeimage[TPG_MAX_PLANES];
-> +	u32 bytesperline[TPG_MAX_PLANES];
-> +	u8 bpp[TPG_MAX_PLANES];
-> +};
-> +
->  /**
->   * struct vimc_ent_device - core struct that represents a node in the topology
->   *
-> @@ -103,10 +129,10 @@ struct vimc_ent_device {
->  	struct media_entity *ent;
->  	struct media_pad *pads;
->  	struct vimc_stream *stream;
-> -	void * (*process_frame)(struct vimc_ent_device *ved,
-> -				const void *frame);
-> +	struct vimc_frame * (*process_frame)(struct vimc_ent_device *ved,
-> +				const struct vimc_frame *frame);
->  	void (*vdev_get_format)(struct vimc_ent_device *ved,
-> -			      struct v4l2_pix_format *fmt);
-> +				struct v4l2_pix_format *fmt);
->  };
 >  
->  /**
-> @@ -206,4 +232,20 @@ void vimc_ent_sd_unregister(struct vimc_ent_device *ved,
->   */
->  int vimc_link_validate(struct media_link *link);
->  
-> +/**
-> + * vimc_fill_frame - fills struct vimc_frame
-> + *
-> + * @frame: pointer to the frame to be filled
-> + * @pixelformat: pixelformat fourcc code
-> + * @width: width of the image
-> + * @height: height of the image
-> + *
-> + * This function fills the fields of vimc_frame in order to subdevs have
-> + * information about the frame being processed, works both for single
-> + * and multiplanar pixel formats.
-> + */
-> +void vimc_fill_frame(struct vimc_frame *frame,
-> +		u32 pixelformat,
-> +		u32 width, u32 height);
-> +
->  #endif
-> diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-> index f72f888ba5a6..19668de9a4d5 100644
-> --- a/drivers/media/platform/vimc/vimc-debayer.c
-> +++ b/drivers/media/platform/vimc/vimc-debayer.c
-> @@ -62,7 +62,7 @@ struct vimc_deb_device {
->  	void (*set_rgb_src)(struct vimc_deb_device *vdeb, unsigned int lin,
->  			    unsigned int col, unsigned int rgb[3]);
->  	/* Values calculated when the stream starts */
-> -	u8 *src_frame;
-> +	struct vimc_frame src_frame;
->  	const struct vimc_deb_pix_map *sink_pix_map;
->  	unsigned int sink_bpp;
->  };
-> @@ -325,7 +325,7 @@ static void vimc_deb_set_rgb_pix_rgb24(struct vimc_deb_device *vdeb,
->  
->  	index = VIMC_FRAME_INDEX(lin, col, vdeb->sink_fmt.width, 3);
->  	for (i = 0; i < 3; i++)
-> -		vdeb->src_frame[index + i] = rgb[i];
-> +		vdeb->src_frame.plane_addr[0][index + i] = rgb[i];
+> -	tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame.plane_addr[0]);
+>  	return &vsen->frame;
 >  }
 >  
->  static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
-> @@ -335,7 +335,6 @@ static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
+> @@ -191,32 +195,36 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+>  {
+>  	struct vimc_sen_device *vsen =
+>  				container_of(sd, struct vimc_sen_device, sd);
+> +	unsigned int i;
+>  
 >  	if (enable) {
->  		u32 src_pixelformat = vdeb->ved.stream->producer_pixfmt;
->  		const struct v4l2_format_info *pix_info;
+> -		u32 pixelformat = vsen->ved.stream->producer_pixfmt;
+> -		const struct v4l2_format_info *pix_info;
 > -		unsigned int frame_size;
->  
->  		/* We only support translating bayer to RGB24 */
->  		if (src_pixelformat != V4L2_PIX_FMT_RGB24) {
-> @@ -354,9 +353,8 @@ static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
->  			vdeb->sink_pix_map->pixelformat;
->  
->  		/* Calculate frame_size of the source */
-> -		pix_info = v4l2_format_info(src_pixelformat);
-> -		frame_size = vdeb->sink_fmt.width * vdeb->sink_fmt.height *
-> -			     pix_info->bpp[0];
-> +		vimc_fill_frame(&vdeb->src_frame, src_pixelformat,
-> +				vdeb->sink_fmt.width, vdeb->sink_fmt.height);
->  
->  		/* Get bpp from the sink */
->  		pix_info = v4l2_format_info(vdeb->sink_pix_map->pixelformat);
-> @@ -366,16 +364,18 @@ static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
+> -
+>  		/* Calculate the frame size */
+> -		pix_info = v4l2_format_info(pixelformat);
+> -		frame_size = vsen->mbus_format.width * pix_info->bpp[0] *
+> -			     vsen->mbus_format.height;
+> -
+> +		vimc_fill_frame(&vsen->frame, vsen->ved.stream->producer_pixfmt,
+> +				vsen->mbus_format.width,
+> +				vsen->mbus_format.height);
+>  		/*
 >  		 * Allocate the frame buffer. Use vmalloc to be able to
 >  		 * allocate a large amount of memory
 >  		 */
-> -		vdeb->src_frame = vmalloc(frame_size);
-> -		if (!vdeb->src_frame)
-> +		vdeb->src_frame.plane_addr[0] =
-> +					vmalloc(vdeb->src_frame.sizeimage[0]);
-> +		if (!vdeb->src_frame.plane_addr[0])
->  			return -ENOMEM;
->  
-> +
->  	} else {
-> -		if (!vdeb->src_frame)
-> +		if (!vdeb->src_frame.plane_addr[0])
->  			return 0;
->  
-> -		vfree(vdeb->src_frame);
-> -		vdeb->src_frame = NULL;
-> +		vfree(vdeb->src_frame.plane_addr[0]);
-> +		vdeb->src_frame.plane_addr[0] = NULL;
->  	}
->  
->  	return 0;
-> @@ -487,8 +487,8 @@ static void vimc_deb_calc_rgb_sink(struct vimc_deb_device *vdeb,
->  	}
->  }
->  
-> -static void *vimc_deb_process_frame(struct vimc_ent_device *ved,
-> -				    const void *sink_frame)
-> +static struct vimc_frame *vimc_deb_process_frame(struct vimc_ent_device *ved,
-> +					const struct vimc_frame *sink_frame)
->  {
->  	struct vimc_deb_device *vdeb = container_of(ved, struct vimc_deb_device,
->  						    ved);
-> @@ -496,16 +496,17 @@ static void *vimc_deb_process_frame(struct vimc_ent_device *ved,
->  	unsigned int i, j;
->  
->  	/* If the stream in this node is not active, just return */
-> -	if (!vdeb->src_frame)
-> +	if (!vdeb->src_frame.plane_addr[0])
->  		return ERR_PTR(-EINVAL);
->  
->  	for (i = 0; i < vdeb->sink_fmt.height; i++)
->  		for (j = 0; j < vdeb->sink_fmt.width; j++) {
-> -			vimc_deb_calc_rgb_sink(vdeb, sink_frame, i, j, rgb);
-> +			vimc_deb_calc_rgb_sink(vdeb, sink_frame->plane_addr[0],
-> +					i, j, rgb);
+> -		vsen->frame.plane_addr[0] = vmalloc(frame_size);
+> -		if (!vsen->frame.plane_addr[0])
+> -			return -ENOMEM;
+> +		for (i = 0; i < vsen->frame.num_planes; i++) {
+> +			vsen->frame.plane_addr[i] =
+> +				vmalloc(vsen->frame.sizeimage[i]);
+> +			if (!vsen->frame.plane_addr[i]) {
+> +				for (i -= 1; i >= 0; i--)
+> +					vfree(vsen->frame.plane_addr[i]);
+> +				return -ENOMEM;
 
-please align
+This code is really simiar to the else block below.
+I think you can use a goto here, e.g.:
+
+			if (!vsen->frame.plane_addr[i]) {
+				ret = -ENOMEM
+				goto free_planes
+			}
+  		/* configure the test pattern generator */
+  		vimc_sen_tpg_s_format(vsen);
+		return 0;
+	}
+
+	i = vsen->frame.num_planes; // this can be initialized when i is
+declared too
+
+free_planes:
+	for (i = 0; i < vsen->frame.num_planes; i++) {
+		vfree(vsen->frame.plane_addr[i]);
+		vsen->frame.plane_addr[i] = NULL;
+	}
+	return ret;
+}
+
+
+what do you think?
+this also applies to the scaler.
 
 Regards,
 Helen
 
->  			vdeb->set_rgb_src(vdeb, i, j, rgb);
->  		}
->  
-> -	return vdeb->src_frame;
-> +	return &vdeb->src_frame;
->  
->  }
->  
-> diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-> index 6e88328dca5c..65519495ecca 100644
-> --- a/drivers/media/platform/vimc/vimc-scaler.c
-> +++ b/drivers/media/platform/vimc/vimc-scaler.c
-> @@ -50,7 +50,7 @@ struct vimc_sca_device {
->  	 */
->  	struct v4l2_mbus_framefmt sink_fmt;
->  	/* Values calculated when the stream starts */
-> -	u8 *src_frame;
-> +	struct vimc_frame src_frame;
->  	unsigned int src_line_size;
->  	unsigned int bpp;
->  };
-> @@ -234,16 +234,17 @@ static int vimc_sca_s_stream(struct v4l2_subdev *sd, int enable)
->  		/* Allocate the frame buffer. Use vmalloc to be able to
->  		 * allocate a large amount of memory
->  		 */
-> -		vsca->src_frame = vmalloc(frame_size);
-> -		if (!vsca->src_frame)
-> +		vsca->src_frame.plane_addr[0] = vmalloc(frame_size);
-> +		vsca->src_frame.sizeimage[0] = frame_size;
-> +		if (!vsca->src_frame.plane_addr[0])
->  			return -ENOMEM;
->  
->  	} else {
-> -		if (!vsca->src_frame)
-> +		if (!vsca->src_frame.plane_addr[0])
->  			return 0;
->  
-> -		vfree(vsca->src_frame);
-> -		vsca->src_frame = NULL;
-> +		vfree(vsca->src_frame.plane_addr[0]);
-> +		vsca->src_frame.plane_addr[0] = NULL;
->  	}
->  
->  	return 0;
-> @@ -306,8 +307,9 @@ static void vimc_sca_scale_pix(const struct vimc_sca_device *const vsca,
->  				vsca->sd.name, index + j);
->  
->  			/* copy the pixel to the position index + j */
-> -			vimc_sca_fill_pix(&vsca->src_frame[index + j],
-> -					  pixel, vsca->bpp);
-> +			vimc_sca_fill_pix(
-> +				&vsca->src_frame.plane_addr[0][index + j],
-> +				pixel, vsca->bpp);
->  		}
->  
->  		/* move the index to the next line */
-> @@ -327,8 +329,8 @@ static void vimc_sca_fill_src_frame(const struct vimc_sca_device *const vsca,
->  			vimc_sca_scale_pix(vsca, i, j, sink_frame);
->  }
->  
-> -static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
-> -				    const void *sink_frame)
-> +static struct vimc_frame *vimc_sca_process_frame(struct vimc_ent_device *ved,
-> +				    const struct vimc_frame *sink_frame)
->  {
->  	struct vimc_sca_device *vsca = container_of(ved, struct vimc_sca_device,
->  						    ved);
-> @@ -337,9 +339,9 @@ static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
->  	if (!ved->stream)
->  		return ERR_PTR(-EINVAL);
->  
-> -	vimc_sca_fill_src_frame(vsca, sink_frame);
-> +	vimc_sca_fill_src_frame(vsca, sink_frame->plane_addr[0]);
->  
-> -	return vsca->src_frame;
-> +	return &vsca->src_frame;
->  };
->  
->  static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
-> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-> index e60f1985edb0..020651320ac9 100644
-> --- a/drivers/media/platform/vimc/vimc-sensor.c
-> +++ b/drivers/media/platform/vimc/vimc-sensor.c
-> @@ -36,7 +36,7 @@ struct vimc_sen_device {
->  	struct device *dev;
->  	struct tpg_data tpg;
->  	struct task_struct *kthread_sen;
-> -	u8 *frame;
-> +	struct vimc_frame frame;
->  	/* The active format */
->  	struct v4l2_mbus_framefmt mbus_format;
->  	struct v4l2_ctrl_handler hdl;
-> @@ -177,14 +177,14 @@ static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
->  	.set_fmt		= vimc_sen_set_fmt,
->  };
->  
-> -static void *vimc_sen_process_frame(struct vimc_ent_device *ved,
-> -				    const void *sink_frame)
-> +static struct vimc_frame *vimc_sen_process_frame(struct vimc_ent_device *ved,
-> +				    const struct vimc_frame *sink_frame)
->  {
->  	struct vimc_sen_device *vsen = container_of(ved, struct vimc_sen_device,
->  						    ved);
->  
-> -	tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
-> -	return vsen->frame;
-> +	tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame.plane_addr[0]);
-> +	return &vsen->frame;
->  }
->  
->  static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
-> @@ -206,8 +206,8 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
->  		 * Allocate the frame buffer. Use vmalloc to be able to
->  		 * allocate a large amount of memory
->  		 */
-> -		vsen->frame = vmalloc(frame_size);
-> -		if (!vsen->frame)
-> +		vsen->frame.plane_addr[0] = vmalloc(frame_size);
-> +		if (!vsen->frame.plane_addr[0])
->  			return -ENOMEM;
+> +			}
+> +		}
 >  
 >  		/* configure the test pattern generator */
-> @@ -215,8 +215,8 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+>  		vimc_sen_tpg_s_format(vsen);
 >  
 >  	} else {
+> +		for (i = 0; i < vsen->frame.num_planes; i++) {
+> +			vfree(vsen->frame.plane_addr[i]);
+> +			vsen->frame.plane_addr[i] = NULL;
+> +		}
 >  
-> -		vfree(vsen->frame);
-> -		vsen->frame = NULL;
-> +		vfree(vsen->frame.plane_addr[0]);
-> +		vsen->frame.plane_addr[0] = NULL;
+> -		vfree(vsen->frame.plane_addr[0]);
+> -		vsen->frame.plane_addr[0] = NULL;
 >  		return 0;
 >  	}
 >  
-> diff --git a/drivers/media/platform/vimc/vimc-streamer.c b/drivers/media/platform/vimc/vimc-streamer.c
-> index c19093b6c787..efbc6adc34be 100644
-> --- a/drivers/media/platform/vimc/vimc-streamer.c
-> +++ b/drivers/media/platform/vimc/vimc-streamer.c
-> @@ -124,7 +124,7 @@ static int vimc_streamer_pipeline_init(struct vimc_stream *stream,
->  static int vimc_streamer_thread(void *data)
->  {
->  	struct vimc_stream *stream = data;
-> -	u8 *frame = NULL;
-> +	struct vimc_frame *frame = NULL;
->  	int i;
->  
->  	set_freezable();
 > 
