@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 283B9C43381
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C174FC43381
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ED5E7218D0
-	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C9D4218AC
+	for <linux-media@archiver.kernel.org>; Fri, 15 Mar 2019 16:46:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729720AbfCOQpP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 15 Mar 2019 12:45:15 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49004 "EHLO
+        id S1729686AbfCOQpK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 15 Mar 2019 12:45:10 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:48986 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729702AbfCOQpP (ORCPT
+        with ESMTP id S1729678AbfCOQpI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Mar 2019 12:45:15 -0400
+        Fri, 15 Mar 2019 12:45:08 -0400
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: tonyk)
-        with ESMTPSA id 08107260215
+        with ESMTPSA id 725B8260215
 From:   =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>
 To:     linux-media@vger.kernel.org
 Cc:     mchehab@kernel.org, hverkuil@xs4all.nl, helen.koike@collabora.com,
         lucmaga@gmail.com, linux-kernel@vger.kernel.org,
         kernel@collabora.com
-Subject: [PATCH 05/16] media: vimc: Create multiplanar parameter
-Date:   Fri, 15 Mar 2019 13:43:48 -0300
-Message-Id: <20190315164359.626-6-andrealmeid@collabora.com>
+Subject: [PATCH 03/16] media: vimc: Check if the stream is on using ved.stream
+Date:   Fri, 15 Mar 2019 13:43:46 -0300
+Message-Id: <20190315164359.626-4-andrealmeid@collabora.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190315164359.626-1-andrealmeid@collabora.com>
 References: <20190315164359.626-1-andrealmeid@collabora.com>
@@ -42,54 +42,66 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Create multiplanar kernel module parameter to define if
-the driver is running in single planar or in multiplanar mode.
+Change the way that the subdevices check if the stream is running in set
+format functions. It uses the *stream in vimc_deb_device, the more
+appropriate pointer. This also makes easier to get rid of the void* and u8*
+in the subdevices structs.
 
 Signed-off-by: André Almeida <andrealmeid@collabora.com>
 ---
- drivers/media/platform/vimc/vimc-common.h | 2 ++
- drivers/media/platform/vimc/vimc-core.c   | 8 ++++++++
- 2 files changed, 10 insertions(+)
+ drivers/media/platform/vimc/vimc-debayer.c | 2 +-
+ drivers/media/platform/vimc/vimc-scaler.c  | 4 ++--
+ drivers/media/platform/vimc/vimc-sensor.c  | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index 7ceb9ea937e2..25e47c8691dd 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -26,6 +26,8 @@
+diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
+index 5f84cb38f0f9..f72f888ba5a6 100644
+--- a/drivers/media/platform/vimc/vimc-debayer.c
++++ b/drivers/media/platform/vimc/vimc-debayer.c
+@@ -270,7 +270,7 @@ static int vimc_deb_set_fmt(struct v4l2_subdev *sd,
  
- #define VIMC_PDEV_NAME "vimc"
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+ 		/* Do not change the format while stream is on */
+-		if (vdeb->src_frame)
++		if (vdeb->ved.stream)
+ 			return -EBUSY;
  
-+extern unsigned int multiplanar;
-+
- /* VIMC-specific controls */
- #define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
- #define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
-diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-index 0fbb7914098f..34ca90fa6e79 100644
---- a/drivers/media/platform/vimc/vimc-core.c
-+++ b/drivers/media/platform/vimc/vimc-core.c
-@@ -26,6 +26,11 @@
+ 		sink_fmt = &vdeb->sink_fmt;
+diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
+index 3102febefd63..6e88328dca5c 100644
+--- a/drivers/media/platform/vimc/vimc-scaler.c
++++ b/drivers/media/platform/vimc/vimc-scaler.c
+@@ -158,7 +158,7 @@ static int vimc_sca_set_fmt(struct v4l2_subdev *sd,
  
- #define VIMC_MDEV_MODEL_NAME "VIMC MDEV"
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+ 		/* Do not change the format while stream is on */
+-		if (vsca->src_frame)
++		if (vsca->ved.stream)
+ 			return -EBUSY;
  
-+unsigned int multiplanar;
-+module_param(multiplanar, uint, 0000);
-+MODULE_PARM_DESC(sca_mult, "0 (default) creates a single planar device, 1 creates a multiplanar device.");
-+
-+
- #define VIMC_ENT_LINK(src, srcpad, sink, sinkpad, link_flags) {	\
- 	.src_ent = src,						\
- 	.src_pad = srcpad,					\
-@@ -388,6 +393,9 @@ static int __init vimc_init(void)
- 		return ret;
- 	}
+ 		sink_fmt = &vsca->sink_fmt;
+@@ -334,7 +334,7 @@ static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
+ 						    ved);
  
-+	dev_dbg(&vimc_dev.pdev.dev, "vimc: multiplanar mode is %s\n",
-+		multiplanar ? "ON" : "OFF");
-+
- 	return 0;
- }
+ 	/* If the stream in this node is not active, just return */
+-	if (!vsca->src_frame)
++	if (!ved->stream)
+ 		return ERR_PTR(-EINVAL);
  
+ 	vimc_sca_fill_src_frame(vsca, sink_frame);
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 44a75099ce7f..e60f1985edb0 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -141,7 +141,7 @@ static int vimc_sen_set_fmt(struct v4l2_subdev *sd,
+ 
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+ 		/* Do not change the format while stream is on */
+-		if (vsen->frame)
++		if (vsen->ved.stream)
+ 			return -EBUSY;
+ 
+ 		mf = &vsen->mbus_format;
 -- 
 2.21.0
 
