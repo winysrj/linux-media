@@ -2,148 +2,97 @@ Return-Path: <SRS0=HTTW=RT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A8D5C43381
-	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 04:54:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09A7EC43381
+	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 08:59:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 45BD6218E0
-	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 04:54:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CED5C218FE
+	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 08:59:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725954AbfCPEyV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 16 Mar 2019 00:54:21 -0400
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:42610 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725904AbfCPEyV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Mar 2019 00:54:21 -0400
-Received: from localhost ([IPv6:2001:983:e9a7:1:74:c0c9:3e75:dc6e])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id 51KshGC4a4HFn51KthdFby; Sat, 16 Mar 2019 05:54:19 +0100
-Message-ID: <abab2167e927c42b864d0a51764fbee2@smtp-cloud8.xs4all.net>
-Date:   Sat, 16 Mar 2019 05:54:18 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfJ619QRmwJ9xz1IYhU4F8RNK82C2Zayt2Esg2+aHez8b74TKkFKRDAweol14N/rMvQpW4uokMzIkfmcl1yULw6GtowCUBQrW8+qges7S3NLr1QXVuYNF
- FTYA0Ltvxvb1ffHcXOm5gkr4kJFFs7ptjPPbrJlg0EFWe+c2XsWP9cixvd6UhkHNqvGOCxVXVyGz8efiVgxXmd9WBRhnB7IwXlWBeN2DwC0a0KG1f5oosFju
+        id S1726151AbfCPI7b (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 16 Mar 2019 04:59:31 -0400
+Received: from gofer.mess.org ([88.97.38.141]:51099 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726099AbfCPI7a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Mar 2019 04:59:30 -0400
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id 1D26C60359; Sat, 16 Mar 2019 08:59:28 +0000 (GMT)
+Date:   Sat, 16 Mar 2019 08:59:28 +0000
+From:   Sean Young <sean@mess.org>
+To:     Stefan Becker <chemobejk@gmail.com>
+Cc:     linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH] media: si2168: add parameter to disable DVB-T support
+Message-ID: <20190316085928.o53czq5gkie6rge3@gofer.mess.org>
+References: <20190308222148.15194-1-chemobejk@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190308222148.15194-1-chemobejk@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Sat, Mar 09, 2019 at 12:21:48AM +0200, Stefan Becker wrote:
+> Some DVB clients are broken and only recognize the DVB-T/T2 support in
+> the frontend. Thus they are unable to use the frontend in DVB-C mode.
+> One example is the incomplete DVBv5 API support added in mythtv 0.30:
+> 
+>    https://code.mythtv.org/trac/ticket/12638
+> 
+> The boolean module parameter "disable_dvb_t" removes DVB-T and DVB-T2
+> from the delsys list in dvb_frontend_ops and thus forces the client to
+> recognize a DVB-C frontend.
 
-Results of the daily build of media_tree:
+This is wrong in a few ways. DVBv5 has been around for sometime and clients
+really should be updated by now. If if there were an option to disable 
+DVB-T and DVB-T2 then that would not exist in a specific frontend.
 
-date:			Sat Mar 16 05:00:13 CET 2019
-media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	f85040e18e937a12367d80c3895216e3cf8d4a7d
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse version:		0.6.0
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+NAK
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.63-i686: OK
-linux-3.16.63-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.136-i686: OK
-linux-3.18.136-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.167-i686: OK
-linux-4.4.167-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.162-i686: OK
-linux-4.9.162-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.105-i686: OK
-linux-4.14.105-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.20-i686: OK
-linux-4.18.20-x86_64: OK
-linux-4.19.28-i686: OK
-linux-4.19.28-x86_64: OK
-linux-4.20.15-i686: OK
-linux-4.20.15-x86_64: OK
-linux-5.0.1-i686: OK
-linux-5.0.1-x86_64: OK
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 15
-sparse: OK
-smatch: ERRORS
+Sean
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Detailed regression test results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media-dmesg.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> Signed-off-by: Stefan Becker <chemobejk@gmail.com>
+> ---
+>  drivers/media/dvb-frontends/si2168.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 324493e05f9f..8aeb024057dc 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -14,10 +14,15 @@
+>   *    GNU General Public License for more details.
+>   */
+>  
+> +#include <linux/module.h>
+>  #include <linux/delay.h>
+>  
+>  #include "si2168_priv.h"
+>  
+> +static bool disable_dvb_t;
+> +module_param(disable_dvb_t, bool, 0644);
+> +MODULE_PARM_DESC(disable_dvb_t, "Disable DVB-T/T2 support (default: enabled)");
+> +
+>  static const struct dvb_frontend_ops si2168_ops;
+>  
+>  /* execute firmware command */
+> @@ -800,6 +805,10 @@ static int si2168_probe(struct i2c_client *client,
+>  
+>  	/* create dvb_frontend */
+>  	memcpy(&dev->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
+> +	if (disable_dvb_t) {
+> +		memset(dev->fe.ops.delsys, 0, sizeof(dev->fe.ops.delsys));
+> +		dev->fe.ops.delsys[0] = SYS_DVBC_ANNEX_A;
+> +	}
+>  	dev->fe.demodulator_priv = client;
+>  	*config->i2c_adapter = dev->muxc->adapter[0];
+>  	*config->fe = &dev->fe;
+> -- 
+> 2.20.1
