@@ -4,144 +4,158 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CD35C4360F
-	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 17:51:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 170D1C43381
+	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 21:48:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 18881218FE
-	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 17:51:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7F7D218A1
+	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 21:48:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726653AbfCPRv3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 16 Mar 2019 13:51:29 -0400
-Received: from mga09.intel.com ([134.134.136.24]:10483 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726376AbfCPRv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Mar 2019 13:51:29 -0400
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Mar 2019 10:51:28 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,486,1544515200"; 
-   d="scan'208";a="142619686"
-Received: from gpleierx-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.249.43.205])
-  by orsmga002.jf.intel.com with ESMTP; 16 Mar 2019 10:51:26 -0700
-Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
-        id E8BE421F57; Sat, 16 Mar 2019 19:51:21 +0200 (EET)
-Date:   Sat, 16 Mar 2019 19:51:21 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc:     laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, dave.stevenson@raspberrypi.org
-Subject: Re: [RFC 1/5] v4l: subdev: Add MIPI CSI-2 PHY to frame desc
-Message-ID: <20190316175121.wdek74c7tfpmrhde@kekkonen.localdomain>
-References: <20190316154801.20460-1-jacopo+renesas@jmondi.org>
- <20190316154801.20460-2-jacopo+renesas@jmondi.org>
+        id S1726666AbfCPVsg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 16 Mar 2019 17:48:36 -0400
+Received: from retiisi.org.uk ([95.216.213.190]:44302 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726571AbfCPVsg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Mar 2019 17:48:36 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 1ACFE634C7F;
+        Sat, 16 Mar 2019 23:46:49 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1h5H8j-00042C-M7; Sat, 16 Mar 2019 23:46:49 +0200
+Date:   Sat, 16 Mar 2019 23:46:49 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Mickael Guene <mickael.guene@st.com>
+Cc:     linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v1 1/3] dt-bindings: Document MIPID02 bindings
+Message-ID: <20190316214649.co63p5arhiwbuv3g@valkosipuli.retiisi.org.uk>
+References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
+ <1552373045-134493-2-git-send-email-mickael.guene@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190316154801.20460-2-jacopo+renesas@jmondi.org>
+In-Reply-To: <1552373045-134493-2-git-send-email-mickael.guene@st.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+Hi Mickael,
 
-On Sat, Mar 16, 2019 at 04:47:57PM +0100, Jacopo Mondi wrote:
-> Add PHY-specific parameters to MIPI CSI-2 frame descriptor.
+Thanks for the patchset.
+
+On Tue, Mar 12, 2019 at 07:44:03AM +0100, Mickael Guene wrote:
+> This adds documentation of device tree for MIPID02 CSI-2 to PARALLEL
+> bridge.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Signed-off-by: Mickael Guene <mickael.guene@st.com>
 > ---
->  include/media/v4l2-subdev.h | 42 +++++++++++++++++++++++++++++++------
->  1 file changed, 36 insertions(+), 6 deletions(-)
 > 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 6311f670de3c..eca9633c83bf 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -317,11 +317,33 @@ struct v4l2_subdev_audio_ops {
->  	int (*s_stream)(struct v4l2_subdev *sd, int enable);
->  };
->  
-> +#define V4L2_FRAME_DESC_ENTRY_DPHY_DATA_LANES	4
+>  .../bindings/media/i2c/st,st-mipid02.txt           | 69 ++++++++++++++++++++++
+>  1 file changed, 69 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+> new file mode 100644
+> index 0000000..a1855da
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+> @@ -0,0 +1,69 @@
+> +STMicroelectronics MIPID02 CSI-2 to PARALLEL bridge
 > +
-> +/**
-> + * struct v4l2_mbus_frame_desc_entry_csi2_dphy - MIPI D-PHY bus configuration
-> + *
-> + * @clock_lane:		physical lane index of the clock lane
-> + * @data_lanes:		an array of physical data lane indexes
-> + * @num_data_lanes:	number of data lanes
-> + */
-> +struct v4l2_mbus_frame_desc_entry_csi2_dphy {
-> +	u8 clock_lane;
-> +	u8 data_lanes[V4L2_FRAME_DESC_ENTRY_DPHY_DATA_LANES];
-> +	u8 num_data_lanes;
+> +MIPID02 has two CSI-2 input ports, only one of those ports can be active at a
+> +time. Active port input stream will be de-serialized and its content outputted
+> +through PARALLEL output port.
+> +CSI-2 first input port is a dual lane 800Mbps whereas CSI-2 second input port is
 
-Do you need more than the number of the data lanes? I'd expect few devices
-to be able to do more than that. The PHY type comes already from the
-firmware but I guess it's good to do the separation here as well.
+800 Mbps per lane (or total)?
 
-Could you use V4L2_FWNODE_CSI2_MAX_DATA_LANES? Or we could rename it. But I
-think it'd be good to stick to a single definition.
+> +a single lane 800Mbps. Both ports support clock and data lane polarity swap.
+> +First port also supports data lane swap.
+> +PARALLEL output port has a maximum width of 12 bits.
+> +Supported formats are RAW6, RAW7, RAW8, RAW10, RAW12, RGB565, RGB888, RGB444,
+> +YUV420 8-bit, YUV422 8-bit and YUV420 10-bit.
+> +
+> +Required Properties:
+> +- compatible: should be "st,st-mipid02"
+> +- clocks: reference to the xclk input clock.
+> +- clock-names: should be "xclk".
+> +- VDDE-supply: sensor digital IO supply. Must be 1.8 volts.
+> +- VDDIN-supply: sensor internal regulator supply. Must be 1.8 volts.
 
+Perhaps Rob can confirm, but AFAIR the custom is to use lower case letters.
+
+> +
+> +Optional Properties:
+> +- reset-gpios: reference to the GPIO connected to the xsdn pin, if any.
+> +	       This is an active low signal to the mipid02.
+> +
+> +Required subnodes:
+> +  - ports: A ports node with one port child node per device input and output
+> +	   port, in accordance with the video interface bindings defined in
+> +	   Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> +	   port nodes are numbered as follows:
+> +
+> +	   Port Description
+> +	   -----------------------------
+> +	   0    CSI-2 first input port
+> +	   1    CSI-2 second input port
+> +	   2    PARALLEL output
+
+Please document which endpoint properties are relevant. From the above
+description I'd presume this to be at least clock-lanes (1st input),
+data-lanes, lane-polarities (for CSI-2) as well as bus-width for the
+parallel bus.
+
+> +
+> +Example:
+> +
+> +mipid02: mipid02@14 {
+
+The node should be a generic name. "csi2rx" is used by a few devices now.
+
+> +	compatible = "st,st-mipid02";
+> +	reg = <0x14>;
+> +	status = "okay";
+> +	clocks = <&clk_ext_camera_12>;
+> +	clock-names = "xclk";
+> +	VDDE-supply = <&vdd>;
+> +	VDDIN-supply = <&vdd>;
+> +	ports {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		port@0 {
+> +			reg = <0>;
+> +
+> +			ep0: endpoint {
+> +				clock-lanes = <0>;
+> +				data-lanes = <1 2>;
+> +				remote-endpoint = <&mipi_csi2_in>;
+> +			};
+> +		};
+> +		port@2 {
+> +			reg = <2>;
+> +
+> +			ep2: endpoint {
+> +				bus-width = <8>;
+> +				hsync-active = <0>;
+> +				vsync-active = <0>;
+> +				remote-endpoint = <&parallel_out>;
+> +			};
+> +		};
+> +	};
 > +};
-> +
-> +/**
-> + * struct v4l2_mbus_frame_desc_entry_csi2_cphy - MIPI C-PHY bus configuration
-> + */
-> +struct v4l2_mbus_frame_desc_entry_csi2_cphy {
-> +	/* TODO */
-> +};
-> +
->  /**
->   * struct v4l2_mbus_frame_desc_entry_csi2
->   *
-> - * @channel: CSI-2 virtual channel
-> - * @data_type: CSI-2 data type ID
-> + * @channel:	CSI-2 virtual channel
-> + * @data_type:	CSI-2 data type ID
->   */
->  struct v4l2_mbus_frame_desc_entry_csi2 {
->  	u8 channel;
-> @@ -371,18 +393,26 @@ enum v4l2_mbus_frame_desc_type {
->  	V4L2_MBUS_FRAME_DESC_TYPE_PLATFORM,
->  	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
->  	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
-> -	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
-> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2_DPHY,
-> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2_CPHY,
->  };
->  
->  /**
->   * struct v4l2_mbus_frame_desc - media bus data frame description
-> - * @type: type of the bus (enum v4l2_mbus_frame_desc_type)
-> - * @entry: frame descriptors array
-> - * @num_entries: number of entries in @entry array
-> + * @type:		type of the bus (enum v4l2_mbus_frame_desc_type)
-> + * @entry:		frame descriptors array
-> + * @phy:		PHY specific parameters
-> + * @phy.dphy:		MIPI D-PHY specific bus configurations
-> + * @phy.cphy:		MIPI C-PHY specific bus configurations
-> + * @num_entries:	number of entries in @entry array
->   */
->  struct v4l2_mbus_frame_desc {
->  	enum v4l2_mbus_frame_desc_type type;
->  	struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
-> +	union {
-> +		struct v4l2_mbus_frame_desc_entry_csi2_dphy csi2_dphy;
-> +		struct v4l2_mbus_frame_desc_entry_csi2_cphy csi2_cphy;
-> +	} phy;
->  	unsigned short num_entries;
->  };
->  
 
 -- 
-Regards,
+Kind regards,
 
 Sakari Ailus
-sakari.ailus@linux.intel.com
