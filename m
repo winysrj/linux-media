@@ -2,211 +2,132 @@ Return-Path: <SRS0=HTTW=RT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00395C10F03
-	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 15:47:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88E76C10F03
+	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 16:20:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D17B3218E0
-	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 15:47:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56E1021900
+	for <linux-media@archiver.kernel.org>; Sat, 16 Mar 2019 16:20:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=cogentembedded-com.20150623.gappssmtp.com header.i=@cogentembedded-com.20150623.gappssmtp.com header.b="QHJ8+OCf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726888AbfCPPrp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 16 Mar 2019 11:47:45 -0400
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:35781 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726815AbfCPPro (ORCPT
+        id S1726547AbfCPQUc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 16 Mar 2019 12:20:32 -0400
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:46372 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726435AbfCPQUc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Mar 2019 11:47:44 -0400
-X-Originating-IP: 2.224.242.101
-Received: from uno.lan (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 273201BF209;
-        Sat, 16 Mar 2019 15:47:40 +0000 (UTC)
-From:   Jacopo Mondi <jacopo+renesas@jmondi.org>
-To:     sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        Sat, 16 Mar 2019 12:20:32 -0400
+Received: by mail-lf1-f66.google.com with SMTP id y62so856651lfc.13
+        for <linux-media@vger.kernel.org>; Sat, 16 Mar 2019 09:20:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cogentembedded-com.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:organization:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=Owt4aYW2zD2Vd6wLV8Vs4/1YdAdZCWs5zxz8CFAmerE=;
+        b=QHJ8+OCfjd9KYCpdlwWg2OdPPvACxP+k4SXbAi0eQwOVbMKQzLvUPN1Z0mKNSurvnl
+         mXQ10dyDjjs7gqqXNrw1DP5BVY881pqUXKiq+d8k1sN/cUyL4VLX6sDRQuUVineZW6Qk
+         A0tdY5Zsk54l4i+ekeFqr59bLbreedKKOQJQ3Z8y6S19Ix8aAGGpR+cp/++Fak21Zv0F
+         8Ornv5Z82u55eHO64ERgNyGDZ7P+mlFfLTuyqjEUVjAY5yR4v9j0fKaCJRzm8UQCwgjD
+         2onzxd7w61X93nR0zqxYbDaSHeh0jdHRE1HUmVMA/62hRD+XQQdtVFs/wrkl03vWpSE5
+         9vQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:organization
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=Owt4aYW2zD2Vd6wLV8Vs4/1YdAdZCWs5zxz8CFAmerE=;
+        b=WKUWlr+5wUNRIZ3rmUrOcNSa3NMoSwt2lXX9W3+02+uJmuVCxZxizgP2UueghMxLNS
+         wTMBoHBodUARc09NI3iGpabpcf54I2wC/aPXmjMcMNaqM4RYEHC4Nft/40Fuw/X+qlEs
+         YLGz7wctTUuYBPsez3wQ/X0/nzm8OWqohG4jVT7LbLLP4GZnAYAWDJE9BeGoA1BU1mSU
+         otz2doUhYhNdy56YezoSHHLWRiPKRBH76bJakeqhKc/TI0TmoFQlwNZ2SXljlek/7EnS
+         j7ZQYnipqOPK1SSF50TdSkgb7DMFeiOxR6PIBRhdsv0DWN2obvLgkZqotfFLd1Gi4gde
+         h5QA==
+X-Gm-Message-State: APjAAAXR82ua/qVRqnZaovGJS1x6EEEguMH3wjrw56t3dfd7kLHixh16
+        GRBm3ewoiV6Ls644W6Y6+6OQb+F6bb8=
+X-Google-Smtp-Source: APXvYqyv5938t0aghdjuTsf5v70kw+A14gt7kHqfscWi85BZUs7cwf6QEsW2Tv3i6mZlmCizMFfugg==
+X-Received: by 2002:a19:6b0f:: with SMTP id d15mr5596323lfa.116.1552753230194;
+        Sat, 16 Mar 2019 09:20:30 -0700 (PDT)
+Received: from wasted.cogentembedded.com ([31.173.80.77])
+        by smtp.gmail.com with ESMTPSA id h125sm1031515lfh.67.2019.03.16.09.20.28
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 16 Mar 2019 09:20:29 -0700 (PDT)
+Subject: Re: [RFC 1/5] v4l: subdev: Add MIPI CSI-2 PHY to frame desc
+To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se,
         kieran.bingham@ideasonboard.com
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         dave.stevenson@raspberrypi.org
-Subject: [RFC 5/5] media: rcar-csi2: Configure CSI-2 with frame desc
-Date:   Sat, 16 Mar 2019 16:48:01 +0100
-Message-Id: <20190316154801.20460-6-jacopo+renesas@jmondi.org>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190316154801.20460-1-jacopo+renesas@jmondi.org>
 References: <20190316154801.20460-1-jacopo+renesas@jmondi.org>
+ <20190316154801.20460-2-jacopo+renesas@jmondi.org>
+From:   Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Organization: Cogent Embedded
+Message-ID: <356313ee-2370-e5dc-4c19-2f2c900a410f@cogentembedded.com>
+Date:   Sat, 16 Mar 2019 19:20:28 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190316154801.20460-2-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-MW
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Use the D-PHY configuration reported by the remote subdevice in its
-frame descriptor to configure the interface.
+On 03/16/2019 06:47 PM, Jacopo Mondi wrote:
 
-Store the number of lanes reported through the 'data-lanes' DT property
-as the number of phyisically available lanes, which might not correspond
-to the number of lanes actually in use.
+> Add PHY-specific parameters to MIPI CSI-2 frame descriptor.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  include/media/v4l2-subdev.h | 42 +++++++++++++++++++++++++++++++------
+>  1 file changed, 36 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 6311f670de3c..eca9633c83bf 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+[...]
+> @@ -371,18 +393,26 @@ enum v4l2_mbus_frame_desc_type {
+>  	V4L2_MBUS_FRAME_DESC_TYPE_PLATFORM,
+>  	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
+>  	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
+> -	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
+> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2_DPHY,
+> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2_CPHY,
+>  };
+>  
+>  /**
+>   * struct v4l2_mbus_frame_desc - media bus data frame description
+> - * @type: type of the bus (enum v4l2_mbus_frame_desc_type)
+> - * @entry: frame descriptors array
+> - * @num_entries: number of entries in @entry array
+> + * @type:		type of the bus (enum v4l2_mbus_frame_desc_type)
+> + * @entry:		frame descriptors array
+> + * @phy:		PHY specific parameters
+> + * @phy.dphy:		MIPI D-PHY specific bus configurations
+> + * @phy.cphy:		MIPI C-PHY specific bus configurations
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/platform/rcar-vin/rcar-csi2.c | 71 +++++++++++++--------
- 1 file changed, 43 insertions(+), 28 deletions(-)
+   The union members have csi2_ prefix in their names, no? 
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index 6c46bcc0ee83..70b9a8165a6e 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -375,8 +375,8 @@ struct rcar_csi2 {
- 	struct mutex lock;
- 	int stream_count;
- 
--	unsigned short lanes;
--	unsigned char lane_swap[4];
-+	unsigned short available_data_lanes;
-+	unsigned short num_data_lanes;
- };
- 
- static inline struct rcar_csi2 *sd_to_csi2(struct v4l2_subdev *sd)
-@@ -424,7 +424,7 @@ static int rcsi2_get_remote_frame_desc(struct rcar_csi2 *priv,
- 	if (ret)
- 		return -ENODEV;
- 
--	if (fd->type != V4L2_MBUS_FRAME_DESC_TYPE_CSI2) {
-+	if (fd->type != V4L2_MBUS_FRAME_DESC_TYPE_CSI2_DPHY) {
- 		dev_err(priv->dev, "Frame desc do not describe CSI-2 link");
- 		return -EINVAL;
- 	}
-@@ -438,7 +438,7 @@ static int rcsi2_wait_phy_start(struct rcar_csi2 *priv)
- 
- 	/* Wait for the clock and data lanes to enter LP-11 state. */
- 	for (timeout = 0; timeout <= 20; timeout++) {
--		const u32 lane_mask = (1 << priv->lanes) - 1;
-+		const u32 lane_mask = (1 << priv->num_data_lanes) - 1;
- 
- 		if ((rcsi2_read(priv, PHCLM_REG) & PHCLM_STOPSTATECKL)  &&
- 		    (rcsi2_read(priv, PHDLM_REG) & lane_mask) == lane_mask)
-@@ -511,14 +511,15 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv,
- 	 * bps = link_freq * 2
- 	 */
- 	mbps = v4l2_ctrl_g_ctrl_int64(ctrl) * bpp;
--	do_div(mbps, priv->lanes * 1000000);
-+	do_div(mbps, priv->num_data_lanes * 1000000);
- 
- 	return mbps;
- }
- 
- static int rcsi2_start(struct rcar_csi2 *priv)
- {
--	u32 phycnt, vcdt = 0, vcdt2 = 0;
-+	struct v4l2_mbus_frame_desc_entry_csi2_dphy *dphy;
-+	u32 phycnt, vcdt = 0, vcdt2 = 0, lswap = 0;
- 	struct v4l2_mbus_frame_desc fd;
- 	unsigned int i;
- 	int mbps, ret;
-@@ -548,8 +549,26 @@ static int rcsi2_start(struct rcar_csi2 *priv)
- 			entry->bus.csi2.channel, entry->bus.csi2.data_type);
- 	}
- 
-+	/* Get description of the D-PHY media bus configuration. */
-+	dphy = &fd.phy.csi2_dphy;
-+	if (dphy->clock_lane != 0) {
-+		dev_err(priv->dev,
-+			"CSI-2 configuration not supported: clock at index %u",
-+			dphy->clock_lane);
-+		return -EINVAL;
-+	}
-+
-+	if (dphy->num_data_lanes > priv->available_data_lanes ||
-+	    dphy->num_data_lanes == 3) {
-+		dev_err(priv->dev,
-+			"Number of CSI-2 data lanes not supported: %u",
-+			dphy->num_data_lanes);
-+		return -EINVAL;
-+	}
-+	priv->num_data_lanes = dphy->num_data_lanes;
-+
- 	phycnt = PHYCNT_ENABLECLK;
--	phycnt |= (1 << priv->lanes) - 1;
-+	phycnt |= (1 << priv->num_data_lanes) - 1;
- 
- 	mbps = rcsi2_calc_mbps(priv, &fd);
- 	if (mbps < 0)
-@@ -566,12 +585,11 @@ static int rcsi2_start(struct rcar_csi2 *priv)
- 	rcsi2_write(priv, VCDT_REG, vcdt);
- 	if (vcdt2)
- 		rcsi2_write(priv, VCDT2_REG, vcdt2);
-+
- 	/* Lanes are zero indexed. */
--	rcsi2_write(priv, LSWAP_REG,
--		    LSWAP_L0SEL(priv->lane_swap[0] - 1) |
--		    LSWAP_L1SEL(priv->lane_swap[1] - 1) |
--		    LSWAP_L2SEL(priv->lane_swap[2] - 1) |
--		    LSWAP_L3SEL(priv->lane_swap[3] - 1));
-+	for (i = 0; i < priv->num_data_lanes; ++i)
-+		lswap |= (dphy->data_lanes[i] - 1) << (i * 2);
-+	rcsi2_write(priv, LSWAP_REG, lswap);
- 
- 	/* Start */
- 	if (priv->info->init_phtw) {
-@@ -822,7 +840,7 @@ static const struct v4l2_async_notifier_operations rcar_csi2_notify_ops = {
- static int rcsi2_parse_v4l2(struct rcar_csi2 *priv,
- 			    struct v4l2_fwnode_endpoint *vep)
- {
--	unsigned int i;
-+	unsigned int num_data_lanes;
- 
- 	/* Only port 0 endpoint 0 is valid. */
- 	if (vep->base.port || vep->base.id)
-@@ -833,24 +851,21 @@ static int rcsi2_parse_v4l2(struct rcar_csi2 *priv,
- 		return -EINVAL;
- 	}
- 
--	priv->lanes = vep->bus.mipi_csi2.num_data_lanes;
--	if (priv->lanes != 1 && priv->lanes != 2 && priv->lanes != 4) {
-+	num_data_lanes = vep->bus.mipi_csi2.num_data_lanes;
-+	switch (num_data_lanes) {
-+	case 1:
-+		/* fallthrough */
-+	case 2:
-+		/* fallthrough */
-+	case 4:
-+		priv->available_data_lanes = num_data_lanes;
-+		break;
-+	default:
- 		dev_err(priv->dev, "Unsupported number of data-lanes: %u\n",
--			priv->lanes);
-+			num_data_lanes);
- 		return -EINVAL;
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(priv->lane_swap); i++) {
--		priv->lane_swap[i] = i < priv->lanes ?
--			vep->bus.mipi_csi2.data_lanes[i] : i;
--
--		/* Check for valid lane number. */
--		if (priv->lane_swap[i] < 1 || priv->lane_swap[i] > 4) {
--			dev_err(priv->dev, "data-lanes must be in 1-4 range\n");
--			return -EINVAL;
--		}
--	}
--
- 	return 0;
- }
- 
-@@ -1235,7 +1250,7 @@ static int rcsi2_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto error;
- 
--	dev_info(priv->dev, "%d lanes found\n", priv->lanes);
-+	dev_info(priv->dev, "%d lanes found\n", priv->available_data_lanes);
- 
- 	return 0;
- 
--- 
-2.21.0
+> + * @num_entries:	number of entries in @entry array
+>   */
+>  struct v4l2_mbus_frame_desc {
+>  	enum v4l2_mbus_frame_desc_type type;
+>  	struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
+> +	union {
+> +		struct v4l2_mbus_frame_desc_entry_csi2_dphy csi2_dphy;
+> +		struct v4l2_mbus_frame_desc_entry_csi2_cphy csi2_cphy;
+> +	} phy;
+>  	unsigned short num_entries;
+>  };
+>  
 
