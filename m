@@ -2,202 +2,128 @@ Return-Path: <SRS0=+2CU=RU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC83C43381
-	for <linux-media@archiver.kernel.org>; Sun, 17 Mar 2019 16:10:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCB94C43381
+	for <linux-media@archiver.kernel.org>; Sun, 17 Mar 2019 16:32:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7AB320896
-	for <linux-media@archiver.kernel.org>; Sun, 17 Mar 2019 16:10:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="bIc0h4Cu"
+	by mail.kernel.org (Postfix) with ESMTP id 930C62087C
+	for <linux-media@archiver.kernel.org>; Sun, 17 Mar 2019 16:32:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727359AbfCQQKw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 17 Mar 2019 12:10:52 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:36914 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726115AbfCQQKw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Mar 2019 12:10:52 -0400
-Received: from pendragon.ideasonboard.com (81-175-216-236.bb.dnainternet.fi [81.175.216.236])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 36C5723A;
-        Sun, 17 Mar 2019 17:10:49 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1552839049;
-        bh=cWZs1/CJiHgYmc3GCh4+zrvPBWO0PLfmX3h0hfnI0ns=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=bIc0h4Cu8uNKd+usGRdoLIktE5yj6wKwlK0lBQx3EOeNSLB7+zC4uRnsDvh1jsssO
-         BwIj3w7aTcSZ/GbjByUGlKQ7DPNxP0rTttCVOE31+fgxJJLo7zSmpD8rttV3WU/wJW
-         +D47YhdDiBtUX2S2KrM8whezmBhsDKL//XNrqXVg=
-Date:   Sun, 17 Mar 2019 18:10:41 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hirokazu Honda <hiroh@chromium.org>,
-        Boris Brezillon <boris.brezillon@collabora.com>
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-Message-ID: <20190317161041.GC17898@pendragon.ideasonboard.com>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
- <CAAFQd5COSecRGOSUyQGAe0ob-do0C5=FqhQZoq-d1EULhMiWHg@mail.gmail.com>
- <2004464.r89rQTy7OA@avalon>
- <CAAFQd5Dp3xUba-p4qOcZAtfHUd=TQFkEh7TRVdQ_F1=9Qif-9Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5Dp3xUba-p4qOcZAtfHUd=TQFkEh7TRVdQ_F1=9Qif-9Q@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S1726349AbfCQQcV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 17 Mar 2019 12:32:21 -0400
+Received: from gofer.mess.org ([88.97.38.141]:46505 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726115AbfCQQcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Mar 2019 12:32:21 -0400
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id 3A9E5601BD; Sun, 17 Mar 2019 16:32:20 +0000 (GMT)
+From:   Sean Young <sean@mess.org>
+To:     linux-media@vger.kernel.org
+Cc:     Gregor Jasny <gjasny@googlemail.com>
+Subject: [PATCH v4l-utils] libdvbv5: leaks and double free in dvb_fe_open_fname()
+Date:   Sun, 17 Mar 2019 16:32:20 +0000
+Message-Id: <20190317163220.1881-1-sean@mess.org>
+X-Mailer: git-send-email 2.11.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Tomasz,
+dvb_fe_open_fname() takes ownership of fname if the function succeeds, but
+also in two of the error paths (e.g. if the ioctl FE_GET_PROPERTY fails).
 
-On Fri, Mar 15, 2019 at 01:18:17PM +0900, Tomasz Figa wrote:
-> On Fri, Oct 26, 2018 at 10:42 PM Laurent Pinchart wrote:
-> > On Friday, 26 October 2018 14:41:26 EEST Tomasz Figa wrote:
-> >> On Thu, Sep 20, 2018 at 11:42 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >>> Some parts of the V4L2 API are awkward to use and I think it would be
-> >>> a good idea to look at possible candidates for that.
-> >>>
-> >>> Examples are the ioctls that use struct v4l2_buffer: the multiplanar
-> >>> support is really horrible, and writing code to support both single and
-> >>> multiplanar is hard. We are also running out of fields and the timeval
-> >>> isn't y2038 compliant.
-> >>>
-> >>> A proof-of-concept is here:
-> >>>
-> >>> https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a
-> >>> 95549df06d9900f3559afdbb9da06bd4b22d1f3
-> >>>
-> >>> It's a bit old, but it gives a good impression of what I have in mind.
-> >>
-> >> On a related, but slightly different note, I'm wondering how we should
-> >> handle a case where we have an M format (e.g. NV12M with 2 memory
-> >> planes), but only 1 DMA-buf with all planes to import. That generally
-> >> means that we have to use the same DMA-buf FD with an offset for each
-> >> plane. In theory, v4l2_plane::data_offset could be used for this, but
-> >> the documentation says that it should be set by the application only
-> >> for OUTPUT planes. Moreover, existing drivers tend to just ignore
-> >> it...
-> >
-> > The following patches may be of interest.
-> >
-> > https://patchwork.linuxtv.org/patch/29177/
-> > https://patchwork.linuxtv.org/patch/29178/
-> 
-> [+CC Boris]
-> 
-> Thanks Laurent for pointing me to those patches.
-> 
-> Repurposing the data_offset field may sound like a plausible way to do
-> it, but it's not, for several reasons:
-> 
-> 1) The relation between data_offset and other fields in v4l2_buffer
-> makes it hard to use in drivers and userspace.
+Adjust dvb_fe_open_fname() so it copies fname rather than taking ownership
+(and passing that to params). This makes the code cleaner.
 
-Could you elaborate on this ?
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ lib/libdvbv5/dvb-dev-local.c |  2 +-
+ lib/libdvbv5/dvb-fe.c        | 18 ++++++++----------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-> 2) It is not handled by vb2, so each driver would have to
-> explicitly add data_offset to the plane address and subtract it from
-> plane size and/or bytesused (since data_offset counts into plane size
-> and bytesused),
-
-We should certainly handle that in the V4L2 core and/or in vb2. I think
-we should go one step further and handle the compose rectangle there
-too, as composing for capture devices is essentially offsetting the
-buffer and setting the correct stride. I wonder if it was a mistake to
-expose compose rectangle on capture video nodes, maybe stride + offset
-would be a better API.
-
-> 3) For CAPTURE buffers, it's actually defined as set-by-driver
-> (https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/buffer.html#struct-v4l2-plane),
-> so anything userspace sets there is bound to be ignored. I'm not sure
-> if we can change this now, as it would be a compatibility issue.
-> 
-> (There are actually real use cases for it, i.e. the venus driver
-> outputs VPx encoded frames prepended with the IVF header, but that's
-> not what the V4L2 VPx formats expect, so the data_offset is set by the
-> driver to point to the raw bitstream data.)
-
-Doesn't that essentially create a custom format though ? Who consumes
-the IVF header ?
-
-Another use case is handling of embedded data with CSI-2.
-
-CSI-2 sensors can send multiple types of data multiplexed in a single
-virtual channels. Common use cases include sending a few lines of
-metadata, or sending optical black lines, in addition to the main image.
-A CSI-2 source could also send the same image in multiple formats, but I
-haven't seen that happening in practice. The CSI-2 standard tags each
-line with a data type in order to differentiate them on the receiver
-side. On the receiver side, some receivers allow capturing different
-data types in different buffers, while other support a single buffer
-only, with or without data type filtering. It may thus be that a sensor
-sending 2 lines of embedded data before the image to a CSI-2 receiver
-that supports a single buffer will leave the user with two options,
-capturing the image only or capturing both in the same buffer (really
-simple receivers may only offer the last option). Reporting to the user
-how data is organized in the buffer is needed, and the data_offset field
-is used for this.
-
-This being said, I don't think it's a valid use case fo data_offset. As
-mentioned above a sensor could send more than one data type in addition
-to the main image (embedded data + optical black is one example), so a
-single data_offset field wouldn't allow differentiating embedded data
-from optical black lines. I think a more powerful frame descriptor API
-would be needed for this. The fact that the buffer layout doesn't change
-between frames also hints that this should be supported at the format
-level, not the buffer level.
-
-> >> There is also the opposite problem. Sometimes the application is given
-> >> 3 different FDs but pointing to the same buffer. If it has to work
-> >> with a video device that only supports non-M formats, it can either
-> >> fail, making it unusable, or blindly assume that they all point to the
-> >> same buffer and just give the first FD to the video device (we do it
-> >> in Chromium, since our allocator is guaranteed to keep all planes of
-> >> planar formats in one buffer, if to be used with V4L2).
-> >>
-> >> Something that we could do is allowing the QBUF semantics of M formats
-> >> for non-M formats, where the application would fill the planes[] array
-> >> for all planes with all the FDs it has and the kernel could then
-> >> figure out if they point to the same buffer (i.e. resolve to the same
-> >> dma_buf struct) or fail if not.
-> >>
-> >> [...]
-> >>
-> >>> Do we have more ioctls that could use a refresh? S/G/TRY_FMT perhaps,
-> >>> again in order to improve single vs multiplanar handling.
-> >>
-> >> I'd definitely be more than happy to see the plane handling unified
-> >> between non-M and M formats, in general. The list of problems with
-> >> current interface:
-> >>
-> >> 1) The userspace has to hardcode the computations of bytesperline for
-> >> chroma planes of non-M formats (while they are reported for M
-> >> formats).
-> >>
-> >> 2) Similarly, offsets of the planes in the buffer for non-M formats
-> >> must be explicitly calculated in the application,
-> >>
-> >> 3) Drivers have to explicitly handle both non-M and M formats or
-> >> otherwise they would suffer from issues with application compatibility
-> >> or sharing buffers with other devices (one supporting only M and the
-> >> other only non-M),
-> >>
-> >> 4) Inconsistency in the meaning of planes[0].sizeimage for non-M
-> >> formats and M formats, making it impossible to use planes[0].sizeimage
-> >> to set the luma plane size in the hardware for non-M formats (since
-> >> it's the total size of all planes).
-> >>
-> >> I might have probably forgotten about something, but generally fixing
-> >> the 4 above, would be a really big step forward.
-
+diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
+index e98b967a..2de9a614 100644
+--- a/lib/libdvbv5/dvb-dev-local.c
++++ b/lib/libdvbv5/dvb-dev-local.c
+@@ -467,7 +467,7 @@ static struct dvb_open_descriptor
+ 			flags &= ~O_NONBLOCK;
+ 		}
+ 
+-		ret = dvb_fe_open_fname(parms, strdup(dev->path), flags);
++		ret = dvb_fe_open_fname(parms, dev->path, flags);
+ 		if (ret) {
+ 			free(open_dev);
+ 			return NULL;
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 5dcf492e..7f634766 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -133,7 +133,6 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 					  int flags)
+ {
+ 	int ret;
+-	char *fname;
+ 	struct dvb_device *dvb;
+ 	struct dvb_dev_list *dvb_dev;
+ 	struct dvb_v5_fe_parms_priv *parms = NULL;
+@@ -153,7 +152,6 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 		dvb_dev_free(dvb);
+ 		return NULL;
+ 	}
+-	fname = strdup(dvb_dev->path);
+ 
+ 	if (!strcmp(dvb_dev->bus_addr, "platform:dvbloopback")) {
+ 		logfunc(LOG_WARNING, _("Detected dvbloopback"));
+@@ -161,14 +159,10 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 	}
+ 
+ 	dvb_dev_free(dvb);
+-	if (!fname) {
+-		logfunc(LOG_ERR, _("fname calloc: %s"), strerror(errno));
+-		return NULL;
+-	}
++
+ 	parms = calloc(sizeof(*parms), 1);
+ 	if (!parms) {
+ 		logfunc(LOG_ERR, _("parms calloc: %s"), strerror(errno));
+-		free(fname);
+ 		return NULL;
+ 	}
+ 	parms->p.verbose = verbose;
+@@ -183,7 +177,7 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 	if (use_legacy_call)
+ 		parms->p.legacy_fe = 1;
+ 
+-	ret = dvb_fe_open_fname(parms, fname, flags);
++	ret = dvb_fe_open_fname(parms, dvb_dev->path, flags);
+ 	if (ret < 0) {
+ 		dvb_v5_free(parms);
+ 		return NULL;
+@@ -203,7 +197,6 @@ int dvb_fe_open_fname(struct dvb_v5_fe_parms_priv *parms, char *fname,
+ 	fd = open(fname, flags, 0);
+ 	if (fd == -1) {
+ 		dvb_logerr(_("%s while opening %s"), strerror(errno), fname);
+-		free(fname);
+ 		return -errno;
+ 	}
+ 
+@@ -224,7 +217,12 @@ int dvb_fe_open_fname(struct dvb_v5_fe_parms_priv *parms, char *fname,
+ 		}
+ 	}
+ 
+-	parms->fname = fname;
++	parms->fname = strdup(fname);
++	if (!parms->fname) {
++		dvb_logerr(_("fname calloc: %s"), strerror(errno));
++		return -errno;
++	}
++
+ 	parms->fd = fd;
+ 	parms->fe_flags = flags;
+ 	parms->dvb_prop[0].cmd = DTV_API_VERSION;
 -- 
-Regards,
+2.20.1
 
-Laurent Pinchart
