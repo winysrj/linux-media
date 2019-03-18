@@ -2,120 +2,118 @@ Return-Path: <SRS0=vX6K=RV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 677ACC10F00
-	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 16:40:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ABD9C43381
+	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 19:16:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 385C820854
-	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 16:40:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ncentric-com.20150623.gappssmtp.com header.i=@ncentric-com.20150623.gappssmtp.com header.b="oAD2jIYF"
+	by mail.kernel.org (Postfix) with ESMTP id 51BBA2133F
+	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 19:16:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727143AbfCRQkM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Mar 2019 12:40:12 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:42540 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726910AbfCRQkM (ORCPT
+        id S1727597AbfCRTQ4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Mar 2019 15:16:56 -0400
+Received: from retiisi.org.uk ([95.216.213.190]:55200 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727559AbfCRTQ4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Mar 2019 12:40:12 -0400
-Received: by mail-ed1-f66.google.com with SMTP id j89so14093454edb.9
-        for <linux-media@vger.kernel.org>; Mon, 18 Mar 2019 09:40:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ncentric-com.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id;
-        bh=XbpQuRzoHfQWllFRUJGEeldvpGNt+SBQiUSZFiTIsKs=;
-        b=oAD2jIYFEPZebAHCeXs/B+zYh6RlM4dGkGlWvUBokoWXgX/XLX4kPU4bvIVfIJKNw7
-         2Tdp8vBSHCa+mnbewHCxP1hBSkkLp/3Wm6347vHhL46vryFdDJMVI5jaSmzRkq4EQq40
-         KlZm8I18fOy5kyc+vzOn80jjJGsR/O42HXCV8HEAWRqKmri3iFg65AQFJ1juMxSjRCxX
-         Lb2LwEeiLzfz0ix2oZGFdhdBI9hZ6L2NkJ8J2erK9sPnICrfoJ/mHcxmpCWSCGjK5hUm
-         TqF4E6K3dfW+QUVjGZhiAYL5gbS9SXln9bLZsIFKj094K1XJVI0QUfy5+2nfqknGi3cA
-         kChg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=XbpQuRzoHfQWllFRUJGEeldvpGNt+SBQiUSZFiTIsKs=;
-        b=nYP1XeztFKF724xCqVfI4Byja6ciOCUqBr/N3Jc7ZBUn1G5P28Q7N+cRogw1C/0J/S
-         XL4J7QIPGBDGu45bTokWZ9UNl2TGOlFh4+nFfS8EyZgg+cxyl/qStk1PtpjDcb2yGUUT
-         /SsP5VHthVNPuNfW0Kk4q2MRp/xkKI6oIyzrs6rS3c+yK/TDDqd7c6VCkLuoekqh92tk
-         dVn8cm+amwzZ0ez7UhajqSYuuAPWD90Nt+X+CfD3N5eS7yx9m+hqZ87AZzmxupEA/EEJ
-         tkD3Xj/TC57MYVEF1nt6PKgOgmxdzJ0AECUhvvDZdsppJL55qfFUnyuZjldGFYpnXnFI
-         /a2g==
-X-Gm-Message-State: APjAAAXzPNjdQ1qxpo+P0pC4NEv1/h6NhcTLQPYOXBC+kBd8koWntU3L
-        4dTTnUnZJ/fGoZ/Yevd+8I2c3JdLCroJDWgj
-X-Google-Smtp-Source: APXvYqyeNlBOi3jnxlkw4OVowRp/Mg7VX4XzJGxzT1mI+zlbTO1pTEap8IFwEibiiTqrWSWrsljrvg==
-X-Received: by 2002:a17:906:5595:: with SMTP id y21mr11489592ejp.209.1552927210159;
-        Mon, 18 Mar 2019 09:40:10 -0700 (PDT)
-Received: from kvdp-BRIX.cmb.citymesh.com (d515300d8.static.telenet.be. [81.83.0.216])
-        by smtp.gmail.com with ESMTPSA id g22sm1861828eds.77.2019.03.18.09.40.09
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 18 Mar 2019 09:40:09 -0700 (PDT)
-From:   Koen Vandeputte <koen.vandeputte@ncentric.com>
+        Mon, 18 Mar 2019 15:16:56 -0400
+Received: from lanttu.localdomain (lanttu.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::c1:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 25669634C7F;
+        Mon, 18 Mar 2019 21:15:03 +0200 (EET)
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-media@vger.kernel.org
-Cc:     Koen Vandeputte <koen.vandeputte@ncentric.com>,
-        Akinobu Mita <akinobu.mita@gmail.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robin Leblon <robin.leblon@ncentric.com>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tim Harvey <tharvey@gateworks.com>,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: [PATCH] media: i2c: tda1997x: select V4L2_FWNODE
-Date:   Mon, 18 Mar 2019 17:40:05 +0100
-Message-Id: <20190318164005.4070-1-koen.vandeputte@ncentric.com>
-X-Mailer: git-send-email 2.17.1
+Cc:     niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com
+Subject: [RFC 2/8] v4l2-async: Add v4l2_async_notifier_add_fwnode_remote_subdev
+Date:   Mon, 18 Mar 2019 21:16:47 +0200
+Message-Id: <20190318191653.7197-3-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190318191653.7197-1-sakari.ailus@linux.intel.com>
+References: <20190318191653.7197-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Building tda1997x fails now unless V4L2_FWNODE is selected:
+v4l2_async_notifier_add_fwnode_remote_subdev is a convenience function for
+parsing information on V4L2 fwnode subdevs.
 
-drivers/media/i2c/tda1997x.o: in function `tda1997x_parse_dt'
-undefined reference to `v4l2_fwnode_endpoint_parse'
-
-While at it, also sort the selections alphabetically
-
-Fixes: 9ac0038db9a7 ("media: i2c: Add TDA1997x HDMI receiver driver")
-Signed-off-by: Koen Vandeputte <koen.vandeputte@ncentric.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Bingbu Cao <bingbu.cao@intel.com>
-Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Robin Leblon <robin.leblon@ncentric.com>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org # v4.17+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/Kconfig | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 23 +++++++++++++++++++++++
+ include/media/v4l2-async.h           | 24 ++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 4c936e129500..8b296ae7d68c 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -60,8 +60,9 @@ config VIDEO_TDA1997X
- 	tristate "NXP TDA1997x HDMI receiver"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	depends on SND_SOC
--	select SND_PCM
- 	select HDMI
-+	select SND_PCM
-+	select V4L2_FWNODE
- 	---help---
- 	  V4L2 subdevice driver for the NXP TDA1997x HDMI receivers.
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 4cb49d5f8c03..9c1937d6ce17 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -608,6 +608,29 @@ v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_fwnode_subdev);
  
++int
++v4l2_async_notifier_add_fwnode_remote_subdev(struct v4l2_async_notifier *notif,
++					     struct fwnode_handle *endpoint,
++					     struct v4l2_async_subdev *asd)
++{
++	struct fwnode_handle *remote_ep;
++	int ret;
++
++	remote_ep = fwnode_graph_get_remote_endpoint(endpoint);
++	if (!remote_ep)
++		return -ENOTCONN;
++
++	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++	asd->match.fwnode = remote_ep;
++
++	ret = v4l2_async_notifier_add_subdev(notif, asd);
++	if (ret)
++		fwnode_handle_put(remote_ep);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_fwnode_remote_subdev);
++
+ struct v4l2_async_subdev *
+ v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
+ 				   int adapter_id, unsigned short address,
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 1497bda66c3b..215e73eddfc3 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -184,6 +184,30 @@ v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
+ 				      unsigned int asd_struct_size);
+ 
+ /**
++ * v4l2_async_notifier_add_fwnode_remote_subdev - Allocate and add a fwnode
++ *						  remote async subdev to the
++ *						  notifier's master asd_list.
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ * @endpoint: local endpoint the remote sub-device to be matched
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ *
++ * Allocate a fwnode-matched asd of size asd_struct_size, and add it
++ * to the notifiers @asd_list.
++ *
++ * This is just like @v4l2_async_notifier_add_fwnode_subdev, but with the
++ * exception that the fwnode refers to a local endpoint, not the remote one.
++ */
++int
++v4l2_async_notifier_add_fwnode_remote_subdev(struct v4l2_async_notifier *notif,
++					     struct fwnode_handle *endpoint,
++					     struct v4l2_async_subdev *asd);
++
++/**
+  * v4l2_async_notifier_add_i2c_subdev - Allocate and add an i2c async
+  *				subdev to the notifier's master asd_list.
+  *
 -- 
-2.17.1
+2.11.0
 
