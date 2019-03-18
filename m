@@ -2,149 +2,131 @@ Return-Path: <SRS0=vX6K=RV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17A21C43381
-	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 04:48:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E3F6C4360F
+	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 08:23:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D9F042085A
-	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 04:48:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3224020811
+	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 08:23:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726124AbfCREs0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Mar 2019 00:48:26 -0400
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:44665 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725967AbfCREs0 (ORCPT
+        id S1726678AbfCRIXU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Mar 2019 04:23:20 -0400
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:48109 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726449AbfCRIXU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Mar 2019 00:48:26 -0400
-Received: from localhost ([IPv6:2001:983:e9a7:1:84e2:714e:8ed8:200f])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id 5kCEhNki3eXb85kCFhzT2a; Mon, 18 Mar 2019 05:48:24 +0100
-Message-ID: <f2b9e00f8b11b96082f753ebeca4855e@smtp-cloud9.xs4all.net>
-Date:   Mon, 18 Mar 2019 05:48:22 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-X-CMAE-Envelope: MS4wfP2uKKA9RBqu01YdgCSWOl82//Kv1reBHsq1t9zBPYMzFuks91wLryW9jjzeVNIY3X7CISqFS4Kpqw8Um+6db0srIMrNVF7TYeElGpKygTWp3C5O4dk5
- MaqQsdl3b2u6tYpIvuDjSuf4gdgxAB5Ltej/63tGdtVfO0EbE8MH4ZYuUB4Nj/wFkMLOVIYj/UhWQl+ps1ds6kYVu/dMEGO6xAWsEfo77oV8BQS46MYWaP/t
+        Mon, 18 Mar 2019 04:23:20 -0400
+X-Originating-IP: 2.224.242.101
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id 523181C0004;
+        Mon, 18 Mar 2019 08:23:15 +0000 (UTC)
+Date:   Mon, 18 Mar 2019 09:23:53 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se,
+        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, dave.stevenson@raspberrypi.org
+Subject: Re: [RFC 1/5] v4l: subdev: Add MIPI CSI-2 PHY to frame desc
+Message-ID: <20190318082353.b4khazdi4l77aobr@uno.localdomain>
+References: <20190316154801.20460-1-jacopo+renesas@jmondi.org>
+ <20190316154801.20460-2-jacopo+renesas@jmondi.org>
+ <356313ee-2370-e5dc-4c19-2f2c900a410f@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="7mc3balm7kemphhl"
+Content-Disposition: inline
+In-Reply-To: <356313ee-2370-e5dc-4c19-2f2c900a410f@cogentembedded.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--7mc3balm7kemphhl
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-date:			Mon Mar 18 05:00:13 CET 2019
-media-tree git hash:	15d90a6ae98e6d2c68497b44a491cb9efbb98ab1
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	ebd890019ba7383b8b486d829f6683c8f49fdbda
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse version:		0.6.0
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+Hello,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.63-i686: OK
-linux-3.16.63-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.136-i686: OK
-linux-3.18.136-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.167-i686: OK
-linux-4.4.167-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.162-i686: OK
-linux-4.9.162-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.105-i686: OK
-linux-4.14.105-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.20-i686: OK
-linux-4.18.20-x86_64: OK
-linux-4.19.28-i686: OK
-linux-4.19.28-x86_64: OK
-linux-4.20.15-i686: OK
-linux-4.20.15-x86_64: OK
-linux-5.0.1-i686: OK
-linux-5.0.1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-virtme: OK: Final Summary: 1984, Succeeded: 1984, Failed: 0, Warnings: 15
-sparse: OK
-smatch: ERRORS
+On Sat, Mar 16, 2019 at 07:20:28PM +0300, Sergei Shtylyov wrote:
+> On 03/16/2019 06:47 PM, Jacopo Mondi wrote:
+>
+> > Add PHY-specific parameters to MIPI CSI-2 frame descriptor.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  include/media/v4l2-subdev.h | 42 +++++++++++++++++++++++++++++++------
+> >  1 file changed, 36 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 6311f670de3c..eca9633c83bf 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> [...]
+> > @@ -371,18 +393,26 @@ enum v4l2_mbus_frame_desc_type {
+> >  	V4L2_MBUS_FRAME_DESC_TYPE_PLATFORM,
+> >  	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
+> >  	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
+> > -	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
+> > +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2_DPHY,
+> > +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2_CPHY,
+> >  };
+> >
+> >  /**
+> >   * struct v4l2_mbus_frame_desc - media bus data frame description
+> > - * @type: type of the bus (enum v4l2_mbus_frame_desc_type)
+> > - * @entry: frame descriptors array
+> > - * @num_entries: number of entries in @entry array
+> > + * @type:		type of the bus (enum v4l2_mbus_frame_desc_type)
+> > + * @entry:		frame descriptors array
+> > + * @phy:		PHY specific parameters
+> > + * @phy.dphy:		MIPI D-PHY specific bus configurations
+> > + * @phy.cphy:		MIPI C-PHY specific bus configurations
+>
+>    The union members have csi2_ prefix in their names, no?
+>
 
-Detailed results are available here:
+Correct! Thanks Sergei for noticing this!
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> > + * @num_entries:	number of entries in @entry array
+> >   */
+> >  struct v4l2_mbus_frame_desc {
+> >  	enum v4l2_mbus_frame_desc_type type;
+> >  	struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
+> > +	union {
+> > +		struct v4l2_mbus_frame_desc_entry_csi2_dphy csi2_dphy;
+> > +		struct v4l2_mbus_frame_desc_entry_csi2_cphy csi2_cphy;
+> > +	} phy;
+> >  	unsigned short num_entries;
+> >  };
+> >
+>
 
-Detailed regression test results are available here:
+--7mc3balm7kemphhl
+Content-Type: application/pgp-signature; name="signature.asc"
 
-http://www.xs4all.nl/~hverkuil/logs/Monday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Monday-test-media-dmesg.log
+-----BEGIN PGP SIGNATURE-----
 
-Full logs are available here:
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlyPVZkACgkQcjQGjxah
+VjwZ2BAAqOAK2825qyic0rMzneY/hpKoWjYLrjthYtPuFTsqe+pFO5htcSe3oxkc
+AsFSvXs+wtG9e+mDy/BG7YSgke/6bMdZY1/mJIg3OMZfOHJNZ17mx93xLdlfXunI
+aQLAFCMMBfhLoCAEZ25P8ErZotl4VszE3irSFNcgNTzoVVoMi/9zthyXo6hDdLI9
+H0mFzhYoHYq13md2BFN1mnAy9YKWi06TNjPByzS5tUVSstx5UVii9sbbFSKzIPm0
+OqjX0LViEMjCv+v6E5Sb/pmmCPtC9p9KmZ6oBHM/5Ggb//YjbZySSKCpNPnPjn2D
+LhCMwaxUN4Hj2YOEJMfow15tNjraxJ6lSC0wv2t6iWiNgcgixma5yWYzChRnaIHz
+WFh7zh02QxO7rWti7mn1HuSluIwaGSqnWcqdwxzBob1hFHD2BulJBsu1E/HCCHog
+g4MUQlPL6PaMtljk1A/VCOncyvSM+qclpBxYJrQjWU4Q8TySSdbiC0la76rjgTI9
+9L7r2xRkJOhZl8t/dZcpxYrxVaekxWtHbBLQwRpfaJaNmwxbib4pJ02fMUpy/k04
+xS55hOi9uNgrkZwfxwU3ZP2mOz/3qFMDyan953+ENHJKC4QaPBjwwvhxoGDOyLVe
++Rq5cQTOGHjqUEHdBHMNTMcq6CYUDX17B9Sz1uyRcTSWhCi2yew=
+=W/Ed
+-----END PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--7mc3balm7kemphhl--
