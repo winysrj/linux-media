@@ -2,115 +2,102 @@ Return-Path: <SRS0=vX6K=RV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF34EC43381
-	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 10:01:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 022D1C4360F
+	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 14:31:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 878972070D
-	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 10:01:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C695F2085A
+	for <linux-media@archiver.kernel.org>; Mon, 18 Mar 2019 14:31:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="W2K/DQl+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727358AbfCRKBU convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 18 Mar 2019 06:01:20 -0400
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:6693 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727246AbfCRKBT (ORCPT
+        id S1727776AbfCRObe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 18 Mar 2019 10:31:34 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59210 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727757AbfCRObe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Mar 2019 06:01:19 -0400
-Received: from pps.filterd (m0046660.ppops.net [127.0.0.1])
-        by mx08-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x2I9ugkL028540;
-        Mon, 18 Mar 2019 11:01:05 +0100
-Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
-        by mx08-00178001.pphosted.com with ESMTP id 2r8q5b399x-1
-        (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT);
-        Mon, 18 Mar 2019 11:01:05 +0100
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id D8A5846;
-        Mon, 18 Mar 2019 10:01:04 +0000 (GMT)
-Received: from Webmail-eu.st.com (sfhdag5node1.st.com [10.75.127.13])
-        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 869F62A78;
-        Mon, 18 Mar 2019 10:01:04 +0000 (GMT)
-Received: from SFHDAG5NODE3.st.com (10.75.127.15) by SFHDAG5NODE1.st.com
- (10.75.127.13) with Microsoft SMTP Server (TLS) id 15.0.1347.2; Mon, 18 Mar
- 2019 11:01:04 +0100
-Received: from SFHDAG5NODE3.st.com ([fe80::7c09:5d6b:d2c7:5f47]) by
- SFHDAG5NODE3.st.com ([fe80::7c09:5d6b:d2c7:5f47%20]) with mapi id
- 15.00.1347.000; Mon, 18 Mar 2019 11:01:04 +0100
-From:   Mickael GUENE <mickael.guene@st.com>
-To:     Sakari Ailus <sakari.ailus@iki.fi>
-CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        "Wolfram Sang" <wsa@the-dreams.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Nicolas Ferre" <nicolas.ferre@microchip.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1 3/3] media: MAINTAINERS: add entry for
- STMicroelectronics MIPID02 media driver
-Thread-Topic: [PATCH v1 3/3] media: MAINTAINERS: add entry for
- STMicroelectronics MIPID02 media driver
-Thread-Index: AQHU2J88IeZOwXdC6EqO9OUXU8uOUKYOwcEAgAJfOoA=
-Date:   Mon, 18 Mar 2019 10:01:04 +0000
-Message-ID: <0b558809-07ec-5330-cb75-351b5abd3c66@st.com>
-References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
- <1552373045-134493-4-git-send-email-mickael.guene@st.com>
- <20190316214742.64wxxracq6giv3kk@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20190316214742.64wxxracq6giv3kk@valkosipuli.retiisi.org.uk>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.75.127.50]
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <EB86C05A335EBF4DA4960789D34DCCA7@st.com>
-Content-Transfer-Encoding: 8BIT
+        Mon, 18 Mar 2019 10:31:34 -0400
+Received: from pendragon.bb.dnainternet.fi (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0028F547;
+        Mon, 18 Mar 2019 15:31:32 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1552919493;
+        bh=K3r1wGRCh3bd5e+FnMgwCsu0+3QdMT9xH+Cykav81xo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=W2K/DQl+ObXzhuJ5CO1JgALT+l0ZUgGlCaPsrlxHP8Ll+u2GGvuRYR6PXrBXYN27l
+         Ql3PMjTk/EfX8k8XC5qKYoDJgfhmq+d0QXDxWm0sD/EfUUpLiha7omv/wm5gUnz/6a
+         tLc/frD8fnesUowjBGcHH/32Kdb7T9KqGO0+STCE=
+From:   Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To:     dri-devel@lists.freedesktop.org
+Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: [PATCH v7 01/18] Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
+Date:   Mon, 18 Mar 2019 16:31:04 +0200
+Message-Id: <20190318143121.29561-2-laurent.pinchart+renesas@ideasonboard.com>
+X-Mailer: git-send-email 2.19.2
+In-Reply-To: <20190318143121.29561-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20190318143121.29561-1-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-03-18_07:,,
- signatures=0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Sakari,
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-On 3/16/19 22:47, Sakari Ailus wrote:
-> On Tue, Mar 12, 2019 at 07:44:05AM +0100, Mickael Guene wrote:
->> Add maintainer entry for the STMicroelectronics MIPID02 CSI-2 to PARALLEL
->> bridge driver and dt-bindings.
->>
->> Signed-off-by: Mickael Guene <mickael.guene@st.com>
->> ---
->>
->>  MAINTAINERS | 8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 1c6ecae..4bd36b1 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -14424,6 +14424,14 @@ S:	Maintained
->>  F:	drivers/iio/imu/st_lsm6dsx/
->>  F:	Documentation/devicetree/bindings/iio/imu/st_lsm6dsx.txt
->>  
->> +ST MIPID02 CSI-2 TO PARALLEL BRIDGE DRIVER
->> +M:	Mickael Guene <mickael.guene@st.com>
->> +L:	linux-media@vger.kernel.org
->> +T:	git git://linuxtv.org/media_tree.git
->> +S:	Maintained
->> +F:	drivers/media/i2c/st-mipid02.c
->> +F:	Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> 
-> Could you squash this to the first patch, so that there are no files added
-> without them being listed here?
-> 
- Ok for the v2 I will squash it with dt-bindings documentation patch.
+This reverts commit 3299ba5c0b21 ("[media] v4l: vsp1: Supply frames to
+the DU continuously")
+
+The DU output mode does not rely on frames being supplied on the WPF as
+its pipeline is supplied from DRM. For the upcoming WPF writeback
+functionality, we will choose to enable writeback mode if there is an
+output buffer, or disable it (leaving the existing display pipeline
+unharmed) otherwise.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 7ceaf3222145..328d686189be 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -307,11 +307,6 @@ static int vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+  * This function completes the current buffer by filling its sequence number,
+  * time stamp and payload size, and hands it back to the videobuf core.
+  *
+- * When operating in DU output mode (deep pipeline to the DU through the LIF),
+- * the VSP1 needs to constantly supply frames to the display. In that case, if
+- * no other buffer is queued, reuse the one that has just been processed instead
+- * of handing it back to the videobuf core.
+- *
+  * Return the next queued buffer or NULL if the queue is empty.
+  */
+ static struct vsp1_vb2_buffer *
+@@ -333,12 +328,6 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ 	done = list_first_entry(&video->irqqueue,
+ 				struct vsp1_vb2_buffer, queue);
+ 
+-	/* In DU output mode reuse the buffer if the list is singular. */
+-	if (pipe->lif && list_is_singular(&video->irqqueue)) {
+-		spin_unlock_irqrestore(&video->irqlock, flags);
+-		return done;
+-	}
+-
+ 	list_del(&done->queue);
+ 
+ 	if (!list_empty(&video->irqqueue))
+-- 
+Regards,
+
+Laurent Pinchart
+
