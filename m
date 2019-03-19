@@ -6,24 +6,23 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E42AC10F03
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B10C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5876920828
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9021D2085A
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727849AbfCSV6N (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 17:58:13 -0400
-Received: from relay9-d.mail.gandi.net ([217.70.183.199]:38895 "EHLO
-        relay9-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727816AbfCSV6L (ORCPT
+        id S1727807AbfCSV6E (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 17:58:04 -0400
+Received: from relay11.mail.gandi.net ([217.70.178.231]:41921 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726969AbfCSV6B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 17:58:11 -0400
-X-Originating-IP: 90.89.68.76
+        Tue, 19 Mar 2019 17:58:01 -0400
 Received: from localhost (lfbn-1-10718-76.w90-89.abo.wanadoo.fr [90.89.68.76])
         (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay9-d.mail.gandi.net (Postfix) with ESMTPSA id 0324CFF80D;
-        Tue, 19 Mar 2019 21:58:07 +0000 (UTC)
+        by relay11.mail.gandi.net (Postfix) with ESMTPSA id 86C67100005;
+        Tue, 19 Mar 2019 21:57:57 +0000 (UTC)
 From:   Maxime Ripard <maxime.ripard@bootlin.com>
 To:     Daniel Vetter <daniel.vetter@intel.com>,
         David Airlie <airlied@linux.ie>,
@@ -38,9 +37,9 @@ Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: [RFC PATCH 15/20] drm/rockchip: Convert to generic image format library
-Date:   Tue, 19 Mar 2019 22:57:20 +0100
-Message-Id: <b6889e961736d332f0b47fae714805d59dca9912.1553032382.git-series.maxime.ripard@bootlin.com>
+Subject: [RFC PATCH 11/20] drm/i915: Convert to generic image format library
+Date:   Tue, 19 Mar 2019 22:57:16 +0100
+Message-Id: <37ad4786835372353c4479065e0f17f95e2d6953.1553032382.git-series.maxime.ripard@bootlin.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
 References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
@@ -56,29 +55,46 @@ use it so that we can deprecate the old DRM one.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/gpu/drm/rockchip/rockchip_drm_vop.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/i915/intel_display.c | 4 ++--
+ drivers/gpu/drm/i915/intel_sprite.c  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-index 88c3902057f3..8f4cfadfd6cd 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-@@ -29,6 +29,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/clk.h>
-+#include <linux/image-formats.h>
- #include <linux/iopoll.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-@@ -317,7 +318,7 @@ static void scl_vop_cal_scl_fac(struct vop *vop, const struct vop_win_data *win,
- 			     uint32_t src_w, uint32_t src_h, uint32_t dst_w,
- 			     uint32_t dst_h, uint32_t pixel_format)
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 86febe2ee510..37c7f6bbf650 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -7997,7 +7997,7 @@ i9xx_get_initial_plane_config(struct intel_crtc *crtc,
+ 
+ 	pixel_format = val & DISPPLANE_PIXFORMAT_MASK;
+ 	fourcc = i9xx_format_to_fourcc(pixel_format);
+-	fb->format = drm_format_info(fourcc);
++	fb->format = image_format_drm_lookup(fourcc);
+ 
+ 	if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv)) {
+ 		offset = I915_READ(DSPOFFSET(i9xx_plane));
+@@ -9078,7 +9078,7 @@ skylake_get_initial_plane_config(struct intel_crtc *crtc,
+ 
+ 	fourcc = skl_format_to_fourcc(pixel_format,
+ 				      val & PLANE_CTL_ORDER_RGBX, alpha);
+-	fb->format = drm_format_info(fourcc);
++	fb->format = image_format_drm_lookup(fourcc);
+ 
+ 	tiling = val & PLANE_CTL_TILED_MASK;
+ 	switch (tiling) {
+diff --git a/drivers/gpu/drm/i915/intel_sprite.c b/drivers/gpu/drm/i915/intel_sprite.c
+index ee0e99b13532..aaae2bd4ed05 100644
+--- a/drivers/gpu/drm/i915/intel_sprite.c
++++ b/drivers/gpu/drm/i915/intel_sprite.c
+@@ -297,8 +297,8 @@ skl_plane_max_stride(struct intel_plane *plane,
+ 		     u32 pixel_format, u64 modifier,
+ 		     unsigned int rotation)
  {
 -	const struct drm_format_info *info = drm_format_info(pixel_format);
+-	int cpp = drm_format_plane_cpp(info, 0);
 +	const struct image_format_info *info = image_format_drm_lookup(pixel_format);
- 	uint16_t yrgb_hor_scl_mode, yrgb_ver_scl_mode;
- 	uint16_t cbcr_hor_scl_mode = SCALE_NONE;
- 	uint16_t cbcr_ver_scl_mode = SCALE_NONE;
++	int cpp = image_format_plane_cpp(info, 0);
+ 
+ 	/*
+ 	 * "The stride in bytes must not exceed the
 -- 
 git-series 0.9.1
