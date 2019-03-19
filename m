@@ -2,121 +2,116 @@ Return-Path: <SRS0=DvKj=RW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FEF9C10F03
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 13:38:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CC7BC43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 14:52:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 71F0D2133D
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 13:38:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W1LaOvWI"
+	by mail.kernel.org (Postfix) with ESMTP id 690732175B
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 14:52:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727386AbfCSNiM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 09:38:12 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:46661 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726703AbfCSNiM (ORCPT
+        id S1727145AbfCSOwu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 10:52:50 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37448 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726466AbfCSOwu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 09:38:12 -0400
-Received: by mail-pg1-f193.google.com with SMTP id a22so13839404pgg.13
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2019 06:38:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=WLET6+1d+gAHmLTIbxdxe6xq83qyuPNTlBFndOpjzQ0=;
-        b=W1LaOvWIluaU+iuXVMw8mH+wl20cMkakXR8eAkoL/OM+Y+Cgs4mHFnZqt17pE9pR6k
-         KMgT58nEdsD7PI7pGYshMQIdpSjOPKwzhSaRPm6W9D19QDlblRNB7x2DI0Ldy+VaQCf2
-         qnbSMIPsozGcb9pjS3ixLcfCT4UyDItxhxwBpkl0RLB5XAfi5fHMTDMm7nH3cLJ5Keo6
-         eiYoxYMdQWbGaATwQIdFdelgVRCjRx30S/4Tdhf0TtJ6tyy/EkR5j0ixsb22jsXwsV8N
-         6X0cGdX+si1UUxR88FcV9REmArkKX7RKC+J6/RuSk18iVIPqpHlJmUNCBl0sbDYOeWl6
-         ubZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=WLET6+1d+gAHmLTIbxdxe6xq83qyuPNTlBFndOpjzQ0=;
-        b=j0fpourOdRyPit4MftU4JxpyzXRFzClmdwENYStCloDmGHhrhz5XpsvrIvTf8rhFpT
-         Yw9d+ipUbvx1I2iDMEbzZ6woicYvOIh1A+hkiUQamNPJDmtwUhT8gJLHDlfilYDaBN8G
-         5hB+nH3fTKaw6DQHOMlbHVkuc/LqqybZeqZBikHBvG6XRvij003TQKQ/RwRWe7mUQYqf
-         wBUWYbLycNKKUFmg/XJGu0J6rpbcCkVgPIuKosTaNydUE+9W1I4J8R5wdiKdW/gR+ooR
-         4saecS/dXr1uyNS3dHhJ4eDqog/rDYf8pvezPcKXkZ3T0WgdXnDHnqlJEfQnsjPV1ngB
-         tyrw==
-X-Gm-Message-State: APjAAAUREC4jV5ELmLCE7ITO8wG+TekuDSAQw2hLGi35Fz8KmDKd3mO4
-        J7NjZx/0o85JBxO9Zb2shtZlLnmJVKAkSKXaCZ8=
-X-Google-Smtp-Source: APXvYqwUNqBy6avKpP93ML2SXgd8nK/xuJTiXDaBjr3GO0J9MOSjVLkKFEv8Otz3Lsc5uowluA25QrFvdz3IPip2byo=
-X-Received: by 2002:a63:5c59:: with SMTP id n25mr12990334pgm.432.1553002691406;
- Tue, 19 Mar 2019 06:38:11 -0700 (PDT)
+        Tue, 19 Mar 2019 10:52:50 -0400
+Received: from localhost.localdomain (unknown [IPv6:2a01:e0a:2c:6930:5cf4:84a1:2763:fe0d])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: bbrezillon)
+        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id BCAAC2808D0;
+        Tue, 19 Mar 2019 14:52:48 +0000 (GMT)
+From:   Boris Brezillon <boris.brezillon@collabora.com>
+To:     Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Cc:     Tomasz Figa <tfiga@chromium.org>,
+        Hirokazu Honda <hiroh@chromium.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Boris Brezillon <boris.brezillon@collabora.com>
+Subject: [RFC PATCH 0/3] media: v4l2: Add extended fmt and buffer ioctls
+Date:   Tue, 19 Mar 2019 15:52:40 +0100
+Message-Id: <20190319145243.25047-1-boris.brezillon@collabora.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <1552318563-6685-1-git-send-email-akinobu.mita@gmail.com>
- <559a9073a3d42de6737f75a1fb6a6e53451a6a28.camel@v3.sk> <20190313210535.fl54xfjhui7dl7bb@kekkonen.localdomain>
- <1900bcf1-a5b7-b4b3-d275-03117e6c87ef@microchip.com>
-In-Reply-To: <1900bcf1-a5b7-b4b3-d275-03117e6c87ef@microchip.com>
-From:   Akinobu Mita <akinobu.mita@gmail.com>
-Date:   Tue, 19 Mar 2019 22:38:00 +0900
-Message-ID: <CAC5umyhjXbP9cUnGHew6wsHMDadUKfFo0MGnMWS6D0f=QsdPGg@mail.gmail.com>
-Subject: Re: [PATCH 0/2] media: ov7670: fix regressions caused by "hook
- s_power onto v4l2 core"
-To:     Eugen Hristev <Eugen.Hristev@microchip.com>
-Cc:     Lubomir Rintel <lkundrak@v3.sk>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-2019=E5=B9=B43=E6=9C=8819=E6=97=A5(=E7=81=AB) 18:14 <Eugen.Hristev@microchi=
-p.com>:
->
->
->
-> On 13.03.2019 23:05, Sakari Ailus wrote:
->
-> > On Tue, Mar 12, 2019 at 06:16:08PM +0100, Lubomir Rintel wrote:
-> >> On Tue, 2019-03-12 at 00:36 +0900, Akinobu Mita wrote:
-> >>> This patchset fixes the problems introduced by recent change to ov767=
-0.
-> >>>
-> >>> Akinobu Mita (2):
-> >>>    media: ov7670: restore default settings after power-up
-> >>>    media: ov7670: don't access registers when the device is powered o=
-ff
-> >>>
-> >>>   drivers/media/i2c/ov7670.c | 32 +++++++++++++++++++++++++++-----
-> >>>   1 file changed, 27 insertions(+), 5 deletions(-)
-> >>>
-> >>> Cc: Lubomir Rintel <lkundrak@v3.sk>
-> >>> Cc: Jonathan Corbet <corbet@lwn.net>
-> >>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> >>
-> >> For the both patches in the set:
-> >>
-> >> Reviewed-by: Lubomir Rintel <lkundrak@v3.sk>
-> >> Tested-by: Lubomir Rintel <lkundrak@v3.sk>
-> >
-> > Thanks, guys!
-> >
->
-> Hi Akinobu,
->
-> I am having issues with this sensor, and your patches do not fix them
-> for me ( maybe they are not supposed to )
->
-> My issues are like this: once I set a format and start streaming, if I
-> stop streaming and reconfigure the format , for example YUYV after RAW,
-> or RGB565 after RAW and viceversa, the sensor looks to have completely
-> messed up settings: images obtained are very bad.
-> This did not happen for me with older kernel version (4.14 stable for
-> example).
-> I can help with testing patches if you need.
+Hello,
 
-I'd suggest identifying which commit introduced your problem.
+This RFC follows the discussion started by Hans [1] a few months back.
+It does not try to address all the problem reported in this thread but
+instead focuses on the FMT and BUF(S) ioctls.
+
+Note that my primary goal is to unify handling for multiplanar and
+singleplanar formats and extend things to support the "single dmabuf
+storing all pixel planes" issue.
+
+This is just preliminary work, and nothing has been tested yet (still
+patching the VB2/VIVID code to test everything), but it should give
+a good idea of what the new APIs could look like. I hope to get
+feedback early on so I can adjust the structs/hooks before going into
+heavy refactoring of the VB2 core (and drivers depending on the VB2
+helpers).
+
+One last thing, I'm new to the media/v4l2 subsystem, so I likely got a
+few things wrong.
+
+Regards,
+
+Boris
+
+[1]https://www.mail-archive.com/linux-media@vger.kernel.org/msg135729.html
+
+Boris Brezillon (2):
+  media: v4l2: Get rid of ->vidioc_enum_fmt_vid_{cap,out}_mplane
+  media: v4l2: Extend pixel formats to unify single/multi-planar
+    handling (and more)
+
+Hans Verkuil (1):
+  media: v4l2: Add extended buffer operations
+
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c      |   2 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c   |   4 +-
+ .../media/platform/exynos4-is/fimc-capture.c  |   2 +-
+ .../platform/exynos4-is/fimc-isp-video.c      |   2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c |   2 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c  |   4 +-
+ .../media/platform/mtk-jpeg/mtk_jpeg_core.c   |   4 +-
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  |   4 +-
+ .../platform/mtk-vcodec/mtk_vcodec_dec.c      |   4 +-
+ .../platform/mtk-vcodec/mtk_vcodec_enc.c      |   4 +-
+ .../media/platform/qcom/camss/camss-video.c   |   2 +-
+ drivers/media/platform/qcom/venus/vdec.c      |   4 +-
+ drivers/media/platform/qcom/venus/venc.c      |   4 +-
+ drivers/media/platform/rcar_fdp1.c            |   4 +-
+ drivers/media/platform/rcar_jpu.c             |   4 +-
+ drivers/media/platform/renesas-ceu.c          |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |   4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  |   4 +-
+ drivers/media/platform/ti-vpe/vpe.c           |   4 +-
+ drivers/media/platform/vicodec/vicodec-core.c |   2 -
+ drivers/media/platform/vivid/vivid-core.c     |   6 +-
+ .../media/platform/vivid/vivid-vid-common.c   |  20 -
+ .../media/platform/vivid/vivid-vid-common.h   |   2 -
+ drivers/media/v4l2-core/v4l2-common.c         | 281 ++++++
+ drivers/media/v4l2-core/v4l2-dev.c            |  32 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 831 +++++++++++++++---
+ drivers/staging/media/ipu3/ipu3-v4l2.c        |   4 +-
+ .../media/rockchip/vpu/rockchip_vpu_enc.c     |   4 +-
+ include/media/v4l2-common.h                   |  12 +
+ include/media/v4l2-ioctl.h                    |  65 +-
+ include/uapi/linux/videodev2.h                | 207 +++++
+ 31 files changed, 1332 insertions(+), 198 deletions(-)
+
+-- 
+2.20.1
+
