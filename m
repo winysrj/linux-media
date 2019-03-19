@@ -6,23 +6,24 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B10C43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C735C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9021D2085A
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D60EE2085A
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727807AbfCSV6E (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 17:58:04 -0400
-Received: from relay11.mail.gandi.net ([217.70.178.231]:41921 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726969AbfCSV6B (ORCPT
+        id S1727561AbfCSV7P (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 17:59:15 -0400
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:46373 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727766AbfCSV6E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 17:58:01 -0400
+        Tue, 19 Mar 2019 17:58:04 -0400
+X-Originating-IP: 90.89.68.76
 Received: from localhost (lfbn-1-10718-76.w90-89.abo.wanadoo.fr [90.89.68.76])
         (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay11.mail.gandi.net (Postfix) with ESMTPSA id 86C67100005;
-        Tue, 19 Mar 2019 21:57:57 +0000 (UTC)
+        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 5700B1BF207;
+        Tue, 19 Mar 2019 21:57:59 +0000 (UTC)
 From:   Maxime Ripard <maxime.ripard@bootlin.com>
 To:     Daniel Vetter <daniel.vetter@intel.com>,
         David Airlie <airlied@linux.ie>,
@@ -37,9 +38,9 @@ Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: [RFC PATCH 11/20] drm/i915: Convert to generic image format library
-Date:   Tue, 19 Mar 2019 22:57:16 +0100
-Message-Id: <37ad4786835372353c4479065e0f17f95e2d6953.1553032382.git-series.maxime.ripard@bootlin.com>
+Subject: [RFC PATCH 12/20] drm/ipuv3: Convert to generic image format library
+Date:   Tue, 19 Mar 2019 22:57:17 +0100
+Message-Id: <56da0cae4bd0477930b355a5ddc511a570a587ee.1553032382.git-series.maxime.ripard@bootlin.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
 References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
@@ -55,46 +56,51 @@ use it so that we can deprecate the old DRM one.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/gpu/drm/i915/intel_display.c | 4 ++--
- drivers/gpu/drm/i915/intel_sprite.c  | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpu/ipu-v3/ipu-pre.c | 3 ++-
+ drivers/gpu/ipu-v3/ipu-prg.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
-index 86febe2ee510..37c7f6bbf650 100644
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -7997,7 +7997,7 @@ i9xx_get_initial_plane_config(struct intel_crtc *crtc,
- 
- 	pixel_format = val & DISPPLANE_PIXFORMAT_MASK;
- 	fourcc = i9xx_format_to_fourcc(pixel_format);
--	fb->format = drm_format_info(fourcc);
-+	fb->format = image_format_drm_lookup(fourcc);
- 
- 	if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv)) {
- 		offset = I915_READ(DSPOFFSET(i9xx_plane));
-@@ -9078,7 +9078,7 @@ skylake_get_initial_plane_config(struct intel_crtc *crtc,
- 
- 	fourcc = skl_format_to_fourcc(pixel_format,
- 				      val & PLANE_CTL_ORDER_RGBX, alpha);
--	fb->format = drm_format_info(fourcc);
-+	fb->format = image_format_drm_lookup(fourcc);
- 
- 	tiling = val & PLANE_CTL_TILED_MASK;
- 	switch (tiling) {
-diff --git a/drivers/gpu/drm/i915/intel_sprite.c b/drivers/gpu/drm/i915/intel_sprite.c
-index ee0e99b13532..aaae2bd4ed05 100644
---- a/drivers/gpu/drm/i915/intel_sprite.c
-+++ b/drivers/gpu/drm/i915/intel_sprite.c
-@@ -297,8 +297,8 @@ skl_plane_max_stride(struct intel_plane *plane,
- 		     u32 pixel_format, u64 modifier,
- 		     unsigned int rotation)
+diff --git a/drivers/gpu/ipu-v3/ipu-pre.c b/drivers/gpu/ipu-v3/ipu-pre.c
+index 4a28f3fbb0a2..d561295abee0 100644
+--- a/drivers/gpu/ipu-v3/ipu-pre.c
++++ b/drivers/gpu/ipu-v3/ipu-pre.c
+@@ -15,6 +15,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/genalloc.h>
++#include <linux/image-formats.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
+@@ -174,7 +175,7 @@ void ipu_pre_configure(struct ipu_pre *pre, unsigned int width,
+ 		       unsigned int height, unsigned int stride, u32 format,
+ 		       uint64_t modifier, unsigned int bufaddr)
  {
--	const struct drm_format_info *info = drm_format_info(pixel_format);
--	int cpp = drm_format_plane_cpp(info, 0);
-+	const struct image_format_info *info = image_format_drm_lookup(pixel_format);
-+	int cpp = image_format_plane_cpp(info, 0);
+-	const struct drm_format_info *info = drm_format_info(format);
++	const struct image_format_info *info = image_format_drm_lookup(format);
+ 	u32 active_bpp = info->cpp[0] >> 1;
+ 	u32 val;
  
- 	/*
- 	 * "The stride in bytes must not exceed the
+diff --git a/drivers/gpu/ipu-v3/ipu-prg.c b/drivers/gpu/ipu-v3/ipu-prg.c
+index 38a3a9764e49..608a9213025d 100644
+--- a/drivers/gpu/ipu-v3/ipu-prg.c
++++ b/drivers/gpu/ipu-v3/ipu-prg.c
+@@ -14,6 +14,7 @@
+ #include <drm/drm_fourcc.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
++#include <linux/image-formats.h>
+ #include <linux/iopoll.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/mfd/syscon/imx6q-iomuxc-gpr.h>
+@@ -132,7 +133,7 @@ EXPORT_SYMBOL_GPL(ipu_prg_present);
+ bool ipu_prg_format_supported(struct ipu_soc *ipu, uint32_t format,
+ 			      uint64_t modifier)
+ {
+-	const struct drm_format_info *info = drm_format_info(format);
++	const struct image_format_info *info = image_format_drm_lookup(format);
+ 
+ 	if (info->num_planes != 1)
+ 		return false;
 -- 
 git-series 0.9.1
