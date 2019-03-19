@@ -2,126 +2,119 @@ Return-Path: <SRS0=DvKj=RW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B1A8C43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 18:07:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59552C43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 19:45:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E366920685
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 18:07:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="sQEU/Bip"
+	by mail.kernel.org (Postfix) with ESMTP id 268962085A
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 19:45:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1553024728;
+	bh=SwJolD53mn2IWkxoufrQ0QYbzwbYWF1l+M1NvnjD74o=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=fLjFdtZ5Gg+yJ8AjICPxqUxB6WC78Ba/9Wdeu/CU0rHEaRy2QOQZAKe06jFr3sFPr
+	 HOspFqK39AQDvAF281BCt9UISCoA9YvqtZOkWhxigSqXXiPjAHLDc/yEcMTcrLolnV
+	 nXg/drilMLJjHWHEXfZMmEzWU2wuyhbSzMJW1egs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727237AbfCSSHg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 14:07:36 -0400
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:43153 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727178AbfCSSHg (ORCPT
+        id S1726944AbfCSTp1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 15:45:27 -0400
+Received: from casper.infradead.org ([85.118.1.10]:45190 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726768AbfCSTp1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 14:07:36 -0400
-Received: by mail-qt1-f196.google.com with SMTP id v32so23218658qtc.10
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2019 11:07:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:cc:date:in-reply-to:references
-         :user-agent:mime-version;
-        bh=QcAy04BeDhbXVFKJncZn1jN/YUmZ8HVS2INZitEjTxY=;
-        b=sQEU/Bipx7Sg8T4yl0NaZCMzzQ9y3/USp/y0eowKSMk7lbxEQdDF2Q9PbUTssKQFLi
-         cFFAgopEBdflYkKrEh9JVnZMOIxpa6Ogrk2gavbm3seqPzuRq9YkTAyUnHG9FBQOwszn
-         IVyU2gEXXJW0Yt8rc3A7W/6VVCLuMAaGYzv7nH3tYuZFxa6mhr5lp94cepr755BVJ4GX
-         0USyyKqc7JEtGgGddXxzr0qAIikkrHse0sjiOHU3TzXMqgIWWa9LyPaHAyDoA6LA9oTh
-         HHM9stSHzx26n23oufVY/QRe9bTQokiaJn2unemoqm7TpVOIPM9xN4uMNuxNwMlcoHkh
-         AZ2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version;
-        bh=QcAy04BeDhbXVFKJncZn1jN/YUmZ8HVS2INZitEjTxY=;
-        b=ewP5cycz8A4U/Z3swVklYSwZeJtUcj5F3dMro3ZYSgCBEKtSLX/rQeVuKtEZ1SAdnH
-         nuRSUsgO1EyjAuaZWrVE3tG7W/zyqDYQzxDo14w0wU5KWkXUdHesfSD67FyyaPSvo7Q/
-         iFGBmxOopGscF1ewFoeV56gAU3JDOXHsLOtsl3P+4nx+88szGLZhmAOLKMa8GHVEY9Ty
-         vGWCDksIvhMpIwPO2Yon8+8kqsyhSrmY4B2ZMMVkt8z+6v4NuYyS1eGGTKCvwwkoDqbv
-         c34+liTWm+iQ3WNUupDYG5thQXDbeYaafXpmWfWIzHVvEkW9Jlt335Ul8/rRK6hi3+ix
-         Rk1w==
-X-Gm-Message-State: APjAAAUr8p0vowfaDhUO7rgpO35rk63abiIvv8IABGVYFEvVk/GpXZ9H
-        I7p9Xmz5xxReTUQ6I3wq3kaQjA==
-X-Google-Smtp-Source: APXvYqwLIu/tMxXbV35fyqdDMHZHcvw3jI9crqHeqanrM5cyw5AQGXzXrAxRiCohnKDTQreWRIExHQ==
-X-Received: by 2002:ac8:2df8:: with SMTP id q53mr3161621qta.132.1553018855348;
-        Tue, 19 Mar 2019 11:07:35 -0700 (PDT)
-Received: from tpx230-nicolas.collaboramtl (modemcable154.55-37-24.static.videotron.ca. [24.37.55.154])
-        by smtp.gmail.com with ESMTPSA id s76sm8587233qki.42.2019.03.19.11.07.33
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 19 Mar 2019 11:07:34 -0700 (PDT)
-Message-ID: <53351fc1d3be8a268171162bc68939d38953d13a.camel@ndufresne.ca>
-Subject: Re: [RFC PATCH 2/3] media: v4l2: Extend pixel formats to unify
- single/multi-planar handling (and more)
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Boris Brezillon <boris.brezillon@collabora.com>,
-        Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc:     Tomasz Figa <tfiga@chromium.org>,
-        Hirokazu Honda <hiroh@chromium.org>
-Date:   Tue, 19 Mar 2019 14:07:32 -0400
-In-Reply-To: <20190319145243.25047-3-boris.brezillon@collabora.com>
-References: <20190319145243.25047-1-boris.brezillon@collabora.com>
-         <20190319145243.25047-3-boris.brezillon@collabora.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-Dx8FD3Oc5gy58I5s9AWH"
-User-Agent: Evolution 3.30.5 (3.30.5-1.fc29) 
+        Tue, 19 Mar 2019 15:45:27 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=iLxXno5LFjdUhYCPy4rb2jumE2aeX6JskxmeuiZIt8o=; b=ln8tPrBVwTCeqXHHfaf0Ka3ct4
+        3KK9dkGg6JdJ42dirdd2Hk7f4+0Y2seP/L0jmtnjHQl1OwS7gSGOCjFf84HyEmMyZLIB+WQ8gQUbd
+        p2losTuPsjPgKaP2nTTfsstBHHxPGfCBEb9z2ehLDlCPJWnpISoEd7V0ObFSccqZIoCS8j/CbQ04Y
+        bhfQsQBJaPztxpucGFVcVefxyTbQQvsW1v83kQUoO3rruMjRabKyxRJJa4L2wuYBFSN6+wa+HLzD8
+        3htcNU5n9dcS+JPjULDdhZ7Fhx3ZJv4j45zJ0ZdFUiIR4CSsLAslDYDC5pGZtSOnTpAMi0GpdNFkJ
+        u9tSx2rA==;
+Received: from [179.95.24.146] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1h6Kfq-0000hx-6O; Tue, 19 Mar 2019 19:45:24 +0000
+Date:   Tue, 19 Mar 2019 16:45:16 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Gregor Jasny <gjasny@googlemail.com>
+Cc:     Sean Young <sean@mess.org>,
+        CHEMLA Samuel <chemla.samuel@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [Bug report] dvbv5-zap crash dvb-tool ARMHF builds
+Message-ID: <20190319164507.7f95af89@coco.lan>
+In-Reply-To: <20190317065242.137cb095@coco.lan>
+References: <f4b69417-06c3-f9ab-2973-ae23d76088b8@gmail.com>
+        <29bad771-843c-1dee-906c-6e9475aed7d8@gmail.com>
+        <d291e164-993f-232a-f01b-0f8c17087004@googlemail.com>
+        <20190315223425.hiq3qcjhjnirsizh@gofer.mess.org>
+        <20190317065242.137cb095@coco.lan>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Gregor,
 
---=-Dx8FD3Oc5gy58I5s9AWH
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Samuel reported in priv that the issues he had with user after free were
+solved by the patchsets merged at 1.12 and 1.16 stable branches.
 
-Le mardi 19 mars 2019 =C3=A0 15:52 +0100, Boris Brezillon a =C3=A9crit :
-> +/**
-> + * struct v4l2_plane_ext_pix_format - additional, per-plane format defin=
-ition
-> + * @modifier:          modifier applied to the format (used for tiled fo=
-rmats
-> + *                     and other kind of HW-specific formats, like compr=
-essed
-> + *                     formats)
+Could you please generate a new staging release for them?
 
-I have never seen HW that would allow per-plane modifiers on the DRM
-side, and I believe the newer API (enumeration) ignores this per-plane
-idea. Would be nice to investigate/verify this and avoid doing the same
-mistake.
+Thanks!
+Mauro
 
-> + * @sizeimage:         maximum size in bytes required for data, for whic=
-h
-> + *                     this plane will be used
-> + * @bytesperline:      distance in bytes between the leftmost pixels in =
-two
-> + *                     adjacent lines
-> + */
-> +struct v4l2_plane_ext_pix_format {
-> +       __u64 modifier;
-> +       __u32 sizeimage;
-> +       __u32 bytesperline;
-> +};
+Em Sun, 17 Mar 2019 06:52:42 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
---=-Dx8FD3Oc5gy58I5s9AWH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> Em Fri, 15 Mar 2019 22:34:25 +0000
+> Sean Young <sean@mess.org> escreveu:
+> 
+> > Hi,
+> > 
+> > On Tue, Mar 12, 2019 at 04:07:23PM +0100, Gregor Jasny wrote:  
+> > > Hello Mauro,
+> > > 
+> > > below you find a bug report about an use-after-free in dvbv5-zap.
+> > > 
+> > > On 12.03.19 13:37, CHEMLA Samuel wrote:    
+> > > > please find a bug report that seems to concern ARMHF builds of dvbv5-zap
+> > > > (dvb-tool package) : https://bugs.launchpad.net/raspbian/+bug/1819650
+> > > > I filed it against raspbian because I thought it was a raspbian problem,
+> > > > but don't think they re-build their own package, but use debian ones
+> > > > instead...    
+> > >     
+> > 
+> > So I can reproduce the issue with v4l-utils 1.12.3 but not with current
+> > v4l-utils (or dvbv5-zap). It looks exactly like the issue fixed in
+> > commit 6e21f6f34c1d7c3a7a059062e1ddd9705c984e2c (but I did not cherry-pick
+> > and test that on top of 1.12.3 to test that theory).  
+> 
+> I added it to stable/1.12 and another patch fixing the initialization of 
+> the parameters struct, with Samuel reported to fix the issue upstream
+> (He pinged me in priv too, and I'm helping him to track it).
+> 
+> Samuel,
+> 
+> Could you please check if the 1.12 stable branch is OK now?
+> 
+> Regards,
+> Mauro
+> Thanks,
+> Mauro
 
------BEGIN PGP SIGNATURE-----
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCXJEv5AAKCRBxUwItrAao
-HJi6AJ9hVXdR/7kG605kVMyiGIWL1rY+wwCeIpzj2Q6olyAd817Zk+0gnjYVjhs=
-=L2hK
------END PGP SIGNATURE-----
 
---=-Dx8FD3Oc5gy58I5s9AWH--
-
+Thanks,
+Mauro
