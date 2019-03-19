@@ -3,26 +3,27 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A70C43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 15:56:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7120DC4360F
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 15:56:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FD642133D
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 15:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B1E02085A
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 15:56:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727895AbfCSP4A (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 11:56:00 -0400
-Received: from relay11.mail.gandi.net ([217.70.178.231]:38453 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727054AbfCSPz7 (ORCPT
+        id S1727956AbfCSP4K (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 11:56:10 -0400
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:49515 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727487AbfCSP4K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 11:55:59 -0400
+        Tue, 19 Mar 2019 11:56:10 -0400
+X-Originating-IP: 90.88.33.153
 Received: from localhost (aaubervilliers-681-1-92-153.w90-88.abo.wanadoo.fr [90.88.33.153])
         (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay11.mail.gandi.net (Postfix) with ESMTPSA id F2D9C100017;
-        Tue, 19 Mar 2019 15:55:54 +0000 (UTC)
+        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 2D59B1BF208;
+        Tue, 19 Mar 2019 15:56:06 +0000 (UTC)
 From:   Maxime Ripard <maxime.ripard@bootlin.com>
 To:     Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
@@ -35,9 +36,9 @@ Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Rob Herring <robh+dt@kernel.org>,
         Frank Rowand <frowand.list@gmail.com>,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v4 1/5] dt-bindings: media: Add Allwinner A10 CSI binding
-Date:   Tue, 19 Mar 2019 16:55:44 +0100
-Message-Id: <8b1291b572695e4baa67c144dd6deee0563b7586.1553010938.git-series.maxime.ripard@bootlin.com>
+Subject: [PATCH v4 5/5] DO NOT MERGE: ARM: dts: bananapi: Add Camera support
+Date:   Tue, 19 Mar 2019 16:55:48 +0100
+Message-Id: <63bd0ff34f679a88e57fed01b0caa41d18b9ea21.1553010938.git-series.maxime.ripard@bootlin.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.2aba8cbd95630d87f927465cc2beb881936c83d9.1553010938.git-series.maxime.ripard@bootlin.com>
 References: <cover.2aba8cbd95630d87f927465cc2beb881936c83d9.1553010938.git-series.maxime.ripard@bootlin.com>
@@ -48,117 +49,140 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The Allwinner A10 CMOS Sensor Interface is a camera capture interface also
-used in later (A10s, A13, A20, R8 and GR8) SoCs.
-
-On some SoCs, like the A10, there's multiple instances of that controller,
-with one instance supporting more channels and having an ISP.
-
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml | 94 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 94 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
+ arch/arm/boot/dts/sun7i-a20-bananapi.dts | 91 +++++++++++++++++++++++++-
+ 1 file changed, 91 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
-new file mode 100644
-index 000000000000..97c9fc3b5050
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-csi.yaml
-@@ -0,0 +1,94 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/arm/allwinner,sun4i-a10-csi.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/arch/arm/boot/dts/sun7i-a20-bananapi.dts b/arch/arm/boot/dts/sun7i-a20-bananapi.dts
+index 81bc85d398c1..33f1b40ee3f2 100644
+--- a/arch/arm/boot/dts/sun7i-a20-bananapi.dts
++++ b/arch/arm/boot/dts/sun7i-a20-bananapi.dts
+@@ -54,6 +54,9 @@
+ 	compatible = "lemaker,bananapi", "allwinner,sun7i-a20";
+ 
+ 	aliases {
++		i2c0 = &i2c0;
++		i2c1 = &i2c1;
++		i2c2 = &i2c2;
+ 		serial0 = &uart0;
+ 		serial1 = &uart3;
+ 		serial2 = &uart7;
+@@ -63,6 +66,41 @@
+ 		stdout-path = "serial0:115200n8";
+ 	};
+ 
++	reg_cam: cam {
++		compatible = "regulator-fixed";
++		regulator-name = "cam";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_vcc5v0>;
++		gpio = <&pio 7 16 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++		regulator-always-on;
++	};
 +
-+title: Allwinner A10 CMOS Sensor Interface (CSI) Device Tree Bindings
++        reg_cam_avdd: cam-avdd {
++                compatible = "regulator-fixed";
++                regulator-name = "cam500b-avdd";
++                regulator-min-microvolt = <2800000>;
++                regulator-max-microvolt = <2800000>;
++                vin-supply = <&reg_cam>;
++        };
 +
-+maintainers:
-+  - Chen-Yu Tsai <wens@csie.org>
-+  - Maxime Ripard <maxime.ripard@bootlin.com>
++        reg_cam_dovdd: cam-dovdd {
++                compatible = "regulator-fixed";
++                regulator-name = "cam500b-dovdd";
++                regulator-min-microvolt = <1800000>;
++                regulator-max-microvolt = <1800000>;
++                vin-supply = <&reg_cam>;
++        };
 +
-+description: |-
-+  The Allwinner A10 and later has a CMOS Sensor Interface to retrieve
-+  frames from a parallel or BT656 sensor.
++        reg_cam_dvdd: cam-dvdd {
++                compatible = "regulator-fixed";
++                regulator-name = "cam500b-dvdd";
++                regulator-min-microvolt = <1500000>;
++                regulator-max-microvolt = <1500000>;
++                vin-supply = <&reg_cam>;
++        };
 +
+ 	hdmi-connector {
+ 		compatible = "hdmi-connector";
+ 		type = "a";
+@@ -116,6 +154,23 @@
+ 		>;
+ };
+ 
++&csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&csi0_pins_a>;
++	status = "okay";
 +
-+properties:
-+  compatible:
-+    oneOf:
-+      - items:
-+          - enum:
-+              - allwinner,sun7i-a20-csi0
-+          - const: allwinner,sun4i-a10-csi0
++	port {
++		csi_from_ov5640: endpoint {
++                        remote-endpoint = <&ov5640_to_csi>;
++                        bus-width = <8>;
++                        hsync-active = <1>; /* Active high */
++                        vsync-active = <0>; /* Active low */
++                        data-active = <1>;  /* Active high */
++                        pclk-sample = <1>;  /* Rising */
++                };
++	};
++};
 +
-+      - items:
-+          - const: allwinner,sun4i-a10-csi0
+ &de {
+ 	status = "okay";
+ };
+@@ -161,6 +216,36 @@
+ 	};
+ };
+ 
++&i2c1 {
++	status = "okay";
 +
-+  reg:
-+    maxItems: 1
++	camera: camera@21 {
++		compatible = "ovti,ov5640";
++		reg = <0x21>;
++                clocks = <&ccu CLK_CSI0>;
++                clock-names = "xclk";
++		assigned-clocks = <&ccu CLK_CSI0>;
++		assigned-clock-rates = <24000000>;
 +
-+  interrupts:
-+    maxItems: 1
++                reset-gpios = <&pio 7 14 GPIO_ACTIVE_LOW>;
++                powerdown-gpios = <&pio 7 19 GPIO_ACTIVE_HIGH>;
++                AVDD-supply = <&reg_cam_avdd>;
++                DOVDD-supply = <&reg_cam_dovdd>;
++                DVDD-supply = <&reg_cam_dvdd>;
 +
-+  clocks:
-+    items:
-+      - description: The CSI interface clock
-+      - description: The CSI module clock
-+      - description: The CSI ISP clock
-+      - description: The CSI DRAM clock
++                port {
++                        ov5640_to_csi: endpoint {
++                                remote-endpoint = <&csi_from_ov5640>;
++                                bus-width = <8>;
++                                hsync-active = <1>; /* Active high */
++                                vsync-active = <0>; /* Active low */
++                                data-active = <1>;  /* Active high */
++                                pclk-sample = <1>;  /* Rising */
++                        };
++                };
++	};
++};
 +
-+  clock-names:
-+    items:
-+      - const: bus
-+      - const: mod
-+      - const: isp
-+      - const: ram
+ &i2c2 {
+ 	status = "okay";
+ };
+@@ -247,6 +332,12 @@
+ 		"IO-6", "IO-3", "IO-2", "IO-0", "", "", "", "",
+ 		"", "", "", "", "", "", "", "";
+ 
++	csi0_pins_a: csi_pins_a@0 {
++		pins = "PE0", "PE1", "PE2", "PE3", "PE4", "PE5",
++		       "PE6", "PE7", "PE8", "PE9", "PE10", "PE11";
++		function = "csi0";
++	};
 +
-+  resets:
-+    description: The reset line driver this IP
-+    maxItems: 1
-+
-+  pinctrl-0:
-+    minItems: 1
-+
-+  pinctrl-names:
-+    const: default
-+
-+  port:
-+    type: object
-+    additionalProperties: false
-+
-+    properties:
-+      endpoint:
-+        properties:
-+          bus-width:
-+            const: 8
-+            description: Number of data lines actively used.
-+
-+          data-active: true
-+          hsync-active: true
-+          pclk-sample: true
-+          remote-endpoint: true
-+          vsync-active: true
-+
-+        required:
-+          - bus-width
-+          - data-active
-+          - hsync-active
-+          - pclk-sample
-+          - remote-endpoint
-+          - vsync-active
-+
-+    required:
-+      - endpoint
-+
-+required:
-+  - compatible
-+  - reg
-+  - interrupts
-+  - clocks
-+
-+additionalProperties: false
-+...
+ 	usb0_id_detect_pin: usb0-id-detect-pin {
+ 		pins = "PH4";
+ 		function = "gpio_in";
 -- 
 git-series 0.9.1
