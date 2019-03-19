@@ -6,24 +6,23 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C735C43381
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC5BC43381
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D60EE2085A
-	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD815217F4
+	for <linux-media@archiver.kernel.org>; Tue, 19 Mar 2019 21:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727561AbfCSV7P (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 17:59:15 -0400
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:46373 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727766AbfCSV6E (ORCPT
+        id S1727716AbfCSV54 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 17:57:56 -0400
+Received: from relay11.mail.gandi.net ([217.70.178.231]:41199 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727743AbfCSV5z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 17:58:04 -0400
-X-Originating-IP: 90.89.68.76
+        Tue, 19 Mar 2019 17:57:55 -0400
 Received: from localhost (lfbn-1-10718-76.w90-89.abo.wanadoo.fr [90.89.68.76])
         (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 5700B1BF207;
-        Tue, 19 Mar 2019 21:57:59 +0000 (UTC)
+        by relay11.mail.gandi.net (Postfix) with ESMTPSA id ED9DE100002;
+        Tue, 19 Mar 2019 21:57:51 +0000 (UTC)
 From:   Maxime Ripard <maxime.ripard@bootlin.com>
 To:     Daniel Vetter <daniel.vetter@intel.com>,
         David Airlie <airlied@linux.ie>,
@@ -38,9 +37,9 @@ Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         linux-media@vger.kernel.org
-Subject: [RFC PATCH 12/20] drm/ipuv3: Convert to generic image format library
-Date:   Tue, 19 Mar 2019 22:57:17 +0100
-Message-Id: <56da0cae4bd0477930b355a5ddc511a570a587ee.1553032382.git-series.maxime.ripard@bootlin.com>
+Subject: [RFC PATCH 09/20] drm/client: Convert to generic image format library
+Date:   Tue, 19 Mar 2019 22:57:14 +0100
+Message-Id: <c4e7c10eb4d1441ed472ff735d0ed54ddc21262e.1553032382.git-series.maxime.ripard@bootlin.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
 References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
@@ -51,56 +50,48 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Now that we have a generic image format libary, let's convert drivers to
-use it so that we can deprecate the old DRM one.
+Now that we have a generic image format libary, let's convert the rest of
+the DRM core to use it so that we can deprecate the old DRM one.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/gpu/ipu-v3/ipu-pre.c | 3 ++-
- drivers/gpu/ipu-v3/ipu-prg.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/drm_client.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-pre.c b/drivers/gpu/ipu-v3/ipu-pre.c
-index 4a28f3fbb0a2..d561295abee0 100644
---- a/drivers/gpu/ipu-v3/ipu-pre.c
-+++ b/drivers/gpu/ipu-v3/ipu-pre.c
-@@ -15,6 +15,7 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/genalloc.h>
-+#include <linux/image-formats.h>
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
-@@ -174,7 +175,7 @@ void ipu_pre_configure(struct ipu_pre *pre, unsigned int width,
- 		       unsigned int height, unsigned int stride, u32 format,
- 		       uint64_t modifier, unsigned int bufaddr)
+diff --git a/drivers/gpu/drm/drm_client.c b/drivers/gpu/drm/drm_client.c
+index 9df52b7fd074..a48181e18934 100644
+--- a/drivers/gpu/drm/drm_client.c
++++ b/drivers/gpu/drm/drm_client.c
+@@ -243,7 +243,7 @@ static void drm_client_buffer_delete(struct drm_client_buffer *buffer)
+ static struct drm_client_buffer *
+ drm_client_buffer_create(struct drm_client_dev *client, u32 width, u32 height, u32 format)
  {
 -	const struct drm_format_info *info = drm_format_info(format);
 +	const struct image_format_info *info = image_format_drm_lookup(format);
- 	u32 active_bpp = info->cpp[0] >> 1;
- 	u32 val;
+ 	struct drm_mode_create_dumb dumb_args = { };
+ 	struct drm_device *dev = client->dev;
+ 	struct drm_client_buffer *buffer;
+@@ -259,7 +259,7 @@ drm_client_buffer_create(struct drm_client_dev *client, u32 width, u32 height, u
  
-diff --git a/drivers/gpu/ipu-v3/ipu-prg.c b/drivers/gpu/ipu-v3/ipu-prg.c
-index 38a3a9764e49..608a9213025d 100644
---- a/drivers/gpu/ipu-v3/ipu-prg.c
-+++ b/drivers/gpu/ipu-v3/ipu-prg.c
-@@ -14,6 +14,7 @@
- #include <drm/drm_fourcc.h>
- #include <linux/clk.h>
- #include <linux/err.h>
-+#include <linux/image-formats.h>
- #include <linux/iopoll.h>
- #include <linux/mfd/syscon.h>
- #include <linux/mfd/syscon/imx6q-iomuxc-gpr.h>
-@@ -132,7 +133,7 @@ EXPORT_SYMBOL_GPL(ipu_prg_present);
- bool ipu_prg_format_supported(struct ipu_soc *ipu, uint32_t format,
- 			      uint64_t modifier)
+ 	dumb_args.width = width;
+ 	dumb_args.height = height;
+-	dumb_args.bpp = drm_format_plane_cpp(info, 0) * 8;
++	dumb_args.bpp = image_format_plane_cpp(info, 0) * 8;
+ 	ret = drm_mode_create_dumb(dev, &dumb_args, client->file);
+ 	if (ret)
+ 		goto err_delete;
+@@ -319,10 +319,10 @@ static int drm_client_buffer_addfb(struct drm_client_buffer *buffer,
  {
--	const struct drm_format_info *info = drm_format_info(format);
-+	const struct image_format_info *info = image_format_drm_lookup(format);
+ 	struct drm_client_dev *client = buffer->client;
+ 	struct drm_mode_fb_cmd fb_req = { };
+-	const struct drm_format_info *info;
++	const struct image_format_info *info;
+ 	int ret;
  
- 	if (info->num_planes != 1)
- 		return false;
+-	info = drm_format_info(format);
++	info = image_format_drm_lookup(format);
+ 	fb_req.bpp = info->cpp[0] * 8;
+ 	fb_req.depth = info->depth;
+ 	fb_req.width = width;
 -- 
 git-series 0.9.1
