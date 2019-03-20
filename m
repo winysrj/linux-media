@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25BEEC10F05
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08DF9C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EB6862184E
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCA892146E
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="VBRIEAm7"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Sefw+LBQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728449AbfCTOyL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:54:11 -0400
-Received: from mail-pf1-f201.google.com ([209.85.210.201]:37102 "EHLO
-        mail-pf1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728563AbfCTOwY (ORCPT
+        id S1728524AbfCTOwX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:52:23 -0400
+Received: from mail-qt1-f202.google.com ([209.85.160.202]:47106 "EHLO
+        mail-qt1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728539AbfCTOwV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:52:24 -0400
-Received: by mail-pf1-f201.google.com with SMTP id m10so2768349pfj.4
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:24 -0700 (PDT)
+        Wed, 20 Mar 2019 10:52:21 -0400
+Received: by mail-qt1-f202.google.com with SMTP id z34so2659850qtz.14
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=TypqXDoyNXONz2oDo7T8C+4NlePqKxo9jFd/dN9OnUY=;
-        b=VBRIEAm79eYl13DjJG/iyvfKJYZY4JaqF0G4F5Q9Tdc02tcv3SWnQ7Xrt3SjBFfGvg
-         PcwgciJDQT6onqfPRyqhMrslyXsxz10zdr5FgA2LGaoQc9yos1AyT8UyusDzxef8QaZN
-         z/f2pc6v7A54U9tLiW8lNWS179RcuvzfHFAZzepf2J72aR6ktogxURSeTjnVYurpdTa1
-         B6f7t3ef6UHMUiBVLuaDIwpdpl0FL6sYq3LH523DSKALKUVOqO0tPAJ4+aeT4zaZmhz+
-         IrRrf0UOiKCQsyUUh28eTbRMIsy4aBjzHA3qkBs+V7Ol2Fi+w51237VJCFLw3aI3tuE3
-         QzOw==
+        bh=K4asd4oI0/VXu7bks/7ZozR0oEqYxUgnLBJb7yiErTQ=;
+        b=Sefw+LBQD0bYtQOF7Z3/FF5rWl5fnzlahJItvb5ZICgi8f6u4tK/9F6nfzFXPich3o
+         EcUn7JVF7lEJYJneqAC0m7D0m73A5VmH620Qfp8NMW21rRutLGEd2Gtg1ILCNwDmdZNZ
+         FjIyPxXe0aqGhTuqozDv4invVSFneb5ZIlySFOfmNfdoGDZG5iv4aiillZPkIZFAoy/1
+         Op94lqwLg26NfLmDs8/kDtPAlvGhye76V+rDgwQLh/XO9bfB2FGQp9lBXpf3J2QGTDlH
+         XxqI4JERIWdF2z3HZogNyJS65SJ4WuJX9kuolmSrlZO9gRMOVvxcsIln5olphRwer6Xd
+         nAYQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=TypqXDoyNXONz2oDo7T8C+4NlePqKxo9jFd/dN9OnUY=;
-        b=rIJnF0LlvVoqEM2GAZs4b9sPiK3xn6jsnNclRwV+CdXpS8mr+UXNjJRBd6+LIk2a8Y
-         FcBXVPrBIG3rIDsXpDTB6IbjPMsqwUp2DUJStXCKhgSSZRNC5snUIIDP+GWi1mIFdQ8J
-         Dbn/EJPQeAsE5QrYFhoicLdUrA45yPTYXNX/iXN9Cr7iQBDqOnljOTnhUUQeeqDqTPOx
-         po7KC0flUFUVQ7bZzsRsPgi0vPZ0jBgq0ebK59fFPKxTfGC/mo5KjcnC3wezWr9YDTPm
-         7SHpxAtXTdlIsg4emL/KjsJ64UXf0NTAdk/VL26luhwwt7LD3nCLtNAghaSZUx1zs8Cw
-         rI7g==
-X-Gm-Message-State: APjAAAWH+b0zNB8FCKyyDau7ERxWTXs4dR7Acp7DkFK88j3EJpoimdVn
-        uuc8dIPuGvJyOvleWDE7KatBG5djvjmVhbSO
-X-Google-Smtp-Source: APXvYqzAZyZyGva2EuPoJScM6UyEVyBDQ8rao6oUZ0kApC3+FesuzwO5WKxPmyM+dQi9tBAx2Re+64THdUBgYOfQ
-X-Received: by 2002:a17:902:8a98:: with SMTP id p24mr7507223plo.18.1553093543416;
- Wed, 20 Mar 2019 07:52:23 -0700 (PDT)
-Date:   Wed, 20 Mar 2019 15:51:26 +0100
+        bh=K4asd4oI0/VXu7bks/7ZozR0oEqYxUgnLBJb7yiErTQ=;
+        b=HidqGFi9cvrtLPXYlCnd/RneW/+oxsekaFGmydVdopQlY+w8OWMoflejM3o8u80ITY
+         zpMYJ2spnkaWlL0INWoE87RyvNV3RUhNznlG5ZSH4DcqKYfJZXH7LSnSOHwps/bS1HqR
+         rP90vqxs6ETcO27Ffrjsq4knli1fmo9wXVX8bRwyTsXhzfBbA6bIuNbxUYLEkUfJt2tF
+         cGtZlpJemzw33vZqgeFFkw7Wwv33jgwZMsdIRS+Cu3jsNgTcqp8+lzWBENthg4CPoThO
+         xn2ctBeXfOrvLtpzm9oqwxbqcvEUudPWA5EMP4k0o0jXGii3sGho2A1O6h7KvMMx/BNl
+         TYIA==
+X-Gm-Message-State: APjAAAVdW7BwwtWDTA17a/0+5GEFzzEpGxO6Gq2cUwEZWNxNgIoHOdMW
+        qc3MPT3rEsQyJx5VkpzLh+bYqYJOO24zoGEf
+X-Google-Smtp-Source: APXvYqyQ4NMWwmcD+QNQXwycznUSrQ4ccjdMHmvJTyO2jY+wRoLxkzWub5WBnbxSwYjZ06st+3eMc86w9nXfL0n7
+X-Received: by 2002:aed:3b09:: with SMTP id p9mr8634647qte.55.1553093540002;
+ Wed, 20 Mar 2019 07:52:20 -0700 (PDT)
+Date:   Wed, 20 Mar 2019 15:51:25 +0100
 In-Reply-To: <cover.1553093420.git.andreyknvl@google.com>
-Message-Id: <88d5255400fc6536d6a6895dd2a3aef0f0ecc899.1553093421.git.andreyknvl@google.com>
+Message-Id: <c9553c3a4850d43c8af0c00e97850d70428b7de7.1553093421.git.andreyknvl@google.com>
 Mime-Version: 1.0
 References: <cover.1553093420.git.andreyknvl@google.com>
 X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [PATCH v13 12/20] uprobes, arm64: untag user pointers in find_active_uprobe
+Subject: [PATCH v13 11/20] tracing, arm64: untag user pointers in seq_print_user_ip
 From:   Andrey Konovalov <andreyknvl@google.com>
 To:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will.deacon@arm.com>,
@@ -115,30 +115,46 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-find_active_uprobe() uses user pointers (obtained via
-instruction_pointer(regs)) for vma lookups, which can only by done with
-untagged pointers.
+seq_print_user_ip() uses provided user pointers for vma lookups, which
+can only by done with untagged pointers.
 
 Untag user pointers in this function.
 
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- kernel/events/uprobes.c | 2 ++
- 1 file changed, 2 insertions(+)
+ kernel/trace/trace_output.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
-index c5cde87329c7..d3a2716a813a 100644
---- a/kernel/events/uprobes.c
-+++ b/kernel/events/uprobes.c
-@@ -1992,6 +1992,8 @@ static struct uprobe *find_active_uprobe(unsigned long bp_vaddr, int *is_swbp)
- 	struct uprobe *uprobe = NULL;
- 	struct vm_area_struct *vma;
+diff --git a/kernel/trace/trace_output.c b/kernel/trace/trace_output.c
+index 54373d93e251..6376bee93c84 100644
+--- a/kernel/trace/trace_output.c
++++ b/kernel/trace/trace_output.c
+@@ -370,6 +370,7 @@ static int seq_print_user_ip(struct trace_seq *s, struct mm_struct *mm,
+ {
+ 	struct file *file = NULL;
+ 	unsigned long vmstart = 0;
++	unsigned long untagged_ip = untagged_addr(ip);
+ 	int ret = 1;
  
-+	bp_vaddr = untagged_addr(bp_vaddr);
-+
- 	down_read(&mm->mmap_sem);
- 	vma = find_vma(mm, bp_vaddr);
- 	if (vma && vma->vm_start <= bp_vaddr) {
+ 	if (s->full)
+@@ -379,7 +380,7 @@ static int seq_print_user_ip(struct trace_seq *s, struct mm_struct *mm,
+ 		const struct vm_area_struct *vma;
+ 
+ 		down_read(&mm->mmap_sem);
+-		vma = find_vma(mm, ip);
++		vma = find_vma(mm, untagged_ip);
+ 		if (vma) {
+ 			file = vma->vm_file;
+ 			vmstart = vma->vm_start;
+@@ -388,7 +389,7 @@ static int seq_print_user_ip(struct trace_seq *s, struct mm_struct *mm,
+ 			ret = trace_seq_path(s, &file->f_path);
+ 			if (ret)
+ 				trace_seq_printf(s, "[+0x%lx]",
+-						 ip - vmstart);
++						 untagged_ip - vmstart);
+ 		}
+ 		up_read(&mm->mmap_sem);
+ 	}
 -- 
 2.21.0.225.g810b269d1ac-goog
 
