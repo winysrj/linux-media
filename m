@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57854C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF47C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 27D512184E
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DB092146E
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="JCUhTsom"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KRMkdxMD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728261AbfCTOyb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:54:31 -0400
-Received: from mail-pf1-f202.google.com ([209.85.210.202]:38266 "EHLO
-        mail-pf1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728500AbfCTOwN (ORCPT
+        id S1728467AbfCTOwK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:52:10 -0400
+Received: from mail-yw1-f74.google.com ([209.85.161.74]:51568 "EHLO
+        mail-yw1-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728471AbfCTOwK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:52:13 -0400
-Received: by mail-pf1-f202.google.com with SMTP id j10so2772915pff.5
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:12 -0700 (PDT)
+        Wed, 20 Mar 2019 10:52:10 -0400
+Received: by mail-yw1-f74.google.com with SMTP id s11so3361691ywa.18
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=JtqBUblhyywi4YhvTkJHhe/ifq9XLr2+qZst5mD5EtU=;
-        b=JCUhTsom3sv4Qp9BgYwbkXDdkciE1//Hw4N0DNNMC4xTTSQ4lLZpC9fonlZAwhGa5s
-         GNZfPO7WKhbqfkLhUEXh2Q2IsqhkYYT63boD5rJQKFDull6EmJ/3UNaGEyGsIksVaOC8
-         tVa6dAYXJVSE0a/Y3iEyW9RkRqD5ULEHrrYNKdC8hIFFIscPITax04Ehb6yZo3/Kv5gE
-         4GrdjKthKOiZlqCKJ11zuUzlpowQXS31kWI1psH6mvXWAsMM/BUWqqUj3E1L86ZSFVnv
-         UTo+HsA5H9AlfhMDC0xK9OSBVfCenoUTzBKRmg/WwAJv8lBEwyEQzOI3ORQRTNGew37R
-         fDYw==
+        bh=MRHHZYm6qbbddi64ikktRuAjn8BoXK8Gf7bv/2tC2r0=;
+        b=KRMkdxMD5r/ER0b2EYOaeTinlF21JbEs5hD7NF/4KuqBnnQC7/Ye6Qw9DCv6nYaIx6
+         4U2cUzqhytwW3z5B4iRPFCCYHJA/xIASnuuJbgU+DFTxxvtbMCxk2YOQuO+k3FhjQZxT
+         +HNaP52fISwxZzgGzVRKuYbp7Q8oH3K6BetnL7BXKag5ZZAYsbr0n35Pp3LUj50J49dx
+         O5jbTLSzQ9if52c7p/5fn1S3OpB1gYH1iUyL2wrB6P1nRrgD/9GDVY3gp4qdOHpbJY1p
+         i3H4A9ArVAT2nkBdJ2JerrQkq4TGT69QXIEYb6sDErAg40bUbxmWd7KaeWagNV837y9+
+         Oy3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=JtqBUblhyywi4YhvTkJHhe/ifq9XLr2+qZst5mD5EtU=;
-        b=ttIdyn1TaPmULMz+zX73jAneEuHP+SZgomU8tPLHr9YznbdsbieGmL0VHPA80gAgVw
-         5ColKsTj8L4kBMz6tMqGuw0ggBX+zz4MvMATVrVi1/gu1nh/9dAPElV8NSoPSVETSalV
-         /mkeaYeOkcePgBbYER7Q8R8FbGGeGqFHT+3WVNVvM6hvFh4V4wWVOZ2bwcnIh9a7/SKx
-         ugG6L2PkMOk73Nr1eQdJDqHqVIS5kDgoVyiydeqN2O2WGskni0xmJCZsr87fIK4fcTnR
-         UAqjMqSn0IQlYVUloGsgeG6foFWwHxjW69PZw3vh35q9LSQpNpMRGJcQitsRDJu5Np2d
-         pdDQ==
-X-Gm-Message-State: APjAAAV56UWXrrD3Fy+PeD8uUwhpuGlo8hQ9thJS1krGbTxWUAvlrStn
-        X83qv36XbUDNrbkGlu64qaUNByL80L9wgqC+
-X-Google-Smtp-Source: APXvYqxTeQTCrSfKvGumpNCKTbPirWsdeFkFdjLvtHz5QB/GJ2l6iQCjaYJVOq8eYP8TPKdTa2JL6S1R/puOA8Yr
-X-Received: by 2002:a63:1e10:: with SMTP id e16mr1614319pge.103.1553093532279;
- Wed, 20 Mar 2019 07:52:12 -0700 (PDT)
-Date:   Wed, 20 Mar 2019 15:51:23 +0100
+        bh=MRHHZYm6qbbddi64ikktRuAjn8BoXK8Gf7bv/2tC2r0=;
+        b=j3wY0B8a44oA3JlII0xtVLFi1kPspSljxRqeoppE/HkjKIPFpq7VY+8bOVlCJGEPBF
+         8bMuCO55OgRASF3IhIMCJPO4yMypNHRBzjmsPdg11QQgwecJVd8gobDMMwnvoRzpgZss
+         L4RSLBDES3Aw7Wf8uPQJACzP+HF+deIL38EAAAeT3YIu3A9bwhkF7T2wocrNT25cnURQ
+         WIGQ9WU0YXOrzm0J5WEh7xLnlZDc8xciAZwOOqFNND40YsaJ0vqrBwbXo1bNY7uXhyf0
+         dKIyFWXSg+8pLdd7yEP1Xp9gIWBKaDcrwCJqMHosWHLxEMJiMuhM7s57pXDMJCHLLYTx
+         NtSg==
+X-Gm-Message-State: APjAAAVLPVZK4jO/SwJEVpCwCcNjNlSeQl647xY4wNChpSHGoHp32/Ie
+        zSHfid1LXI4Q4qPRghaHMiR8/qQpEZLFB5Gx
+X-Google-Smtp-Source: APXvYqwr9m8YxgeUDBeeozt2hDgx245cPvqj3jehL0crcqpJn0rfr3qEPeO8cHwuraZTKRyiRzSC54VlM7fEpP7b
+X-Received: by 2002:a81:7acf:: with SMTP id v198mr2201203ywc.16.1553093528977;
+ Wed, 20 Mar 2019 07:52:08 -0700 (PDT)
+Date:   Wed, 20 Mar 2019 15:51:22 +0100
 In-Reply-To: <cover.1553093420.git.andreyknvl@google.com>
-Message-Id: <2280b62096ce1fa5c9e9429d18f08f82f4be1b0b.1553093421.git.andreyknvl@google.com>
+Message-Id: <dc4aa5f958ea98ff0add6350ec238acdc6523779.1553093421.git.andreyknvl@google.com>
 Mime-Version: 1.0
 References: <cover.1553093420.git.andreyknvl@google.com>
 X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [PATCH v13 09/20] net, arm64: untag user pointers in tcp_zerocopy_receive
+Subject: [PATCH v13 08/20] fs, arm64: untag user pointers in fs/userfaultfd.c
 From:   Andrey Konovalov <andreyknvl@google.com>
 To:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will.deacon@arm.com>,
@@ -115,29 +115,39 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-tcp_zerocopy_receive() uses provided user pointers for vma lookups, which
-can only by done with untagged pointers.
+userfaultfd_register() and userfaultfd_unregister() use provided user
+pointers for vma lookups, which can only by done with untagged pointers.
 
-Untag user pointers in this function.
+Untag user pointers in these functions.
 
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- net/ipv4/tcp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ fs/userfaultfd.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 6baa6dc1b13b..855a1f68c1ea 100644
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -1761,6 +1761,8 @@ static int tcp_zerocopy_receive(struct sock *sk,
- 	if (address & (PAGE_SIZE - 1) || address != zc->address)
- 		return -EINVAL;
+diff --git a/fs/userfaultfd.c b/fs/userfaultfd.c
+index 89800fc7dc9d..a3b70e0d9756 100644
+--- a/fs/userfaultfd.c
++++ b/fs/userfaultfd.c
+@@ -1320,6 +1320,9 @@ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
+ 		goto out;
+ 	}
  
-+	address = untagged_addr(address);
++	uffdio_register.range.start =
++		untagged_addr(uffdio_register.range.start);
 +
- 	if (sk->sk_state == TCP_LISTEN)
- 		return -ENOTCONN;
+ 	ret = validate_range(mm, uffdio_register.range.start,
+ 			     uffdio_register.range.len);
+ 	if (ret)
+@@ -1507,6 +1510,8 @@ static int userfaultfd_unregister(struct userfaultfd_ctx *ctx,
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+ 		goto out;
  
++	uffdio_unregister.start = untagged_addr(uffdio_unregister.start);
++
+ 	ret = validate_range(mm, uffdio_unregister.start,
+ 			     uffdio_unregister.len);
+ 	if (ret)
 -- 
 2.21.0.225.g810b269d1ac-goog
 
