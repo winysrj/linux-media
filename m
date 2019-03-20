@@ -2,531 +2,236 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 031C0C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 16:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3473C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 16:37:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B3B1220850
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 16:30:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="eQOlhFak"
+	by mail.kernel.org (Postfix) with ESMTP id 82D5D20850
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 16:37:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727451AbfCTQa3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 12:30:29 -0400
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:37630 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727093AbfCTQa3 (ORCPT
+        id S1727159AbfCTQhD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 12:37:03 -0400
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:36441 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726795AbfCTQhD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 12:30:29 -0400
-Received: by mail-qt1-f193.google.com with SMTP id z16so1808220qtn.4
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 09:30:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:cc:date:in-reply-to:references
-         :user-agent:mime-version;
-        bh=y3BnIBikjOIoO+pjCUoUqZ7qSEDQnqQYAkOgbY/DcwA=;
-        b=eQOlhFakv+3w9qWfc0lvmQvPyJJbF+Hou3v5NbIQnm9rG+sco+wcFf/HJAqNX/Nu4y
-         kIcIfhpn6IVPWmKms6oRwSbZih4P1AfBCWVNDatytwYn99wYIpdPqVIoAvvud4oxl2w5
-         4yO9KJQ1xjAWlOh22Y2h9woaA8tgM8GKiKbK+ZKHiuKBm9Ws/OAIcsHEgxawjPiP1lYC
-         1giwy5iauvMoCQdIFQoEJsJiIhCOcLEqgkkSzlJSoHl4K3t8HIo5AujMnAZ/PLeq+44a
-         3255+D5I66fqGP+J2Rc69EY29c1DVhqkr5EvlYkETTPWq/X2NJGzzwaMu27XZA/JbEyL
-         /ckA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version;
-        bh=y3BnIBikjOIoO+pjCUoUqZ7qSEDQnqQYAkOgbY/DcwA=;
-        b=ExW9/Dk8yVxHeE/lAP8iEXHbFku++xB2Lx1KPU576GZ5IR7xggmFW6C+q8hjJfqfWO
-         GZWIMdtck8bXWBQCGosfccfacC7ovCwB8zF8caZF58sDzasayMmvjw9VfOCYniPUT25S
-         qwMc02aMPETjrv9jo/3670yOzLums1ZFRrImGxox7khEViWt5FnnEBaFMU6qo0RdAFVA
-         /gZhrZsVF9zSCcKSXOZ5kMi6sBUpIgN6LXrfzMtWFhFJ0TR9gxUqMOwhFsaPlJx/H0pI
-         FAd7Us/ded2C36iPEvOXwUDTh9D/TDjFxDek/jXg5Bri9FJPqpoC2KFthMdF6zwWLULn
-         84fg==
-X-Gm-Message-State: APjAAAXGIb6sxWIG83EE4EgIJS+pccUgUtgyZaFqN8OhBsJfYYGkvbQv
-        h+wkJsaIRvOMIEuiHAytrlun4A==
-X-Google-Smtp-Source: APXvYqxZWqZGhPDj+UkxQS8WduRcBN/5oFF/CT2OlbFIz0q4dBksvUzYTRPVvGxFBv9aZPMALvqN0A==
-X-Received: by 2002:a0c:ef06:: with SMTP id t6mr6333387qvr.125.1553099428195;
-        Wed, 20 Mar 2019 09:30:28 -0700 (PDT)
-Received: from tpx230-nicolas.collaboramtl (modemcable154.55-37-24.static.videotron.ca. [24.37.55.154])
-        by smtp.gmail.com with ESMTPSA id g2sm1134075qkc.72.2019.03.20.09.30.26
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 20 Mar 2019 09:30:27 -0700 (PDT)
-Message-ID: <f3f8749e30aad81bc39ed9b60cd308ac5f3c6707.camel@ndufresne.ca>
-Subject: Re: [RFC PATCH 18/20] lib: image-formats: Add v4l2 formats support
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        David Airlie <airlied@linux.ie>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-media@vger.kernel.org, Daniel Stone <daniels@collabora.com>
-Date:   Wed, 20 Mar 2019 12:30:25 -0400
-In-Reply-To: <20190320160939.GR3888@intel.com>
-References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
-         <c97024b97d3261dcf41aad3c8bc1c5d9906f33c9.1553032382.git-series.maxime.ripard@bootlin.com>
-         <d8f4a31e35b1702230ced4a0cb43c10d1c7e60c8.camel@ndufresne.ca>
-         <20190320142739.GK3888@intel.com>
-         <a13f7fdeaf1a5e97f21a6048da765705b59d64c2.camel@ndufresne.ca>
-         <20190320160939.GR3888@intel.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-bwCKZcAUB3eHh5EyoVis"
-User-Agent: Evolution 3.30.5 (3.30.5-1.fc29) 
+        Wed, 20 Mar 2019 12:37:03 -0400
+Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1h6eCy-0004vw-TM; Wed, 20 Mar 2019 17:36:52 +0100
+Received: from mfe by pty.hi.pengutronix.de with local (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1h6eCw-0002yd-Nf; Wed, 20 Mar 2019 17:36:50 +0100
+Date:   Wed, 20 Mar 2019 17:36:50 +0100
+From:   Marco Felsch <m.felsch@pengutronix.de>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     robh+dt@kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, airlied@linux.ie, daniel@ffwll.ch,
+        dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 5/5] media: tvp5150: add support to limit tv norms on
+ connector
+Message-ID: <20190320163650.ua6cx3jwffm36p3m@pengutronix.de>
+References: <20190202121004.9014-1-m.felsch@pengutronix.de>
+ <20190202121004.9014-6-m.felsch@pengutronix.de>
+ <20190320111851.1749c9ac@coco.lan>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190320111851.1749c9ac@coco.lan>
+X-Sent-From: Pengutronix Hildesheim
+X-URL:  http://www.pengutronix.de/
+X-IRC:  #ptxdist @freenode
+X-Accept-Language: de,en
+X-Accept-Content-Type: text/plain
+X-Uptime: 17:12:29 up 60 days, 20:54, 55 users,  load average: 0.02, 0.05,
+ 0.02
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
+X-SA-Exim-Mail-From: mfe@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Mauro,
 
---=-bwCKZcAUB3eHh5EyoVis
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 19-03-20 11:18, Mauro Carvalho Chehab wrote:
+> Em Sat,  2 Feb 2019 13:10:04 +0100
+> Marco Felsch <m.felsch@pengutronix.de> escreveu:
+> 
+> > The tvp5150 accepts NTSC(M,J,4.43), PAL (B,D,G,H,I,M,N) and SECAM video
+> > data and is able to auto-detect the input signal. 
+> 
+> Hmm... I'm afraid of this change. As far as I remember, I tested some
+> weird format variants like V4L2_STD_PAL_60 a long time ago, but there's
+> no way to force video to use those. The format selection logic simply
+> places the device on auto-detect mode for those weirdos, and that
+> works fine at the devices I know.
 
-Le mercredi 20 mars 2019 =C3=A0 18:09 +0200, Ville Syrj=C3=A4l=C3=A4 a =C3=
-=A9crit :
-> On Wed, Mar 20, 2019 at 11:51:58AM -0400, Nicolas Dufresne wrote:
-> > Le mercredi 20 mars 2019 =C3=A0 16:27 +0200, Ville Syrj=C3=A4l=C3=A4 a =
-=C3=A9crit :
-> > > On Tue, Mar 19, 2019 at 07:29:18PM -0400, Nicolas Dufresne wrote:
-> > > > Le mardi 19 mars 2019 =C3=A0 22:57 +0100, Maxime Ripard a =C3=A9cri=
-t :
-> > > > > V4L2 uses different fourcc's than DRM, and has a different set of=
- formats.
-> > > > > For now, let's add the v4l2 fourcc's for the already existing for=
-mats.
-> > > > >=20
-> > > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > > > > ---
-> > > > >  include/linux/image-formats.h |  9 +++++-
-> > > > >  lib/image-formats.c           | 67 +++++++++++++++++++++++++++++=
-+++++++-
-> > > > >  2 files changed, 76 insertions(+)
-> > > > >=20
-> > > > > diff --git a/include/linux/image-formats.h b/include/linux/image-=
-formats.h
-> > > > > index 53fd73a71b3d..fbc3a4501ebd 100644
-> > > > > --- a/include/linux/image-formats.h
-> > > > > +++ b/include/linux/image-formats.h
-> > > > > @@ -26,6 +26,13 @@ struct image_format_info {
-> > > > >  	};
-> > > > > =20
-> > > > >  	/**
-> > > > > +	 * @v4l2_fmt:
-> > > > > +	 *
-> > > > > +	 * V4L2 4CC format identifier (V4L2_PIX_FMT_*)
-> > > > > +	 */
-> > > > > +	u32 v4l2_fmt;
-> > > > > +
-> > > > > +	/**
-> > > > >  	 * @depth:
-> > > > >  	 *
-> > > > >  	 * Color depth (number of bits per pixel excluding padding bits=
-),
-> > > > > @@ -222,6 +229,8 @@ image_format_info_is_yuv_sampling_444(const s=
-truct image_format_info *info)
-> > > > > =20
-> > > > >  const struct image_format_info *__image_format_drm_lookup(u32 dr=
-m);
-> > > > >  const struct image_format_info *image_format_drm_lookup(u32 drm)=
-;
-> > > > > +const struct image_format_info *__image_format_v4l2_lookup(u32 v=
-4l2);
-> > > > > +const struct image_format_info *image_format_v4l2_lookup(u32 v4l=
-2);
-> > > > >  unsigned int image_format_plane_cpp(const struct image_format_in=
-fo *format,
-> > > > >  				    int plane);
-> > > > >  unsigned int image_format_plane_width(int width,
-> > > > > diff --git a/lib/image-formats.c b/lib/image-formats.c
-> > > > > index 9b9a73220c5d..39f1d38ae861 100644
-> > > > > --- a/lib/image-formats.c
-> > > > > +++ b/lib/image-formats.c
-> > > > > @@ -8,6 +8,7 @@
-> > > > >  static const struct image_format_info formats[] =3D {
-> > > > >  	{
-> > > > >  		.drm_fmt =3D DRM_FORMAT_C8,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_GREY,
-> > > > >  		.depth =3D 8,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 1, 0, 0 },
-> > > > > @@ -15,6 +16,7 @@ static const struct image_format_info formats[]=
- =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_RGB332,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_RGB332,
-> > > > >  		.depth =3D 8,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 1, 0, 0 },
-> > > > > @@ -29,6 +31,7 @@ static const struct image_format_info formats[]=
- =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_XRGB4444,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_XRGB444,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -57,6 +60,7 @@ static const struct image_format_info formats[]=
- =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_ARGB4444,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_ARGB444,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -89,6 +93,7 @@ static const struct image_format_info formats[]=
- =3D {
-> > > > >  		.has_alpha =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_XRGB1555,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_XRGB555,
-> > > > >  		.depth =3D 15,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -117,6 +122,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_ARGB1555,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_ARGB555,
-> > > > >  		.depth =3D 15,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -149,6 +155,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.has_alpha =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_RGB565,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_RGB565,
-> > > > >  		.depth =3D 16,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -163,6 +170,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_RGB888,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_RGB24,
-> > > > >  		.depth =3D 24,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 3, 0, 0 },
-> > > > > @@ -170,6 +178,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_BGR888,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_BGR24,
-> > > > >  		.depth =3D 24,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 3, 0, 0 },
-> > > > > @@ -177,6 +186,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.vsub =3D 1,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_XRGB8888,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_XRGB32,
-> > > >=20
-> > > > All RGB mapping should be surrounded by ifdef, because many (not al=
-l)
-> > > > DRM formats represent the order of component when placed in a CPU
-> > > > register, unlike V4L2 which uses memory order. I've pick this one
-> > >=20
-> > > DRM formats are explicitly defined as little endian.
-> >=20
-> > Yes, that means the same thing. The mapping has nothing to do with the
-> > buffer bytes order, unlike V4L2 (and most streaming stack) do.
->=20
-> It has everything to do with byte order. Little endian means the least
-> significant byte is stored in the first byte in memory.
->=20
-> Based on https://www.kernel.org/doc/html/v4.15/media/uapi/v4l/pixfmt-pack=
-ed-rgb.html
-> drm XRGB888 is actually v4l XBGR32, not XRGB32 as claimed by this patch.
+Sorry I didn't get this. The format is set to autodetect during probe().
+If there is no format limitation this won't be changed during
+media.link_setup(). You're right I forgot to check if the cur_connector
+is available during tvp5150_s_std(), in case of pdata related devices.
+In such a case we should set supported_norms to V4L2_STD_ALL as it is
+done by v4l2_fwnode_parse_connector() if no limitations are given.
 
-That's basically what I said, as it's define for Little Endian rather
-then buffer order, you have to make the mapping conditional. It
-basically mean that in memory, the DRM format physically differ
-depending on CPU endian. Last time we have run this on PPC / Big
-Endian, the mapping was XRGB/XRGB, we checked that up multiple time
-with the DRM maintainers and was told this is exactly what it's suppose
-to do, hence this endian dependant mapping all over the place. If you
-make up that this isn't right, you are breaking userspace, and people
-don't like that.
+Btw, how does it look with the other patchset?
 
-So the mapping should be:
-Little: DRM XRGB / V4L2 XBGR
-Big:    DRM XRGB / V4L2 XRGB
+Regards,
+Marco
 
->=20
-> > > > randomly, but this one on most system, little endian, will match
-> > > > V4L2_PIX_FMT_XBGR32. This type of complex mapping can be found in
-> > > > multiple places, notably in GStreamer:
-> > > >=20
-> > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/blob/maste=
-r/sys/kms/gstkmsutils.c#L45
-> > > >=20
-> > > > >  		.depth =3D 24,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 4, 0, 0 },
-> > > > > @@ -281,6 +291,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.has_alpha =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_ARGB8888,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_ARGB32,
-> > > > >  		.depth =3D 32,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 4, 0, 0 },
-> > > > > @@ -361,6 +372,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.has_alpha =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YUV410,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YUV410,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -369,6 +381,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YVU410,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YVU410,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -393,6 +406,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YUV420,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YUV420M,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -401,6 +415,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YVU420,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YVU420M,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -409,6 +424,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YUV422,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YUV422M,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -417,6 +433,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YVU422,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YVU422M,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -425,6 +442,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YUV444,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YUV444M,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -433,6 +451,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YVU444,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YVU444M,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 3,
-> > > > >  		.cpp =3D { 1, 1, 1 },
-> > > > > @@ -441,6 +460,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_NV12,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_NV12,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 2,
-> > > > >  		.cpp =3D { 1, 2, 0 },
-> > > > > @@ -449,6 +469,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_NV21,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_NV21,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 2,
-> > > > >  		.cpp =3D { 1, 2, 0 },
-> > > > > @@ -457,6 +478,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_NV16,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_NV16,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 2,
-> > > > >  		.cpp =3D { 1, 2, 0 },
-> > > > > @@ -465,6 +487,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_NV61,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_NV61,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 2,
-> > > > >  		.cpp =3D { 1, 2, 0 },
-> > > > > @@ -473,6 +496,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_NV24,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_NV24,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 2,
-> > > > >  		.cpp =3D { 1, 2, 0 },
-> > > > > @@ -481,6 +505,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_NV42,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_NV42,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 2,
-> > > > >  		.cpp =3D { 1, 2, 0 },
-> > > > > @@ -489,6 +514,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YUYV,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YUYV,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -497,6 +523,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_YVYU,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_YVYU,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -505,6 +532,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_UYVY,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_UYVY,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -513,6 +541,7 @@ static const struct image_format_info formats=
-[] =3D {
-> > > > >  		.is_yuv =3D true,
-> > > > >  	}, {
-> > > > >  		.drm_fmt =3D DRM_FORMAT_VYUY,
-> > > > > +		.v4l2_fmt =3D V4L2_PIX_FMT_VYUY,
-> > > > >  		.depth =3D 0,
-> > > > >  		.num_planes =3D 1,
-> > > > >  		.cpp =3D { 2, 0, 0 },
-> > > > > @@ -632,6 +661,44 @@ const struct image_format_info *image_format=
-_drm_lookup(u32 drm)
-> > > > >  EXPORT_SYMBOL(image_format_drm_lookup);
-> > > > > =20
-> > > > >  /**
-> > > > > + * __image_format_v4l2_lookup - query information for a given fo=
-rmat
-> > > > > + * @v4l2: V4L2 fourcc pixel format (V4L2_PIX_FMT_*)
-> > > > > + *
-> > > > > + * The caller should only pass a supported pixel format to this =
-function.
-> > > > > + *
-> > > > > + * Returns:
-> > > > > + * The instance of struct image_format_info that describes the p=
-ixel format, or
-> > > > > + * NULL if the format is unsupported.
-> > > > > + */
-> > > > > +const struct image_format_info *__image_format_v4l2_lookup(u32 v=
-4l2)
-> > > > > +{
-> > > > > +	return __image_format_lookup(v4l2_fmt, v4l2);
-> > > > > +}
-> > > > > +EXPORT_SYMBOL(__image_format_v4l2_lookup);
-> > > > > +
-> > > > > +/**
-> > > > > + * image_format_v4l2_lookup - query information for a given form=
-at
-> > > > > + * @v4l2: V4L2 fourcc pixel format (V4L2_PIX_FMT_*)
-> > > > > + *
-> > > > > + * The caller should only pass a supported pixel format to this =
-function.
-> > > > > + * Unsupported pixel formats will generate a warning in the kern=
-el log.
-> > > > > + *
-> > > > > + * Returns:
-> > > > > + * The instance of struct image_format_info that describes the p=
-ixel format, or
-> > > > > + * NULL if the format is unsupported.
-> > > > > + */
-> > > > > +const struct image_format_info *image_format_v4l2_lookup(u32 v4l=
-2)
-> > > > > +{
-> > > > > +	const struct image_format_info *format;
-> > > > > +
-> > > > > +	format =3D __image_format_v4l2_lookup(v4l2);
-> > > > > +
-> > > > > +	WARN_ON(!format);
-> > > > > +	return format;
-> > > > > +}
-> > > > > +EXPORT_SYMBOL(image_format_v4l2_lookup);
-> > > > > +
-> > > > > +/**
-> > > > >   * image_format_plane_cpp - determine the bytes per pixel value
-> > > > >   * @format: pointer to the image_format
-> > > > >   * @plane: plane index
-> > > >=20
-> > > > _______________________________________________
-> > > > dri-devel mailing list
-> > > > dri-devel@lists.freedesktop.org
-> > > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
->=20
->=20
+> 
+> A change like that may break things. So I would actually have a quirk
+> to optionally disable auto-detection on devices that this is not know
+> to work.
+> 
+> > The auto-detection
+> > does not work if the connector does not receive an input signal and the
+> > tvp5150 might not be configured correctly. This misconfiguration leads
+> > into wrong decoded video streams if the tvp5150 gets powered on before
+> > the video signal is present.
+> > 
+> > Limit the supported tv norms according to the actual selected connector
+> > to avoid a misconfiguration.
+> > 
+> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > ---
+> >  drivers/media/i2c/tvp5150.c | 42 ++++++++++++++++++++++++++++++++++++-
+> >  1 file changed, 41 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> > index f3a2ad00a40d..7619793dee67 100644
+> > --- a/drivers/media/i2c/tvp5150.c
+> > +++ b/drivers/media/i2c/tvp5150.c
+> > @@ -32,6 +32,13 @@
+> >  #define TVP5150_MBUS_FMT	MEDIA_BUS_FMT_UYVY8_2X8
+> >  #define TVP5150_FIELD		V4L2_FIELD_ALTERNATE
+> >  #define TVP5150_COLORSPACE	V4L2_COLORSPACE_SMPTE170M
+> > +#define TVP5150_STD_MASK	(V4L2_STD_NTSC     | \
+> > +				 V4L2_STD_NTSC_443 | \
+> > +				 V4L2_STD_PAL      | \
+> > +				 V4L2_STD_PAL_M    | \
+> > +				 V4L2_STD_PAL_N    | \
+> > +				 V4L2_STD_PAL_Nc   | \
+> > +				 V4L2_STD_SECAM)
+> >  
+> >  MODULE_DESCRIPTION("Texas Instruments TVP5150A/TVP5150AM1/TVP5151 video decoder driver");
+> >  MODULE_AUTHOR("Mauro Carvalho Chehab");
+> > @@ -74,6 +81,7 @@ struct tvp5150 {
+> >  	struct media_pad pads[TVP5150_NUM_PADS];
+> >  	int pads_state[TVP5150_NUM_PADS];
+> >  	struct tvp5150_connector *connectors;
+> > +	struct tvp5150_connector *cur_connector;
+> >  	int connectors_num;
+> >  	bool modify_second_link;
+> >  #endif
+> > @@ -794,17 +802,27 @@ static int tvp5150_g_std(struct v4l2_subdev *sd, v4l2_std_id *std)
+> >  static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+> >  {
+> >  	struct tvp5150 *decoder = to_tvp5150(sd);
+> > +	v4l2_std_id supported_norms =
+> > +		decoder->cur_connector->base.connector.analog.supported_tvnorms;
+> >  
+> >  	if (decoder->norm == std)
+> >  		return 0;
+> >  
+> > +	/*
+> > +	 * check if requested std or group of std's is/are supported by the
+> > +	 * connector
+> > +	 */
+> > +	if ((supported_norms & std) == 0)
+> > +		return -EINVAL;
+> > +
+> >  	/* Change cropping height limits */
+> >  	if (std & V4L2_STD_525_60)
+> >  		decoder->rect.height = TVP5150_V_MAX_525_60;
+> >  	else
+> >  		decoder->rect.height = TVP5150_V_MAX_OTHERS;
+> >  
+> > -	decoder->norm = std;
+> > +	/* set only the specific supported std in case of group of std's */
+> > +	decoder->norm = supported_norms & std;
+> >  
+> >  	return tvp5150_set_std(sd, std);
+> >  }
+> > @@ -1298,6 +1316,7 @@ static int tvp5150_link_setup(struct media_entity *entity,
+> >  	int *pad_state = &decoder->pads_state[0];
+> >  	int i, active_pad, ret = 0;
+> >  	bool is_svideo = false;
+> > +	bool update_cur_connector = false;
+> >  
+> >  	/*
+> >  	 * The tvp state is determined by the enabled sink pad link.
+> > @@ -1344,10 +1363,12 @@ static int tvp5150_link_setup(struct media_entity *entity,
+> >  				decoder->modify_second_link = false;
+> >  				tvp5150_s_routing(sd, TVP5150_SVIDEO,
+> >  						  TVP5150_NORMAL, 0);
+> > +				update_cur_connector = true;
+> >  			}
+> >  		} else {
+> >  			tvp5150_s_routing(sd, tvp5150_pad->index,
+> >  					  TVP5150_NORMAL, 0);
+> > +			update_cur_connector = true;
+> >  		}
+> >  	} else {
+> >  		/*
+> > @@ -1376,6 +1397,14 @@ static int tvp5150_link_setup(struct media_entity *entity,
+> >  					  active_pad, TVP5150_BLACK_SCREEN, 0);
+> >  		decoder->modify_second_link = false;
+> >  	}
+> > +
+> > +	if (update_cur_connector) {
+> > +		/* Update tvnorm according to connector */
+> > +		decoder->cur_connector =
+> > +			container_of(remote, struct tvp5150_connector, pad);
+> > +		tvp5150_s_std(sd,
+> > +			decoder->cur_connector->base.connector.analog.supported_tvnorms);
+> > +	}
+> >  out:
+> >  	return ret;
+> >  }
+> > @@ -1605,6 +1634,9 @@ static int tvp5150_registered(struct v4l2_subdev *sd)
+> >  			}
+> >  			tvp5150_selmux(sd);
+> >  			decoder->modify_second_link = false;
+> > +			decoder->cur_connector = &decoder->connectors[i];
+> > +			tvp5150_s_std(sd,
+> > +				decoder->connectors[i].base.connector.analog.supported_tvnorms);
+> >  		}
+> >  	}
+> >  #endif
+> > @@ -1925,6 +1957,14 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+> >  				ret = -EINVAL;
+> >  				goto err;
+> >  			}
+> > +			if (!(c.connector.analog.supported_tvnorms &
+> > +			    TVP5150_STD_MASK)) {
+> > +				dev_err(dev,
+> > +					"Invalid tv norm(s) on connector %s.\n",
+> > +					c.label);
+> > +				ret = -EINVAL;
+> > +				goto err;
+> > +			}
+> >  			in++;
+> >  			break;
+> >  		case TVP5150_PAD_VID_OUT:
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
 
---=-bwCKZcAUB3eHh5EyoVis
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCXJJqoQAKCRBxUwItrAao
-HG5SAKCM99j2evlJwKEKB1OgsW1T9XmvgwCg3TNoC2EF4MUcsG0qpE2v1zqGa4M=
-=YCg1
------END PGP SIGNATURE-----
-
---=-bwCKZcAUB3eHh5EyoVis--
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
