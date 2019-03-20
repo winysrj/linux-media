@@ -2,204 +2,133 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7679C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:28:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6AE4C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:40:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75D7B2184D
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:28:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553092132;
-	bh=e1u1Yd5obrYxT5L05jbg7Vqd+X49eKuwle3dKDHI8KQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=eL8NRT/tDjZlJbxs8ayBRCx4480BcXJwIPmVqyESU0WFE9E2CzpteQTpqTB9TOlXG
-	 RIgsEHf8ZrnE7V8d1auze1KyH6wuYlj9ggD+v7wJw4dfkkYcxqK0LqJ/9HdEg+TeqB
-	 bXC/qGTJo2bNdZYarirs+gY13ZGneVArPqUHhX3Q=
+	by mail.kernel.org (Postfix) with ESMTP id 6C5A42184E
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:40:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Vzd125ZF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726611AbfCTO2v (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:28:51 -0400
-Received: from casper.infradead.org ([85.118.1.10]:40518 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726487AbfCTO2v (ORCPT
+        id S1727066AbfCTOk2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:40:28 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:40478 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726067AbfCTOk2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:28:51 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=gVAp22eDiptErTPwMhUh1ZE5YxpW2K0kfetnrd+TG+I=; b=sL1jmkXX3yOkydWwUuLlYLB4Pz
-        EL+D4ER4H6usKIp1akwvWH8ReM41Pjm7ZtOrsDYlUwqzk8c1he+jakVguZ2NGgVe9afap0SMQdnFT
-        oiFs30bBpcNSR9xfrwjwa8MGDeYJPfy0JA3AYszTG51Lfiq5Q86g+qWuke7A1SNQaiXe8//Yni0Oz
-        Ndsbp7wNqEEI/wl3SNSQzSCSflWNP0FZarOpBO7Ge3g+t6Ooe8VuhYp2Vp36+0DAMKjQ80PcAdOpk
-        TRAZwQbyYlUDCk/9dJ24qXwjBcMGB5Baj+OQCbp5y4SKpDJfZSjhwB6fAQaTOes4yDpTUNYUIldyt
-        /pND28Zg==;
-Received: from [179.95.24.146] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h6cD3-0001KH-84; Wed, 20 Mar 2019 14:28:49 +0000
-Date:   Wed, 20 Mar 2019 11:28:45 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc:     linux-media@vger.kernel.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: Re: [PATCH v5.1 3/2] media requests: return EBADR instead of EACCES
-Message-ID: <20190320112838.7867f0f2@coco.lan>
-In-Reply-To: <b5a3175c-ae01-0251-9b57-f24b2bbb3355@xs4all.nl>
-References: <20190320123305.5224-1-hverkuil-cisco@xs4all.nl>
-        <20190320123305.5224-3-hverkuil-cisco@xs4all.nl>
-        <b5a3175c-ae01-0251-9b57-f24b2bbb3355@xs4all.nl>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Wed, 20 Mar 2019 10:40:28 -0400
+Received: by mail-wm1-f65.google.com with SMTP id u10so17982372wmj.5;
+        Wed, 20 Mar 2019 07:40:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=references:user-agent:from:to:cc:subject:in-reply-to:date
+         :message-id:mime-version;
+        bh=63lUCKzou0hKfO0w+V6Cio4BeboSTxW84Eh4nTzwxsM=;
+        b=Vzd125ZFTuWtYphi13aF3UM8xmSExJHfC09VqlBSXM8QEGQGkjj8a/G4u0xUVWxq50
+         KGActoHGWYrUoQpD/4Y6TbIDbZTD/OSlbXa4cifeXn070lCv6Y6avSJeYpuc3yYEkTOH
+         OIyr45wPD/TkW5CTa/cIjmnT2+t7vuupwABMfV1LVN3j9Dfk3CWuHcPaIRh/OaNulhe6
+         1jy6LcJ1R953IFmkyYWSdlsSK3a6TlSfh/v3mFWcnDdRk/wsna1BGs91I7SaZspRHIk1
+         u/ByT3PZteHrWOeJ6/s8IDC725sao0KCFqbYqZWb90RaIgz+CZ6hOAJAPbG0RSKjDjGU
+         pGUg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:references:user-agent:from:to:cc:subject
+         :in-reply-to:date:message-id:mime-version;
+        bh=63lUCKzou0hKfO0w+V6Cio4BeboSTxW84Eh4nTzwxsM=;
+        b=NHW6Ir83/IDJVN5UUu6VbTDuyS6T+vvC3dt4TToC3YEF2qZVJlCjEScmrvs89hDP5C
+         DzSldiQNfrcLysj94Sg0Ay43b6zyrtmSPezj/sdoJXQcjzzSrCIaCs+Nb/+zp7AXNUpK
+         aF8qlr3GyTIex9+HsCrWXIHBZPgA0licQa0t5WzMEUzxEjqBJgA3asrANPSP9x3u7NAP
+         7EH/BTLOt5E36d1X4biOlc67EszdGra5uYSW61uaxlPsRHIqbYXPZaUZg7b5BoAaroqo
+         0h2IRFTYrfDw/6YOA6ajVho8Pg58xfjTWwsKtxZNpbkxTbIBgE11C3moanKy9DvIHvBd
+         srfA==
+X-Gm-Message-State: APjAAAVDHkJG/0WOQLY2MEV7z7JSXmXQDLT8PDO/YwXQ1AsGHwYLf2Nm
+        +FTMO9CHwtPFkVY1MYIlcOg=
+X-Google-Smtp-Source: APXvYqy2vehQ4w1sNvQHIK58PnXeQOX8/aXLrDPAzBtZ2No4z0wtJ9+TVE5c0KF86+piralA7Sxtyg==
+X-Received: by 2002:a1c:ed10:: with SMTP id l16mr6511616wmh.118.1553092825868;
+        Wed, 20 Mar 2019 07:40:25 -0700 (PDT)
+Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
+        by smtp.gmail.com with ESMTPSA id c10sm2738646wrr.1.2019.03.20.07.40.24
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 20 Mar 2019 07:40:25 -0700 (PDT)
+References: <20190319163622.30607-1-wsa+renesas@sang-engineering.com>
+User-agent: mu4e 1.0; emacs 27.0.50
+From:   Rui Miguel Silva <rmfrfs@gmail.com>
+To:     Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc:     linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 1/1] staging: media: imx: imx7-mipi-csis: simplify getting .driver_data
+In-reply-to: <20190319163622.30607-1-wsa+renesas@sang-engineering.com>
+Date:   Wed, 20 Mar 2019 14:40:23 +0000
+Message-ID: <m3y359vcbs.fsf@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Wed, 20 Mar 2019 15:23:07 +0100
-Hans Verkuil <hverkuil-cisco@xs4all.nl> escreveu:
+Hi Wolfram,
+Thanks for the patch.
+On Tue 19 Mar 2019 at 16:36, Wolfram Sang wrote:
+> We should get 'driver_data' from 'struct device' directly. Going 
+> via
+> platform_device is an unneeded step back and forth.
+>
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Reviewed-by: Rui Miguel Silva <rmfrfs@gmail.com>
 
-> If requests are used when they shouldn't, or not used when they should, then
-> return EBADR (Invalid request descriptor) instead of EACCES.
-> 
-> The reason for this change is that EACCES has more to do with permissions
-> (not being the owner of the resource), but in this case the request file
-> descriptor is just wrong for the current mode of the device.
-> 
-> Update the documentation accordingly.
+---
+Cheers,
+	Rui
 
-Looks OK to me.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > ---
-> diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
-> index 1ad631e549fe..a74c82d95609 100644
-> --- a/Documentation/media/uapi/mediactl/request-api.rst
-> +++ b/Documentation/media/uapi/mediactl/request-api.rst
-> @@ -93,7 +93,7 @@ A queued request cannot be modified anymore.
->  .. caution::
->     For :ref:`memory-to-memory devices <mem2mem>` you can use requests only for
->     output buffers, not for capture buffers. Attempting to add a capture buffer
-> -   to a request will result in an ``EACCES`` error.
-> +   to a request will result in an ``EBADR`` error.
-> 
->  If the request contains configurations for multiple entities, individual drivers
->  may synchronize so the requested pipeline's topology is applied before the
-> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-> index 81ffdcb89057..b9a2e9dc707c 100644
-> --- a/Documentation/media/uapi/v4l/buffer.rst
-> +++ b/Documentation/media/uapi/v4l/buffer.rst
-> @@ -326,7 +326,7 @@ struct v4l2_buffer
->  	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
->  	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
-> 
-> -	If the device does not support requests, then ``EACCES`` will be returned.
-> +	If the device does not support requests, then ``EBADR`` will be returned.
->  	If requests are supported but an invalid request file descriptor is
->  	given, then ``EINVAL`` will be returned.
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> index 5739c3676062..dbf7b445a27b 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> @@ -111,7 +111,7 @@ in use. Setting it means that the buffer will not be passed to the driver
->  until the request itself is queued. Also, the driver will apply any
->  settings associated with the request for this buffer. This field will
->  be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.
-> -If the device does not support requests, then ``EACCES`` will be returned.
-> +If the device does not support requests, then ``EBADR`` will be returned.
->  If requests are supported but an invalid request file descriptor is given,
->  then ``EINVAL`` will be returned.
-> 
-> @@ -125,7 +125,7 @@ then ``EINVAL`` will be returned.
-> 
->     For :ref:`memory-to-memory devices <mem2mem>` you can specify the
->     ``request_fd`` only for output buffers, not for capture buffers. Attempting
-> -   to specify this for a capture buffer will result in an ``EACCES`` error.
-> +   to specify this for a capture buffer will result in an ``EBADR`` error.
-> 
->  Applications call the ``VIDIOC_DQBUF`` ioctl to dequeue a filled
->  (capturing) or displayed (output) buffer from the driver's outgoing
-> @@ -185,12 +185,10 @@ EPIPE
->      codecs if a buffer with the ``V4L2_BUF_FLAG_LAST`` was already
->      dequeued and no new buffers are expected to become available.
-> 
-> -EACCES
-> -    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
-> -    support requests for the given buffer type.
-> -
->  EBADR
-> -    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
-> +    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
-> +    support requests for the given buffer type, or
-> +    the ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
->      that the buffer is part of a request.
-> 
->  EBUSY
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 84de18b30a95..b11a779e97b0 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -392,7 +392,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
->  		return 0;
->  	} else if (!q->supports_requests) {
->  		dprintk(1, "%s: queue does not support requests\n", opname);
-> -		return -EACCES;
-> +		return -EBADR;
->  	} else if (q->uses_qbuf) {
->  		dprintk(1, "%s: queue does not use requests\n", opname);
->  		return -EBUSY;
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index eec2e2b2f6ec..ed87305b29f9 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -251,7 +251,7 @@ media_request_get_by_fd(struct media_device *mdev, int request_fd)
-> 
->  	if (!mdev || !mdev->ops ||
->  	    !mdev->ops->req_validate || !mdev->ops->req_queue)
-> -		return ERR_PTR(-EACCES);
-> +		return ERR_PTR(-EBADR);
-> 
->  	filp = fget(request_fd);
->  	if (!filp)
-> @@ -407,7 +407,7 @@ int media_request_object_bind(struct media_request *req,
->  	int ret = -EBUSY;
-> 
->  	if (WARN_ON(!ops->release))
-> -		return -EACCES;
-> +		return -EBADR;
-> 
->  	spin_lock_irqsave(&req->lock, flags);
-> 
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> index bd36d7431698..3cd25a2717ce 100644
-> --- a/include/media/media-request.h
-> +++ b/include/media/media-request.h
-> @@ -198,7 +198,7 @@ void media_request_put(struct media_request *req);
->   * Get the request represented by @request_fd that is owned
->   * by the media device.
->   *
-> - * Return a -EACCES error pointer if requests are not supported
-> + * Return a -EBADR error pointer if requests are not supported
->   * by this driver. Return -EINVAL if the request was not found.
->   * Return the pointer to the request if found: the caller will
->   * have to call @media_request_put when it finished using the
-> @@ -231,7 +231,7 @@ static inline void media_request_put(struct media_request *req)
->  static inline struct media_request *
->  media_request_get_by_fd(struct media_device *mdev, int request_fd)
+>
+> Build tested only. buildbot is happy.
+>
+>  drivers/staging/media/imx/imx7-mipi-csis.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c 
+> b/drivers/staging/media/imx/imx7-mipi-csis.c
+> index 2ddcc42ab8ff..44569c63e4de 100644
+> --- a/drivers/staging/media/imx/imx7-mipi-csis.c
+> +++ b/drivers/staging/media/imx/imx7-mipi-csis.c
+> @@ -1039,8 +1039,7 @@ static int mipi_csis_probe(struct 
+> platform_device *pdev)
+>  
+>  static int mipi_csis_pm_suspend(struct device *dev, bool 
+>  runtime)
 >  {
-> -	return ERR_PTR(-EACCES);
-> +	return ERR_PTR(-EBADR);
->  }
-> 
->  #endif
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
+> +	struct v4l2_subdev *mipi_sd = dev_get_drvdata(dev);
+>  	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
+>  	int ret = 0;
+>  
+> @@ -1064,8 +1063,7 @@ static int mipi_csis_pm_suspend(struct 
+> device *dev, bool runtime)
+>  
+>  static int mipi_csis_pm_resume(struct device *dev, bool 
+>  runtime)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
+> +	struct v4l2_subdev *mipi_sd = dev_get_drvdata(dev);
+>  	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
+>  	int ret = 0;
 
-
-
-Thanks,
-Mauro
