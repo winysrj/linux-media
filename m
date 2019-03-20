@@ -2,132 +2,145 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09715C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 03:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF41BC43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 03:10:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C7BF720857
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 03:06:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7438A20857
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 03:10:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="L2pIgyCC"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hvwfvKFi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727357AbfCTDGC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 19 Mar 2019 23:06:02 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:36284 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727148AbfCTDGB (ORCPT
+        id S1727397AbfCTDKb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 19 Mar 2019 23:10:31 -0400
+Received: from mail-pg1-f202.google.com ([209.85.215.202]:56687 "EHLO
+        mail-pg1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726573AbfCTDKb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Mar 2019 23:06:01 -0400
-Received: by mail-ot1-f68.google.com with SMTP id o74so835830ota.3
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2019 20:06:01 -0700 (PDT)
+        Tue, 19 Mar 2019 23:10:31 -0400
+Received: by mail-pg1-f202.google.com with SMTP id d10so1207052pgv.23
+        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2019 20:10:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=yMr1RUBK1VUjq0K0x9zOXPkgJoLdgDs5VbUJMJruWbo=;
-        b=L2pIgyCChQcpLOr/swrUbZsmcACIcg4yzS8kckFZQYTxtm8Ghb3VBzU/pbAnRj0+hv
-         9d6XymhlDQKXAWaCUzBpi+8FILodW5+sdiozjW+CSXkAoVulczBeKB8kgq0LN4s5iYEk
-         ZNH4C/hddgQvW6XWIqqIPyw7TXGsfrue0n3RY=
+        d=google.com; s=20161025;
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=p42pV0SCrq58ooliIiJHPKGHiJvIyZQn0fiaDDXUeDE=;
+        b=hvwfvKFiq7tn+8Ltbdy+fVGOHDYnnPfy7yNy0xgeotI2i1SLPTj+1dBLvbZ3ic/HfE
+         mBcd4/7UeoP7r/TMGQjf35jLfP8054qA8IhG5dTR58ohXro2lhiS9/OJ0rRZGuW4YHsk
+         1raqE9piWwsMJdnTBRNUGshgbWvmqvAYN7igu80kXRlAl8y6hTLxegsGq7sSjgA1vOPN
+         dwpGXjG+e7vFhWPHH1x6KbGBsxZqT+dTzMmUQTvvi1cTT5hb2r4FaZy5LeNT83S1cP0+
+         xufxkZ6/pJsTDFPxQ+UHzyK1YyPe/fEF0Bla+H6E2D8OYPqG6TtRzh59nlcaVPWfFg87
+         SRnA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=yMr1RUBK1VUjq0K0x9zOXPkgJoLdgDs5VbUJMJruWbo=;
-        b=gum90YHdCwoHRf+TvkiP71K+e8FJZHaCmxdtPmUrzi9a3TTTZaH+ik37T8vL4HNLKc
-         v0U44DuDyaeNzJH/+i6hpc1G9iXz16qyMxa8jV5Vy6OJZsqnu5ZMYSm7J8UcmlWLRo3n
-         XIWvIlG5PJtvzelDqTBwFQIXj7HhXZJDsQEg5NmVthYUi/qNgRBjzq3k/wSI79pMJtx1
-         AzBU+TuUUoWc0c2shCmJtIkagtNawHmHRpMst3OEEccLB1iZRav4xbyV4Q0DB7GQ/rz2
-         fJyvM/M2KzFnv/2Qh2/DXxQ88+8Pm1WQIy/NzuGSwaODcsrGHS3Ijw1XslH53ITcfi6j
-         tfng==
-X-Gm-Message-State: APjAAAU1QCjXyGwf5br3/erlBbEiOzSzfFyrP14BeApafADLHq2kPjpO
-        V1m2dVL+YzBB/9GkDszw8kIfGOhlW4oZ1A==
-X-Google-Smtp-Source: APXvYqww6hDVBw4dIQTm2iDLB4qv8hOCMqCJ/gkDTtxWfaU+5Nnbxqao3KaFPA2QQP/e2mQvPgEMrw==
-X-Received: by 2002:a9d:a67:: with SMTP id 94mr3873079otg.63.1553051161051;
-        Tue, 19 Mar 2019 20:06:01 -0700 (PDT)
-Received: from mail-oi1-f173.google.com (mail-oi1-f173.google.com. [209.85.167.173])
-        by smtp.gmail.com with ESMTPSA id 88sm390886otx.57.2019.03.19.20.06.00
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 19 Mar 2019 20:06:00 -0700 (PDT)
-Received: by mail-oi1-f173.google.com with SMTP id v84so662779oif.4
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2019 20:06:00 -0700 (PDT)
-X-Received: by 2002:aca:b7c4:: with SMTP id h187mr3760677oif.112.1553050789996;
- Tue, 19 Mar 2019 19:59:49 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.3917a1471bfc8cbdfdde8026566b3857caff5762.1553009355.git-series.maxime.ripard@bootlin.com>
- <9d9fe5c2dc58f9398cb6b1e9bb208640d25ae816.1553009355.git-series.maxime.ripard@bootlin.com>
-In-Reply-To: <9d9fe5c2dc58f9398cb6b1e9bb208640d25ae816.1553009355.git-series.maxime.ripard@bootlin.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Wed, 20 Mar 2019 11:59:38 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5BH25EEXN1KFsQigJo-K_KCfM0vmwVYJmj1-fkw+189Cg@mail.gmail.com>
-Message-ID: <CAAFQd5BH25EEXN1KFsQigJo-K_KCfM0vmwVYJmj1-fkw+189Cg@mail.gmail.com>
-Subject: Re: [PATCH v6 1/2] media: uapi: Add H264 low-level decoder API
- compound controls.
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=p42pV0SCrq58ooliIiJHPKGHiJvIyZQn0fiaDDXUeDE=;
+        b=uTBrC5piUkD19tMxddtmNZMr4ORQ8Kvr1lI3u3iUQi9XZZbPuwlYN+wMJGa5sehDat
+         ggi2TpSJ0wS6vf3NuSyrRy5W7oFVbqw3/UIvymbLp+Nn+3hR1DD74N2Z1x1mQgSK/GlI
+         uXwtqs/Zww2LjqowgYh9ssm2RHXPSphKG/aIv2JMaK/NzvVvkh5lQSo9T9cIf2tq84x8
+         w/HXcQg0REtAaYOCFMJjf8NNctvNhMIQICP0LOWTiMH60dl+d2OuruAdIOh8eibL6nul
+         /NPn//m0qFQgX1GlzGEDEpNnM7IG5wk8X1EOJvMpotBRe2dAXPQHHAAyZ3PnIotRbHnb
+         LPoA==
+X-Gm-Message-State: APjAAAW8E9BETDmFpfXxYxynHMby8XcfvtSodlBYZUcNxY9zeMHfo4TS
+        QnfhvAq21a0XaKEl7NsszQrLlLGZZNPM
+X-Google-Smtp-Source: APXvYqzP9hlTwEAopdX8JP9UvODwCwuyPJeDSPx005WHLDV8mbMDPu/mCqDp8lSBihYtJNHP85VfMIJNk+Uo
+X-Received: by 2002:a62:ee01:: with SMTP id e1mr8346820pfi.58.1553051430426;
+ Tue, 19 Mar 2019 20:10:30 -0700 (PDT)
+Date:   Wed, 20 Mar 2019 11:10:22 +0800
+Message-Id: <20190320031022.174052-1-linfish@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
+Subject: [PATCH] media: v4l-ctrl: add control for variable frame rate
+From:   Fish Lin <linfish@google.com>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Will Deacon <will.deacon@arm.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        jenskuske@gmail.com, Jernej Skrabec <jernej.skrabec@gmail.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Guenter Roeck <groeck@chromium.org>
+        Tomasz Figa <tfiga@chromium.org>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Fish Lin <linfish@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Maxime,
+These flag are added
+* V4L2_CID_MPEG_VIDEO_VFR_ENABLE
+* V4L2_CID_MPEG_VIDEO_VFR_MIN_FRAMERATE
+One is to set variable frame rate enable or not, another is to control
+minimal frame rate that video encoder should keep per second.
 
-On Wed, Mar 20, 2019 at 12:29 AM Maxime Ripard
-<maxime.ripard@bootlin.com> wrote:
->
-> From: Pawel Osciak <posciak@chromium.org>
->
-> Stateless video codecs will require both the H264 metadata and slices in
-> order to be able to decode frames.
->
-> This introduces the definitions for a new pixel format for H264 slices that
-> have been parsed, as well as the structures used to pass the metadata from
-> the userspace to the kernel.
->
-> Co-Developped-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Guenter Roeck <groeck@chromium.org>
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  Documentation/media/uapi/v4l/biblio.rst            |   9 +-
->  Documentation/media/uapi/v4l/ext-ctrls-codec.rst   | 569 ++++++++++++++-
->  Documentation/media/uapi/v4l/pixfmt-compressed.rst |  19 +-
->  Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  30 +-
->  Documentation/media/videodev2.h.rst.exceptions     |   5 +-
->  drivers/media/v4l2-core/v4l2-ctrls.c               |  42 +-
->  drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +-
->  include/media/h264-ctrls.h                         | 192 +++++-
->  include/media/v4l2-ctrls.h                         |  13 +-
->  include/uapi/linux/videodev2.h                     |   1 +-
->  10 files changed, 880 insertions(+), 1 deletion(-)
->  create mode 100644 include/media/h264-ctrls.h
->
+Signed-off-by: Fish Lin <linfish@google.com>
+---
+ Documentation/media/uapi/v4l/ext-ctrls-codec.rst | 9 +++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c             | 3 +++
+ include/uapi/linux/v4l2-controls.h               | 3 +++
+ 3 files changed, 15 insertions(+)
 
-Thanks for the patch and addressing my comments patiently!
+diff --git a/Documentation/media/uapi/v4l/ext-ctrls-codec.rst b/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
+index c97fb7923be5..4bc013d71b67 100644
+--- a/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
++++ b/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
+@@ -620,7 +620,16 @@ enum v4l2_mpeg_video_bitrate_mode -
+     * - Bit 24:31
+       - Must be zero.
+ 
++.. _v4l2-mpeg-video-variable-framerate:
+ 
++``V4L2_CID_MPEG_VIDEO_VFR_ENABLE (boolean)``
++    Set variable framerate enable or not. When enabled, video encoder is able
++    to drop frames based on some mechanism, like frame similarity or bitrate
++    control (default disable).
++
++``V4L2_CID_MPEG_VIDEO_VFR_MIN_FRAMERATE (integer)``
++    Minimal kept frame per second when variable framerate is enabled (default
++    is input framerate).
+ 
+ .. _v4l2-mpeg-video-dec-pts:
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b79d3bbd8350..566c6552c9a0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -786,6 +786,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE:			return "H264 MB Level Rate Control";
+ 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:			return "Sequence Header Mode";
+ 	case V4L2_CID_MPEG_VIDEO_MAX_REF_PIC:			return "Max Number of Reference Pics";
++	case V4L2_CID_MPEG_VIDEO_VFR_ENABLE:			return "Variable Frame Rate Enable";
++	case V4L2_CID_MPEG_VIDEO_VFR_MIN_FRAMERATE:		return "VFR Minimal Frame Rate";
+ 	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:		return "H263 I-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:		return "H263 P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:		return "H263 B-Frame QP Value";
+@@ -1108,6 +1110,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE:
+ 	case V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE:
++	case V4L2_CID_MPEG_VIDEO_VFR_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 06479f2fb3ae..f1bf52eb0152 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -404,6 +404,9 @@ enum v4l2_mpeg_video_multi_slice_mode {
+ #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
+ #define V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME		(V4L2_CID_MPEG_BASE+229)
+ 
++#define V4L2_CID_MPEG_VIDEO_VFR_ENABLE (V4L2_CID_MPEG_BASE + 250)
++#define V4L2_CID_MPEG_VIDEO_VFR_MIN_FRAMERATE (V4L2_CID_MPEG_BASE + 251)
++
+ #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+ #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+ #define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP		(V4L2_CID_MPEG_BASE+302)
+-- 
+2.21.0.225.g810b269d1ac-goog
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-
-Best regards,
-Tomasz
