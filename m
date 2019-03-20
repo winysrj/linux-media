@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A870DC10F05
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:53:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16F38C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:53:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 799BC206BA
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:53:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D02A1206BA
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:53:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="sexMIu8a"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="TRw7Yj5B"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728727AbfCTOxd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:53:33 -0400
-Received: from mail-yw1-f74.google.com ([209.85.161.74]:38312 "EHLO
-        mail-yw1-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728638AbfCTOwh (ORCPT
+        id S1728629AbfCTOwf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:52:35 -0400
+Received: from mail-vs1-f74.google.com ([209.85.217.74]:44815 "EHLO
+        mail-vs1-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728627AbfCTOwe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:52:37 -0400
-Received: by mail-yw1-f74.google.com with SMTP id i203so3416660ywa.5
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:36 -0700 (PDT)
+        Wed, 20 Mar 2019 10:52:34 -0400
+Received: by mail-vs1-f74.google.com with SMTP id z187so851731vsc.11
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=JYfYaqFkvasJC562WHpti4tYqqXwAjMl9KNYEduKdaE=;
-        b=sexMIu8avs3PQT75uBvPTQ7a6BwfzDpDtEim0BHpT2lZIdVCSQQNJCOv1y+KBVjuwz
-         NX0TZsiakkaHgGM438rpKshO2lygtlHGBjF9I7HIZlISq6IjvdJBMN68/khgYyArgEAc
-         8tbatLWytzPpO7bRWCVSIFqMId8s/P66Z59No3RuANZfIft4UrNO78pUbAaCEl8oBE2Q
-         qNCkyYahb1b1Pv7Y/SBLJD0dj0RxnH2fWpp5qHUGdBZK+/bAoxPvBHDVj/4wKQ82tyl8
-         DVhiys3Wu1xJZ38zAN40H2K69ZFtxYiDzY02fAJ60bAOEsljjjp1FIjebecLuWwY+E7M
-         Zatw==
+        bh=75Sme861PZA/tNUQAzLBE6PJQCb9DBJI65KsoGIZxyY=;
+        b=TRw7Yj5BILFy1o0Gjs1P7PG7K0bXvmZQkYhNUVzGU7eBwuMllGXuOholy2EFVltyM4
+         Eq2uq+97Zf6uwJS8d1ZdNFpiTnL8SNlpOD4sWLxmZFbN853Lcc52HrY3CkqYjTrkgvv3
+         P6+/fIjezdNUVDfMCm7BsfzV0JBhv6f1w4D1u9PxEoZJ5VL6MOfN4r5Co6Q9TCpikOXk
+         ufVXz2a0Bri+ZzG/0QUwT0FF9pQ83mZbCp5f+6lD7JfSPjUlslIphqktlFrt8/uqaCtx
+         xvHcpr2f1Cv9vpNRpKRy3dnpc0Pr4AZKm48fkJGsVCh95A9tTuAmJvWLp4Ouo2pSZNMk
+         pVyg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=JYfYaqFkvasJC562WHpti4tYqqXwAjMl9KNYEduKdaE=;
-        b=GuaK9DcY9lWbsnXM+9uGVcH+SZTaxFb/vVYePD4aEP+zRXnyijBQjj9tTW+mKO0hcK
-         sNxqkHE5SpjsZ9Q+BSCmBQ8IZv7QBlM+jLDh6fT1bb+4nu6TCzuhw0TPa9ZFj9D+GitH
-         v+siKqCl1vezy7BtbEbOmk4PzJiiFXZRfiuVoS0IXTKN1FwhPXevyV1i7/VdY9+GzIVn
-         sN/9f6rsdt3Bhk4FGW1yZcjiGVg7FyImVzsANbp18jdA0tg52Fzh6eN9g1CgbkJvKGOr
-         nHK+hyMX+nmFMciWmTirSJlnEC4lhP6kp8yp0BYLVEzNQnF2mqtsGuLz/gYDgQVOCmI8
-         SGiw==
-X-Gm-Message-State: APjAAAXa4Hcq3svHANtbI5pnsaxLJJcshYhadtpFg3CbTDzMkc1ut56N
-        1Qv4b/AI8XFudLXwT+QBg3kQ2JQJ9/IvSdfv
-X-Google-Smtp-Source: APXvYqz/OFC1PuPZodVHMFKw9kUzVJMyrdAYISJ9xGPWIvonfiJf4upSDw3KUidiP9gNNGgKCiqyzVAdZse9Ion/
-X-Received: by 2002:a25:bb8c:: with SMTP id y12mr2095179ybg.89.1553093556448;
- Wed, 20 Mar 2019 07:52:36 -0700 (PDT)
-Date:   Wed, 20 Mar 2019 15:51:30 +0100
+        bh=75Sme861PZA/tNUQAzLBE6PJQCb9DBJI65KsoGIZxyY=;
+        b=lWgMsWazDQrFRTZhZlsBu1UKCAOF0ZMKvp/EhUUOrMspSKioP3HmMfb0Ah4oUib/pY
+         9vGw30h3ezRgrvWncVQv6G/IQ2hvdDrKWOViTq0x+vEUnMOhfaTFOMnHYC0410PjsoBN
+         f4Xeab5+Yj4v9TRF1gO2uPdvnPgmdQorfk0kEqLJHWlMEIavEPZVEj38SfmN7AtLcqSj
+         fauD1hsHVYZKLqN7UztFQxvbjWq7FnGD0sfprnTIwfQB0D1yPuGZ7EPR4YyFD/mpoSpV
+         MLZuC15H1AIjxR4iRsjF4KBh8GVTuKg/F64oJqWvKpTlI5BKGWsGwpUkqVO+o0uD6J7Y
+         W63Q==
+X-Gm-Message-State: APjAAAVjyvS/u2qNwa843uOD1Gdc5pDpEWVSalLgLan+oCbY4nVLVjlp
+        SCRSDN0lxHNORGLaQQ24bTnL/NkbVjwhVAKh
+X-Google-Smtp-Source: APXvYqzSD9kzbCxXB1NhkO2CDkCTaQO/WiJog4chzbyr47Ky/uMyCpQjT2x0YU1fYyYTJNw37CTZ8G4iAZNpW0Wl
+X-Received: by 2002:a1f:c507:: with SMTP id v7mr16491493vkf.18.1553093553224;
+ Wed, 20 Mar 2019 07:52:33 -0700 (PDT)
+Date:   Wed, 20 Mar 2019 15:51:29 +0100
 In-Reply-To: <cover.1553093420.git.andreyknvl@google.com>
-Message-Id: <1e2824fd77e8eeb351c6c6246f384d0d89fd2d58.1553093421.git.andreyknvl@google.com>
+Message-Id: <038360a0a9dc0abaaaf3ad84a2d07fd544abce1a.1553093421.git.andreyknvl@google.com>
 Mime-Version: 1.0
 References: <cover.1553093420.git.andreyknvl@google.com>
 X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [PATCH v13 16/20] IB/mlx4, arm64: untag user pointers in mlx4_get_umem_mr
+Subject: [PATCH v13 15/20] drm/radeon, arm64: untag user pointers in radeon_ttm_tt_pin_userptr
 From:   Andrey Konovalov <andreyknvl@google.com>
 To:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will.deacon@arm.com>,
@@ -115,41 +115,33 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-mlx4_get_umem_mr() uses provided user pointers for vma lookups, which can
-only by done with untagged pointers.
+radeon_ttm_tt_pin_userptr() uses provided user pointers for vma
+lookups, which can only by done with untagged pointers.
 
 Untag user pointers in this function.
 
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/infiniband/hw/mlx4/mr.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/radeon/radeon_ttm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 395379a480cb..9a35ed2c6a6f 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -378,6 +378,7 @@ static struct ib_umem *mlx4_get_umem_mr(struct ib_udata *udata, u64 start,
- 	 * again
- 	 */
- 	if (!ib_access_writable(access_flags)) {
-+		unsigned long untagged_start = untagged_addr(start);
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+index 9920a6fc11bf..872a98796117 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -497,9 +497,10 @@ static int radeon_ttm_tt_pin_userptr(struct ttm_tt *ttm)
+ 	if (gtt->userflags & RADEON_GEM_USERPTR_ANONONLY) {
+ 		/* check that we only pin down anonymous memory
+ 		   to prevent problems with writeback */
+-		unsigned long end = gtt->userptr + ttm->num_pages * PAGE_SIZE;
++		unsigned long userptr = untagged_addr(gtt->userptr);
++		unsigned long end = userptr + ttm->num_pages * PAGE_SIZE;
  		struct vm_area_struct *vma;
- 
- 		down_read(&current->mm->mmap_sem);
-@@ -386,9 +387,9 @@ static struct ib_umem *mlx4_get_umem_mr(struct ib_udata *udata, u64 start,
- 		 * cover the memory, but for now it requires a single vma to
- 		 * entirely cover the MR to support RO mappings.
- 		 */
--		vma = find_vma(current->mm, start);
--		if (vma && vma->vm_end >= start + length &&
--		    vma->vm_start <= start) {
-+		vma = find_vma(current->mm, untagged_start);
-+		if (vma && vma->vm_end >= untagged_start + length &&
-+		    vma->vm_start <= untagged_start) {
- 			if (vma->vm_flags & VM_WRITE)
- 				access_flags |= IB_ACCESS_LOCAL_WRITE;
- 		} else {
+-		vma = find_vma(gtt->usermm, gtt->userptr);
++		vma = find_vma(gtt->usermm, userptr);
+ 		if (!vma || vma->vm_file || vma->vm_end < end)
+ 			return -EPERM;
+ 	}
 -- 
 2.21.0.225.g810b269d1ac-goog
 
