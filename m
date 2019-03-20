@@ -2,202 +2,170 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3771BC43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:06:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69C7AC43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:10:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 029142146E
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:06:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28FF72184D
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:10:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1553087406;
+	bh=NlnvZr5zc87PRi9QMGCOOKgciquK6Orvr6euflYbilo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=U/Xxy5Sx/y5ceSd34Hw6uhvMLOD82OAI00OPC9ya+Sb+zeqKfw4hRjfAaAl1IUlba
+	 8fbUf4t3hTPFX595xIvCrSR1aaSWhrcdvCUphfqK+PtSDr0DvekRGZ98yCzpEgkqRv
+	 3rZcubsaGywdj81nTQLpi2AOGx+YjXYERYa1Rn8c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727028AbfCTNGz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 09:06:55 -0400
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:35832 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726506AbfCTNGz (ORCPT
+        id S1726990AbfCTNKF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 09:10:05 -0400
+Received: from casper.infradead.org ([85.118.1.10]:34214 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726939AbfCTNKF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 09:06:55 -0400
-Received: from [IPv6:2001:983:e9a7:1:f1c5:c100:28a:d83e] ([IPv6:2001:983:e9a7:1:f1c5:c100:28a:d83e])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id 6avjhdFoueXb86avkhCPgU; Wed, 20 Mar 2019 14:06:52 +0100
-Subject: Re: [PATCH v5.1 1/2] vb2: add requires_requests bit for stateless
- codecs
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     linux-media@vger.kernel.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-References: <20190320123305.5224-1-hverkuil-cisco@xs4all.nl>
- <20190320123305.5224-2-hverkuil-cisco@xs4all.nl>
- <20190320095501.62ff031e@coco.lan>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <2f66860e-8932-3ac6-0ff0-9fc5444d1fe1@xs4all.nl>
-Date:   Wed, 20 Mar 2019 14:06:51 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Wed, 20 Mar 2019 09:10:05 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=VpKkoYO1EhkujR5Eu/WRA6hOE3g0+vDV8M6bxtwtaSE=; b=aO898U9GD/PvbjQnHCQU/nEm6b
+        LLUFhaxyp7Tf64iN6k7EfchckRMSajTlCRzkKjhbM88qUiujufMx8lY1++xZT+zwAtsxC12R4SnaA
+        DS+pc2er458g6HLHxoRHwA3kJYQ6UcX8GFbPLIdN67A+kYdmVCUJQyKmNaWamKMLxIW+L5yhoI/iX
+        iQJflmvjybTiYxeGzRR42JJ4mAjStifIY5wSYeU0yv//KPCunyR4T6I/ac65cXSOgQantVtIH9NNQ
+        TOdp9ifjcM3JYV8M+sKqewuWAUVpCrRxZuHe6b78CkQSmWp7ub7r6zojTs6L0F+igkJxGis5PvXXf
+        c0tYwJ1Q==;
+Received: from [179.95.24.146] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1h6ayo-0006yU-N8; Wed, 20 Mar 2019 13:10:03 +0000
+Date:   Wed, 20 Mar 2019 10:09:58 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org,
+        helen.koike@collabora.com, Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: Re: [PATCH v5 02/23] videodev2.h: add
+ V4L2_BUF_CAP_REQUIRES_REQUESTS
+Message-ID: <20190320100958.019fb382@coco.lan>
+In-Reply-To: <10b33081-7b79-bae9-6325-1904d76f3717@xs4all.nl>
+References: <20190306211343.15302-1-dafna3@gmail.com>
+        <20190306211343.15302-3-dafna3@gmail.com>
+        <20190320071112.4ed71c54@coco.lan>
+        <ca97c48b-3b7f-3c97-ec19-54469604fe79@xs4all.nl>
+        <20190320084239.7e58aa05@coco.lan>
+        <fe5b914b-1775-496a-20cc-c7fb01eb01d1@xs4all.nl>
+        <20190320093754.5992c89e@coco.lan>
+        <10b33081-7b79-bae9-6325-1904d76f3717@xs4all.nl>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-In-Reply-To: <20190320095501.62ff031e@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfJK01M4Ufpx/9mHRZ2RAPT1vsVR0WFMigToiLqel6stVDDOaYZQXh3UDFjYQorA3yIoKQdM9SORDWuGNO7N7E355g97IiFh3VuYKUxVuK3Nn9K7hLMUG
- Ov4Wl4o7y/IRURVkZgPzhq+Ng5HYZj3V5tItHfYdrAXZRg4aAx0GNKk516T6vJAq41isEChkA6DLGGqnJss5v1ALgcVLPrX9yNlj7zp+TwN9taagE3aX/7CK
- CBdjaU2uKHszJ9j1xmashUy0OnWusBLz/hEsvcrpO25JceNVjFfYVbQ8eQi56DwccUBt2ePWZV68i0KkX8Be/tCzJe0iL6yVD8B4spNcxGY0E8P7NDqscyMr
- Z2F5BI4C
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 3/20/19 1:55 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 20 Mar 2019 13:33:04 +0100
-> hverkuil-cisco@xs4all.nl escreveu:
+Em Wed, 20 Mar 2019 13:41:42 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On 3/20/19 1:37 PM, Mauro Carvalho Chehab wrote:
+> > Em Wed, 20 Mar 2019 13:20:07 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >>>> The only affected driver is the staging cedrus driver. And that will
+> >>>> actually crash if you try to use it without requests.
+> >>>>
+> >>>> If you look at patch 3 you'll see that it just sets the flag and doesn't
+> >>>> remove any code that was supposed to check for use-without-requests.
+> >>>> That's because there never was a check and the driver would just crash.
+> >>>>
+> >>>> So we're safe here.    
+> >>>
+> >>> Making it mandatory for the cedrus driver makes sense, but no other
+> >>> current driver should ever use it.     
+> >>
+> >> The only other drivers that implement the request API are vivid and vim2m.
+> >>
+> >> For both the request API is optional.
+> >>
+> >> And of course this patch series that adds the stateless decoder support to
+> >> vicodec, so vicodec is the only other driver besides the cedrus driver that
+> >> sets this flag.  
+> > 
+> > The current vicodec implementation is only stateless?  
 > 
->> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->>
->> Stateless codecs require the use of the Request API as opposed of it
->> being optional.
->>
->> So add a bit to indicate this and let vb2 check for this.
->>
->> If an attempt is made to queue a buffer without an associated request,
->> then the EBADR error is returned to userspace.
->>
->> Doing this check in the vb2 core simplifies drivers, since they
->> don't have to check for this, they can just set this flag.
->>
->> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->> Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
->> ---
->>  Documentation/media/uapi/v4l/vidioc-qbuf.rst    | 4 ++++
->>  drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
->>  drivers/media/common/videobuf2/videobuf2-v4l2.c | 4 ++++
->>  include/media/videobuf2-core.h                  | 3 +++
->>  4 files changed, 20 insertions(+)
->>
->> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
->> index c138d149faea..5739c3676062 100644
->> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
->> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
->> @@ -189,6 +189,10 @@ EACCES
->>      The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
->>      support requests for the given buffer type.
->>  
->> +EBADR
->> +    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
->> +    that the buffer is part of a request.
->> +
-> 
-> Hmm... IMO, you should replace the previous text instead:
-> 
-> 	EACCES
-> 	    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
-> 	    support requests for the given buffer type.
+> vicodec before this series is only stateful. After this series a new video node
+> is added which is for the stateless decoder. And that device will require
+> requests.
 
-No. This is already being returned, so changing this will be an API change.
-
-That said, since the only drivers that can return this are vivid, vim2m and cedrus,
-(i.e. test and staging drivers), I am OK to change this to EBADR as well.
-
-In that case it would become:
-
-EBADR
-	The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device driver does
-        not support requests for the given buffer type, or the
-        ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device driver
-        requires that the buffer is part of a request.
+I see. see below.
 
 > 
-> Also, I would replace:
+> >   
+> >>> The problem I see is that, as we advance on improving the requests API,
+> >>> non-stateless-codec drivers may end supporting the request API. 
+> >>> That's perfectly fine, but such other drivers should *never* be
+> >>> changed to use V4L2_BUF_CAP_REQUIRES_REQUESTS. This also applies to any
+> >>> new driver that it is not implementing a stateless codec.
+> >>>
+> >>> Btw, as this seems to be a requirement only for stateless codec drivers,
+> >>> perhaps we should (at least in Kernelspace) to use, instead, a
+> >>> V4L2_BUF_CAP_STATELESS_CODEC_ONLY flag, with the V4L2 core would
+> >>> translate it to V4L2_BUF_CAP_REQUIRES_REQUESTS before returning it to
+> >>> userspace, and have a special #ifdef at the userspace header, in order
+> >>> to prevent this flag to be set directly by a random driver.    
+> >>
+> >> I don't think this makes sense. Requiring requests is not something you
+> >> can miss since you have to code for it.
+> >>
+> >> However, there is something else that we need to think about and that is
+> >> that V4L2_BUF_CAP_REQUIRES_REQUESTS can be format specific. E.g. a stateless
+> >> codec driver can also support a JPEG codec, and for that format requests
+> >> are most likely not required at all. So this capability might actually be
+> >> format-specific.  
+> > 
+> > Yes, on formats that don't have temporal compression, there's no sense
+> > to make request API mandatory.
+> > 
+> > For formats that have temporal compression, the codec driver can either 
+> > be stateless or stateful (or even support both modes).
+> > 
+> > It sounds to me that a flag like that should be returned by S_FMT and
+> > TRY_FMT or on a separate ioctl.
+> > 
+> > It also seems to make sense if userspace could select between stateless
+> > and stateful modes, if the driver supports both modes for the same
+> > fourcc.  
 > 
-> 	device -> device driver
-> 
-> As this ia a device driver limitation of the current implementation, 
-> with may or may not reflect a hardware limitation.
-> 
->>  EBUSY
->>      The first buffer was queued via a request, but the application now tries
->>      to queue it directly, or vice versa (it is not permitted to mix the two
->> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
->> index 678a31a2b549..b98ec6e1a222 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-core.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
->> @@ -1507,6 +1507,12 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
->>  
->>  	vb = q->bufs[index];
->>  
->> +	if (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
->> +	    q->requires_requests) {
->> +		dprintk(1, "qbuf requires a request\n");
->> +		return -EBADR;
->> +	}
->> +
->>  	if ((req && q->uses_qbuf) ||
->>  	    (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
->>  	     q->uses_requests)) {
->> @@ -2238,6 +2244,9 @@ int vb2_core_queue_init(struct vb2_queue *q)
->>  	    WARN_ON(!q->ops->buf_queue))
->>  		return -EINVAL;
->>  
->> +	if (WARN_ON(q->requires_requests && !q->supports_requests))
->> +		return -EINVAL;
->> +
-> 
-> Shouldn't it also be EBADR?
+> That can't happen. The stateless formats have their own fourcc. It really
+> is a different format.
 
-No, this checks that the driver doesn't set requires_requests without
-also setting supports_requests. I.e. this indicates a driver bug, hence
-the WARN_ON. Requiring requests, but not supporting them makes obviously
-no sense.
+Well, if we're already defining different fourcc for the stateless
+codecs, then I think that your proposed patch:
 
-Regards,
+	[PATCH v5.1 2/2] cedrus: set requires_requests
 
-	Hans
+Is not the best way to implement it.
 
-> 
->>  	INIT_LIST_HEAD(&q->queued_list);
->>  	INIT_LIST_HEAD(&q->done_list);
->>  	spin_lock_init(&q->done_lock);
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index 74d3abf33b50..84de18b30a95 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -381,6 +381,10 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
->>  		return 0;
->>  
->>  	if (!(b->flags & V4L2_BUF_FLAG_REQUEST_FD)) {
->> +		if (q->requires_requests) {
->> +			dprintk(1, "%s: queue requires requests\n", opname);
->> +			return -EBADR;
->> +		}
->>  		if (q->uses_requests) {
->>  			dprintk(1, "%s: queue uses requests\n", opname);
->>  			return -EBUSY;
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index c02af6370e9b..fe010ad62b90 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -482,6 +482,8 @@ struct vb2_buf_ops {
->>   *              has not been called. This is a vb1 idiom that has been adopted
->>   *              also by vb2.
->>   * @supports_requests: this queue supports the Request API.
->> + * @requires_requests: this queue requires the Request API. If this is set to 1,
->> + *		then supports_requests must be set to 1 as well.
->>   * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
->>   *		time this is called. Set to 0 when the queue is canceled.
->>   *		If this is 1, then you cannot queue buffers from a request.
->> @@ -556,6 +558,7 @@ struct vb2_queue {
->>  	unsigned			allow_zero_bytesused:1;
->>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
->>  	unsigned			supports_requests:1;
->> +	unsigned			requires_requests:1;
->>  	unsigned			uses_qbuf:1;
->>  	unsigned			uses_requests:1;
->>  
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+	Instead, I would have a helper function like:
 
+static int v4l2_format_requires_request_api(uint32 fourcc)
+{
+	switch(fourcc) {
+	case V4L2_PIX_FMT_MPEG2_SLICE:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+called by V4L2 core at S_FMT handler in order to set vq->requires_requests.
+
+Also, in this case, I would add a V4L2_FMT_FLAG_REQUIRE_REQUEST_API or
+V4L2_FMT_FLAG_STATELESS_CODEC flag at VIDIOC_ENUM_FMT in order to
+indicate it.
+
+Thanks,
+Mauro
