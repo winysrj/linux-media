@@ -2,109 +2,204 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E65BEC43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7679C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:28:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFB612184D
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:27:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75D7B2184D
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:28:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1553092132;
+	bh=e1u1Yd5obrYxT5L05jbg7Vqd+X49eKuwle3dKDHI8KQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=eL8NRT/tDjZlJbxs8ayBRCx4480BcXJwIPmVqyESU0WFE9E2CzpteQTpqTB9TOlXG
+	 RIgsEHf8ZrnE7V8d1auze1KyH6wuYlj9ggD+v7wJw4dfkkYcxqK0LqJ/9HdEg+TeqB
+	 bXC/qGTJo2bNdZYarirs+gY13ZGneVArPqUHhX3Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727404AbfCTO1x (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:27:53 -0400
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:41139 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726303AbfCTO1w (ORCPT
+        id S1726611AbfCTO2v (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:28:51 -0400
+Received: from casper.infradead.org ([85.118.1.10]:40518 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726487AbfCTO2v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:27:52 -0400
-X-Originating-IP: 90.88.33.153
-Received: from aptenodytes (aaubervilliers-681-1-92-153.w90-88.abo.wanadoo.fr [90.88.33.153])
-        (Authenticated sender: paul.kocialkowski@bootlin.com)
-        by relay7-d.mail.gandi.net (Postfix) with ESMTPSA id 835162000C;
-        Wed, 20 Mar 2019 14:27:49 +0000 (UTC)
-Message-ID: <ba12d2480e357a37e6110c3ce907c4beea48cc35.camel@bootlin.com>
-Subject: Re: [RFC PATCH 05/20] drm: Replace instances of drm_format_info by
- drm_get_format_info
-From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To:     Maxime Ripard <maxime.ripard@bootlin.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        David Airlie <airlied@linux.ie>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Date:   Wed, 20 Mar 2019 15:27:49 +0100
-In-Reply-To: <2c4461e827cf9a64326962094f7420bfafc5e13b.1553032382.git-series.maxime.ripard@bootlin.com>
-References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
-         <2c4461e827cf9a64326962094f7420bfafc5e13b.1553032382.git-series.maxime.ripard@bootlin.com>
-Organization: Bootlin
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.32.0 
+        Wed, 20 Mar 2019 10:28:51 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=gVAp22eDiptErTPwMhUh1ZE5YxpW2K0kfetnrd+TG+I=; b=sL1jmkXX3yOkydWwUuLlYLB4Pz
+        EL+D4ER4H6usKIp1akwvWH8ReM41Pjm7ZtOrsDYlUwqzk8c1he+jakVguZ2NGgVe9afap0SMQdnFT
+        oiFs30bBpcNSR9xfrwjwa8MGDeYJPfy0JA3AYszTG51Lfiq5Q86g+qWuke7A1SNQaiXe8//Yni0Oz
+        Ndsbp7wNqEEI/wl3SNSQzSCSflWNP0FZarOpBO7Ge3g+t6Ooe8VuhYp2Vp36+0DAMKjQ80PcAdOpk
+        TRAZwQbyYlUDCk/9dJ24qXwjBcMGB5Baj+OQCbp5y4SKpDJfZSjhwB6fAQaTOes4yDpTUNYUIldyt
+        /pND28Zg==;
+Received: from [179.95.24.146] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1h6cD3-0001KH-84; Wed, 20 Mar 2019 14:28:49 +0000
+Date:   Wed, 20 Mar 2019 11:28:45 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc:     linux-media@vger.kernel.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Subject: Re: [PATCH v5.1 3/2] media requests: return EBADR instead of EACCES
+Message-ID: <20190320112838.7867f0f2@coco.lan>
+In-Reply-To: <b5a3175c-ae01-0251-9b57-f24b2bbb3355@xs4all.nl>
+References: <20190320123305.5224-1-hverkuil-cisco@xs4all.nl>
+        <20190320123305.5224-3-hverkuil-cisco@xs4all.nl>
+        <b5a3175c-ae01-0251-9b57-f24b2bbb3355@xs4all.nl>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+Em Wed, 20 Mar 2019 15:23:07 +0100
+Hans Verkuil <hverkuil-cisco@xs4all.nl> escreveu:
 
-Le mardi 19 mars 2019 à 22:57 +0100, Maxime Ripard a écrit :
-> drm_get_format_info directly calls into drm_format_info, but takes directly
-> a struct drm_mode_fb_cmd2 pointer, instead of the fourcc directly. It's
-> shorter to not dereference it, and we can customise the behaviour at the
-> driver level if we want to, so let's switch to it where it makes sense.
+> If requests are used when they shouldn't, or not used when they should, then
+> return EBADR (Invalid request descriptor) instead of EACCES.
 > 
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> The reason for this change is that EACCES has more to do with permissions
+> (not being the owner of the resource), but in this case the request file
+> descriptor is just wrong for the current mode of the device.
+> 
+> Update the documentation accordingly.
 
-Makes good sense to me!
-
-Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-
-Cheers,
-
-Paul
-
+Looks OK to me.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > ---
->  drivers/gpu/drm/gma500/framebuffer.c | 2 +-
->  drivers/gpu/drm/omapdrm/omap_fb.c    | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+> diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
+> index 1ad631e549fe..a74c82d95609 100644
+> --- a/Documentation/media/uapi/mediactl/request-api.rst
+> +++ b/Documentation/media/uapi/mediactl/request-api.rst
+> @@ -93,7 +93,7 @@ A queued request cannot be modified anymore.
+>  .. caution::
+>     For :ref:`memory-to-memory devices <mem2mem>` you can use requests only for
+>     output buffers, not for capture buffers. Attempting to add a capture buffer
+> -   to a request will result in an ``EACCES`` error.
+> +   to a request will result in an ``EBADR`` error.
 > 
-> diff --git a/drivers/gpu/drm/gma500/framebuffer.c b/drivers/gpu/drm/gma500/framebuffer.c
-> index c934b3df1f81..46f0078f7a91 100644
-> --- a/drivers/gpu/drm/gma500/framebuffer.c
-> +++ b/drivers/gpu/drm/gma500/framebuffer.c
-> @@ -232,7 +232,7 @@ static int psb_framebuffer_init(struct drm_device *dev,
->  	 * Reject unknown formats, YUV formats, and formats with more than
->  	 * 4 bytes per pixel.
->  	 */
-> -	info = drm_format_info(mode_cmd->pixel_format);
-> +	info = drm_get_format_info(dev, mode_cmd);
->  	if (!info || !info->depth || info->cpp[0] > 4)
->  		return -EINVAL;
->  
-> diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
-> index cfb641363a32..6557b2d6e16e 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_fb.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-> @@ -339,7 +339,7 @@ struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
->  			dev, mode_cmd, mode_cmd->width, mode_cmd->height,
->  			(char *)&mode_cmd->pixel_format);
->  
-> -	format = drm_format_info(mode_cmd->pixel_format);
-> +	format = drm_get_format_info(dev, mode_cmd);
->  
->  	for (i = 0; i < ARRAY_SIZE(formats); i++) {
->  		if (formats[i] == mode_cmd->pixel_format)
--- 
-Paul Kocialkowski, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
+>  If the request contains configurations for multiple entities, individual drivers
+>  may synchronize so the requested pipeline's topology is applied before the
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index 81ffdcb89057..b9a2e9dc707c 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -326,7 +326,7 @@ struct v4l2_buffer
+>  	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
+>  	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
+> 
+> -	If the device does not support requests, then ``EACCES`` will be returned.
+> +	If the device does not support requests, then ``EBADR`` will be returned.
+>  	If requests are supported but an invalid request file descriptor is
+>  	given, then ``EINVAL`` will be returned.
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> index 5739c3676062..dbf7b445a27b 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> @@ -111,7 +111,7 @@ in use. Setting it means that the buffer will not be passed to the driver
+>  until the request itself is queued. Also, the driver will apply any
+>  settings associated with the request for this buffer. This field will
+>  be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.
+> -If the device does not support requests, then ``EACCES`` will be returned.
+> +If the device does not support requests, then ``EBADR`` will be returned.
+>  If requests are supported but an invalid request file descriptor is given,
+>  then ``EINVAL`` will be returned.
+> 
+> @@ -125,7 +125,7 @@ then ``EINVAL`` will be returned.
+> 
+>     For :ref:`memory-to-memory devices <mem2mem>` you can specify the
+>     ``request_fd`` only for output buffers, not for capture buffers. Attempting
+> -   to specify this for a capture buffer will result in an ``EACCES`` error.
+> +   to specify this for a capture buffer will result in an ``EBADR`` error.
+> 
+>  Applications call the ``VIDIOC_DQBUF`` ioctl to dequeue a filled
+>  (capturing) or displayed (output) buffer from the driver's outgoing
+> @@ -185,12 +185,10 @@ EPIPE
+>      codecs if a buffer with the ``V4L2_BUF_FLAG_LAST`` was already
+>      dequeued and no new buffers are expected to become available.
+> 
+> -EACCES
+> -    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
+> -    support requests for the given buffer type.
+> -
+>  EBADR
+> -    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
+> +    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
+> +    support requests for the given buffer type, or
+> +    the ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
+>      that the buffer is part of a request.
+> 
+>  EBUSY
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 84de18b30a95..b11a779e97b0 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -392,7 +392,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
+>  		return 0;
+>  	} else if (!q->supports_requests) {
+>  		dprintk(1, "%s: queue does not support requests\n", opname);
+> -		return -EACCES;
+> +		return -EBADR;
+>  	} else if (q->uses_qbuf) {
+>  		dprintk(1, "%s: queue does not use requests\n", opname);
+>  		return -EBUSY;
+> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> index eec2e2b2f6ec..ed87305b29f9 100644
+> --- a/drivers/media/media-request.c
+> +++ b/drivers/media/media-request.c
+> @@ -251,7 +251,7 @@ media_request_get_by_fd(struct media_device *mdev, int request_fd)
+> 
+>  	if (!mdev || !mdev->ops ||
+>  	    !mdev->ops->req_validate || !mdev->ops->req_queue)
+> -		return ERR_PTR(-EACCES);
+> +		return ERR_PTR(-EBADR);
+> 
+>  	filp = fget(request_fd);
+>  	if (!filp)
+> @@ -407,7 +407,7 @@ int media_request_object_bind(struct media_request *req,
+>  	int ret = -EBUSY;
+> 
+>  	if (WARN_ON(!ops->release))
+> -		return -EACCES;
+> +		return -EBADR;
+> 
+>  	spin_lock_irqsave(&req->lock, flags);
+> 
+> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> index bd36d7431698..3cd25a2717ce 100644
+> --- a/include/media/media-request.h
+> +++ b/include/media/media-request.h
+> @@ -198,7 +198,7 @@ void media_request_put(struct media_request *req);
+>   * Get the request represented by @request_fd that is owned
+>   * by the media device.
+>   *
+> - * Return a -EACCES error pointer if requests are not supported
+> + * Return a -EBADR error pointer if requests are not supported
+>   * by this driver. Return -EINVAL if the request was not found.
+>   * Return the pointer to the request if found: the caller will
+>   * have to call @media_request_put when it finished using the
+> @@ -231,7 +231,7 @@ static inline void media_request_put(struct media_request *req)
+>  static inline struct media_request *
+>  media_request_get_by_fd(struct media_device *mdev, int request_fd)
+>  {
+> -	return ERR_PTR(-EACCES);
+> +	return ERR_PTR(-EBADR);
+>  }
+> 
+>  #endif
 
+
+
+Thanks,
+Mauro
