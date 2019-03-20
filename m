@@ -4,176 +4,426 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 954B1C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:23:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC884C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:24:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E4652184D
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:23:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93ADC2184D
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:24:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726611AbfCTOXL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:23:11 -0400
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:40057 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726123AbfCTOXL (ORCPT
+        id S1726846AbfCTOYb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:24:31 -0400
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:47197 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726123AbfCTOYb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:23:11 -0400
-Received: from [IPv6:2001:983:e9a7:1:f1c5:c100:28a:d83e] ([IPv6:2001:983:e9a7:1:f1c5:c100:28a:d83e])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id 6c7Xhdh3SeXb86c7YhCpWG; Wed, 20 Mar 2019 15:23:08 +0100
-Subject: [PATCH v5.1 3/2] media requests: return EBADR instead of EACCES
-To:     linux-media@vger.kernel.org
-Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-References: <20190320123305.5224-1-hverkuil-cisco@xs4all.nl>
- <20190320123305.5224-3-hverkuil-cisco@xs4all.nl>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <b5a3175c-ae01-0251-9b57-f24b2bbb3355@xs4all.nl>
-Date:   Wed, 20 Mar 2019 15:23:07 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Wed, 20 Mar 2019 10:24:31 -0400
+X-Originating-IP: 90.88.33.153
+Received: from aptenodytes (aaubervilliers-681-1-92-153.w90-88.abo.wanadoo.fr [90.88.33.153])
+        (Authenticated sender: paul.kocialkowski@bootlin.com)
+        by relay7-d.mail.gandi.net (Postfix) with ESMTPSA id 88BF820006;
+        Wed, 20 Mar 2019 14:24:26 +0000 (UTC)
+Message-ID: <2ef894df9d9e79d4a89e745e95c79bbb6a2505e4.camel@bootlin.com>
+Subject: Re: [RFC PATCH 03/20] drm/fourcc: Pass the format_info pointer to
+ drm_format_plane_cpp
+From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Date:   Wed, 20 Mar 2019 15:24:26 +0100
+In-Reply-To: <6e5850afb02cc2851fe3229122fb3cb4869dc108.1553032382.git-series.maxime.ripard@bootlin.com>
+References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
+         <6e5850afb02cc2851fe3229122fb3cb4869dc108.1553032382.git-series.maxime.ripard@bootlin.com>
+Organization: Bootlin
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.32.0 
 MIME-Version: 1.0
-In-Reply-To: <20190320123305.5224-3-hverkuil-cisco@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfDt/TvNy3vSWap8pqLC4FMDr/b+u7oLc6/PHsc6WT8ivKePPdyeCWfr65UMsi/YHiRX/zDYvEk4haR+sqcxBMkBmXSlXJfAlT41jMna4ZWpgoIbIYnHY
- IZAnO/YFUKi/8IrnGEluR+Kpb39vmpwczfgBn2N8DC4b9IhEKEPMNEAeMokkT2OLWwHGHnL3G8QeXlssxr0T6zsWup8Q7FkYusPAU32ZnwCNlbpU653w57bU
- TaWoXWsPvyGPO7TFH0rkfstF6ntgp70mtmf1suioX2C06BZUPwWYkjQ3rGjl+Fp8Yfg9qj2MdP6Na/UTsbQ72QS+vABttxX3DtMcMUZT/EI=
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-If requests are used when they shouldn't, or not used when they should, then
-return EBADR (Invalid request descriptor) instead of EACCES.
+Hi,
 
-The reason for this change is that EACCES has more to do with permissions
-(not being the owner of the resource), but in this case the request file
-descriptor is just wrong for the current mode of the device.
+Le mardi 19 mars 2019 à 22:57 +0100, Maxime Ripard a écrit :
+> So far, the drm_format_plane_cpp function was operating on the format's
+> fourcc and was doing a lookup to retrieve the drm_format_info structure and
+> return the cpp.
+> 
+> However, this is inefficient since in most cases, we will have the
+> drm_format_info pointer already available so we shouldn't have to perform a
+> new lookup. Some drm_fourcc functions also already operate on the
+> drm_format_info pointer for that reason, so the API is quite inconsistent
+> there.
 
-Update the documentation accordingly.
+Well, it seems that drm_fourcc functions that take a drm_format_info
+have a drm_format_info prefix, so having this would be more consistent.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
-index 1ad631e549fe..a74c82d95609 100644
---- a/Documentation/media/uapi/mediactl/request-api.rst
-+++ b/Documentation/media/uapi/mediactl/request-api.rst
-@@ -93,7 +93,7 @@ A queued request cannot be modified anymore.
- .. caution::
-    For :ref:`memory-to-memory devices <mem2mem>` you can use requests only for
-    output buffers, not for capture buffers. Attempting to add a capture buffer
--   to a request will result in an ``EACCES`` error.
-+   to a request will result in an ``EBADR`` error.
+And given what the helper does, I think it would make good sense to
+switch it over to an inline drm_format_info_plane_cpp helper.
 
- If the request contains configurations for multiple entities, individual drivers
- may synchronize so the requested pipeline's topology is applied before the
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index 81ffdcb89057..b9a2e9dc707c 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -326,7 +326,7 @@ struct v4l2_buffer
- 	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
- 	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
+What do you think?
 
--	If the device does not support requests, then ``EACCES`` will be returned.
-+	If the device does not support requests, then ``EBADR`` will be returned.
- 	If requests are supported but an invalid request file descriptor is
- 	given, then ``EINVAL`` will be returned.
+Cheers,
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 5739c3676062..dbf7b445a27b 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -111,7 +111,7 @@ in use. Setting it means that the buffer will not be passed to the driver
- until the request itself is queued. Also, the driver will apply any
- settings associated with the request for this buffer. This field will
- be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.
--If the device does not support requests, then ``EACCES`` will be returned.
-+If the device does not support requests, then ``EBADR`` will be returned.
- If requests are supported but an invalid request file descriptor is given,
- then ``EINVAL`` will be returned.
+Paul
 
-@@ -125,7 +125,7 @@ then ``EINVAL`` will be returned.
+> Let's follow the latter pattern and remove the extra lookup while being a
+> bit more consistent.
+>
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c         | 4 +++-
+>  drivers/gpu/drm/arm/malidp_hw.c                | 4 +++-
+>  drivers/gpu/drm/cirrus/cirrus_fbdev.c          | 4 +++-
+>  drivers/gpu/drm/cirrus/cirrus_main.c           | 4 +++-
+>  drivers/gpu/drm/drm_client.c                   | 3 ++-
+>  drivers/gpu/drm/drm_fb_helper.c                | 2 +-
+>  drivers/gpu/drm/drm_fourcc.c                   | 7 ++-----
+>  drivers/gpu/drm/i915/intel_sprite.c            | 3 ++-
+>  drivers/gpu/drm/mediatek/mtk_drm_fb.c          | 2 +-
+>  drivers/gpu/drm/msm/disp/mdp5/mdp5_crtc.c      | 3 ++-
+>  drivers/gpu/drm/msm/disp/mdp5/mdp5_smp.c       | 2 +-
+>  drivers/gpu/drm/msm/msm_fb.c                   | 2 +-
+>  drivers/gpu/drm/radeon/radeon_fb.c             | 4 +++-
+>  drivers/gpu/drm/rockchip/rockchip_drm_fb.c     | 2 +-
+>  drivers/gpu/drm/stm/ltdc.c                     | 2 +-
+>  drivers/gpu/drm/tegra/fb.c                     | 2 +-
+>  drivers/gpu/drm/tinydrm/core/tinydrm-helpers.c | 2 +-
+>  drivers/gpu/drm/zte/zx_plane.c                 | 2 +-
+>  include/drm/drm_fourcc.h                       | 2 +-
+>  19 files changed, 33 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+> index 5cbde74b97dd..48170a843b48 100644
+> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+> @@ -123,6 +123,8 @@ static int amdgpufb_create_pinned_object(struct amdgpu_fbdev *rfbdev,
+>  					 struct drm_mode_fb_cmd2 *mode_cmd,
+>  					 struct drm_gem_object **gobj_p)
+>  {
+> +	const struct drm_format_info *info = drm_get_format_info(dev,
+> +								 mode_cmd);
+>  	struct amdgpu_device *adev = rfbdev->adev;
+>  	struct drm_gem_object *gobj = NULL;
+>  	struct amdgpu_bo *abo = NULL;
+> @@ -133,7 +135,7 @@ static int amdgpufb_create_pinned_object(struct amdgpu_fbdev *rfbdev,
+>  	int height = mode_cmd->height;
+>  	u32 cpp;
+>  
+> -	cpp = drm_format_plane_cpp(mode_cmd->pixel_format, 0);
+> +	cpp = drm_format_plane_cpp(info, 0);
+>  
+>  	/* need to align pitch with crtc limits */
+>  	mode_cmd->pitches[0] = amdgpu_align_pitch(adev, mode_cmd->width, cpp,
+> diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
+> index b9bed1138fa3..07971ad53b29 100644
+> --- a/drivers/gpu/drm/arm/malidp_hw.c
+> +++ b/drivers/gpu/drm/arm/malidp_hw.c
+> @@ -326,12 +326,14 @@ static void malidp500_modeset(struct malidp_hw_device *hwdev, struct videomode *
+>  
+>  static int malidp500_rotmem_required(struct malidp_hw_device *hwdev, u16 w, u16 h, u32 fmt)
+>  {
+> +	const struct drm_format_info *info = drm_format_info(fmt);
+> +
+>  	/*
+>  	 * Each layer needs enough rotation memory to fit 8 lines
+>  	 * worth of pixel data. Required size is then:
+>  	 *    size = rotated_width * (bpp / 8) * 8;
+>  	 */
+> -	return w * drm_format_plane_cpp(fmt, 0) * 8;
+> +	return w * drm_format_plane_cpp(info, 0) * 8;
+>  }
+>  
+>  static void malidp500_se_write_pp_coefftab(struct malidp_hw_device *hwdev,
+> diff --git a/drivers/gpu/drm/cirrus/cirrus_fbdev.c b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+> index 39df62acac69..759847bafda8 100644
+> --- a/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+> +++ b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+> @@ -137,6 +137,8 @@ static int cirrusfb_create_object(struct cirrus_fbdev *afbdev,
+>  			       const struct drm_mode_fb_cmd2 *mode_cmd,
+>  			       struct drm_gem_object **gobj_p)
+>  {
+> +	const struct drm_format_info *info = drm_get_format_info(dev,
+> +								 mode_cmd);
+>  	struct drm_device *dev = afbdev->helper.dev;
+>  	struct cirrus_device *cdev = dev->dev_private;
+>  	u32 bpp;
+> @@ -144,7 +146,7 @@ static int cirrusfb_create_object(struct cirrus_fbdev *afbdev,
+>  	struct drm_gem_object *gobj;
+>  	int ret = 0;
+>  
+> -	bpp = drm_format_plane_cpp(mode_cmd->pixel_format, 0) * 8;
+> +	bpp = drm_format_plane_cpp(info, 0) * 8;
+>  
+>  	if (!cirrus_check_framebuffer(cdev, mode_cmd->width, mode_cmd->height,
+>  				      bpp, mode_cmd->pitches[0]))
+> diff --git a/drivers/gpu/drm/cirrus/cirrus_main.c b/drivers/gpu/drm/cirrus/cirrus_main.c
+> index 57f8fe6d020b..66d0d2c5211d 100644
+> --- a/drivers/gpu/drm/cirrus/cirrus_main.c
+> +++ b/drivers/gpu/drm/cirrus/cirrus_main.c
+> @@ -41,13 +41,15 @@ cirrus_user_framebuffer_create(struct drm_device *dev,
+>  			       struct drm_file *filp,
+>  			       const struct drm_mode_fb_cmd2 *mode_cmd)
+>  {
+> +	const struct drm_format_info *info = drm_get_format_info(dev,
+> +								 mode_cmd);
+>  	struct cirrus_device *cdev = dev->dev_private;
+>  	struct drm_gem_object *obj;
+>  	struct drm_framebuffer *fb;
+>  	u32 bpp;
+>  	int ret;
+>  
+> -	bpp = drm_format_plane_cpp(mode_cmd->pixel_format, 0) * 8;
+> +	bpp = drm_format_plane_cpp(info, 0) * 8;
+>  
+>  	if (!cirrus_check_framebuffer(cdev, mode_cmd->width, mode_cmd->height,
+>  				      bpp, mode_cmd->pitches[0]))
+> diff --git a/drivers/gpu/drm/drm_client.c b/drivers/gpu/drm/drm_client.c
+> index 9b2bd28dde0a..305d6dd5d201 100644
+> --- a/drivers/gpu/drm/drm_client.c
+> +++ b/drivers/gpu/drm/drm_client.c
+> @@ -242,6 +242,7 @@ static void drm_client_buffer_delete(struct drm_client_buffer *buffer)
+>  static struct drm_client_buffer *
+>  drm_client_buffer_create(struct drm_client_dev *client, u32 width, u32 height, u32 format)
+>  {
+> +	const struct drm_format_info *info = drm_format_info(format);
+>  	struct drm_mode_create_dumb dumb_args = { };
+>  	struct drm_device *dev = client->dev;
+>  	struct drm_client_buffer *buffer;
+> @@ -257,7 +258,7 @@ drm_client_buffer_create(struct drm_client_dev *client, u32 width, u32 height, u
+>  
+>  	dumb_args.width = width;
+>  	dumb_args.height = height;
+> -	dumb_args.bpp = drm_format_plane_cpp(format, 0) * 8;
+> +	dumb_args.bpp = drm_format_plane_cpp(info, 0) * 8;
+>  	ret = drm_mode_create_dumb(dev, &dumb_args, client->file);
+>  	if (ret)
+>  		goto err_delete;
+> diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+> index 04d23cb430bf..257a9c995057 100644
+> --- a/drivers/gpu/drm/drm_fb_helper.c
+> +++ b/drivers/gpu/drm/drm_fb_helper.c
+> @@ -768,7 +768,7 @@ static void drm_fb_helper_dirty_blit_real(struct drm_fb_helper *fb_helper,
+>  					  struct drm_clip_rect *clip)
+>  {
+>  	struct drm_framebuffer *fb = fb_helper->fb;
+> -	unsigned int cpp = drm_format_plane_cpp(fb->format->format, 0);
+> +	unsigned int cpp = drm_format_plane_cpp(fb->format, 0);
+>  	size_t offset = clip->y1 * fb->pitches[0] + clip->x1 * cpp;
+>  	void *src = fb_helper->fbdev->screen_buffer + offset;
+>  	void *dst = fb_helper->buffer->vaddr + offset;
+> diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
+> index 04be330b7cae..d8ada4cb689e 100644
+> --- a/drivers/gpu/drm/drm_fourcc.c
+> +++ b/drivers/gpu/drm/drm_fourcc.c
+> @@ -307,17 +307,14 @@ EXPORT_SYMBOL(drm_get_format_info);
+>  
+>  /**
+>   * drm_format_plane_cpp - determine the bytes per pixel value
+> - * @format: pixel format (DRM_FORMAT_*)
+> + * @format: pixel format info
+>   * @plane: plane index
+>   *
+>   * Returns:
+>   * The bytes per pixel value for the specified plane.
+>   */
+> -int drm_format_plane_cpp(uint32_t format, int plane)
+> +int drm_format_plane_cpp(const struct drm_format_info *info, int plane)
+>  {
+> -	const struct drm_format_info *info;
+> -
+> -	info = drm_format_info(format);
+>  	if (!info || plane >= info->num_planes)
+>  		return 0;
+>  
+> diff --git a/drivers/gpu/drm/i915/intel_sprite.c b/drivers/gpu/drm/i915/intel_sprite.c
+> index b56a1a9ad01d..ee0e99b13532 100644
+> --- a/drivers/gpu/drm/i915/intel_sprite.c
+> +++ b/drivers/gpu/drm/i915/intel_sprite.c
+> @@ -297,7 +297,8 @@ skl_plane_max_stride(struct intel_plane *plane,
+>  		     u32 pixel_format, u64 modifier,
+>  		     unsigned int rotation)
+>  {
+> -	int cpp = drm_format_plane_cpp(pixel_format, 0);
+> +	const struct drm_format_info *info = drm_format_info(pixel_format);
+> +	int cpp = drm_format_plane_cpp(info, 0);
+>  
+>  	/*
+>  	 * "The stride in bytes must not exceed the
+> diff --git a/drivers/gpu/drm/mediatek/mtk_drm_fb.c b/drivers/gpu/drm/mediatek/mtk_drm_fb.c
+> index 68fdef8b12bd..af90c84e9e02 100644
+> --- a/drivers/gpu/drm/mediatek/mtk_drm_fb.c
+> +++ b/drivers/gpu/drm/mediatek/mtk_drm_fb.c
+> @@ -104,7 +104,7 @@ struct drm_framebuffer *mtk_drm_mode_fb_create(struct drm_device *dev,
+>  	if (!gem)
+>  		return ERR_PTR(-ENOENT);
+>  
+> -	bpp = drm_format_plane_cpp(cmd->pixel_format, 0);
+> +	bpp = drm_format_plane_cpp(info, 0);
+>  	size = (height - 1) * cmd->pitches[0] + width * bpp;
+>  	size += cmd->offsets[0];
+>  
+> diff --git a/drivers/gpu/drm/msm/disp/mdp5/mdp5_crtc.c b/drivers/gpu/drm/msm/disp/mdp5/mdp5_crtc.c
+> index b0cf63c4e3d7..aadae21f8818 100644
+> --- a/drivers/gpu/drm/msm/disp/mdp5/mdp5_crtc.c
+> +++ b/drivers/gpu/drm/msm/disp/mdp5/mdp5_crtc.c
+> @@ -782,6 +782,7 @@ static void get_roi(struct drm_crtc *crtc, uint32_t *roi_w, uint32_t *roi_h)
+>  
+>  static void mdp5_crtc_restore_cursor(struct drm_crtc *crtc)
+>  {
+> +	const struct drm_format_info *info = drm_format_info(DRM_FORMAT_ARGB8888);
+>  	struct mdp5_crtc_state *mdp5_cstate = to_mdp5_crtc_state(crtc->state);
+>  	struct mdp5_crtc *mdp5_crtc = to_mdp5_crtc(crtc);
+>  	struct mdp5_kms *mdp5_kms = get_kms(crtc);
+> @@ -800,7 +801,7 @@ static void mdp5_crtc_restore_cursor(struct drm_crtc *crtc)
+>  	width = mdp5_crtc->cursor.width;
+>  	height = mdp5_crtc->cursor.height;
+>  
+> -	stride = width * drm_format_plane_cpp(DRM_FORMAT_ARGB8888, 0);
+> +	stride = width * drm_format_plane_cpp(info, 0);
+>  
+>  	get_roi(crtc, &roi_w, &roi_h);
+>  
+> diff --git a/drivers/gpu/drm/msm/disp/mdp5/mdp5_smp.c b/drivers/gpu/drm/msm/disp/mdp5/mdp5_smp.c
+> index b30b2f4efc60..03d503d8c3ba 100644
+> --- a/drivers/gpu/drm/msm/disp/mdp5/mdp5_smp.c
+> +++ b/drivers/gpu/drm/msm/disp/mdp5/mdp5_smp.c
+> @@ -158,7 +158,7 @@ uint32_t mdp5_smp_calculate(struct mdp5_smp *smp,
+>  	for (i = 0; i < nplanes; i++) {
+>  		int n, fetch_stride, cpp;
+>  
+> -		cpp = drm_format_plane_cpp(fmt, i);
+> +		cpp = drm_format_plane_cpp(info, i);
+>  		fetch_stride = width * cpp / (i ? hsub : 1);
+>  
+>  		n = DIV_ROUND_UP(fetch_stride * nlines, smp->blk_size);
+> diff --git a/drivers/gpu/drm/msm/msm_fb.c b/drivers/gpu/drm/msm/msm_fb.c
+> index f69c0afd6ec6..ee91058c7974 100644
+> --- a/drivers/gpu/drm/msm/msm_fb.c
+> +++ b/drivers/gpu/drm/msm/msm_fb.c
+> @@ -181,7 +181,7 @@ static struct drm_framebuffer *msm_framebuffer_init(struct drm_device *dev,
+>  		unsigned int min_size;
+>  
+>  		min_size = (height - 1) * mode_cmd->pitches[i]
+> -			 + width * drm_format_plane_cpp(mode_cmd->pixel_format, i)
+> +			 + width * drm_format_plane_cpp(info, i)
+>  			 + mode_cmd->offsets[i];
+>  
+>  		if (bos[i]->size < min_size) {
+> diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+> index 1179034024ae..88fc1a6e2e43 100644
+> --- a/drivers/gpu/drm/radeon/radeon_fb.c
+> +++ b/drivers/gpu/drm/radeon/radeon_fb.c
+> @@ -125,6 +125,8 @@ static int radeonfb_create_pinned_object(struct radeon_fbdev *rfbdev,
+>  					 struct drm_mode_fb_cmd2 *mode_cmd,
+>  					 struct drm_gem_object **gobj_p)
+>  {
+> +	const struct drm_format_info *info = drm_get_format_info(dev,
+> +								 mode_cmd);
+>  	struct radeon_device *rdev = rfbdev->rdev;
+>  	struct drm_gem_object *gobj = NULL;
+>  	struct radeon_bo *rbo = NULL;
+> @@ -135,7 +137,7 @@ static int radeonfb_create_pinned_object(struct radeon_fbdev *rfbdev,
+>  	int height = mode_cmd->height;
+>  	u32 cpp;
+>  
+> -	cpp = drm_format_plane_cpp(mode_cmd->pixel_format, 0);
+> +	cpp = drm_format_plane_cpp(info, 0);
+>  
+>  	/* need to align pitch with crtc limits */
+>  	mode_cmd->pitches[0] = radeon_align_pitch(rdev, mode_cmd->width, cpp,
+> diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_fb.c b/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
+> index c318fae28581..c602cb2f4d3c 100644
+> --- a/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
+> +++ b/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
+> @@ -98,7 +98,7 @@ rockchip_user_fb_create(struct drm_device *dev, struct drm_file *file_priv,
+>  
+>  		min_size = (height - 1) * mode_cmd->pitches[i] +
+>  			mode_cmd->offsets[i] +
+> -			width * drm_format_plane_cpp(mode_cmd->pixel_format, i);
+> +			width * drm_format_plane_cpp(info, i);
+>  
+>  		if (obj->size < min_size) {
+>  			drm_gem_object_put_unlocked(obj);
+> diff --git a/drivers/gpu/drm/stm/ltdc.c b/drivers/gpu/drm/stm/ltdc.c
+> index b1741a9d5be2..b226df7dbf6f 100644
+> --- a/drivers/gpu/drm/stm/ltdc.c
+> +++ b/drivers/gpu/drm/stm/ltdc.c
+> @@ -779,7 +779,7 @@ static void ltdc_plane_atomic_update(struct drm_plane *plane,
+>  
+>  	/* Configures the color frame buffer pitch in bytes & line length */
+>  	pitch_in_bytes = fb->pitches[0];
+> -	line_length = drm_format_plane_cpp(fb->format->format, 0) *
+> +	line_length = drm_format_plane_cpp(fb->format, 0) *
+>  		      (x1 - x0 + 1) + (ldev->caps.bus_width >> 3) - 1;
+>  	val = ((pitch_in_bytes << 16) | line_length);
+>  	reg_update_bits(ldev->regs, LTDC_L1CFBLR + lofs,
+> diff --git a/drivers/gpu/drm/tegra/fb.c b/drivers/gpu/drm/tegra/fb.c
+> index ddf2c764f24c..0a97458b286a 100644
+> --- a/drivers/gpu/drm/tegra/fb.c
+> +++ b/drivers/gpu/drm/tegra/fb.c
+> @@ -149,7 +149,7 @@ struct drm_framebuffer *tegra_fb_create(struct drm_device *drm,
+>  			goto unreference;
+>  		}
+>  
+> -		bpp = drm_format_plane_cpp(cmd->pixel_format, i);
+> +		bpp = drm_format_plane_cpp(info, i);
+>  
+>  		size = (height - 1) * cmd->pitches[i] +
+>  		       width * bpp + cmd->offsets[i];
+> diff --git a/drivers/gpu/drm/tinydrm/core/tinydrm-helpers.c b/drivers/gpu/drm/tinydrm/core/tinydrm-helpers.c
+> index 2737b6fdadc8..57dda9d1a45d 100644
+> --- a/drivers/gpu/drm/tinydrm/core/tinydrm-helpers.c
+> +++ b/drivers/gpu/drm/tinydrm/core/tinydrm-helpers.c
+> @@ -36,7 +36,7 @@ MODULE_PARM_DESC(spi_max, "Set a lower SPI max transfer size");
+>  void tinydrm_memcpy(void *dst, void *vaddr, struct drm_framebuffer *fb,
+>  		    struct drm_rect *clip)
+>  {
+> -	unsigned int cpp = drm_format_plane_cpp(fb->format->format, 0);
+> +	unsigned int cpp = drm_format_plane_cpp(fb->format, 0);
+>  	unsigned int pitch = fb->pitches[0];
+>  	void *src = vaddr + (clip->y1 * pitch) + (clip->x1 * cpp);
+>  	size_t len = (clip->x2 - clip->x1) * cpp;
+> diff --git a/drivers/gpu/drm/zte/zx_plane.c b/drivers/gpu/drm/zte/zx_plane.c
+> index c6a8be444300..41bd0db4e876 100644
+> --- a/drivers/gpu/drm/zte/zx_plane.c
+> +++ b/drivers/gpu/drm/zte/zx_plane.c
+> @@ -222,7 +222,7 @@ static void zx_vl_plane_atomic_update(struct drm_plane *plane,
+>  		cma_obj = drm_fb_cma_get_gem_obj(fb, i);
+>  		paddr = cma_obj->paddr + fb->offsets[i];
+>  		paddr += src_y * fb->pitches[i];
+> -		paddr += src_x * drm_format_plane_cpp(format, i);
+> +		paddr += src_x * drm_format_plane_cpp(fb->format, i);
+>  		zx_writel(paddr_reg, paddr);
+>  		paddr_reg += 4;
+>  	}
+> diff --git a/include/drm/drm_fourcc.h b/include/drm/drm_fourcc.h
+> index eeec449d6c6a..97a58f3e7462 100644
+> --- a/include/drm/drm_fourcc.h
+> +++ b/include/drm/drm_fourcc.h
+> @@ -268,7 +268,7 @@ drm_get_format_info(struct drm_device *dev,
+>  uint32_t drm_mode_legacy_fb_format(uint32_t bpp, uint32_t depth);
+>  uint32_t drm_driver_legacy_fb_format(struct drm_device *dev,
+>  				     uint32_t bpp, uint32_t depth);
+> -int drm_format_plane_cpp(uint32_t format, int plane);
+> +int drm_format_plane_cpp(const struct drm_format_info *info, int plane);
+>  int drm_format_plane_width(int width, uint32_t format, int plane);
+>  int drm_format_plane_height(int height, uint32_t format, int plane);
+>  unsigned int drm_format_info_block_width(const struct drm_format_info *info,
+-- 
+Paul Kocialkowski, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
 
-    For :ref:`memory-to-memory devices <mem2mem>` you can specify the
-    ``request_fd`` only for output buffers, not for capture buffers. Attempting
--   to specify this for a capture buffer will result in an ``EACCES`` error.
-+   to specify this for a capture buffer will result in an ``EBADR`` error.
-
- Applications call the ``VIDIOC_DQBUF`` ioctl to dequeue a filled
- (capturing) or displayed (output) buffer from the driver's outgoing
-@@ -185,12 +185,10 @@ EPIPE
-     codecs if a buffer with the ``V4L2_BUF_FLAG_LAST`` was already
-     dequeued and no new buffers are expected to become available.
-
--EACCES
--    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
--    support requests for the given buffer type.
--
- EBADR
--    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
-+    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
-+    support requests for the given buffer type, or
-+    the ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
-     that the buffer is part of a request.
-
- EBUSY
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 84de18b30a95..b11a779e97b0 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -392,7 +392,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
- 		return 0;
- 	} else if (!q->supports_requests) {
- 		dprintk(1, "%s: queue does not support requests\n", opname);
--		return -EACCES;
-+		return -EBADR;
- 	} else if (q->uses_qbuf) {
- 		dprintk(1, "%s: queue does not use requests\n", opname);
- 		return -EBUSY;
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index eec2e2b2f6ec..ed87305b29f9 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -251,7 +251,7 @@ media_request_get_by_fd(struct media_device *mdev, int request_fd)
-
- 	if (!mdev || !mdev->ops ||
- 	    !mdev->ops->req_validate || !mdev->ops->req_queue)
--		return ERR_PTR(-EACCES);
-+		return ERR_PTR(-EBADR);
-
- 	filp = fget(request_fd);
- 	if (!filp)
-@@ -407,7 +407,7 @@ int media_request_object_bind(struct media_request *req,
- 	int ret = -EBUSY;
-
- 	if (WARN_ON(!ops->release))
--		return -EACCES;
-+		return -EBADR;
-
- 	spin_lock_irqsave(&req->lock, flags);
-
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index bd36d7431698..3cd25a2717ce 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -198,7 +198,7 @@ void media_request_put(struct media_request *req);
-  * Get the request represented by @request_fd that is owned
-  * by the media device.
-  *
-- * Return a -EACCES error pointer if requests are not supported
-+ * Return a -EBADR error pointer if requests are not supported
-  * by this driver. Return -EINVAL if the request was not found.
-  * Return the pointer to the request if found: the caller will
-  * have to call @media_request_put when it finished using the
-@@ -231,7 +231,7 @@ static inline void media_request_put(struct media_request *req)
- static inline struct media_request *
- media_request_get_by_fd(struct media_device *mdev, int request_fd)
- {
--	return ERR_PTR(-EACCES);
-+	return ERR_PTR(-EBADR);
- }
-
- #endif
