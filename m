@@ -2,58 +2,50 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07303C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:22:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DD46C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:39:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C4AC6213F2
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:22:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553088168;
-	bh=jkfPPHpA59evVRqaF9NrvK+hxc2shyIsLbW07Pubsaw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=1+UJAEv0f6mE0QTlX9taxVkfqmKgeoc+eBFLRZqExt+4SKatyMQX7Kdbog6Pz0kB8
-	 CQCSStLUP9mvqcY8R5UsqqBPGVq9X8bVBtUCMhYhXUGxq5r694VTANtXQDXlcAw6wG
-	 hh95EsC4XDISfYeMJ6HOemrYxM+WjaqHyyrhZt9A=
+	by mail.kernel.org (Postfix) with ESMTP id E44632184D
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 13:39:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727172AbfCTNWs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 09:22:48 -0400
-Received: from casper.infradead.org ([85.118.1.10]:35194 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726239AbfCTNWs (ORCPT
+        id S1726990AbfCTNju (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 09:39:50 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44240 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726065AbfCTNju (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 09:22:48 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=deUQmf0Y2gHIUUsUH9ZsCNfqc9S3s5MrTbwnN1Do5tc=; b=Nftrnf7piCTaPqtx99Fmgaqz3P
-        NkUTIALsGNbPJ7imQxpZ+a0DAXkZjYy3PhLm2UOD/q4dX10fhhHGruXyh4JiKmnTVwsv6BuVYvh2H
-        9rcnNoNEpbpIIDsEvs3Dv+61V9O8yiXOn3RdOTnIVziUmG/wXrJRbKGkIoaxHt9gMvkVUmgxuLLUa
-        4QASk18jdn4ExFKLoC3AUnL0FZSuoIAAUJoslHVxTo9uGFsy7WBq6Tdy/kpZzzbQOSjAwG5AC/8hE
-        R9nC/IGUOdsQ3/EegdqgTLF3tX2tUj5Anm+CT/6ilNmnnjTmmNmvfFCDKBYdFg0QXcX1Fq0vHiQ+L
-        dOgaQvjg==;
-Received: from [179.95.24.146] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h6bB7-0007My-Ti; Wed, 20 Mar 2019 13:22:46 +0000
-Date:   Wed, 20 Mar 2019 10:22:37 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc:     linux-media@vger.kernel.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: Re: [PATCH v5.1 1/2] vb2: add requires_requests bit for stateless
- codecs
-Message-ID: <20190320102211.30f97366@coco.lan>
-In-Reply-To: <2f66860e-8932-3ac6-0ff0-9fc5444d1fe1@xs4all.nl>
-References: <20190320123305.5224-1-hverkuil-cisco@xs4all.nl>
-        <20190320123305.5224-2-hverkuil-cisco@xs4all.nl>
-        <20190320095501.62ff031e@coco.lan>
-        <2f66860e-8932-3ac6-0ff0-9fc5444d1fe1@xs4all.nl>
+        Wed, 20 Mar 2019 09:39:50 -0400
+Received: from localhost (unknown [IPv6:2a01:e0a:2c:6930:5cf4:84a1:2763:fe0d])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: bbrezillon)
+        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id 7C1CA281753;
+        Wed, 20 Mar 2019 13:39:47 +0000 (GMT)
+Date:   Wed, 20 Mar 2019 14:39:44 +0100
+From:   Boris Brezillon <boris.brezillon@collabora.com>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     Daniel Vetter <daniel.vetter@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 06/20] lib: Add video format information library
+Message-ID: <20190320143944.10454b3b@collabora.com>
+In-Reply-To: <a2ecd9e599e0b536c2a005e5feb140463566788e.1553032382.git-series.maxime.ripard@bootlin.com>
+References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
+        <a2ecd9e599e0b536c2a005e5feb140463566788e.1553032382.git-series.maxime.ripard@bootlin.com>
+Organization: Collabora
 X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -63,114 +55,228 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Wed, 20 Mar 2019 14:06:51 +0100
-Hans Verkuil <hverkuil-cisco@xs4all.nl> escreveu:
+On Tue, 19 Mar 2019 22:57:11 +0100
+Maxime Ripard <maxime.ripard@bootlin.com> wrote:
 
-> On 3/20/19 1:55 PM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 20 Mar 2019 13:33:04 +0100
-> > hverkuil-cisco@xs4all.nl escreveu:
-> >   
-> >> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> >>
-> >> Stateless codecs require the use of the Request API as opposed of it
-> >> being optional.
-> >>
-> >> So add a bit to indicate this and let vb2 check for this.
-> >>
-> >> If an attempt is made to queue a buffer without an associated request,
-> >> then the EBADR error is returned to userspace.
-> >>
-> >> Doing this check in the vb2 core simplifies drivers, since they
-> >> don't have to check for this, they can just set this flag.
-> >>
-> >> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> >> Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> >> ---
-> >>  Documentation/media/uapi/v4l/vidioc-qbuf.rst    | 4 ++++
-> >>  drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
-> >>  drivers/media/common/videobuf2/videobuf2-v4l2.c | 4 ++++
-> >>  include/media/videobuf2-core.h                  | 3 +++
-> >>  4 files changed, 20 insertions(+)
-> >>
-> >> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >> index c138d149faea..5739c3676062 100644
-> >> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >> @@ -189,6 +189,10 @@ EACCES
-> >>      The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
-> >>      support requests for the given buffer type.
-> >>  
-> >> +EBADR
-> >> +    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device requires
-> >> +    that the buffer is part of a request.
-> >> +  
-> > 
-> > Hmm... IMO, you should replace the previous text instead:
-> > 
-> > 	EACCES
-> > 	    The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
-> > 	    support requests for the given buffer type.  
+> Move the DRM formats API to turn this into a more generic image formats API
+> to be able to leverage it into some other places of the kernel, such as
+> v4l2 drivers.
 > 
-> No. This is already being returned, so changing this will be an API change.
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  include/linux/image-formats.h | 240 +++++++++++-
+>  lib/Kconfig                   |   7 +-
+>  lib/Makefile                  |   3 +-
+>  lib/image-formats-selftests.c | 326 +++++++++++++++-
+>  lib/image-formats.c           | 760 +++++++++++++++++++++++++++++++++++-
+>  5 files changed, 1336 insertions(+)
+>  create mode 100644 include/linux/image-formats.h
+>  create mode 100644 lib/image-formats-selftests.c
+>  create mode 100644 lib/image-formats.c
 > 
-> That said, since the only drivers that can return this are vivid, vim2m and cedrus,
-> (i.e. test and staging drivers), I am OK to change this to EBADR as well.
-> 
-> In that case it would become:
-> 
-> EBADR
-> 	The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device driver does
->         not support requests for the given buffer type, or the
->         ``V4L2_BUF_FLAG_REQUEST_FD`` flag was not set but the device driver
->         requires that the buffer is part of a request.
 
-Ok, let's do that, as, IMHO, it makes it a lot more clear.
+[...]
 
-> 
-> > 
-> > Also, I would replace:
-> > 
-> > 	device -> device driver
-> > 
-> > As this ia a device driver limitation of the current implementation, 
-> > with may or may not reflect a hardware limitation.
-> >   
-> >>  EBUSY
-> >>      The first buffer was queued via a request, but the application now tries
-> >>      to queue it directly, or vice versa (it is not permitted to mix the two
-> >> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> >> index 678a31a2b549..b98ec6e1a222 100644
-> >> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> >> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> >> @@ -1507,6 +1507,12 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-> >>  
-> >>  	vb = q->bufs[index];
-> >>  
-> >> +	if (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
-> >> +	    q->requires_requests) {
-> >> +		dprintk(1, "qbuf requires a request\n");
-> >> +		return -EBADR;
-> >> +	}
-> >> +
-> >>  	if ((req && q->uses_qbuf) ||
-> >>  	    (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
-> >>  	     q->uses_requests)) {
-> >> @@ -2238,6 +2244,9 @@ int vb2_core_queue_init(struct vb2_queue *q)
-> >>  	    WARN_ON(!q->ops->buf_queue))
-> >>  		return -EINVAL;
-> >>  
-> >> +	if (WARN_ON(q->requires_requests && !q->supports_requests))
-> >> +		return -EINVAL;
-> >> +  
-> > 
-> > Shouldn't it also be EBADR?  
-> 
-> No, this checks that the driver doesn't set requires_requests without
-> also setting supports_requests. I.e. this indicates a driver bug, hence
-> the WARN_ON. Requiring requests, but not supporting them makes obviously
-> no sense.
+> --- /dev/null
+> +++ b/lib/image-formats.c
+> @@ -0,0 +1,760 @@
+> +#include <linux/bug.h>
+> +#include <linux/image-formats.h>
+> +#include <linux/kernel.h>
+> +#include <linux/math64.h>
+> +
+> +#include <uapi/drm/drm_fourcc.h>
+> +
+> +static const struct image_format_info formats[] = {
+> +	{
 
-Ok.
+...
 
-Thanks,
-Mauro
+> +	},
+> +};
+> +
+> +#define __image_format_lookup(_field, _fmt)			\
+> +	({							\
+> +		const struct image_format_info *format = NULL;	\
+> +		unsigned i;					\
+> +								\
+> +		for (i = 0; i < ARRAY_SIZE(formats); i++)	\
+> +			if (formats[i]._field == _fmt)		\
+> +				format = &formats[i];		\
+> +								\
+> +		format;						\
+> +	})
+> +
+> +/**
+> + * __image_format_drm_lookup - query information for a given format
+> + * @drm: DRM fourcc pixel format (DRM_FORMAT_*)
+> + *
+> + * The caller should only pass a supported pixel format to this function.
+> + *
+> + * Returns:
+> + * The instance of struct image_format_info that describes the pixel format, or
+> + * NULL if the format is unsupported.
+> + */
+> +const struct image_format_info *__image_format_drm_lookup(u32 drm)
+> +{
+> +	return __image_format_lookup(drm_fmt, drm);
+> +}
+> +EXPORT_SYMBOL(__image_format_drm_lookup);
+> +
+> +/**
+> + * image_format_drm_lookup - query information for a given format
+> + * @drm: DRM fourcc pixel format (DRM_FORMAT_*)
+> + *
+> + * The caller should only pass a supported pixel format to this function.
+> + * Unsupported pixel formats will generate a warning in the kernel log.
+> + *
+> + * Returns:
+> + * The instance of struct image_format_info that describes the pixel format, or
+> + * NULL if the format is unsupported.
+> + */
+> +const struct image_format_info *image_format_drm_lookup(u32 drm)
+> +{
+> +	const struct image_format_info *format;
+> +
+> +	format = __image_format_drm_lookup(drm);
+> +
+> +	WARN_ON(!format);
+> +	return format;
+> +}
+> +EXPORT_SYMBOL(image_format_drm_lookup);
+
+I think this function and the DRM formats table should be moved in
+drivers/gpu/drm/drm_image_format.c since they are DRM specific. The
+remaining functions can IMHO be placed in include/linux/image-formats.h
+as static inline funcs. This way you can get rid of lib/image-formats.c
+and the associated Kconfig entry.
+
+> +
+> +/**
+> + * image_format_plane_cpp - determine the bytes per pixel value
+> + * @format: pointer to the image_format
+> + * @plane: plane index
+> + *
+> + * Returns:
+> + * The bytes per pixel value for the specified plane.
+> + */
+> +unsigned int image_format_plane_cpp(const struct image_format_info *format,
+> +				    int plane)
+> +{
+> +	if (!format || plane >= format->num_planes)
+> +		return 0;
+> +
+> +	return format->cpp[plane];
+> +}
+> +EXPORT_SYMBOL(image_format_plane_cpp);
+> +
+> +/**
+> + * image_format_plane_width - width of the plane given the first plane
+> + * @format: pointer to the image_format
+> + * @width: width of the first plane
+> + * @plane: plane index
+> + *
+> + * Returns:
+> + * The width of @plane, given that the width of the first plane is @width.
+> + */
+> +unsigned int image_format_plane_width(int width,
+> +				      const struct image_format_info *format,
+> +				      int plane)
+> +{
+> +	if (!format || plane >= format->num_planes)
+> +		return 0;
+> +
+> +	if (plane == 0)
+> +		return width;
+> +
+> +	return width / format->hsub;
+> +}
+> +EXPORT_SYMBOL(image_format_plane_width);
+> +
+> +/**
+> + * image_format_plane_height - height of the plane given the first plane
+> + * @format: pointer to the image_format
+> + * @height: height of the first plane
+> + * @plane: plane index
+> + *
+> + * Returns:
+> + * The height of @plane, given that the height of the first plane is @height.
+> + */
+> +unsigned int image_format_plane_height(int height,
+> +				       const struct image_format_info *format,
+> +				       int plane)
+> +{
+> +	if (!format || plane >= format->num_planes)
+> +		return 0;
+> +
+> +	if (plane == 0)
+> +		return height;
+> +
+> +	return height / format->vsub;
+> +}
+> +EXPORT_SYMBOL(image_format_plane_height);
+> +
+> +/**
+> + * image_format_block_width - width in pixels of block.
+> + * @format: pointer to the image_format
+> + * @plane: plane index
+> + *
+> + * Returns:
+> + * The width in pixels of a block, depending on the plane index.
+> + */
+> +unsigned int image_format_block_width(const struct image_format_info *format,
+> +				      int plane)
+> +{
+> +	if (!format || plane < 0 || plane >= format->num_planes)
+> +		return 0;
+> +
+> +	if (!format->block_w[plane])
+> +		return 1;
+> +
+> +	return format->block_w[plane];
+> +}
+> +EXPORT_SYMBOL(image_format_block_width);
+> +
+> +/**
+> + * image_format_block_height - height in pixels of a block
+> + * @info: pointer to the image_format
+> + * @plane: plane index
+> + *
+> + * Returns:
+> + * The height in pixels of a block, depending on the plane index.
+> + */
+> +unsigned int image_format_block_height(const struct image_format_info *format,
+> +				       int plane)
+> +{
+> +	if (!format || plane < 0 || plane >= format->num_planes)
+> +		return 0;
+> +
+> +	if (!format->block_h[plane])
+> +		return 1;
+> +
+> +	return format->block_h[plane];
+> +}
+> +EXPORT_SYMBOL(image_format_block_height);
+> +
+> +/**
+> + * image_format_min_pitch - computes the minimum required pitch in bytes
+> + * @info: pixel format info
+> + * @plane: plane index
+> + * @buffer_width: buffer width in pixels
+> + *
+> + * Returns:
+> + * The minimum required pitch in bytes for a buffer by taking into consideration
+> + * the pixel format information and the buffer width.
+> + */
+> +uint64_t image_format_min_pitch(const struct image_format_info *info,
+> +				int plane, unsigned int buffer_width)
+> +{
+> +	if (!info || plane < 0 || plane >= info->num_planes)
+> +		return 0;
+> +
+> +	return DIV_ROUND_UP_ULL((u64)buffer_width * info->char_per_block[plane],
+> +			    image_format_block_width(info, plane) *
+> +			    image_format_block_height(info, plane));
+> +}
+> +EXPORT_SYMBOL(image_format_min_pitch);
+
