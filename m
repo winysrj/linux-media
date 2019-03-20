@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 859C3C4360F
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:53:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36FADC43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55F7D206BA
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:53:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 072742146E
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:54:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="cS/GWV3n"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="JN7peWS7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728199AbfCTOxt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:53:49 -0400
-Received: from mail-vs1-f74.google.com ([209.85.217.74]:36658 "EHLO
-        mail-vs1-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728618AbfCTOwb (ORCPT
+        id S1728597AbfCTOw2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 10:52:28 -0400
+Received: from mail-qt1-f201.google.com ([209.85.160.201]:42504 "EHLO
+        mail-qt1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728590AbfCTOw1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:52:31 -0400
-Received: by mail-vs1-f74.google.com with SMTP id j72so876416vsd.3
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:30 -0700 (PDT)
+        Wed, 20 Mar 2019 10:52:27 -0400
+Received: by mail-qt1-f201.google.com with SMTP id n10so2670562qtk.9
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:52:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:in-reply-to:message-id:mime-version:references:subject:from:to
          :cc;
-        bh=m8A/eWnO1t/szRUY+Sf0prGvVhEq1OhdUwg16kciR9Y=;
-        b=cS/GWV3n1i5lKwRxDER3D1j30wbKLrIjlKCprX6vTMe8cTVCKT78AfLte355OG84/3
-         9+SHdUMKMpHe6+iOH3VzHT8pjZaRW6z5pqFcAKCDTvZf0KT3SG8dydvzjoFsqtcRHpO+
-         s7SFViAVxLm68wpAwuS47+5QK7VNwFMa5b5lxPhRs6N/VfdBIHBgFKkHSvd9I7PtKYIh
-         RebKnvIoWsQx14IlpHTag2G1jk9EWaN7+3KeAj9wdOKQHYUJVkQSYeiCwVLs53b9gTS2
-         jR0wtaevF8SL4RJoxbCrc5cwPvE9OCqov4p9AQcvaLAPdf8xImWPv+ch+hRrKoxeSje1
-         7BOw==
+        bh=BhVJ8uqyuZN/RhYo8e4D2Wo6j82d4Ue7nF7755mNwHM=;
+        b=JN7peWS7Nez+2uGYBenvD1URtgpAIqAee70ib/k/sIrShjHTRTOTS60cMewca4/dl+
+         dG9NPJL3RBHz+jByCPy9VsQpiotQxDiag9Y5aB1mow2uCgebTPUHJtgOnmaSI9Vr/YIx
+         hQI/v/gR0GvyO5deZUXNGQI2iRQRxhpRf4qspE3jPUxJjXOAuD/wl6/iqPcyOgYmtLKK
+         MWpwP9BARDOkmKwS67XX82wJzNDDELNK9gdSeTBhBvMrWdTjib0F+nJEJKUwKFoB/pDB
+         SXeryLoUidHqjz93zv8BQ7DsI9WVz5TfwJy9iV6N2sA8iMykCz2Q8F38PNgxFh8B+8WB
+         8apg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:in-reply-to:message-id:mime-version
          :references:subject:from:to:cc;
-        bh=m8A/eWnO1t/szRUY+Sf0prGvVhEq1OhdUwg16kciR9Y=;
-        b=kbtu6gVm1XSlaJk75UUl5Dp7GcPzIjl8V5DZZKOUZdkfyrlx969TW/EIAdBAYo5ifu
-         fnJrw1xnCUlx6lRAmVkxO4p2sbEovtRZj+fDICe61R3AbAZmvlWIVdNbC082ijynJRjp
-         wv4aS4e4W3fq5dFyvkdnVxTAY1NioBy/Q/sn2ZPMw5fkOq9SeiiX297IZzEYrku/agFy
-         9M3oU5wJFodXFp+H9MjuswSsz7rHM/QI2plJk2KRX/Np5nb0bLL9vTEcYh2tEwrBqlok
-         zZ//UHhcEQNWGKx1GwudI1EZ58cuueu9hmcsjC572/DKhUc9YFAcG4Ah7mCHixUxoh2i
-         xqbQ==
-X-Gm-Message-State: APjAAAXvpavtHpGeyNrSGV8xC8SXVbXiREdN3dCO5Yhus4hA/sW8qLJF
-        GrRFbQ7sqFaHmUHqSVn7L5khltdoXH8cE6sC
-X-Google-Smtp-Source: APXvYqw58aZo87dG3fwjMiai1M3z5FY5q/6ly8PoJSCWFGZ15x+DIhLzfcwRQ16QrQdSY5QNXUz25VoApSfh8lGu
-X-Received: by 2002:a1f:c507:: with SMTP id v7mr16491398vkf.18.1553093549995;
- Wed, 20 Mar 2019 07:52:29 -0700 (PDT)
-Date:   Wed, 20 Mar 2019 15:51:28 +0100
+        bh=BhVJ8uqyuZN/RhYo8e4D2Wo6j82d4Ue7nF7755mNwHM=;
+        b=e9Tp910NzONY4EIbUMQqxEDqjaP9flvUEq73iY5oDafHrBJ5MZcJmiMvrw9slwBeln
+         IMeD/tM+BF7easeVcNG9jE+QIKasSw6BMRR01up/3nss9Vhvmbhc3C69kmOC+t75HhZ2
+         QSDq7ZDR55x5ELs0cVlSzLhaR01WhuAjSCDANspWU4+CX5tZBwsmtAREoDwzkb92qple
+         beF+YmQR3vGwzMJwdPvwEdvSkuUEvXe8Wh0N3PrgU7tFzbyUGYygVSpj3D4FGonKye3j
+         b3tfiiQ0MRiJAZUG9l1tqgJKykqFEoC5guIXXkuVK/NZCo2BdlDBkVlstQJpGzO1mHFE
+         kcEg==
+X-Gm-Message-State: APjAAAWiBw2shNk2ffjznU1zy20IEW+3rOaz/Ga55qOXZ5ey6IcC/kJx
+        UnTASsnhNuaphq8/cXz9UPGuWbr/wup6BqjP
+X-Google-Smtp-Source: APXvYqwzO9qScb+3DLKygLOG3z91c2IWDiaev09n3TsGmqkOq4NcQ5CsSt3t0f+AffnIIDyplmnedU704klPsHau
+X-Received: by 2002:a05:620a:15fa:: with SMTP id p26mr919440qkm.51.1553093546857;
+ Wed, 20 Mar 2019 07:52:26 -0700 (PDT)
+Date:   Wed, 20 Mar 2019 15:51:27 +0100
 In-Reply-To: <cover.1553093420.git.andreyknvl@google.com>
-Message-Id: <017804b2198a906463d634f84777b6087c9b4a40.1553093421.git.andreyknvl@google.com>
+Message-Id: <09d6b8e5c8275de85c7aba716578fbcb3cbce924.1553093421.git.andreyknvl@google.com>
 Mime-Version: 1.0
 References: <cover.1553093420.git.andreyknvl@google.com>
 X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [PATCH v13 14/20] drm/amdgpu, arm64: untag user pointers in amdgpu_ttm_tt_get_user_pages
+Subject: [PATCH v13 13/20] bpf, arm64: untag user pointers in stack_map_get_build_id_offset
 From:   Andrey Konovalov <andreyknvl@google.com>
 To:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will.deacon@arm.com>,
@@ -115,34 +115,42 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-amdgpu_ttm_tt_get_user_pages() uses provided user pointers for vma
+stack_map_get_build_id_offset() uses provided user pointers for vma
 lookups, which can only by done with untagged pointers.
 
-Untag user pointers in this function.
+Untag user pointers in this function for doing the lookup and
+calculating the offset, but save as is in the bpf_stack_build_id
+struct.
 
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/bpf/stackmap.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-index 73e71e61dc99..891b027fa33b 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -751,10 +751,11 @@ int amdgpu_ttm_tt_get_user_pages(struct ttm_tt *ttm, struct page **pages)
- 		 * check that we only use anonymous memory to prevent problems
- 		 * with writeback
- 		 */
--		unsigned long end = gtt->userptr + ttm->num_pages * PAGE_SIZE;
-+		unsigned long userptr = untagged_addr(gtt->userptr);
-+		unsigned long end = userptr + ttm->num_pages * PAGE_SIZE;
- 		struct vm_area_struct *vma;
+diff --git a/kernel/bpf/stackmap.c b/kernel/bpf/stackmap.c
+index 950ab2f28922..bb89341d3faf 100644
+--- a/kernel/bpf/stackmap.c
++++ b/kernel/bpf/stackmap.c
+@@ -320,7 +320,9 @@ static void stack_map_get_build_id_offset(struct bpf_stack_build_id *id_offs,
+ 	}
  
--		vma = find_vma(mm, gtt->userptr);
-+		vma = find_vma(mm, userptr);
- 		if (!vma || vma->vm_file || vma->vm_end < end) {
- 			up_read(&mm->mmap_sem);
- 			return -EPERM;
+ 	for (i = 0; i < trace_nr; i++) {
+-		vma = find_vma(current->mm, ips[i]);
++		u64 untagged_ip = untagged_addr(ips[i]);
++
++		vma = find_vma(current->mm, untagged_ip);
+ 		if (!vma || stack_map_get_build_id(vma, id_offs[i].build_id)) {
+ 			/* per entry fall back to ips */
+ 			id_offs[i].status = BPF_STACK_BUILD_ID_IP;
+@@ -328,7 +330,7 @@ static void stack_map_get_build_id_offset(struct bpf_stack_build_id *id_offs,
+ 			memset(id_offs[i].build_id, 0, BPF_BUILD_ID_SIZE);
+ 			continue;
+ 		}
+-		id_offs[i].offset = (vma->vm_pgoff << PAGE_SHIFT) + ips[i]
++		id_offs[i].offset = (vma->vm_pgoff << PAGE_SHIFT) + untagged_ip
+ 			- vma->vm_start;
+ 		id_offs[i].status = BPF_STACK_BUILD_ID_VALID;
+ 	}
 -- 
 2.21.0.225.g810b269d1ac-goog
 
