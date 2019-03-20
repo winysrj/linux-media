@@ -2,143 +2,173 @@ Return-Path: <SRS0=I/aX=RX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D00C43381
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:55:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F23C43381
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 15:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98D6A2186A
-	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 14:55:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="fBgfxh9G"
+	by mail.kernel.org (Postfix) with ESMTP id 47BCE2146E
+	for <linux-media@archiver.kernel.org>; Wed, 20 Mar 2019 15:00:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728323AbfCTOvs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 10:51:48 -0400
-Received: from mail-vk1-f202.google.com ([209.85.221.202]:45981 "EHLO
-        mail-vk1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728316AbfCTOvr (ORCPT
+        id S1727670AbfCTPAl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 11:00:41 -0400
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46213 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726487AbfCTPAk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 10:51:47 -0400
-Received: by mail-vk1-f202.google.com with SMTP id w71so1038217vkd.12
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 07:51:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=20ADMBvUHCnrZbwN97RAJ/EQy38heFRI/sJcSeCbm08=;
-        b=fBgfxh9GgamRMHg2ccGZFUoBByz4GOt4sfGHL3tpn3ZQ1767xayTeCcyI3yXs2mSPo
-         9L9Z+nWnCgS1IkEZKl0L10t99Kxoazx3+kM5cwGHIxLejwB/C6WPwJK7TADmWr+R7zyk
-         SVEtWmrnvfwXlM1zlGyhZQZOBAu3t9jHBJl+/8o9qgFuWwu995t1w8VbhpR252WdIqRb
-         sE8Ml1x7tGBmVRlYQ2buPK+l8HSNYgOfT1+UtDa9CPF/KYM3j84TJNM8Ny+6EFQlptxm
-         +USjsypvXQxVHDirJ+TCg6zJChaLRFAlYddXbqGYhP/AQ/lMXeTl1LdpntucdrWI+Hfw
-         RS9A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=20ADMBvUHCnrZbwN97RAJ/EQy38heFRI/sJcSeCbm08=;
-        b=AePXQwICoYv5pa8+LAOUYJ9CYZvFiMzkje4hwNS4fz+6e6UKMxLVE46eQIaoEjPIKS
-         H3h8MOVXsmpEag5ger1DS87oCXFVqIYxqvz48mGSDhOQ+66EAC4U8L0fLWxEBqTNAhQZ
-         qmxcNnXOc62SVgazNzufFMiXxNz8MPjGhxpU32Yb88ks96gfUx9am8rRZNiUi+9RZjOz
-         8uDtIehZufpy2aWhefnXpFrQIBuWMnnjSENbb43NntzKeNHTlut10t8jdMh/1DY7ONEH
-         XNGoimNpHbKEmLVGXnCVpcC2rR4wXTAvZYN8EBVZJj3Exi2bm5zkiqL2qi+UnjO7iuDx
-         +1+Q==
-X-Gm-Message-State: APjAAAWTActAp9G42KTgLco27TtJKHzyICMbwppEulYpnbxJiosmpfiz
-        1U3ZbFHg2YYmCOU2BmV+MPm1eeTDS0cEbcll
-X-Google-Smtp-Source: APXvYqwYZ0q0Kqz4Z5cFxviM/RSvP8v992XNq+tHsBzIasT+5NuCnNNfSRat/OKpd5fkXdzMwZGbNS7t4SMgCBo4
-X-Received: by 2002:a1f:2a48:: with SMTP id q69mr16477241vkq.7.1553093506075;
- Wed, 20 Mar 2019 07:51:46 -0700 (PDT)
-Date:   Wed, 20 Mar 2019 15:51:15 +0100
-In-Reply-To: <cover.1553093420.git.andreyknvl@google.com>
-Message-Id: <7747d94301bcb30de0026e9434a1e1879f84aae7.1553093421.git.andreyknvl@google.com>
-Mime-Version: 1.0
-References: <cover.1553093420.git.andreyknvl@google.com>
-X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [PATCH v13 01/20] uaccess: add untagged_addr definition for other arches
-From:   Andrey Konovalov <andreyknvl@google.com>
-To:     Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Kees Cook <keescook@chromium.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Vincenzo Frascino <vincenzo.frascino@arm.com>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        "=?UTF-8?q?Christian=20K=C3=B6nig?=" <christian.koenig@amd.com>,
-        "David (ChunMing) Zhou" <David1.Zhou@amd.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
+        Wed, 20 Mar 2019 11:00:40 -0400
+Received: from [IPv6:2001:983:e9a7:1:f1c5:c100:28a:d83e] ([IPv6:2001:983:e9a7:1:f1c5:c100:28a:d83e])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id 6chohdtuQeXb86chphD1sx; Wed, 20 Mar 2019 16:00:38 +0100
+Subject: Re: [PATCH v4] Add following V4L2 QP parameters for H.264: *
+ V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP *
+ V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP *
+ V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP *
+ V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP
+To:     Fish Lin <linfish@google.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jens Wiklander <jens.wiklander@linaro.org>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
-        linux-arch@vger.kernel.org, netdev@vger.kernel.org,
-        bpf@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-        linux-media@vger.kernel.org, kvm@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Evgeniy Stepanov <eugenis@google.com>,
-        Lee Smith <Lee.Smith@arm.com>,
-        Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>,
-        Jacob Bramley <Jacob.Bramley@arm.com>,
-        Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>,
-        Chintan Pandya <cpandya@codeaurora.org>,
-        Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Dave Martin <Dave.Martin@arm.com>,
-        Kevin Brodsky <kevin.brodsky@arm.com>,
-        Szabolcs Nagy <Szabolcs.Nagy@arm.com>,
-        Andrey Konovalov <andreyknvl@google.com>
-Content-Type: text/plain; charset="UTF-8"
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20190128072948.45788-1-linfish@google.com>
+ <20190315084021.3572-1-linfish@google.com>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <ef29126b-c118-f91f-3b23-c5103bad232a@xs4all.nl>
+Date:   Wed, 20 Mar 2019 16:00:36 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
+MIME-Version: 1.0
+In-Reply-To: <20190315084021.3572-1-linfish@google.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfEUxzkJ2cIXlmv8EMcwunJB9fCwILe6xzJ6W6LUw0iJTsT83opMXrNQPKWYm3GnT3sk1hv+EXm/apYXclJz4OvKgRFtEzAWI1JNRqO5AVuG9y17yzSGZ
+ /+vRjr2GH35qu9n0wtgDKVmTvd8pILU4l7tHAhPdTWPJG2TIFn/pb6j2a3avRgsx+UfihL8h7nnt5ae+//39zNjJ2flzWVByfMTmUlkUUuppenD8gIr2YJm7
+ S6pDFZac9+x2n3ENtebKXqVs13OJ7+AgWk/18Vz9JMuoAByM7y5ypHeZrIEUoL+81j9d3kPnx+CbDWAufEjc99jOEUfu5fPAzYkpZgpepGQwZh9v92vaPkfJ
+ yIVxMo/B/ZSdmk36mrpndoRt9eVzuyRCpboMOMEdCGf0JCQ1Vqy39E59qIJ4CxShyUDtHzBnAqo3w6+BLZQw8YudLQdC/TOaekH5dwAUvGyDz2Tv7FCkDXYP
+ ORIQtXCsoN6BX5WE3GDkmbMBSfHf711Z8krexcxxe59MT1ip2b6TNh8tyP9PvgiDjyIUzYYMwnLRs5Gax/89X7diYKgTb7y7hd+7fg==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-To allow arm64 syscalls to accept tagged pointers from userspace, we must
-untag them when they are passed to the kernel. Since untagging is done in
-generic parts of the kernel, the untagged_addr macro needs to be defined
-for all architectures.
+This subject line is insanely long :-)
 
-Define it as a noop for architectures other than arm64.
+Please use a short subject line for v5 (i.e. "Add V4L2 QP parameters for H.264")
+and mention the actual parameters you are adding in the commit log.
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
----
- include/linux/mm.h | 4 ++++
- 1 file changed, 4 insertions(+)
+Some more comments below:
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 76769749b5a5..4d674518d392 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -99,6 +99,10 @@ extern int mmap_rnd_compat_bits __read_mostly;
- #include <asm/pgtable.h>
- #include <asm/processor.h>
- 
-+#ifndef untagged_addr
-+#define untagged_addr(addr) (addr)
-+#endif
-+
- #ifndef __pa_symbol
- #define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
- #endif
--- 
-2.21.0.225.g810b269d1ac-goog
+On 3/15/19 9:40 AM, Fish Lin wrote:
+> These controls will limit QP range for intra and inter frame,
+> provide more manual control to improve video encode quality.
+> 
+> Signed-off-by: Fish Lin <linfish@google.com>
+> ---
+> Changelog since v3:
+> - Put document in ext-ctrls-codec.rst instead of extended-controls.rst
+>   (which was previous version).
+> 
+> Changelog since v2:
+> - Add interaction with V4L2_CID_MPEG_VIDEO_H264_MIN/MAX_QP
+>   description in the document.
+> 
+> Changelog since v1:
+> - Add description in document.
+> 
+>  .../media/uapi/v4l/ext-ctrls-codec.rst        | 24 +++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c          |  4 ++++
+>  include/uapi/linux/v4l2-controls.h            |  6 +++++
+>  3 files changed, 34 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/ext-ctrls-codec.rst b/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
+> index c97fb7923be5..de60b2e788eb 100644
+> --- a/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
+> +++ b/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
+> @@ -1048,6 +1048,30 @@ enum v4l2_mpeg_video_h264_entropy_mode -
+>      Quantization parameter for an B frame for H264. Valid range: from 0
+>      to 51.
+>  
+> +``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP (integer)``
+> +    Minimum quantization parameter for H264 I frame, to limit I frame
+
+H264 -> the H264
+frame, to -> frame to
+
+Same below.
+
+> +    quality in a range. Valid range: from 0 to 51. If
+
+in -> to
+
+(you limit a value *to* a range, not 'in a range')
+
+Same below.
+
+Regards,
+
+	Hans
+
+> +    V4L2_CID_MPEG_VIDEO_H264_MIN_QP is also set, the quantization parameter
+> +    should be chosen to meet both requirements.
+> +
+> +``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP (integer)``
+> +    Maximum quantization parameter for H264 I frame, to limit I frame
+> +    quality in a range. Valid range: from 0 to 51. If
+> +    V4L2_CID_MPEG_VIDEO_H264_MAX_QP is also set, the quantization parameter
+> +    should be chosen to meet both requirements.
+> +
+> +``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP (integer)``
+> +    Minimum quantization parameter for H264 P frame, to limit P frame
+> +    quality in a range. Valid range: from 0 to 51. If
+> +    V4L2_CID_MPEG_VIDEO_H264_MIN_QP is also set, the quantization parameter
+> +    should be chosen to meet both requirements.
+> +
+> +``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP (integer)``
+> +    Maximum quantization parameter for H264 P frame, to limit P frame
+> +    quality in a range. Valid range: from 0 to 51. If
+> +    V4L2_CID_MPEG_VIDEO_H264_MAX_QP is also set, the quantization parameter
+> +    should be chosen to meet both requirements.
+> +
+>  ``V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP (integer)``
+>      Quantization parameter for an I frame for MPEG4. Valid range: from 1
+>      to 31.
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b79d3bbd8350..115fb8debe23 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -828,6 +828,10 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION:
+>  								return "H264 Constrained Intra Pred";
+>  	case V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET:	return "H264 Chroma QP Index Offset";
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP:		return "H264 I-Frame Minimum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP:		return "H264 I-Frame Maximum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP:		return "H264 P-Frame Minimum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP:		return "H264 P-Frame Maximum QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 06479f2fb3ae..4421baa84177 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -535,6 +535,12 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
+>  #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
+>  #define V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION	(V4L2_CID_MPEG_BASE+383)
+>  #define V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET		(V4L2_CID_MPEG_BASE+384)
+> +
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+390)
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+391)
+> +#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+392)
+> +#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+393)
+> +
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+> 
 
