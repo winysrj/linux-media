@@ -2,101 +2,164 @@ Return-Path: <SRS0=WMbR=RY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71380C43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 19:59:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97F4BC43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 21:45:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B0F0218A5
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 19:59:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="KufpxPjT"
+	by mail.kernel.org (Postfix) with ESMTP id 4D42821916
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 21:45:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728088AbfCUT7i (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Mar 2019 15:59:38 -0400
-Received: from mail-wm1-f53.google.com ([209.85.128.53]:35527 "EHLO
-        mail-wm1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727881AbfCUT7i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Mar 2019 15:59:38 -0400
-Received: by mail-wm1-f53.google.com with SMTP id y197so41666wmd.0
-        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2019 12:59:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=googlemail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=zlU/3LohMF6TqJbuu+PAASgOeuaPwGmCivG9m5MvleA=;
-        b=KufpxPjTjU0fIP1VM/zqzN+vxmDMjJb9Loy1UJabnUpCpvBN0ZOB5mQx74Mp8cEsr/
-         gxHTBc9EcnOn5EF6lEs/bT9imSZHo0/eu7vo+2MtMzEB4Yj6UsrNaB+sd0shn3fjyfcb
-         H7r7JC+DR8BMp6rU5VSVIO5tIaEvNzKfAuz0TdPXOTEVJwKKZPipEXzo1+4pCfhACjOK
-         4arr3E+VkpLyf4cTtBsgloD3dwGRMNsAQSPYLTZCYGw5+KwFQ2eIXjsxvwJiO0NXQ4mZ
-         Mxf3ilj9ZQaof3tP/h1Sa+C98P8BMMDhVGZ+T+YcZNoABFC2qCKjP9y3yOrHSeasXUYS
-         guag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=zlU/3LohMF6TqJbuu+PAASgOeuaPwGmCivG9m5MvleA=;
-        b=OE1aSqDhBrm1UnSk8zDb2EStD7axUYwteCbHEDiolIxFMozgRfsnT7Ycipbm8smhvX
-         Azj0sNHZE6cGJ5NlWTrhN5r99BqYgyeoMPytsgndhMHS3bM+glXavuH/z6nwS4UDy1cW
-         n251p4PkZI/NxY9YM5b0PaI9C+HNlFn+50gkMumCjHjgfaisUVchtI2hVpHEguRcv5BD
-         6PuAGRRulcxhRpYEuECv5ETF+v+xN5AP/BTKYkcBtR/1vvso8Cc+UlKd1PHIsWaOw63o
-         oS8E5k9aavvR4FNR2byuBe20AF7+kKhSoHYNQ1QM00WA1X4ZBCDhK6kpkNaubauke7LA
-         nRzA==
-X-Gm-Message-State: APjAAAXjG+uceQRJmndRkscrUGz8wtv7sLhiW0kuEOmw4/Cw8PnymhwW
-        imxRMMbZsBy/nYzAPCGEnDI=
-X-Google-Smtp-Source: APXvYqwEDqdLxUtKuXz8lyPJxj+lTf7y3DNZguJQ/Q7c4PUOThM6ouuxzOnfr5sDcL/ob1oCgPcbJA==
-X-Received: by 2002:a7b:c382:: with SMTP id s2mr625302wmj.56.1553198375741;
-        Thu, 21 Mar 2019 12:59:35 -0700 (PDT)
-Received: from ?IPv6:2a02:810a:8340:5f04:e022:1a6f:1d80:f811? ([2a02:810a:8340:5f04:e022:1a6f:1d80:f811])
-        by smtp.gmail.com with ESMTPSA id c10sm4020859wru.83.2019.03.21.12.59.34
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 21 Mar 2019 12:59:34 -0700 (PDT)
-Subject: Re: [Bug report] dvbv5-zap crash dvb-tool ARMHF builds
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sean Young <sean@mess.org>
-Cc:     CHEMLA Samuel <chemla.samuel@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <f4b69417-06c3-f9ab-2973-ae23d76088b8@gmail.com>
- <29bad771-843c-1dee-906c-6e9475aed7d8@gmail.com>
- <d291e164-993f-232a-f01b-0f8c17087004@googlemail.com>
- <20190315223425.hiq3qcjhjnirsizh@gofer.mess.org>
- <20190317065242.137cb095@coco.lan> <20190319164507.7f95af89@coco.lan>
- <a1f296ba-3c27-ed2c-3912-4edbeeb21eba@googlemail.com>
- <20190321094127.ysurm4u26zugmnmv@gofer.mess.org>
- <20190321083044.621f1922@coco.lan>
-From:   Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <35ba4e81-fc2a-87ed-8da7-43cc4543de51@googlemail.com>
-Date:   Thu, 21 Mar 2019 20:59:33 +0100
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:60.0)
- Gecko/20100101 Thunderbird/60.5.3
+        id S1726767AbfCUVpC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Mar 2019 17:45:02 -0400
+Received: from mga04.intel.com ([192.55.52.120]:3638 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725962AbfCUVpC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Mar 2019 17:45:02 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 21 Mar 2019 14:45:01 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,254,1549958400"; 
+   d="scan'208";a="127509762"
+Received: from stinkbox.fi.intel.com (HELO stinkbox) ([10.237.72.174])
+  by orsmga008.jf.intel.com with SMTP; 21 Mar 2019 14:44:56 -0700
+Received: by stinkbox (sSMTP sendmail emulation); Thu, 21 Mar 2019 23:44:55 +0200
+Date:   Thu, 21 Mar 2019 23:44:55 +0200
+From:   Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To:     Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-media@vger.kernel.org, Daniel Stone <daniels@collabora.com>
+Subject: Re: [RFC PATCH 18/20] lib: image-formats: Add v4l2 formats support
+Message-ID: <20190321214455.GL3888@intel.com>
+References: <20190320142739.GK3888@intel.com>
+ <a13f7fdeaf1a5e97f21a6048da765705b59d64c2.camel@ndufresne.ca>
+ <20190320160939.GR3888@intel.com>
+ <f3f8749e30aad81bc39ed9b60cd308ac5f3c6707.camel@ndufresne.ca>
+ <20190320164133.GT3888@intel.com>
+ <d46b30ca8962d3c31b1273cf010ca9fb7b145fe8.camel@ndufresne.ca>
+ <20190320183914.GV3888@intel.com>
+ <46df4fb13636b90c147839b0aa5ad1ac33030461.camel@bootlin.com>
+ <20190321163532.GG3888@intel.com>
+ <ac5329d77f83af2804c240ebe479ec323b60aec3.camel@ndufresne.ca>
 MIME-Version: 1.0
-In-Reply-To: <20190321083044.621f1922@coco.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <ac5329d77f83af2804c240ebe479ec323b60aec3.camel@ndufresne.ca>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello,
-
-On 21.03.19 12:30, Mauro Carvalho Chehab wrote:
-> I went ahead and cherry-picked the relevant patches to -1.12, -1.14 and
-> -1.16, and tested both dvbv5-zap and dvbv5-scan with all versions. So, we can
-> release a new minor version for all those stable branches.
+On Thu, Mar 21, 2019 at 03:14:06PM -0400, Nicolas Dufresne wrote:
+> Le jeudi 21 mars 2019 à 18:35 +0200, Ville Syrjälä a écrit :
+> > > I'm not sure what it's worth, but there is a "pixel format guide"
+> > > project that is all about matching formats from one API to another: 
+> > > https://afrantzis.com/pixel-format-guide/ (and it has an associated
+> > > tool too).
+> > > 
+> > > On the page about DRM, it seems that they got the word that DRM formats
+> > > are the native pixel order in little-endian systems:
+> > > https://afrantzis.com/pixel-format-guide/drm.html
+> > 
+> > Looks consistent with the official word in drm_fourcc.h.
+> > 
+> > $ python3 -m pfg find-compatible V4L2_PIX_FMT_XBGR32 drm
+> > Format: V4L2_PIX_FMT_XBGR32
+> > Is compatible on all systems with:
+> >         DRM_FORMAT_XRGB8888
+> > Is compatible on little-endian systems with:
+> > Is compatible on big-endian systems with:
+> > 
+> > $ python3 -m pfg find-compatible DRM_FORMAT_XRGB8888 v4l2
+> > Format: DRM_FORMAT_XRGB8888
+> > Is compatible on all systems with:
+> >         V4L2_PIX_FMT_XBGR32
+> > Is compatible on little-endian systems with:
+> > Is compatible on big-endian systems with:
+> > 
+> > Even works both ways :)
+> > 
+> > > Perhaps some drivers have been abusing the format definitions, leading
+> > > to the inconsistencies that Nicolas could witness?
+> > 
+> > That is quite possible, perhaps even likely. No one really
+> > seems interested in making sure big endian systems actually
+> > work properly. I believe the usual approach is to hack
+> > around semi-rnadomly until the correct colors accidentally
+> > appear on the screen.
 > 
-> After the patches, on my tests, I didn't get any memory leaks or
-> double-free issues.
+> We did not hack around randomly. The code in GStreamer is exactly what
+> the DRM and Wayland dev told us to do (they provided the initial
+> patches to make it work). These are initially patches from Intel for
+> what it's worth (see the wlvideoformat.c header [0]). Even though I
+> just notice that in this file, it seems that we ended up with a
+> different mapping order for WL and DRM format in 24bit RGB (no
+> padding), clearly is a bug. That being said, there is no logical
+> meaning for little endian 24bit RGB, you can't load a pixel on CPU in a
+> single op.
 
-I issues a new 1.12, 1.14, and 1.16 release.
+To me little endian just means "little end comes first". So if
+you think of things as just a stream of bytes CPU word size
+etc. doesn't matter. And I guess if you really wanted to you
+could even make a CPU with 24bit word size. 
 
-Thanks,
-Gregor
+Anyways, to make things more clear drm_fourcc.h could probably
+document things better by showing explicitly which bits go into
+which byte.
 
+I don't know who did what patches for whatever project, but
+clearly something has been lost in translation at some point.
+
+> Just saying since I would not know which one of the two
+> mapping here is right. I would probably have to go testing what DRM
+> drivers do, which may not mean anything. I would also ask and get
+> contradictory answers.
+> 
+> I have never myself tested these on big endian drivers though, as you
+> say, nobody seems to care about graphics on those anymore. So the easy
+> statement is to say they are little endian, like you just did, and
+> ignore the legacy, but there is some catch. YUV formats has been added
+> without applying this rules.
+
+All drm formats follow the same rule (ignoring the recently added
+non-byte aligned stuff which I guess don't really follow any rules).
+
+> So V4L2 YUYV match YUYV in DRM format name
+> instead of little endian UYVY. (at least 4 tested drivers implements it
+> this way). Same for NV12, for which little endian CPU representation
+> would swap the UV paid on a 16bit word.
+
+DRM NV12 and YUYV (YUY2) match the NV12 and YUY2 defined here
+https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering
+
+> 
+> To me, all the YUV stuff is the right way, because this is what the
+> rest of the world is doing, it's not ambiguous.
+> 
+> [0] https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/blob/master/ext/wayland/wlvideoformat.c#L86
+> 
+> 
+> 
+> Nicolas
+
+-- 
+Ville Syrjälä
+Intel
