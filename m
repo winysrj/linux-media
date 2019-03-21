@@ -2,109 +2,80 @@ Return-Path: <SRS0=WMbR=RY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 749CBC43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 15:47:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9456C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 15:55:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CAB2218A5
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 15:47:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 970CE218A5
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 15:55:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728391AbfCUPrt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Mar 2019 11:47:49 -0400
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:58719 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728071AbfCUPrt (ORCPT
+        id S1728138AbfCUPzB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Mar 2019 11:55:01 -0400
+Received: from mail-io1-f70.google.com ([209.85.166.70]:46958 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727823AbfCUPzA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Mar 2019 11:47:49 -0400
-X-Originating-IP: 185.94.189.187
-Received: from localhost (unknown [185.94.189.187])
-        (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay7-d.mail.gandi.net (Postfix) with ESMTPSA id C724920011;
-        Thu, 21 Mar 2019 15:47:45 +0000 (UTC)
-Date:   Thu, 21 Mar 2019 16:47:45 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Brian Starkey <Brian.Starkey@arm.com>
-Cc:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        David Airlie <airlied@linux.ie>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        nd <nd@arm.com>
-Subject: Re: [RFC PATCH 18/20] lib: image-formats: Add v4l2 formats support
-Message-ID: <20190321154745.4o7setv3bucphrsv@flea>
-References: <cover.92acdec88ee4c280cb74e08ea22f0075e5fa055c.1553032382.git-series.maxime.ripard@bootlin.com>
- <c97024b97d3261dcf41aad3c8bc1c5d9906f33c9.1553032382.git-series.maxime.ripard@bootlin.com>
- <d8f4a31e35b1702230ced4a0cb43c10d1c7e60c8.camel@ndufresne.ca>
- <20190320181553.radwlhapzn464dlh@DESKTOP-E1NTVVP.localdomain>
+        Thu, 21 Mar 2019 11:55:00 -0400
+Received: by mail-io1-f70.google.com with SMTP id k5so5464820ioh.13
+        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2019 08:55:00 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=7gbEWpXyndZlflaw+JjlVst73NWxLTxudfqepEyKVPw=;
+        b=EiaZ43CYC3yxEB2PtUtwKtYSKFJi4dBGhSLMi0PlWmNyLa81//PgEHSzMNWjV1vsQT
+         al7lEpSnHKj9tuY/TpPz8eKsVe3Djn6ymQLs4+AlGgr348q6nyAlUNKkX0Tm4r4A2qLo
+         X30JHcBFL00QU1/syTRF0e8LaalTWNPgkxYu+48LBCyBYqz1RxEYkrh+yo18jT2RAZet
+         KB20cw84e4rmmMHc67kJ2EwriWLXt0lFbRpPZ3i5VCAaJIgJNSxhu451ezdad0FEYp8f
+         TX1qwlKCyUqGJNYDXqmBPzaWmk9pPDqD2gB9L6H8AZVODhsMGeRJhfZk3q6gH26FkDSf
+         5R4A==
+X-Gm-Message-State: APjAAAWFKNRJ0nQOle/DXNUPQRkhc3WlQ+DjnFZXThwTld99DvPyYx6t
+        3akXc+uK7kaks31+Kh78PpPKbfN8wS6rgJ5G0otoFAzGESLK
+X-Google-Smtp-Source: APXvYqyntVODvycB46+J+TTAh0RmKsnjVe1CuiYBpG2g4cduDsMtyKnrzQJJK5VTff1o/m8kTdIVrRXtayMqYrpXNOwQ9AWWOvIl
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="i4gw25fdztzcmio7"
-Content-Disposition: inline
-In-Reply-To: <20190320181553.radwlhapzn464dlh@DESKTOP-E1NTVVP.localdomain>
-User-Agent: NeoMutt/20180716
+X-Received: by 2002:a24:640c:: with SMTP id t12mr132619itc.97.1553183700185;
+ Thu, 21 Mar 2019 08:55:00 -0700 (PDT)
+Date:   Thu, 21 Mar 2019 08:55:00 -0700
+In-Reply-To: <00000000000069922505797781b0@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000b87c6405849cc2d6@google.com>
+Subject: Re: WARNING in vb2_core_reqbufs
+From:   syzbot <syzbot+f9966a25169b6d66d61f@syzkaller.appspotmail.com>
+To:     dafna3@gmail.com, hans.verkuil@cisco.com, hverkuil-cisco@xs4all.nl,
+        kyungmin.park@samsung.com, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+        mchehab+samsung@kernel.org, mchehab@kernel.org, pawel@osciak.com,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+syzbot has bisected this bug to:
 
---i4gw25fdztzcmio7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+commit 3b15f68e19c28a76d175f61943a8c23224afce93
+Author: Dafna Hirschfeld <dafna3@gmail.com>
+Date:   Mon Jan 21 11:46:18 2019 +0000
 
-On Wed, Mar 20, 2019 at 06:15:54PM +0000, Brian Starkey wrote:
-> On Tue, Mar 19, 2019 at 07:29:18PM -0400, Nicolas Dufresne wrote:
-> > All RGB mapping should be surrounded by ifdef, because many (not all)
-> > DRM formats represent the order of component when placed in a CPU
-> > register, unlike V4L2 which uses memory order. I've pick this one
-> > randomly, but this one on most system, little endian, will match
-> > V4L2_PIX_FMT_XBGR32. This type of complex mapping can be found in
-> > multiple places, notably in GStreamer:
-> >
-> > https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/blob/master/sys/kms/gstkmsutils.c#L45
->
-> I do sort-of wonder if it's worth trying to switch to common fourccs
-> between DRM and V4L2 (and whatever else there is).
->
-> The V4L2 formats list is quite incomplete and a little quirky in
-> places (V4L2_PIX_FORMAT_XBGR32 and V4L2_PIX_FORMAT_XRGB32 naming
-> inconsistency being one. 'X' isn't even next to 'B' in XBGR32).
->
-> At least for newly-added formats, not using a common definition
-> doesn't make a lot of sense to me. Longer term, I also don't really
-> see any downsides to unification.
+     media: vicodec: Add support for resolution change event.
 
-Eventually, I agree that that his where we should be heading. Moving
-the existing formats support to a common place will help with that.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1662bfbd200000
+start commit:   3b15f68e media: vicodec: Add support for resolution change..
+git tree:       linux-next
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1562bfbd200000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1162bfbd200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=a2b2e9c0bc43c14d
+dashboard link: https://syzkaller.appspot.com/bug?extid=f9966a25169b6d66d61f
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1342c7a0c00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15a241c4c00000
 
-Maxime
+Reported-by: syzbot+f9966a25169b6d66d61f@syzkaller.appspotmail.com
+Fixes: 3b15f68e19c2 ("media: vicodec: Add support for resolution change  
+event.")
 
---
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---i4gw25fdztzcmio7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXJOyIQAKCRDj7w1vZxhR
-xfQNAP43UEujnLuknDuJ54/viHqBDU6/qBqdYGvG1QWwWP0FNQEAg0XP/rCIE20U
-i+UysiRZ/+7aHE999qgXHkgD4o4pFAE=
-=lNMS
------END PGP SIGNATURE-----
-
---i4gw25fdztzcmio7--
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
