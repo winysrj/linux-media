@@ -2,122 +2,176 @@ Return-Path: <SRS0=WMbR=RY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44BB6C43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 11:30:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08262C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 11:52:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 15367218E2
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 11:30:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553167853;
-	bh=EmPTr5B+2KUpMZreQB2G+20Eyu25Gi4G1N9g0VvBE/4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=vJ5lBFkEHX5dCui5yrBlNFqpqzShw5VkvlB9MGoL1bpbM1xLVE59C8nsLMI5CSSEm
-	 T4YTvjTrIvc3dYGXDfD4ogkTDcXOrhpLWrAhs9iyOQrSFbgBXfEtBlom20dcKAquQz
-	 HNDcGHmnAoanoZ14kwgUt6bqV/jGJSTV4ucoQ2dI=
+	by mail.kernel.org (Postfix) with ESMTP id BFA3D21916
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 11:51:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="RjzMB1v7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728190AbfCULaw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Mar 2019 07:30:52 -0400
-Received: from casper.infradead.org ([85.118.1.10]:48760 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725985AbfCULaw (ORCPT
+        id S1728210AbfCULvy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Mar 2019 07:51:54 -0400
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52763 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725985AbfCULvx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Mar 2019 07:30:52 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=zkqkHwrHNTmZX7NakDUOYW6MWAE8GQQZXkOTo1+phCw=; b=p9rw2ibqL+36nOvq9ZZzvJvwU1
-        O3m0muSRtiVj7MpT8U7YDUz9wOBp6OWdbiPTRvAKqHM2xf+vpEiXVr/V95N6G/rdC7WlqDbhfZNmc
-        2fTZcpbgQHU6j49702tSPto2HSOjl6C/FnhCqFxRnvRJNQRaCWMXw+1M33KcadoEmSygU5S6K4shd
-        WYYJsDZ9kqPXM5TtdHwF+/7IXRVGUn+q03oEi+cHtm/irSlLNkmvxnDDPeY6N51bCd14AKZiQH25Z
-        ifybBNlXr8iLtpLrP0cEUVofxp4NZmqlHH+62ojCCO3om5TYscTwmKsZPvTaOeyP6mIJnX7weIM3F
-        IRpk9BtQ==;
-Received: from [179.95.24.146] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h6vuK-0008P8-C5; Thu, 21 Mar 2019 11:30:49 +0000
-Date:   Thu, 21 Mar 2019 08:30:44 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Sean Young <sean@mess.org>
-Cc:     Gregor Jasny <gjasny@googlemail.com>,
-        CHEMLA Samuel <chemla.samuel@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [Bug report] dvbv5-zap crash dvb-tool ARMHF builds
-Message-ID: <20190321083044.621f1922@coco.lan>
-In-Reply-To: <20190321094127.ysurm4u26zugmnmv@gofer.mess.org>
-References: <f4b69417-06c3-f9ab-2973-ae23d76088b8@gmail.com>
-        <29bad771-843c-1dee-906c-6e9475aed7d8@gmail.com>
-        <d291e164-993f-232a-f01b-0f8c17087004@googlemail.com>
-        <20190315223425.hiq3qcjhjnirsizh@gofer.mess.org>
-        <20190317065242.137cb095@coco.lan>
-        <20190319164507.7f95af89@coco.lan>
-        <a1f296ba-3c27-ed2c-3912-4edbeeb21eba@googlemail.com>
-        <20190321094127.ysurm4u26zugmnmv@gofer.mess.org>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Thu, 21 Mar 2019 07:51:53 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20190321115152euoutp027d7806ca16181c0eb108e354d459e7ca~N9xQd0Zi41118811188euoutp020
+        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2019 11:51:52 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20190321115152euoutp027d7806ca16181c0eb108e354d459e7ca~N9xQd0Zi41118811188euoutp020
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+        s=mail20170921; t=1553169112;
+        bh=2yWmiZORcYmuq6keKZja5kydfB6yG+gI2O3tmnryF8I=;
+        h=Subject:To:Cc:From:Date:In-Reply-To:References:From;
+        b=RjzMB1v7ffibQebKuTlxHJfrXAb2Qb++TAgo2dZutmSo17DaCt2gLHSrLAUUF2N1I
+         VtMVjQgIgTc3/LeAfquqLZLhTO4w2C4oW3PMwimOCF9pjnZSNn8MxBo49ftNqDfspR
+         LeqlcHqf9/yDXywRWMu3DG+M3uIgTxKLHbJsHAXs=
+Received: from eusmges2new.samsung.com (unknown [203.254.199.244]) by
+        eucas1p2.samsung.com (KnoxPortal) with ESMTP id
+        20190321115151eucas1p28667abb880a94a6a635961f7e78d5952~N9xPveXJ51512815128eucas1p2E;
+        Thu, 21 Mar 2019 11:51:51 +0000 (GMT)
+Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
+        eusmges2new.samsung.com (EUCPMTA) with SMTP id F2.7E.04294.7DA739C5; Thu, 21
+        Mar 2019 11:51:51 +0000 (GMT)
+Received: from eusmtrp2.samsung.com (unknown [182.198.249.139]) by
+        eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+        20190321115150eucas1p128f5eb471751834acef4a2d080ebc706~N9xPE8pqV1803618036eucas1p1W;
+        Thu, 21 Mar 2019 11:51:50 +0000 (GMT)
+Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
+        eusmtrp2.samsung.com (KnoxPortal) with ESMTP id
+        20190321115150eusmtrp27ab4ac4c4714f4a093015d423009bc5b~N9xO6QwWK2849628496eusmtrp2H;
+        Thu, 21 Mar 2019 11:51:50 +0000 (GMT)
+X-AuditID: cbfec7f4-835ff700000010c6-28-5c937ad7daac
+Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
+        eusmgms2.samsung.com (EUCPMTA) with SMTP id BB.DE.04128.6DA739C5; Thu, 21
+        Mar 2019 11:51:50 +0000 (GMT)
+Received: from [106.120.50.74] (unknown [106.120.50.74]) by
+        eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
+        20190321115149eusmtip21ab572789c77d58c6ef008fbf8a9cc02~N9xOP7_kV2421824218eusmtip2M;
+        Thu, 21 Mar 2019 11:51:49 +0000 (GMT)
+Subject: Re: [PATCH v2 3/4] media: s5p-cec: fix possible object reference
+ leak
+To:     Wen Yang <wen.yang99@zte.com.cn>
+Cc:     mchehab@kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        xue.zhihong@zte.com.cn, wang.yi59@zte.com.cn,
+        "Hans Verkuil (hansverk)" <hansverk@cisco.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Wen Yang <yellowriver2010@hotmail.com>
+From:   Marek Szyprowski <m.szyprowski@samsung.com>
+Message-ID: <376c5ed6-7c2d-62a1-9ed0-48a329965d06@samsung.com>
+Date:   Thu, 21 Mar 2019 12:51:48 +0100
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+        Thunderbird/60.6.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1550015279-42723-1-git-send-email-wen.yang99@zte.com.cn>
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrDKsWRmVeSWpSXmKPExsWy7djPc7rXqybHGCxaKmSx5OcuJosPE2cy
+        WlzeNYfNomfDVlaLGef3MVks2/SHyaLv9Stmi3OvfrJZLHjezmJxf9FyNgcujym/N7J6PO45
+        w+axaVUnm8fnTXIea/b9YAlgjeKySUnNySxLLdK3S+DKuLT1MmvBUcGKOx9nMTYw7uDrYuTk
+        kBAwkTh0bjdzFyMXh5DACkaJzd/mMEI4Xxgllix8CZX5zCjRvfIkC0zL9pZOFojEckaJlcfa
+        WSGct4wSL/qmsoFUCQsESFyft48RxBYRUJE4u3QnE0gRs8BKJon/i1+ygiTYBAwlut52gTXw
+        CthJ3F81hQnEZhFQlWidfQOsWVQgRuLN8ZeMEDWCEidnPgE7g1PATeLmnZdgvcwC8hLb385h
+        hrDFJW49mQ+2TELgHLvEqsk/2CHudpFYceoeM4QtLPHq+BaouIzE/50wDc2MEg/PrWWHcHoY
+        JS43zWCEqLKWOHz8ItDZHEArNCXW79KHCDtKTN91GiwsIcAnceOtIMQRfBKTtk1nhgjzSnS0
+        CUFUq0nMOr4Obu3BC5eYJzAqzULy2iwk78xC8s4shL0LGFlWMYqnlhbnpqcWG+WllusVJ+YW
+        l+al6yXn525iBKap0/+Of9nBuOtP0iFGAQ5GJR7eCIdJMUKsiWXFlbmHGCU4mJVEeHdFT44R
+        4k1JrKxKLcqPLyrNSS0+xCjNwaIkzlvN8CBaSCA9sSQ1OzW1ILUIJsvEwSnVwGgtdrbQRVYi
+        a8/LpNPP5Ce+3nbqWka/7RXn0F47X7llv1W9L028uvq+z7kDS28L9KQc/VKoG3XmsPEK/ijx
+        w48/N+R6+nO85bVseLz+ZHv6n2k3WljyKwL1NJdtDfBj391gJH9AlrNXsNXi1d0v8+PkQybp
+        bD34ZnXhdL7+lghn8z9LtNwC85VYijMSDbWYi4oTARDmF7JPAwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrLIsWRmVeSWpSXmKPExsVy+t/xe7rXqibHGOz4L2mx5OcuJosPE2cy
+        WlzeNYfNomfDVlaLGef3MVks2/SHyaLv9Stmi3OvfrJZLHjezmJxf9FyNgcujym/N7J6PO45
+        w+axaVUnm8fnTXIea/b9YAlgjdKzKcovLUlVyMgvLrFVija0MNIztLTQMzKx1DM0No+1MjJV
+        0rezSUnNySxLLdK3S9DLuLT1MmvBUcGKOx9nMTYw7uDrYuTkkBAwkdje0snSxcjFISSwlFGi
+        5cg7VoiEjMTJaQ1QtrDEn2tdbBBFrxkl/qxoZO5i5OAQFvCTmDzbAqRGREBF4uzSnUwgNcwC
+        K5kkji2YxgTRMJNR4ujBaWwgVWwChhJdb7vAbF4BO4n7q6YwgdgsAqoSrbNvMILYogIxEv9u
+        72WFqBGUODnzCQuIzSngJnHzzkuwXmYBM4l5mx8yQ9jyEtvfzoGyxSVuPZnPNIFRaBaS9llI
+        WmYhaZmFpGUBI8sqRpHU0uLc9NxiI73ixNzi0rx0veT83E2MwKjcduznlh2MXe+CDzEKcDAq
+        8fAuMJkUI8SaWFZcmXuIUYKDWUmEd1f05Bgh3pTEyqrUovz4otKc1OJDjKZAz01klhJNzgcm
+        jLySeENTQ3MLS0NzY3NjMwslcd7zBpVRQgLpiSWp2ampBalFMH1MHJxSDYy7lryWK5lbe0V0
+        T8nvCwcqmL9/Wea3e+ajzTGvZ1VLTDrvN28bc/Pebne9mv0pKpOLLXe2tIiv7mmYzj2h59LS
+        A6pzvDNttgvLsD3VPHe9uOhB94HmkhbPHX596yr/nz30aZLIu00VVU9fXhbda9X0YFpTR9/+
+        pwdEjJoubA4stdpfOX9RnNU6JZbijERDLeai4kQA389KseACAAA=
+X-CMS-MailID: 20190321115150eucas1p128f5eb471751834acef4a2d080ebc706
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20190212234951epcas3p3c5dff046aab328e983ecdcecb916148c
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20190212234951epcas3p3c5dff046aab328e983ecdcecb916148c
+References: <CGME20190212234951epcas3p3c5dff046aab328e983ecdcecb916148c@epcas3p3.samsung.com>
+        <1550015279-42723-1-git-send-email-wen.yang99@zte.com.cn>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Thu, 21 Mar 2019 09:41:28 +0000
-Sean Young <sean@mess.org> escreveu:
+Hi
 
-> On Wed, Mar 20, 2019 at 08:38:52PM +0100, Gregor Jasny wrote:
-> > Hello Mauro,
-> > 
-> > On 19.03.19 20:45, Mauro Carvalho Chehab wrote:
-> > > Hi Gregor,
-> > > 
-> > > Samuel reported in priv that the issues he had with user after free were
-> > > solved by the patchsets merged at 1.12 and 1.16 stable branches.
-> > > 
-> > > Could you please generate a new staging release for them?
-> > 
-> > Sure, I can create a new 1.12 and 1.16 stable release. But when reviewing
-> > the patches for approval by debian release managers I noticed an additional
-> > double-free that Sean addressed with the following patch:
-> > 
-> > > https://git.linuxtv.org/v4l-utils.git/commit/?id=ebd890019ba7383b8b486d829f6683c8f49fdbda
-> > 
-> > Could you please give that patch a thorough review, some testing, and
-> > cherry-pick it to stable-1.12 and -1.16 as well?
-> 
-> I did test it myself (and also under valgrind). The bad paths are hard
-> to hit though. I'd say just go ahead with merging and releasing, the patch
-> isn't that controversial (I hope!).
+On 2019-02-13 00:47, Wen Yang wrote:
+> The call to of_parse_phandle() returns a node pointer with refcount
+> incremented thus it must be explicitly decremented here after the last
+> usage.
+> The of_find_device_by_node() takes a reference to the underlying device
+> structure, we also should release that reference.
+> This patch fixes those two issues.
+>
+> Hans Verkuil says:
+> The cec driver should never take a reference of the hdmi device.
+> It never accesses the HDMI device, it only needs the HDMI device pointer as
+> a key in the notifier list.
+> The real problem is that several CEC drivers take a reference of the HDMI
+> device and never release it. So those drivers need to be fixed.
+>
+> Fixes: a93d429b51fb ("[media] s5p-cec: add cec-notifier support, move out of staging")
+> Suggested-by: Hans Verkuil (hansverk) <hansverk@cisco.com>
+> Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
+> Cc: Hans Verkuil (hansverk) <hansverk@cisco.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Wen Yang <yellowriver2010@hotmail.com>
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: linux-media@vger.kernel.org
 
-I went ahead and cherry-picked the relevant patches to -1.12, -1.14 and
--1.16, and tested both dvbv5-zap and dvbv5-scan with all versions. So, we can
-release a new minor version for all those stable branches.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-After the patches, on my tests, I didn't get any memory leaks or
-double-free issues.
+> ---
+> v2->v1:
+> - move of_node_put() to just after the 'hdmi_dev = of_find_device_by_node(np)'.
+> - put_device() can be done before the cec = devm_kzalloc line.
+>
+>   drivers/media/platform/s5p-cec/s5p_cec.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/platform/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
+> index 8837e26..1f5c355 100644
+> --- a/drivers/media/platform/s5p-cec/s5p_cec.c
+> +++ b/drivers/media/platform/s5p-cec/s5p_cec.c
+> @@ -192,9 +192,11 @@ static int s5p_cec_probe(struct platform_device *pdev)
+>   		return -ENODEV;
+>   	}
+>   	hdmi_dev = of_find_device_by_node(np);
+> +	of_node_put(np);
+>   	if (hdmi_dev == NULL)
+>   		return -EPROBE_DEFER;
+>   
+> +	put_device(&hdmi_dev->dev);
+>   	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
+>   	if (!cec)
+>   		return -ENOMEM;
 
-It should be noticed that I had to add a new patch at -1.14, due to
-the usage of minor() and major() macros, as one of the files there
-were not including sys/sysmacros.h. Without that, I was getting
-compilation errors.
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
-Funny enough, this header was already included on two other places
-within -1.14.
-
-As the major() and minor() macros were added at glibc 2.3.3[1], released
-in 2004 [2], it should be save to include sys/sysmacros.h
-unconditionally at stable-1.14.
-
-[1] according with "man 3 makedev", as pointed by:
-https://stackoverflow.com/questions/22240973/major-and-minor-macros-defined-in-sys-sysmacros-h-pulled-in-by-iterator
-
-[2] https://ftp.gnu.org/gnu/libc/'s glibc tarball is from 2004-08-03.
-
-Thanks,
-Mauro
