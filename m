@@ -2,220 +2,193 @@ Return-Path: <SRS0=WMbR=RY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,UNPARSEABLE_RELAY
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8E5C43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 10:29:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 729D1C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 10:59:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B8BF22190A
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 10:29:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 455CA20830
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 10:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727928AbfCUK3w (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Mar 2019 06:29:52 -0400
-Received: from mailgw01.mediatek.com ([210.61.82.183]:45446 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726523AbfCUK3w (ORCPT
+        id S1727870AbfCUK71 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Mar 2019 06:59:27 -0400
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:47947 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726551AbfCUK71 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Mar 2019 06:29:52 -0400
-X-UUID: 536fab67da404fa2b7d1179ac8a6130b-20190321
-X-UUID: 536fab67da404fa2b7d1179ac8a6130b-20190321
-Received: from mtkcas07.mediatek.inc [(172.21.101.84)] by mailgw01.mediatek.com
-        (envelope-from <jerry-ch.chen@mediatek.com>)
-        (mhqrelay.mediatek.com ESMTP with TLS)
-        with ESMTP id 992288166; Thu, 21 Mar 2019 18:29:47 +0800
-Received: from MTKCAS06.mediatek.inc (172.21.101.30) by
- mtkmbs03n1.mediatek.inc (172.21.101.181) with Microsoft SMTP Server (TLS) id
- 15.0.1395.4; Thu, 21 Mar 2019 18:29:45 +0800
-Received: from [172.21.84.99] (172.21.84.99) by MTKCAS06.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1395.4 via Frontend
- Transport; Thu, 21 Mar 2019 18:29:45 +0800
-Message-ID: <1553164185.11458.17.camel@mtksdccf07>
-Subject: Re: [RFC PATCH V0 0/7] media: platform: Add support for Face
- Detection (FD) on mt8183 SoC
-From:   Jerry-ch Chen <Jerry-ch.Chen@mediatek.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart+renesas@ideasonboard.com" 
-        <laurent.pinchart+renesas@ideasonboard.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>
-CC:     "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart+renesas@ideasonboard.com" 
-        <laurent.pinchart+renesas@ideasonboard.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "yuzhao@chromium.org" <yuzhao@chromium.org>,
-        "zwisler@chromium.org" <zwisler@chromium.org>,
-        "linux-mediatek@lists.infradead.org" 
-        <linux-mediatek@lists.infradead.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        Sean Cheng =?UTF-8?Q?=28=E9=84=AD=E6=98=87=E5=BC=98=29?= 
-        <Sean.Cheng@mediatek.com>,
-        "Sj Huang =?UTF-8?Q?=28=E9=BB=83=E4=BF=A1=E7=92=8B=29?=" 
-        <sj.huang@mediatek.com>,
-        Christie Yu =?UTF-8?Q?=28=E6=B8=B8=E9=9B=85=E6=83=A0=29?= 
-        <christie.yu@mediatek.com>,
-        Holmes Chiou =?UTF-8?Q?=28=E9=82=B1=E6=8C=BA=29?= 
-        <holmes.chiou@mediatek.com>,
-        Frederic Chen =?UTF-8?Q?=28=E9=99=B3=E4=BF=8A=E5=85=83=29?= 
-        <Frederic.Chen@mediatek.com>,
-        Jungo Lin =?UTF-8?Q?=28=E6=9E=97=E6=98=8E=E4=BF=8A=29?= 
-        <jungo.lin@mediatek.com>,
-        Rynn Wu =?UTF-8?Q?=28=E5=90=B3=E8=82=B2=E6=81=A9=29?= 
-        <Rynn.Wu@mediatek.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        srv_heupstream <srv_heupstream@mediatek.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Date:   Thu, 21 Mar 2019 18:29:45 +0800
-In-Reply-To: <1967d769-48c2-1d49-464a-6895cd2ff102@xs4all.nl>
-References: <1550648893-42050-1-git-send-email-Jerry-Ch.chen@mediatek.com>
-         <1967d769-48c2-1d49-464a-6895cd2ff102@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.2.3-0ubuntu6 
-Content-Transfer-Encoding: 7bit
+        Thu, 21 Mar 2019 06:59:27 -0400
+Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1h6vPo-0002Cb-Go; Thu, 21 Mar 2019 11:59:16 +0100
+Received: from mfe by pty.hi.pengutronix.de with local (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1h6vPm-0005Ig-Sn; Thu, 21 Mar 2019 11:59:14 +0100
+Date:   Thu, 21 Mar 2019 11:59:14 +0100
+From:   Marco Felsch <m.felsch@pengutronix.de>
+To:     Jacopo Mondi <jacopo@jmondi.org>
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        devicetree@vger.kernel.org, p.zabel@pengutronix.de,
+        javierm@redhat.com, afshin.nasser@gmail.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: Re: [PATCH v4 4/7] media: v4l2-subdev: add stubs for
+ v4l2_subdev_get_try_*
+Message-ID: <20190321105914.hqipftguy6p2v7wt@pengutronix.de>
+References: <20190129160757.2314-1-m.felsch@pengutronix.de>
+ <20190129160757.2314-5-m.felsch@pengutronix.de>
+ <20190321100147.eqfnbw6jjatqvfvw@uno.localdomain>
 MIME-Version: 1.0
-X-MTK:  N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190321100147.eqfnbw6jjatqvfvw@uno.localdomain>
+X-Sent-From: Pengutronix Hildesheim
+X-URL:  http://www.pengutronix.de/
+X-IRC:  #ptxdist @freenode
+X-Accept-Language: de,en
+X-Accept-Content-Type: text/plain
+X-Uptime: 11:51:17 up 61 days, 15:33, 53 users,  load average: 0.02, 0.02,
+ 0.00
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
+X-SA-Exim-Mail-From: mfe@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Hans, Tomasz,
+Hi Jacopo,
 
-On Thu, 2019-03-14 at 16:40 +0800, Hans Verkuil wrote:
-> Hi Jerry-ch Chen,
+On 19-03-21 11:01, Jacopo Mondi wrote:
+> Hi Marco,
 > 
-> On 2/20/19 8:48 AM, Jerry-ch Chen wrote:
-> > Hello,
-> > 
-> > This is the first version of the RFC patch series adding Face Detection
-> > (FD) driver on Mediatek mt8183 SoC, which will be used in camera features
-> > on CrOS application. It belongs to the first Mediatek's camera driver
-> > series based on V4L2 and media controller framework. I posted the main part
-> > of the FD driver as RFC to discuss first and would like some review
-> > comments on the overall structure of the driver.
-> > 
-> > Face Detection (FD) unit provide hardware accelerated face detection
-> > feature. It can detect different sizes of faces in a given image.
-> > Furthermore, it has the capability to detect the faces of Rotation-in-Plane
-> > from -180 to +180 degrees and Rotation-off-Plane from -90 to +90 degrees.
-> > 
-> > The driver is implemented with V4L2 and media controller framework. We have
-> > the following entities describing the FD path.
+> FYI we've been there already:
+> https://patchwork.kernel.org/patch/10703029/
 > 
-> Just a high-level comment before you post the next version of this series:
-> 
-> Please compile the latest version of v4l2-compliance (part of
-> git://linuxtv.org/v4l-utils.git) and run it against your driver:
-> 
-> v4l2-compliance -m /dev/mediaX
-> 
-> Whenever you post a new version of this series, please do a 'git pull' of
-> the v4l-utils repo, recompile and retest with v4l2-compliance and post the
-> test results in the cover letter.
-> 
-> Obviously, there should be no FAILs and probably no warnings.
-> 
-> I suspect that streaming (e.g. adding the -s10 option to v4l2-compliance)
-> probably won't work since v4l2-compliance doesn't know about the meta data
-> formats.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+> and that ended with Hans' patch:
+> https://patchwork.linuxtv.org/patch/53370/
+> which didn't get far unfortunately.
 
-Thanks for comments,
-I am reworking FD driver based on general comments of P1 and DIP driver.
-After that, I will upload the RFC V1 patch with the results of
-v4l2-compliance in the cover-letter.
+Thanks for this links :) It seems that there isn't a simple solution.
 
-Best Regards,
-
-	Jerry
-
-> > 
-> > 1. Meta input (output video device): connects to FD sub device. It accepts
-> >    the input parameter buffer from userspace. The metadata interface used
-> >    currently is only a temporary solution to kick off driver development
-> >    and is not ready for reviewed yet.
-> > 
-> > 2. RAW (output video device): connects to FD sub device. It accepts input
-> >    image buffer from userspace.
-> > 
-> > 3. FD (sub device): connects to Meta output. When processing an image,
-> >    FD hardware only returns the statistics of detected faces so it needs
-> >    only one capture video devices to return the streaming data to the user.
-> > 
-> > 4. Meta output (capture video device): Return the result of detected faces
-> >    as metadata output.
-> > 
-> >    The overall file structure of the FD driver is as following:
-> > 
-> > * mtk_fd-dev-ctx-core.c: Implements common software flow of FD driver.
-> > * mtk_fd-v4l2.c: Static FD contexts configuration.
-> > * mtk_fd.c: Controls the hardware flow.
-> > * mtk_fd-dev.c: Implements context-independent flow.
-> > * mtk_fd-ctrl.c: Handles the HW ctrl request from userspace.
-> > * mtk_fd-smem-drv.c: Provides the shared memory management required
-> > operation. We reserved a memory region for the co-processor and FD to
-> > exchange the hardware configuration data.
-> > * mtk_fd-v4l2-util.c: Implements V4L2 and vb2 ops.
-> > 
-> > Jerry-ch Chen (7):
-> >   dt-bindings: mt8183: Add binding for FD shared memory
-> >   dts: arm64: mt8183: Add FD shared memory node
-> >   dt-bindings: mt8183: Added FD-SMEM dt-bindings
-> >   dt-bindings: mt8183: Added FD dt-bindings
-> >   dts: arm64: mt8183: Add FD nodes
-> >   media: platform: Add Mediatek FD driver KConfig
-> >   platform: mtk-isp: Add Mediatek FD driver
-> > 
-> >  .../devicetree/bindings/media/mediatek,fd_smem.txt |   28 +
-> >  .../bindings/media/mediatek,mt8183-fd.txt          |   30 +
-> >  .../mediatek,reserve-memory-fd_smem.txt            |   44 +
-> >  arch/arm64/boot/dts/mediatek/mt8183.dtsi           |   28 +
-> >  drivers/media/platform/Kconfig                     |    2 +
-> >  drivers/media/platform/mtk-isp/Kconfig             |   10 +
-> >  drivers/media/platform/mtk-isp/Makefile            |   16 +
-> >  drivers/media/platform/mtk-isp/fd/Makefile         |   38 +
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-core.h    |  157 +++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-ctx.h     |  299 ++++++
-> >  .../platform/mtk-isp/fd/mtk_fd-dev-ctx-core.c      |  917 +++++++++++++++++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-dev.c     |  355 +++++++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-dev.h     |  198 ++++
-> >  .../media/platform/mtk-isp/fd/mtk_fd-smem-drv.c    |  452 +++++++++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-smem.h    |   25 +
-> >  .../media/platform/mtk-isp/fd/mtk_fd-v4l2-util.c   | 1046 ++++++++++++++++++++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-v4l2.c    |  115 +++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd-v4l2.h    |   36 +
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd.c         |  730 ++++++++++++++
-> >  drivers/media/platform/mtk-isp/fd/mtk_fd.h         |  127 +++
-> >  20 files changed, 4653 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek,fd_smem.txt
-> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek,mt8183-fd.txt
-> >  create mode 100644 Documentation/devicetree/bindings/reserved-memory/mediatek,reserve-memory-fd_smem.txt
-> >  create mode 100644 drivers/media/platform/mtk-isp/Kconfig
-> >  create mode 100644 drivers/media/platform/mtk-isp/Makefile
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/Makefile
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-core.h
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-ctx.h
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-dev-ctx-core.c
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-dev.c
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-dev.h
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-smem-drv.c
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-smem.h
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-v4l2-util.c
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-v4l2.c
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd-v4l2.h
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd.c
-> >  create mode 100644 drivers/media/platform/mtk-isp/fd/mtk_fd.h
-> > 
+> On Tue, Jan 29, 2019 at 05:07:54PM +0100, Marco Felsch wrote:
+> > In case of missing CONFIG_VIDEO_V4L2_SUBDEV_API those helpers aren't
+> > available. So each driver have to add ifdefs around those helpers or
+> > add the CONFIG_VIDEO_V4L2_SUBDEV_API as dependcy.
+> >
+> > Make these helpers available in case of CONFIG_VIDEO_V4L2_SUBDEV_API
+> > isn't set to avoid ifdefs. This approach is less error prone too.
+> >
+> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > ---
+> >  include/media/v4l2-subdev.h | 15 ++++++++++++---
+> >  1 file changed, 12 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 47af609dc8f1..90c9a301d72a 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -916,8 +916,6 @@ struct v4l2_subdev_fh {
+> >  #define to_v4l2_subdev_fh(fh)	\
+> >  	container_of(fh, struct v4l2_subdev_fh, vfh)
+> >
+> > -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> > -
+> >  /**
+> >   * v4l2_subdev_get_try_format - ancillary routine to call
+> >   *	&struct v4l2_subdev_pad_config->try_fmt
+> > @@ -931,9 +929,13 @@ static inline struct v4l2_mbus_framefmt
+> >  			    struct v4l2_subdev_pad_config *cfg,
+> >  			    unsigned int pad)
+> >  {
+> > +#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> >  	if (WARN_ON(pad >= sd->entity.num_pads))
+> >  		pad = 0;
+> >  	return &cfg[pad].try_fmt;
+> > +#else
+> > +	return NULL;
 > 
+> Since Hans' attempt didn't succeed, maybe we want to reconsider this
+> approach? I liked Lubomir's version better, but in any case, small
+> details...
+> 
+> Shouldn't you return ERR_PTR(-ENOTTY) here instead of NULL ?
+
+Yes that would be better.
+
+> + Sakari, Hans:
+> Alternatively, what if we add CONFIG_VIDEO_V4L2_SUBDEV_API as a
+> dependency of all sensor drivers that still use the
+> 
+> #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
+> v4l2_subdev_get_try_format(sd, cfg, format->pad);
+> #else
+> -ENOTTY
+> #endif
+> 
+> pattern so we could remove that block #ifdef blocks and do not touch the
+> v4l2-subdev.h header? Should I send a patch?
+
+If I remember rightly the mt9v111 is using the dependency approach to
+avoid such ifdef's too. But this seems like Hans approach if I got it
+right which wasn't ok for Mauro.
+
+Regards,
+Marco
+
+> Thanks
+>   j
+> 
+> 
+> > +#endif
+> >  }
+> >
+> >  /**
+> > @@ -949,9 +951,13 @@ static inline struct v4l2_rect
+> >  			  struct v4l2_subdev_pad_config *cfg,
+> >  			  unsigned int pad)
+> >  {
+> > +#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> >  	if (WARN_ON(pad >= sd->entity.num_pads))
+> >  		pad = 0;
+> >  	return &cfg[pad].try_crop;
+> > +#else
+> > +	return NULL;
+> > +#endif
+> >  }
+> >
+> >  /**
+> > @@ -967,11 +973,14 @@ static inline struct v4l2_rect
+> >  			     struct v4l2_subdev_pad_config *cfg,
+> >  			     unsigned int pad)
+> >  {
+> > +#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> >  	if (WARN_ON(pad >= sd->entity.num_pads))
+> >  		pad = 0;
+> >  	return &cfg[pad].try_compose;
+> > -}
+> > +#else
+> > +	return NULL;
+> >  #endif
+> > +}
+> >
+> >  extern const struct v4l2_file_operations v4l2_subdev_fops;
+> >
+> > --
+> > 2.20.1
+> >
 
 
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
