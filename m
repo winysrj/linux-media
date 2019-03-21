@@ -6,186 +6,331 @@ X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
 	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 463A2C43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:54:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A584EC43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 04:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F753218B0
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:54:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56834218A5
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 04:07:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="DjcOo8cM"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="WlVj06WL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727437AbfCUDyu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 23:54:50 -0400
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:42590 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726914AbfCUDyu (ORCPT
+        id S1725983AbfCUEHK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 21 Mar 2019 00:07:10 -0400
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:34964 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725854AbfCUEHK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 23:54:50 -0400
-Received: by mail-oi1-f194.google.com with SMTP id w139so3651129oie.9
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:54:49 -0700 (PDT)
+        Thu, 21 Mar 2019 00:07:10 -0400
+Received: by mail-ot1-f67.google.com with SMTP id h7so4305031otm.2
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 21:07:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=FM7HxXDxarqniVmvj6OwLkwKYk9E/QUQmCKO+zkKi4w=;
-        b=DjcOo8cM6TmRqKfNiY5oJWRj9dUDXvohq3z8QY7BIVWVIcYkF17hSD65dDOGq2eIVa
-         fwjNK4+BwsLQ6zr4cq0RhugqrZbncwuTp3SqdpTDmm0sqJyzM2m1T5NsdFEnLaPCGE5y
-         BpTNpajjXqECXholDAwKF2HnWjeUCB7pRCe1w=
+        bh=kB7bECJuohRjhZCdmLp9SMfR5l8Aw2pJfOx9kmofFPw=;
+        b=WlVj06WLMsppNRSoOjg3qZTXg0sJX/EwpaXZ6fHRjp06ks6wHZ2RwhnCnWDUBCizPW
+         HclVyM92KReeY/Dl1vubN6w1LGUOi6JlcF2MDpzJkbPS4hN97nJ1bIZCD9QrSNBUuaC9
+         Ap89ZKUoP9v/craH3BCzOT9JWsYiy5cB/ENzI=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=FM7HxXDxarqniVmvj6OwLkwKYk9E/QUQmCKO+zkKi4w=;
-        b=FfOCsLAXjYM0sw7UP+vtMF7VKqdurRF72J7MYXIF5tH8n+qb0E6QPulwwAMw+6Djyd
-         XCUEHNLSTcPGuJ8ynk/O7NUc7lUZnIsBzNw+WaSdQmg3sbmORI9w4f3t4Doy4xMRDog4
-         oGL/xuAtMzcZ1eAXGGQOOJYMWkBJwdLReq27dlMM58Brgnl4Wu9xXkCyJ1UJPGEJUgMQ
-         ZIBOUDzAruUtAJaGIXPBFsN5pb8UEAIw1DElL/Da4eUKLQD5USJB6nxd2KhCeKlXMfF7
-         lCrivlpWSVPLpZnemCAvEpn9p37/H+bDYyAX4vZSjHmvQkGmdOfJhGWbvpzRiEF2G5JY
-         CCXQ==
-X-Gm-Message-State: APjAAAWI2ppX/UlR4B6nfZJEg4T6x6axPKcNvrQgBsElzLdp5j4qlXiJ
-        3SPeuWPl9Ob9+E5/FOwoqjsbPOelec4=
-X-Google-Smtp-Source: APXvYqx6A5af0RZMm0Zx/n+4Zb2/ueGE7gDkoxchZnJrC/BaHjp0kY2qypfaEJ4SprApdK2eaM2OIw==
-X-Received: by 2002:aca:4908:: with SMTP id w8mr873787oia.157.1553140488698;
-        Wed, 20 Mar 2019 20:54:48 -0700 (PDT)
-Received: from mail-oi1-f170.google.com (mail-oi1-f170.google.com. [209.85.167.170])
-        by smtp.gmail.com with ESMTPSA id i17sm511372otr.36.2019.03.20.20.54.48
+        bh=kB7bECJuohRjhZCdmLp9SMfR5l8Aw2pJfOx9kmofFPw=;
+        b=uHknrK077YlnP1tDDJkWe7GqfbJY+NNRjkLPwPUw9DK0lmB6D7Z7BVPSxdoZ3C9rsv
+         b91mu7RF0MfCdNjVLC512CeHrdthZNbLmVWsZ1ZuQfNBRuARivrqlsLfBGBBI+E5vCk+
+         xnNXdNj0ZigStWcTIe6YnrPB548jZB4HsdbPGo2JQtJKJe8XJp8dbKsvoYLHCmNTx4EQ
+         E4gQUmIr6EyaIAdN17lV3VfWia/5dSDI33/v+jPXogLiTTY9/pI4ATAGzI5d7MLlthlr
+         7KMfQbDJXANIOcMmYeKhxdo+BxkfTZx6O+uVS725j3NmwxEAeuoFfTpzXCvTyoaql6TA
+         ErdQ==
+X-Gm-Message-State: APjAAAUh0giEen2xUG7EjOhXQE9ckvHLXqid5TStsnbzDxdREKcLL51z
+        R3+d1mQC0huwwAyv5ykVQmXpWxcXTAA=
+X-Google-Smtp-Source: APXvYqwPBYOBoIPLmIXfmo8X6nrk9OkGQCvhOG9NycZcYKXMg761SVRrhqvfDMEQ8L80FCLm7En8SQ==
+X-Received: by 2002:a9d:6505:: with SMTP id i5mr1140390otl.263.1553141228768;
+        Wed, 20 Mar 2019 21:07:08 -0700 (PDT)
+Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com. [209.85.167.177])
+        by smtp.gmail.com with ESMTPSA id h26sm1535010otm.48.2019.03.20.21.07.08
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 20 Mar 2019 20:54:48 -0700 (PDT)
-Received: by mail-oi1-f170.google.com with SMTP id i21so3635614oib.11
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:54:48 -0700 (PDT)
-X-Received: by 2002:aca:edc7:: with SMTP id l190mr924564oih.92.1553140125912;
- Wed, 20 Mar 2019 20:48:45 -0700 (PDT)
+        Wed, 20 Mar 2019 21:07:08 -0700 (PDT)
+Received: by mail-oi1-f177.google.com with SMTP id w137so3679876oiw.5
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 21:07:08 -0700 (PDT)
+X-Received: by 2002:aca:4b03:: with SMTP id y3mr884884oia.21.1553140792562;
+ Wed, 20 Mar 2019 20:59:52 -0700 (PDT)
 MIME-Version: 1.0
 References: <1549348966-14451-1-git-send-email-frederic.chen@mediatek.com>
  <1549348966-14451-8-git-send-email-frederic.chen@mediatek.com>
- <CAAFQd5BGFmTbRF+LdRvXs0MBZifRd9zB_+OT6Xwo=dzwqajgGA@mail.gmail.com> <1552378607.13953.71.camel@mtksdccf07>
-In-Reply-To: <1552378607.13953.71.camel@mtksdccf07>
+ <CAAFQd5CUi9MqZ+j+DhRZtgByvfVH-FBFJHiaxb_JOqsLGNoK2Q@mail.gmail.com> <1552460044.13953.114.camel@mtksdccf07>
+In-Reply-To: <1552460044.13953.114.camel@mtksdccf07>
 From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Thu, 21 Mar 2019 12:48:34 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5C=dmoUU9=FdkaeErSFVpA--uFZJ0P1jrb3DTXFZ_tdpg@mail.gmail.com>
-Message-ID: <CAAFQd5C=dmoUU9=FdkaeErSFVpA--uFZJ0P1jrb3DTXFZ_tdpg@mail.gmail.com>
+Date:   Thu, 21 Mar 2019 12:59:41 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5CAY73b4jR=BFaJnhnHL-4QfEV7kQsiQusf=k-KghO0=g@mail.gmail.com>
+Message-ID: <CAAFQd5CAY73b4jR=BFaJnhnHL-4QfEV7kQsiQusf=k-KghO0=g@mail.gmail.com>
 Subject: Re: [RFC PATCH V0 7/7] [media] platform: mtk-isp: Add Mediatek ISP
  Pass 1 driver
 To:     Jungo Lin <jungo.lin@mediatek.com>
 Cc:     Frederic Chen <frederic.chen@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
         =?UTF-8?B?U2VhbiBDaGVuZyAo6YSt5piH5byYKQ==?= 
-        <Sean.Cheng@mediatek.com>, Sj Huang <sj.huang@mediatek.com>,
+        <Sean.Cheng@mediatek.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        =?UTF-8?B?UnlubiBXdSAo5ZCz6IKy5oGpKQ==?= <Rynn.Wu@mediatek.com>,
         =?UTF-8?B?Q2hyaXN0aWUgWXUgKOa4uOmbheaDoCk=?= 
-        <christie.yu@mediatek.com>,
+        <christie.yu@mediatek.com>, srv_heupstream@mediatek.com,
         =?UTF-8?B?SG9sbWVzIENoaW91ICjpgrHmjLop?= 
         <holmes.chiou@mediatek.com>,
         Jerry-ch Chen <Jerry-ch.Chen@mediatek.com>,
-        =?UTF-8?B?UnlubiBXdSAo5ZCz6IKy5oGpKQ==?= <Rynn.Wu@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        srv_heupstream@mediatek.com, yuzhao@chromium.org,
-        zwisler@chromium.org
+        Sj Huang <sj.huang@mediatek.com>, yuzhao@chromium.org,
+        linux-mediatek@lists.infradead.org, zwisler@chromium.org,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Mar 12, 2019 at 5:16 PM Jungo Lin <jungo.lin@mediatek.com> wrote:
+On Wed, Mar 13, 2019 at 3:54 PM Jungo Lin <jungo.lin@mediatek.com> wrote:
 >
-> On Thu, 2019-03-07 at 19:04 +0900, Tomasz Figa wrote:
+> On Tue, 2019-03-12 at 19:04 +0900, Tomasz Figa wrote:
 [snip]
-> > > +struct mtk_cam_mem2mem2_device {
-> > > +       const char *name;
-> > > +       const char *model;
+> > Instead of opencoding most of this function, one would normally call
+> > mtk_cam_videoc_try_fmt() first to adjust the format struct and then
+> > just update the driver state with the adjusted format.
 > >
-> > For both of the fields above, they seem to be always
-> > MTK_CAM_DEV_P1_NAME, so we can just use the macro directly whenever
-> > needed. No need for this indirection.
-> >
->
-> OK. These two fields will be removed in next patch.
->
-> > > +       struct device *dev;
-> > > +       int num_nodes;
-> > > +       struct mtk_cam_dev_video_device *nodes;
-> > > +       const struct vb2_mem_ops *vb2_mem_ops;
-> >
-> > This is always "vb2_dma_contig_memops", so it can be used directly.
+> > Also, similarly to VIDIOC_TRY_FMT, VIDIOC_SET_FMT doesn't fail unless
+> > in the very specific cases, as described in
+> > https://www.kernel.org/doc/html/latest/media/uapi/v4l/vidioc-g-fmt.html#return-value
+> > .
 > >
 >
-> Ditto.
+> Ok, below is our revised version of this function.
 >
-> > > +       unsigned int buf_struct_size;
-> >
-> > This is always sizeof(struct mtk_cam_dev_buffer), so no need to save
-> > it in the struct.
-> >
+> int mtk_cam_videoc_s_fmt(struct file *file, void *fh,
+>                          struct v4l2_format *f)
+> {
+>         struct mtk_cam_mem2mem2_device *m2m2 = video_drvdata(file);
+>         struct mtk_cam_dev *cam_dev = mtk_cam_m2m_to_dev(m2m2);
+>         struct mtk_cam_video_device *node = file_to_mtk_cam_node(file);
 >
-> Ditto.
+>         /* Get the valid format*/
+>         mtk_cam_videoc_try_fmt(file, fh, f);
+>         /* Configure to video device */
+>         mtk_cam_ctx_fmt_set_img(&cam_dev->pdev->dev,
+>                                 &node->vdev_fmt.fmt.pix_mp,
+>                                 &f->fmt.pix_mp,
+>                                 node->queue_id);
 >
-> > > +       int streaming;
-> > > +       struct v4l2_device *v4l2_dev;
-> > > +       struct media_device *media_dev;
-> >
-> > These 2 fields are already in mtk_cam_dev which is a superclass of
-> > this struct. One can just access them from there directly.
-> >
->
-> Ditto.
->
-> > > +       struct media_pipeline pipeline;
-> > > +       struct v4l2_subdev subdev;
-> >
-> > Could you remind me what was the media topology exposed by this
-> > driver? This is already the second subdev I spotted in this patch,
-> > which looks strange.
-> >
->
->
-> For sub-device design, we will remove the sub-device for CIO and keep
-> only one sub-device for ISP driver in next patch. We will also provide
-> the media topology in RFC v1 patch to clarify.
->
-> > > +       struct media_pad *subdev_pads;
-> > > +       struct v4l2_file_operations v4l2_file_ops;
-> > > +       const struct file_operations fops;
-> > > +};
-> >
-> > Given most of the comments above, it looks like the remaining useful
-> > fields in this struct could be just moved to mtk_cam_dev, without the
-> > need for this separate struct.
-> >
->
-> This is the final revision for these two structures.
-> Do you suggest to merge it to simplify?
->
-> struct mtk_cam_mem2mem2_device {
->         struct mtk_cam_video_device *nodes;
->         struct media_pipeline pipeline;
->         struct v4l2_subdev subdev;
->         struct media_pad *subdev_pads;
-> };
->
-> struct mtk_cam_dev {
->         struct platform_device *pdev;
->         struct mtk_cam_video_device     mem2mem2_nodes[MTK_CAM_DEV_NODE_MAX];
->         struct mtk_cam_mem2mem2_device mem2mem2;
->         struct mtk_cam_io_connection cio;
->         struct v4l2_device v4l2_dev;
->         struct media_device media_dev;
->         struct mtk_cam_ctx ctx;
->         struct v4l2_async_notifier notifier;
-> };
+>         return 0;
+> }
 >
 
-I feel like there is not much benefit in having this split. Similarly,
-I'm not sure if there is a reason to have separate structs for
-mtk_cam_io_connection and mtk_cam_ctx.
+Looks almost good. We still need to signal the -EBUSY error condition
+if an attempt to change the format is made while streaming is active.
 
-(Sorry, missed this one in previous reply.)
+[snip]
+> > > +static int mtk_cam_videoc_s_meta_fmt(struct file *file,
+> > > +                                    void *fh, struct v4l2_format *f)
+> > > +{
+> > > +       struct mtk_cam_mem2mem2_device *m2m2 = video_drvdata(file);
+> > > +       struct mtk_cam_dev *isp_dev = mtk_cam_m2m_to_dev(m2m2);
+> > > +       struct mtk_cam_ctx *dev_ctx = &isp_dev->ctx;
+> > > +       struct mtk_cam_dev_video_device *node = file_to_mtk_cam_node(file);
+> > > +       int queue_id = mtk_cam_dev_get_queue_id_of_dev_node(isp_dev, node);
+> > > +
+> >
+> > No need for this blank line.
+> >
+>
+> We will fix this coding style in next patch.
+>
+> > > +       int ret = 0;
+> >
+> > Please don't default-initialize without a good reason.
+> >
+>
+> Ok, fix in next patch.
+>
+> > > +
+> > > +       if (f->type != node->vbq.type)
+> > > +               return -EINVAL;
+> >
+> > Ditto.
+> >
+>
+> Ok, fix in next patch.
+>
+> > > +
+> > > +       ret = mtk_cam_ctx_format_load_default_fmt(&dev_ctx->queue[queue_id], f);
+> > > +
+> >
+> > No need for this blank line.
+> >
+>
+> Ok, fix in next patch.
+>
+> > > +       if (!ret) {
+> > > +               node->vdev_fmt.fmt.meta = f->fmt.meta;
+> > > +               dev_ctx->queue[queue_id].fmt.meta = node->vdev_fmt.fmt.meta;
+> > > +       } else {
+> > > +               dev_warn(&isp_dev->pdev->dev,
+> > > +                        "s_meta_fm failed, format not support\n");
+> >
+> > No need for this warning.
+> >
+>
+> Ok, fix in next patch.
+>
+> > > +       }
+> > > +
+> > > +       return ret;
+> > > +}
+> >
+> > Actually, why do we even need to do all the things? Do we support
+> > multiple different meta formats on the same video node? If not, we can
+> > just have all the TRY_FMT/S_FMT/G_FMT return the hardcoded format.
+> >
+>
+> Ok, it is a good idea. We will return the hardcode format for meta video
+> devices.
+> Below is the revision version.
+>
+> int mtk_cam_meta_enum_format(struct file *file,
+>                              void *fh, struct v4l2_fmtdesc *f)
+> {
+>         struct mtk_cam_video_device *node = file_to_mtk_cam_node(file);
+>
+>         f->pixelformat = node->vdev_fmt.fmt.meta.dataformat;
+>
+>         return 0;
+> }
+
+Need to error out if f->index > 0. Also need to initialize the other
+output fields - flags and description.
+
+[snip]
+> > > +static u32 mtk_cam_node_get_v4l2_cap(struct mtk_cam_ctx_queue *node_ctx)
+> > > +{
+> > > +       u32 cap = 0;
+> > > +
+> > > +       if (node_ctx->desc.capture)
+> > > +               if (node_ctx->desc.image)
+> > > +                       cap = V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+> > > +               else
+> > > +                       cap = V4L2_CAP_META_CAPTURE;
+> > > +       else
+> > > +               if (node_ctx->desc.image)
+> > > +                       cap = V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+> > > +               else
+> > > +                       cap = V4L2_CAP_META_OUTPUT;
+> > > +
+> > > +       return cap;
+> > > +}
+> >
+> > Why not just have this defined statically as node_ctx->desc.cap?
+> >
+>
+> Ok, it is refactoring done.
+>
+> > > +
+> > > +static u32 mtk_cam_node_get_format_type(struct mtk_cam_ctx_queue *node_ctx)
+> > > +{
+> > > +       u32 type;
+> > > +
+> > > +       if (node_ctx->desc.capture)
+> > > +               if (node_ctx->desc.image)
+> > > +                       type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> > > +               else
+> > > +                       type = V4L2_BUF_TYPE_META_CAPTURE;
+> > > +       else
+> > > +               if (node_ctx->desc.image)
+> > > +                       type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> > > +               else
+> > > +                       type = V4L2_BUF_TYPE_META_OUTPUT;
+> > > +
+> > > +       return type;
+> > > +}
+> >
+> > Why not just have this defined statically as node_ctx->desc.buf_type?
+> >
+>
+> Same as above.
+>
+> > > +
+> > > +static const struct v4l2_ioctl_ops *mtk_cam_node_get_ioctl_ops
+> > > +       (struct mtk_cam_ctx_queue *node_ctx)
+> > > +{
+> > > +       const struct v4l2_ioctl_ops *ops = NULL;
+> > > +
+> > > +       if (node_ctx->desc.image)
+> > > +               ops = &mtk_cam_v4l2_ioctl_ops;
+> > > +       else
+> > > +               ops = &mtk_cam_v4l2_meta_ioctl_ops;
+> > > +       return ops;
+> > > +}
+> >
+> > It's also preferable to just put this inside some structure rather
+> > than have getter functions. (node_ctx->desc.ioctl_ops?)
+> >
+>
+> Same as above.
+> Below is the new version for struct mtk_cam_ctx_queue_desc
+>
+> /*
+>  * struct mtk_cam_ctx_queue_desc - queue attributes
+>  *                              setup by device context owner
+>  * @id:         id of the context queue
+>  * @name:               media entity name
+>  * @cap:                mapped to V4L2 capabilities
+>  * @buf_type:   mapped to V4L2 buffer type
+>  * @capture:    true for capture queue (device to user)
+>  *                              false for output queue (from user to device)
+>  * @image:              true for image, false for meta data
+>  * @smem_alloc: Using the cam_smem_drv as alloc ctx or not
+>  * @dma_port:   the dma port associated to the buffer
+>  * @fmts:       supported format
+>  * @num_fmts:   the number of supported formats
+>  * @default_fmt_idx: default format of this queue
+>  * @max_buf_count: maximum V4L2 buffer count
+>  * @max_buf_count: mapped to v4l2_ioctl_ops
+>  */
+> struct mtk_cam_ctx_queue_desc {
+>         u8 id;
+>         char *name;
+>         u32 cap;
+>         u32 buf_type;
+>         u32 dma_port;
+>         u32 smem_alloc:1;
+>         u8 capture:1;
+>         u8 image:1;
+>         u8 num_fmts;
+>         u8 default_fmt_idx;
+>         u8 max_buf_count;
+>         const struct v4l2_ioctl_ops *ioctl_ops;
+>         struct v4l2_format *fmts;
+> };
+
+SGTM +/- the missing kerneldoc for the new fields.
+
+[snip]
+> > Sorry, ran out of time for today. Fourth part will come. :)
+> >
+> > Best regards,
+> > Tomasz
+> >
+>
+> Appreciate your support and hard working on this review.
+> We will look forward your part 4 review.
+
+Thanks for replying to all the comments, it's very helpful.
+
+As I mentioned in another reply, I'm going to be busy for the next few
+days, so I'd suggest addressing the existing comments, fixing any
+v4l2-compliance issues and also checking if any changes could be
+applied to the other drivers (DIP, FD, Seninf, MDP) too and then
+sending RFC V1.
 
 Best regards,
 Tomasz
