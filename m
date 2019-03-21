@@ -2,69 +2,69 @@ Return-Path: <SRS0=WMbR=RY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7444DC43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:45:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 463A2C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 315EE218A1
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:45:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F753218B0
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:54:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="DC30iu0p"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="DjcOo8cM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727868AbfCUDpp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 23:45:45 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:33751 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726620AbfCUDpp (ORCPT
+        id S1727437AbfCUDyu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 23:54:50 -0400
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:42590 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726914AbfCUDyu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 23:45:45 -0400
-Received: by mail-oi1-f196.google.com with SMTP id e22so3663492oiy.0
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:45:44 -0700 (PDT)
+        Wed, 20 Mar 2019 23:54:50 -0400
+Received: by mail-oi1-f194.google.com with SMTP id w139so3651129oie.9
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:54:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=RABvo/85jRVr3bjcc3MeC2+tNsFKQIfmez7YLbjpaoI=;
-        b=DC30iu0pS09tHRhg8vWzadFFXYh8EjtEl9xEM9lzclru5Ir3wK6gXL3hyxSVMzcmQH
-         z/dECN47tTmNU+5j6C7v35vp556k49fcd5ceZcQP7fCMxJ+b+g+iq8tmC0NpMVmEwT4r
-         Lr+78UsXij2IZBmsT/MBcNfNffDtn0F++Cc3U=
+        bh=FM7HxXDxarqniVmvj6OwLkwKYk9E/QUQmCKO+zkKi4w=;
+        b=DjcOo8cM6TmRqKfNiY5oJWRj9dUDXvohq3z8QY7BIVWVIcYkF17hSD65dDOGq2eIVa
+         fwjNK4+BwsLQ6zr4cq0RhugqrZbncwuTp3SqdpTDmm0sqJyzM2m1T5NsdFEnLaPCGE5y
+         BpTNpajjXqECXholDAwKF2HnWjeUCB7pRCe1w=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=RABvo/85jRVr3bjcc3MeC2+tNsFKQIfmez7YLbjpaoI=;
-        b=ObNUSEF3/t2a4S9X+5eREx002FKtE7/kRVxnZOvHkONkjzXd+4ORCP7d2dL2psHcWg
-         7+Tm5NjvDUVOpY5gu3StYaHbHo6LX2FfAfjMFA+l+KrQf0WZ5iOO4uWhW7igLBufE6E6
-         jcjxLbRRTbEgB67ymrenTWHrITlIatlAU6sEi25TW2ZoAhUrRpRzcTuTeqpNHB5V7MZo
-         ufEKTwGETRCUH0uVYfUywvCLnR8ZTVnOt8ZvDdlVUJX91xIXvRAd4/P5pMwjcm/ewxV5
-         VrvzMhYd+ld4jqaVC764YYzieBSBlzGyPasCHbcXU0JYlqqILrCLSdvje4J/E2ZjnVAr
-         8Hwg==
-X-Gm-Message-State: APjAAAVLqCR5ffMi7agNYciVfwk9tUXrNmbwFdnip+01FprNEpvnXLMF
-        MfSJxehsnifcwqsbKhS0ZYdeh3FSD4E=
-X-Google-Smtp-Source: APXvYqx/DoeHfNVDl098Wr4rPv5mmkCwkiiEwr46xg7ZhdVo5yHHd7NYvJuyb4vQuf9n84lIwiTsHA==
-X-Received: by 2002:aca:d446:: with SMTP id l67mr878979oig.13.1553139944135;
-        Wed, 20 Mar 2019 20:45:44 -0700 (PDT)
-Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com. [209.85.210.49])
-        by smtp.gmail.com with ESMTPSA id g1sm1557879otl.78.2019.03.20.20.45.43
+        bh=FM7HxXDxarqniVmvj6OwLkwKYk9E/QUQmCKO+zkKi4w=;
+        b=FfOCsLAXjYM0sw7UP+vtMF7VKqdurRF72J7MYXIF5tH8n+qb0E6QPulwwAMw+6Djyd
+         XCUEHNLSTcPGuJ8ynk/O7NUc7lUZnIsBzNw+WaSdQmg3sbmORI9w4f3t4Doy4xMRDog4
+         oGL/xuAtMzcZ1eAXGGQOOJYMWkBJwdLReq27dlMM58Brgnl4Wu9xXkCyJ1UJPGEJUgMQ
+         ZIBOUDzAruUtAJaGIXPBFsN5pb8UEAIw1DElL/Da4eUKLQD5USJB6nxd2KhCeKlXMfF7
+         lCrivlpWSVPLpZnemCAvEpn9p37/H+bDYyAX4vZSjHmvQkGmdOfJhGWbvpzRiEF2G5JY
+         CCXQ==
+X-Gm-Message-State: APjAAAWI2ppX/UlR4B6nfZJEg4T6x6axPKcNvrQgBsElzLdp5j4qlXiJ
+        3SPeuWPl9Ob9+E5/FOwoqjsbPOelec4=
+X-Google-Smtp-Source: APXvYqx6A5af0RZMm0Zx/n+4Zb2/ueGE7gDkoxchZnJrC/BaHjp0kY2qypfaEJ4SprApdK2eaM2OIw==
+X-Received: by 2002:aca:4908:: with SMTP id w8mr873787oia.157.1553140488698;
+        Wed, 20 Mar 2019 20:54:48 -0700 (PDT)
+Received: from mail-oi1-f170.google.com (mail-oi1-f170.google.com. [209.85.167.170])
+        by smtp.gmail.com with ESMTPSA id i17sm511372otr.36.2019.03.20.20.54.48
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 20 Mar 2019 20:45:43 -0700 (PDT)
-Received: by mail-ot1-f49.google.com with SMTP id u15so4249481otq.10
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:45:43 -0700 (PDT)
-X-Received: by 2002:a9d:760a:: with SMTP id k10mr1046441otl.367.1553139943140;
- Wed, 20 Mar 2019 20:45:43 -0700 (PDT)
+        Wed, 20 Mar 2019 20:54:48 -0700 (PDT)
+Received: by mail-oi1-f170.google.com with SMTP id i21so3635614oib.11
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:54:48 -0700 (PDT)
+X-Received: by 2002:aca:edc7:: with SMTP id l190mr924564oih.92.1553140125912;
+ Wed, 20 Mar 2019 20:48:45 -0700 (PDT)
 MIME-Version: 1.0
 References: <1549348966-14451-1-git-send-email-frederic.chen@mediatek.com>
  <1549348966-14451-8-git-send-email-frederic.chen@mediatek.com>
  <CAAFQd5BGFmTbRF+LdRvXs0MBZifRd9zB_+OT6Xwo=dzwqajgGA@mail.gmail.com> <1552378607.13953.71.camel@mtksdccf07>
 In-Reply-To: <1552378607.13953.71.camel@mtksdccf07>
 From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Thu, 21 Mar 2019 12:45:31 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5C+Syovzh14PAppyC5gmWqx=Tr_yGpLdgaWHXYXQGCX+g@mail.gmail.com>
-Message-ID: <CAAFQd5C+Syovzh14PAppyC5gmWqx=Tr_yGpLdgaWHXYXQGCX+g@mail.gmail.com>
+Date:   Thu, 21 Mar 2019 12:48:34 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5C=dmoUU9=FdkaeErSFVpA--uFZJ0P1jrb3DTXFZ_tdpg@mail.gmail.com>
+Message-ID: <CAAFQd5C=dmoUU9=FdkaeErSFVpA--uFZJ0P1jrb3DTXFZ_tdpg@mail.gmail.com>
 Subject: Re: [RFC PATCH V0 7/7] [media] platform: mtk-isp: Add Mediatek ISP
  Pass 1 driver
 To:     Jungo Lin <jungo.lin@mediatek.com>
@@ -97,87 +97,95 @@ On Tue, Mar 12, 2019 at 5:16 PM Jungo Lin <jungo.lin@mediatek.com> wrote:
 >
 > On Thu, 2019-03-07 at 19:04 +0900, Tomasz Figa wrote:
 [snip]
-> > > diff --git a/drivers/media/platform/mtk-isp/isp_50/cam/mtk_cam-smem-drv.c b/drivers/media/platform/mtk-isp/isp_50/cam/mtk_cam-smem-drv.c
-> > > new file mode 100644
-> > > index 0000000..020c38c
-> > > --- /dev/null
-> > > +++ b/drivers/media/platform/mtk-isp/isp_50/cam/mtk_cam-smem-drv.c
+> > > +struct mtk_cam_mem2mem2_device {
+> > > +       const char *name;
+> > > +       const char *model;
 > >
-> > I don't think we need any of the code that is in this file. We should
-> > just use the DMA API. We should be able to create appropriate reserved
-> > memory pools in DT and properly assign them to the right allocating
-> > devices.
-> >
-> > Skipping review of this file for the time being.
+> > For both of the fields above, they seem to be always
+> > MTK_CAM_DEV_P1_NAME, so we can just use the macro directly whenever
+> > needed. No need for this indirection.
 > >
 >
-> For this file, we may need your help.
-> Its purpose is same as DIP SMEM driver.
-> It is used for creating the ISP P1 specific vb2 buffer allocation
-> context with reserved memory. Unfortunately, the implementation of
-> mtk_cam-smem-drive.c is our best solution now.
+> OK. These two fields will be removed in next patch.
 >
-> Could you give us more hints how to implement?
-> Or do you think we could leverage the implementation from "Samsung S5P
-> Multi Format Codec driver"?
-> drivers/media/platform/s5p-mfc/s5p_mfc.c
-> - s5p_mfc_configure_dma_memory function
->   - s5p_mfc_configure_2port_memory
->      - s5p_mfc_alloc_memdev
-
-I think we can indeed take some ideas from there. I need some time to
-check this and give you more details.
-
-[snip]
-> > > +               }
-> > > +
-> > > +               dev_dbg(&isp_dev->pdev->dev, "streamed on sensor(%s)\n",
-> > > +                       cio->sensor->entity.name);
-> > > +
-> > > +               ret = mtk_cam_ctx_streamon(&isp_dev->ctx);
-> > > +               if (ret) {
-> > > +                       dev_err(&isp_dev->pdev->dev,
-> > > +                               "Pass 1 stream on failed (%d)\n", ret);
-> > > +                       return -EPERM;
-> > > +               }
-> > > +
-> > > +               isp_dev->mem2mem2.streaming = enable;
-> > > +
-> > > +               ret = mtk_cam_dev_queue_buffers(isp_dev, true);
-> > > +               if (ret)
-> > > +                       dev_err(&isp_dev->pdev->dev,
-> > > +                               "failed to queue initial buffers (%d)", ret);
-> > > +
-> > > +               dev_dbg(&isp_dev->pdev->dev, "streamed on Pass 1\n");
-> > > +       } else {
-> > > +               if (cio->sensor) {
+> > > +       struct device *dev;
+> > > +       int num_nodes;
+> > > +       struct mtk_cam_dev_video_device *nodes;
+> > > +       const struct vb2_mem_ops *vb2_mem_ops;
 > >
-> > Is it possible to have cio->sensor NULL here? This function would have
-> > failed if it wasn't found when enabling.
+> > This is always "vb2_dma_contig_memops", so it can be used directly.
 > >
 >
-> In the original design, it is protected to avoid abnormal double stream
-> off (s_stream) call from upper layer. For stability reason, it is better
-> to check.
-
-If so, having some state (e.g. field in a struct) for tracking the
-streaming state would make the code much easier to understand.
-Also, the error message on the else case is totally misleading,
-because it complains about a missing sensor, rather than double
-s_stream.
-
-[snip]
-> Thanks for your valued comments on part 2.
-> It is helpful for us to make our driver implementation better.
+> Ditto.
 >
-> We'd like to know your opinion about the schedule for RFC V1.
-> Do you suggest us to send RFC V1 patch set after revising all comments
-> on part 1 & 2 or wait for part 3 review?
+> > > +       unsigned int buf_struct_size;
+> >
+> > This is always sizeof(struct mtk_cam_dev_buffer), so no need to save
+> > it in the struct.
+> >
+>
+> Ditto.
+>
+> > > +       int streaming;
+> > > +       struct v4l2_device *v4l2_dev;
+> > > +       struct media_device *media_dev;
+> >
+> > These 2 fields are already in mtk_cam_dev which is a superclass of
+> > this struct. One can just access them from there directly.
+> >
+>
+> Ditto.
+>
+> > > +       struct media_pipeline pipeline;
+> > > +       struct v4l2_subdev subdev;
+> >
+> > Could you remind me what was the media topology exposed by this
+> > driver? This is already the second subdev I spotted in this patch,
+> > which looks strange.
+> >
+>
+>
+> For sub-device design, we will remove the sub-device for CIO and keep
+> only one sub-device for ISP driver in next patch. We will also provide
+> the media topology in RFC v1 patch to clarify.
+>
+> > > +       struct media_pad *subdev_pads;
+> > > +       struct v4l2_file_operations v4l2_file_ops;
+> > > +       const struct file_operations fops;
+> > > +};
+> >
+> > Given most of the comments above, it looks like the remaining useful
+> > fields in this struct could be just moved to mtk_cam_dev, without the
+> > need for this separate struct.
+> >
+>
+> This is the final revision for these two structures.
+> Do you suggest to merge it to simplify?
+>
+> struct mtk_cam_mem2mem2_device {
+>         struct mtk_cam_video_device *nodes;
+>         struct media_pipeline pipeline;
+>         struct v4l2_subdev subdev;
+>         struct media_pad *subdev_pads;
+> };
+>
+> struct mtk_cam_dev {
+>         struct platform_device *pdev;
+>         struct mtk_cam_video_device     mem2mem2_nodes[MTK_CAM_DEV_NODE_MAX];
+>         struct mtk_cam_mem2mem2_device mem2mem2;
+>         struct mtk_cam_io_connection cio;
+>         struct v4l2_device v4l2_dev;
+>         struct media_device media_dev;
+>         struct mtk_cam_ctx ctx;
+>         struct v4l2_async_notifier notifier;
+> };
+>
 
-I'm going to be a bit busy for the next few days, so it may be a good
-idea to address the comments for parts 1, 2 and 3 and send RFC V1.
-Also, for the more general comments, please check if they don't apply
-to the other drivers too (DIP, FD, Seninf, MDP). Thanks in advance!
+I feel like there is not much benefit in having this split. Similarly,
+I'm not sure if there is a reason to have separate structs for
+mtk_cam_io_connection and mtk_cam_ctx.
+
+(Sorry, missed this one in previous reply.)
 
 Best regards,
 Tomasz
