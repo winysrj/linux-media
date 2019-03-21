@@ -2,178 +2,198 @@ Return-Path: <SRS0=WMbR=RY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4FF9C43381
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 02:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 765A8C43381
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:39:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 890DE2190A
-	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 02:21:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31885218AE
+	for <linux-media@archiver.kernel.org>; Thu, 21 Mar 2019 03:39:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="AmpxmuUt"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="U667uDvS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727586AbfCUCVA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 20 Mar 2019 22:21:00 -0400
-Received: from mail-io1-f73.google.com ([209.85.166.73]:54138 "EHLO
-        mail-io1-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727507AbfCUCU7 (ORCPT
+        id S1727586AbfCUDjZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 20 Mar 2019 23:39:25 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:46587 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726914AbfCUDjZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Mar 2019 22:20:59 -0400
-Received: by mail-io1-f73.google.com with SMTP id w11so3885935iom.20
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 19:20:59 -0700 (PDT)
+        Wed, 20 Mar 2019 23:39:25 -0400
+Received: by mail-oi1-f196.google.com with SMTP id x188so2692343oia.13
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:39:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=K3pTWsThSeWn3qKVtJV9nUNsFfNlhwc+y5rcZkUTfsk=;
-        b=AmpxmuUt6biVTVCj7sqKxGtMBMtL4bYJN3OYCwPsQKrqVgi6drvXfA6pWuEygEtKcA
-         w2JhS5dzaMcdDicQKcPrphggz/+oIFPKPaTwRE3nUZqQFV8adJcRURCkCfe7jSPf8hav
-         aPVoapPI6u32/Hb9ut1jGMMnTrFBd8a632/WtpSi3bb2P/iwKibo+oFCGiwI17zZPhEb
-         vxdftZtBZLqbfUvJl9Cx0lMgLHxs6zmJFh4g1V15g/11i0uVEXIUPrN/QxEWrtmYBECW
-         GkBv6y1XE8lWfAIlhZYZelYYOVijEKys1kMbct1Kuko6ixjeSmR0sXkjpCm8zm5pFV5j
-         Go7w==
+        bh=g8U6snetzO45J3uQhW+/669hYcocGezULFq1HgCm21M=;
+        b=U667uDvSQt596UbF8FVBgcLUHCfTThjXQ2aXrqhl4+9otCw0yRH3rexJg/ubxRfbG6
+         /qhMPXa79yMCiFz0Ot7ycsljgYwc9wIoX/RgZqQwLDJ7h3wOS57hv5uIqBt5ErA3QxSF
+         fB1T6VL8eEd74unnfj32t6nYmT57JXyKmYzmI=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=K3pTWsThSeWn3qKVtJV9nUNsFfNlhwc+y5rcZkUTfsk=;
-        b=p48Euo8stP20Lc7fF/yAArH6jN9qNxoCaIOVCmO3G22FOewt/4sEPFP6wqBPXIO6jI
-         Hc4C/n4BwZ6bEIlLwiQrzbnKhMjEEIs2183IIKOAmvUCoUPcMHyaE6Tp6MaP9ZAYa4BI
-         iLss6D/JNEAcIj3lQ5rMxwudeBWEFIt7g+0FP2H/WafddiXg4udWt2PvaWfFu1AoRdnh
-         tkGSuM9wpZaTapP8Mp5KZkiwwQQlXEGtZeYsMGw1qfHtCJU5RnsjAwxujPRqvX0G7SBd
-         JCj6HbZsC8aHLqhl09vfULADD+d6Ip5+YDhxNT0pBtYlhh+DATeYHhVUR/EDaz+bakhw
-         ietQ==
-X-Gm-Message-State: APjAAAXiYH8NUAXl8UBh8XKs9TShg8+8JjQVt9xucDB2jE461Eh/PZCy
-        wMe8vQYYPLCzB8SLLOAnz50+fbbL8qPG
-X-Google-Smtp-Source: APXvYqxd5HC+CQHubvNDXL8uVTI52mEnqkj7OgndnZiH+bT9sMyvHVvSW2oYPYO8DgL5MjynxIj8xPatwEP0
-X-Received: by 2002:a24:2704:: with SMTP id g4mr432290ita.36.1553134858739;
- Wed, 20 Mar 2019 19:20:58 -0700 (PDT)
-Date:   Thu, 21 Mar 2019 10:20:52 +0800
-In-Reply-To: <20190128072948.45788-1-linfish@google.com>
-Message-Id: <20190321022052.164967-1-linfish@google.com>
-Mime-Version: 1.0
-References: <20190128072948.45788-1-linfish@google.com>
-X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [PATCH v6] [media] v4l: add I / P frame min max QP definitions
-From:   Fish Lin <linfish@google.com>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Fish Lin <linfish@google.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=g8U6snetzO45J3uQhW+/669hYcocGezULFq1HgCm21M=;
+        b=GaLhVOde6FPFxiA0Sw9Fu/anRHNdAUA5MK1idUI6cxOGsoZQXfy2O1LRYVjSv5RPrF
+         bqcPeRGkBtAXVgP6KBNB205NuB08WUI914JVbjVLpe3WESDK7EituXVCSc2qJHPzOQaw
+         ZsPZ8TOddUcgTbH16mNRsc7bI3arHZIrUvpMkcTlRCeMrEI/XQ9aP23BrxMbPcou2LAi
+         fsmCxcluJtiFW/G5KRb8fZAawRD8MtspLytXN1OPqy9Pe6zDW/W9imlAAikwscOyL679
+         8LLoXwaKDt7fCOQuvzA0QAugpU8ALvzQBoPfI62QkyDh/uKEJhLgcVp9K4Gbb88RT2ru
+         Eslg==
+X-Gm-Message-State: APjAAAVRASdcd4GaEmwwEy2fBAq1ixiqJLxBhqzhLWhT7PkXMgSvlOBC
+        DitSSLYTgXQdXbxkhzW722rcPVSm7/Q=
+X-Google-Smtp-Source: APXvYqwXsbJvfWh6+WdQ1EdKQa+FZoDqxr8TXQduzRnUN1Vs65I1tJOZhE+CVtnH+IqGYsG5A2H/og==
+X-Received: by 2002:aca:cf10:: with SMTP id f16mr895805oig.42.1553139564308;
+        Wed, 20 Mar 2019 20:39:24 -0700 (PDT)
+Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com. [209.85.210.51])
+        by smtp.gmail.com with ESMTPSA id j131sm1560206oia.37.2019.03.20.20.39.23
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 20 Mar 2019 20:39:24 -0700 (PDT)
+Received: by mail-ot1-f51.google.com with SMTP id c18so4197289otl.13
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2019 20:39:23 -0700 (PDT)
+X-Received: by 2002:a05:6830:208d:: with SMTP id y13mr1104752otq.288.1553139199969;
+ Wed, 20 Mar 2019 20:33:19 -0700 (PDT)
+MIME-Version: 1.0
+References: <1549348966-14451-1-git-send-email-frederic.chen@mediatek.com>
+ <1549348966-14451-8-git-send-email-frederic.chen@mediatek.com>
+ <CAAFQd5CWdZUXVb4F9BLhQdN8WHjzA8acPDx1i+WcoudsdGsfUg@mail.gmail.com>
+ <1550372163.11724.59.camel@mtksdccf07> <CAAFQd5CaXz_Lqz8NhGK4DvaxPvuYLj-Y73sG7wFaqW44j+tZQw@mail.gmail.com>
+ <1550647867.11724.80.camel@mtksdccf07>
+In-Reply-To: <1550647867.11724.80.camel@mtksdccf07>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Thu, 21 Mar 2019 12:33:08 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5Addbh8cQBwKnW_g_KWBO6wPbF6MJXX7+gxDmOPg9+zmQ@mail.gmail.com>
+Message-ID: <CAAFQd5Addbh8cQBwKnW_g_KWBO6wPbF6MJXX7+gxDmOPg9+zmQ@mail.gmail.com>
+Subject: Re: [RFC PATCH V0 7/7] [media] platform: mtk-isp: Add Mediatek ISP
+ Pass 1 driver
+To:     Jungo Lin <jungo.lin@mediatek.com>
+Cc:     frankie_chiu@mediatek.com,
+        =?UTF-8?B?U2VhbiBDaGVuZyAo6YSt5piH5byYKQ==?= 
+        <Sean.Cheng@mediatek.com>,
+        Frederic Chen <frederic.chen@mediatek.com>,
+        =?UTF-8?B?UnlubiBXdSAo5ZCz6IKy5oGpKQ==?= <Rynn.Wu@mediatek.com>,
+        =?UTF-8?B?Q2hyaXN0aWUgWXUgKOa4uOmbheaDoCk=?= 
+        <christie.yu@mediatek.com>, srv_heupstream@mediatek.com,
+        =?UTF-8?B?SG9sbWVzIENoaW91ICjpgrHmjLop?= 
+        <holmes.chiou@mediatek.com>, seraph_huang@mediatek.com,
+        Jerry-ch Chen <Jerry-ch.Chen@mediatek.com>,
+        yuzhao@chromium.org, ryan_yu@mediatek.com,
+        Sj Huang <sj.huang@mediatek.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-mediatek@lists.infradead.org, zwisler@chromium.org,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        =?UTF-8?B?UnlhbiBZdSAo5L2Z5a2f5L+uKQ==?= <ryan.yu@mediatek.com>,
+        =?UTF-8?B?U2VyYXBoIEh1YW5nICjpu4PlnIvpm4Qp?= 
+        <Seraph.Huang@mediatek.com>,
+        =?UTF-8?B?RnJhbmtpZSBDaGl1ICjpgrHmloflh7Ep?= 
+        <frankie.chiu@mediatek.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add following V4L2 QP parameters for H.264:
-* V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP
-* V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP
-* V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP
-* V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP
+On Wed, Feb 20, 2019 at 4:31 PM Jungo Lin <jungo.lin@mediatek.com> wrote:
+>
+> On Tue, 2019-02-19 at 17:51 +0900, Tomasz Figa wrote:
+> > Hi Jungo,
+> >
+> > On Sun, Feb 17, 2019 at 11:56 AM Jungo Lin <jungo.lin@mediatek.com> wrote:
+> > >
+> > > On Wed, 2019-02-13 at 18:50 +0900, Tomasz Figa wrote:
+> > > > (() . ( strHi Frederic, Jungo,
+> > > >
+> > > > On Tue, Feb 5, 2019 at 3:43 PM Frederic Chen <frederic.chen@mediatek.com> wrote:
+> > > > >
+> > > > > From: Jungo Lin <jungo.lin@mediatek.com>
+> > > > >
+> > > > > This patch adds the driver for Pass unit in Mediatek's camera
+> > > > > ISP system. Pass 1 unit is embedded in Mediatek SOCs. It
+> > > > > provides RAW processing which includes optical black correction,
+> > > > > defect pixel correction, W/IR imbalance correction and lens
+> > > > > shading correction.
+> > > > >
+> > > > > The mtk-isp directory will contain drivers for multiple IP
+> > > > > blocks found in Mediatek ISP system. It will include ISP Pass 1
+> > > > > driver, sensor interface driver, DIP driver and face detection
+> > > > > driver.
+> > > >
+> > > > Thanks for the patches! Please see my comments inline.
+> > > >
+> > >
+> > > Dear Thomas:
+> > >
+> > > Thanks for your comments.
+> > >
+> > > We will revise the source codes based on your comments.
+> > > Since there are many comments to fix/revise, we will categorize &
+> > > prioritize these with below list:
+> > >
+> > > 1. Coding style issues.
+> > > 2. Coding defects, including unused codes.
+> > > 3. Driver architecture refactoring, such as removing mtk_cam_ctx,
+> > > unnecessary abstraction layer, etc.
+> > >
+> >
+> > Thanks for replying to the comments!
+> >
+> > Just to clarify, there is no need to hurry with resending a next patch
+> > set with only a subset of the changes. Please take your time to
+> > address all the comments before sending the next revision. This
+> > prevents forgetting about some remaining comments and also lets other
+> > reviewers come with new comments or some alternative ideas for already
+> > existing comments. Second part of my review is coming too.
+> >
+> > P.S. Please avoid top-posting on mailing lists. If replying to a
+> > message, please reply below the related part of that message. (I've
+> > moved your reply to the place in the email where it should be.)
+> >
+> > [snip]
+>
+> Hi, Tomasz,
+>
+> Thanks for your advice.
+> We will prepare the next patch set after all comments are revised.
+>
+>
+> > > > > +       phys_addr_t paddr;
+> > > >
+> > > > We shouldn't need physical address either. I suppose this is for the
+> > > > SCP, but then it should be a DMA address obtained from dma_map_*()
+> > > > with struct device pointer of the SCP.
+> > > >
+> > >
+> > > Yes, this physical address is designed for SCP.
+> > > For tuning buffer, it will be touched by SCP and
+> > > SCP can't get the physical address by itself. So we need to get
+> > > this physical address in the kernel space via mtk_cam_smem_iova_to_phys
+> > > function call and pass it to the SCP. At the same time, DMA address
+> > > (daddr) is used for ISP HW.
+> > >
+> >
+> > Right, but my point is that in the kernel phys_addr_t is the physical
+> > address from the CPU point of view. Any address from device point of
+> > view is dma_addr_t and should be obtained from the DMA mapping API
+> > (even if it's numerically the same as physical address).
+> >
+>
+> OK.
+> In order to clarify the address usage, is it ok to rename "dma_addr_t
+> scp_addr"?
 
-These controls will limit QP range for intra and inter frame,
-provide more manual control to improve video encode quality.
+Sounds good to me.
 
-Signed-off-by: Fish Lin <linfish@google.com>
----
-Changelog since v5:
-- Adjust documentation wording.
+> Moreover, below function will be also renamed.
+> dma_addr_t mtk_cam_smem_iova_to_scp_phys(struct device *dev,
+>                                       dma_addr_t iova)
 
-Changelog since v4:
-- Fix patch subject and send again.
-
-Changelog since v3:
-- Put document in ext-ctrls-codec.rst instead of extended-controls.rst
-  (which was previous version).
-
-Changelog since v2:
-- Add interaction with V4L2_CID_MPEG_VIDEO_H264_MIN/MAX_QP
-  description in the document.
-
-Changelog since v1:
-- Add description in document.
-
- .../media/uapi/v4l/ext-ctrls-codec.rst        | 24 +++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c          |  4 ++++
- include/uapi/linux/v4l2-controls.h            |  6 +++++
- 3 files changed, 34 insertions(+)
-
-diff --git a/Documentation/media/uapi/v4l/ext-ctrls-codec.rst b/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
-index c97fb7923be5..5b2db52d3b4e 100644
---- a/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
-+++ b/Documentation/media/uapi/v4l/ext-ctrls-codec.rst
-@@ -1048,6 +1048,30 @@ enum v4l2_mpeg_video_h264_entropy_mode -
-     Quantization parameter for an B frame for H264. Valid range: from 0
-     to 51.
-
-+``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP (integer)``
-+    Minimum quantization parameter for the H264 I frame to limit I frame
-+    quality to a range. Valid range: from 0 to 51. If
-+    V4L2_CID_MPEG_VIDEO_H264_MIN_QP is also set, the quantization parameter
-+    should be chosen to meet both requirements.
-+
-+``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP (integer)``
-+    Maximum quantization parameter for the H264 I frame to limit I frame
-+    quality to a range. Valid range: from 0 to 51. If
-+    V4L2_CID_MPEG_VIDEO_H264_MAX_QP is also set, the quantization parameter
-+    should be chosen to meet both requirements.
-+
-+``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP (integer)``
-+    Minimum quantization parameter for the H264 P frame to limit P frame
-+    quality to a range. Valid range: from 0 to 51. If
-+    V4L2_CID_MPEG_VIDEO_H264_MIN_QP is also set, the quantization parameter
-+    should be chosen to meet both requirements.
-+
-+``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP (integer)``
-+    Maximum quantization parameter for the H264 P frame to limit P frame
-+    quality to a range. Valid range: from 0 to 51. If
-+    V4L2_CID_MPEG_VIDEO_H264_MAX_QP is also set, the quantization parameter
-+    should be chosen to meet both requirements.
-+
- ``V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP (integer)``
-     Quantization parameter for an I frame for MPEG4. Valid range: from 1
-     to 31.
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b79d3bbd8350..115fb8debe23 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -828,6 +828,10 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION:
- 								return "H264 Constrained Intra Pred";
- 	case V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET:	return "H264 Chroma QP Index Offset";
-+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP:		return "H264 I-Frame Minimum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP:		return "H264 I-Frame Maximum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP:		return "H264 P-Frame Minimum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP:		return "H264 P-Frame Maximum QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 06479f2fb3ae..4421baa84177 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -535,6 +535,12 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
- #define V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION	(V4L2_CID_MPEG_BASE+383)
- #define V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET		(V4L2_CID_MPEG_BASE+384)
-+
-+#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+390)
-+#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+391)
-+#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+392)
-+#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+393)
-+
- #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
---
-2.21.0.225.g810b269d1ac-goog
-
+Perhaps mtk_cam_smem_iova_to_scp_addr() for consistency with the
+struct field above?
