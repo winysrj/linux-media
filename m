@@ -2,119 +2,163 @@ Return-Path: <SRS0=TC89=RZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BFF5C10F00
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 02:51:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C5C5C43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 04:09:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6AD04218FE
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 02:51:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E598721900
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 04:09:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="SjeYvfv8"
+	dkim=pass (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="Kp2YaAuE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727554AbfCVCvx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 21 Mar 2019 22:51:53 -0400
-Received: from mail-pg1-f202.google.com ([209.85.215.202]:45913 "EHLO
-        mail-pg1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727549AbfCVCvx (ORCPT
+        id S1725982AbfCVEJB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Mar 2019 00:09:01 -0400
+Received: from condef-08.nifty.com ([202.248.20.73]:41716 "EHLO
+        condef-08.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725550AbfCVEJA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Mar 2019 22:51:53 -0400
-Received: by mail-pg1-f202.google.com with SMTP id f1so819274pgv.12
-        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2019 19:51:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=H4IOWZCkGYhUPwHHpFSIM1VKmYj0I6VEVbKesqW/rWE=;
-        b=SjeYvfv8Nh9cZPFzPL1DWyNB4x4zoH+B5MKpu68fGKXAXIzrNxVz7F4D8N/9ttHP+I
-         nNM0/5w+KuUuTXz4s+cQ0zWBKWFBO5t3PpHBZvP2zc7LdxCLdzDLoXNFpSMYeuJx9rPu
-         1d/pSP5YE5nHRPZ3m3vEfZ9/tk/EQjnmEfYYaykGyt+e+v1VuTTjiPzEAMlfy2aT7D51
-         E9/MIrlL7G9HZJQSII+yQMLLZpIl4YxYY2C1E4MX47G5PCZJ7Oa/ftIXGWIBxSl725EA
-         R34wUndAjXVOtZRzDGvO2D9Kmcfqt/xFnD56bLJk5Z5MVzKjTkBGFsuZyDDet6Mrm8cX
-         YpHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=H4IOWZCkGYhUPwHHpFSIM1VKmYj0I6VEVbKesqW/rWE=;
-        b=OXcejDsuCic7brIUgJxHmo2tj/YScydiO+cu1J7cmHt954rEQU4uRFUNAWUTyTQwrn
-         9Lj4bDcQ+c94RA8N3zgtn+JD3Zsay8yQSoPHf884MI8QLLV3kU89O8ajYzCCpCXSRUaW
-         j1ukO8GY2jL+qaENpX3edeQP1OpUyf7S0AyOq6UAd5MGfMIhNzny9cjxkYoV9nR6A1fi
-         fPbWh+aP+ym4du2N7/EGTk32clnW/yZm4tA2M+VHoVgs9bvZG1GVYoskd/hRBdupy8Vi
-         dNStC8nBHijmKF6H89PYnS4XsMqdgA4Uf/8pWp1EyKUGNoqjZ7Y2AQngAsI6XSMVZNrS
-         SWvw==
-X-Gm-Message-State: APjAAAVB7rzuNdMO1xtkjlmiO5BlSHN2amEssqBpCZfCNLUnmS4c+CQp
-        GBrl8+PvWnJBIgyunWGh5XPEdWI19g==
-X-Google-Smtp-Source: APXvYqwdtCPG1+7twB0gRW+8DwLDfOq5u3mV3fQy3e1VGEncft2iI6eY/DeOWiLjEWWHb0IbFHWBh1b8Dw==
-X-Received: by 2002:a63:545f:: with SMTP id e31mr6450118pgm.409.1553223112247;
- Thu, 21 Mar 2019 19:51:52 -0700 (PDT)
-Date:   Thu, 21 Mar 2019 19:51:35 -0700
-In-Reply-To: <20190322025135.118201-1-fengc@google.com>
-Message-Id: <20190322025135.118201-4-fengc@google.com>
-Mime-Version: 1.0
-References: <20190322025135.118201-1-fengc@google.com>
-X-Mailer: git-send-email 2.21.0.225.g810b269d1ac-goog
-Subject: [RFC v2 3/3] dma-buf: add show_fdinfo handler
-From:   Chenbo Feng <fengc@google.com>
-To:     linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Fri, 22 Mar 2019 00:09:00 -0400
+Received: from conssluserg-05.nifty.com ([10.126.8.84])by condef-08.nifty.com with ESMTP id x2M43VI2005197
+        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2019 13:03:31 +0900
+Received: from mail-vs1-f47.google.com (mail-vs1-f47.google.com [209.85.217.47]) (authenticated)
+        by conssluserg-05.nifty.com with ESMTP id x2M43PIY030740;
+        Fri, 22 Mar 2019 13:03:26 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-05.nifty.com x2M43PIY030740
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1553227406;
+        bh=28+xPXmYPeN1HBmtz7B9dIBqNJifFl2mSkf3nvWDJZs=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Kp2YaAuEwLikmvC4tE1wAYayjOtkYpDMHd/shAcuCxRM8AgHeXq/+23dofrv4dVSb
+         8HVqnba7Yx3Ox5BtTYo0eetmpzNDc2uKvCm5wUPI0smYhOqbzK4uUIlMT/Ds5R6oET
+         j9lpSv6OknJZolWGzA0YH34/WqrI5c4wK+mlDvDbZ81HwstX03Ckp57upG1+MzLkDY
+         YLbHqO5PHnNcKgO/Y+RcPC/QCdXXk3uS+QNWZaekxLjwbYRQnlikhZ0Fn5KRzM3Llq
+         WIXeVPNiDBSPR8tQR8ATdS44X4opekuejL9WJvab1hAQNsWFf63Ve5pHUh4w4szBLJ
+         M/h/Tz9BsBsYg==
+X-Nifty-SrcIP: [209.85.217.47]
+Received: by mail-vs1-f47.google.com with SMTP id n14so587009vsp.12;
+        Thu, 21 Mar 2019 21:03:26 -0700 (PDT)
+X-Gm-Message-State: APjAAAXCjCme4oqE+5EffrQjbYMF+4fFjv7IrRi7nUNQQbgfdv3nAIes
+        lA8iG2jZr0vXN5KW4b/nwG2pbG8/gcIWGDmi4Rw=
+X-Google-Smtp-Source: APXvYqwHCEm0SC52OVyTV8OoSE7BfFl85FvHGE+Zip4cPyPTEvrYX2zS38nhxv3hXh8dKizOL2XZv8yCxd2Y9q+yrt8=
+X-Received: by 2002:a67:7c04:: with SMTP id x4mr4634867vsc.155.1553227405005;
+ Thu, 21 Mar 2019 21:03:25 -0700 (PDT)
+MIME-Version: 1.0
+References: <1548399259-17750-1-git-send-email-yamada.masahiro@socionext.com> <CAK7LNATPU9DJaOMP=8oOMjeGSuAqWSTh2rSesvvfhjXx4HfxRg@mail.gmail.com>
+In-Reply-To: <CAK7LNATPU9DJaOMP=8oOMjeGSuAqWSTh2rSesvvfhjXx4HfxRg@mail.gmail.com>
+From:   Masahiro Yamada <yamada.masahiro@socionext.com>
+Date:   Fri, 22 Mar 2019 13:02:49 +0900
+X-Gmail-Original-Message-ID: <CAK7LNAQ5g6pFronkmaJrVTvOnep+f_z-LeemDC8_SJAnYz=ZzQ@mail.gmail.com>
+Message-ID: <CAK7LNAQ5g6pFronkmaJrVTvOnep+f_z-LeemDC8_SJAnYz=ZzQ@mail.gmail.com>
+Subject: Re: [PATCH 0/3] media: clean-up header search paths and add
+ $(srctree)/ prefix
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org
-Cc:     kernel-team@android.com, Sumit Semwal <sumit.semwal@linaro.org>,
-        erickreyes@google.com, Daniel Vetter <daniel@ffwll.ch>,
-        Greg Hackmann <ghackmann@google.com>,
-        Chenbo Feng <fengc@google.com>
+Cc:     Sakari Ailus <sakari.ailus@iki.fi>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Akihiro Tsukada <tskd08@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Abylay Ospan <aospan@netup.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sergey Kozlov <serjk@netup.ru>, Mike Isely <isely@pobox.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Greg Hackmann <ghackmann@google.com>
+Hi Mauro,
 
-The show_fdinfo handler exports the same information available through
-debugfs on a per-buffer basis.
 
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
-Signed-off-by: Chenbo Feng <fengc@google.com>
----
- drivers/dma-buf/dma-buf.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+On Mon, Feb 18, 2019 at 1:41 PM Masahiro Yamada
+<yamada.masahiro@socionext.com> wrote:
+>
+> Hi Mauro,
+>
+> On Fri, Jan 25, 2019 at 4:00 PM Masahiro Yamada
+> <yamada.masahiro@socionext.com> wrote:
+> >
+> > My main motivation is to get rid of crappy header search path manipulation
+> > from Kbuild core.
+> >
+> > Before that, I want to do as many treewide cleanups as possible.
+> >
+> > If you are interested in the big picture of this work,
+> > the full patch set is available at:
+> > git://git.kernel.org/pub/scm/linux/kernel/git/masahiroy/linux-kbuild.git build-test
+>
+>
+> Could you take a look at this series, please?
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index f5e8d4fab950..fc7be2939ba1 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -383,6 +383,20 @@ static long dma_buf_ioctl(struct file *file,
- 	}
- }
- 
-+static void dma_buf_show_fdinfo(struct seq_file *m, struct file *file)
-+{
-+	struct dma_buf *dmabuf = file->private_data;
-+
-+	seq_printf(m, "size:\t%zu\n", dmabuf->size);
-+	/* Don't count the temporary reference taken inside procfs seq_show */
-+	seq_printf(m, "count:\t%ld\n", file_count(dmabuf->file) - 1);
-+	seq_printf(m, "exp_name:\t%s\n", dmabuf->exp_name);
-+	mutex_lock(&dmabuf->lock);
-+	if (dmabuf->name)
-+		seq_printf(m, "name:\t%s\n", dmabuf->name);
-+	mutex_unlock(&dmabuf->lock);
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
-@@ -392,6 +406,7 @@ static const struct file_operations dma_buf_fops = {
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= dma_buf_ioctl,
- #endif
-+	.show_fdinfo	= dma_buf_show_fdinfo,
- };
- 
- /*
+Ping.
+
+
+
+
+> >
+> >
+> >
+> > Masahiro Yamada (3):
+> >   media: coda: remove -I$(src) header search path
+> >   media: remove unneeded header search paths
+> >   media: prefix header search paths with $(srctree)/
+> >
+> >  drivers/media/common/b2c2/Makefile            | 4 ++--
+> >  drivers/media/dvb-frontends/cxd2880/Makefile  | 2 --
+> >  drivers/media/i2c/smiapp/Makefile             | 2 +-
+> >  drivers/media/mmc/siano/Makefile              | 3 +--
+> >  drivers/media/pci/b2c2/Makefile               | 2 +-
+> >  drivers/media/pci/bt8xx/Makefile              | 5 ++---
+> >  drivers/media/pci/cx18/Makefile               | 4 ++--
+> >  drivers/media/pci/cx23885/Makefile            | 4 ++--
+> >  drivers/media/pci/cx88/Makefile               | 4 ++--
+> >  drivers/media/pci/ddbridge/Makefile           | 4 ++--
+> >  drivers/media/pci/dm1105/Makefile             | 2 +-
+> >  drivers/media/pci/mantis/Makefile             | 2 +-
+> >  drivers/media/pci/netup_unidvb/Makefile       | 2 +-
+> >  drivers/media/pci/ngene/Makefile              | 4 ++--
+> >  drivers/media/pci/pluto2/Makefile             | 2 +-
+> >  drivers/media/pci/pt1/Makefile                | 4 ++--
+> >  drivers/media/pci/pt3/Makefile                | 4 ++--
+> >  drivers/media/pci/smipcie/Makefile            | 5 ++---
+> >  drivers/media/pci/ttpci/Makefile              | 4 ++--
+> >  drivers/media/platform/coda/Makefile          | 2 --
+> >  drivers/media/platform/coda/coda-h264.c       | 3 ++-
+> >  drivers/media/platform/coda/trace.h           | 2 +-
+> >  drivers/media/platform/sti/c8sectpfe/Makefile | 5 ++---
+> >  drivers/media/radio/Makefile                  | 2 --
+> >  drivers/media/spi/Makefile                    | 4 +---
+> >  drivers/media/usb/as102/Makefile              | 2 +-
+> >  drivers/media/usb/au0828/Makefile             | 4 ++--
+> >  drivers/media/usb/b2c2/Makefile               | 2 +-
+> >  drivers/media/usb/cx231xx/Makefile            | 5 ++---
+> >  drivers/media/usb/em28xx/Makefile             | 4 ++--
+> >  drivers/media/usb/go7007/Makefile             | 2 +-
+> >  drivers/media/usb/pvrusb2/Makefile            | 4 ++--
+> >  drivers/media/usb/siano/Makefile              | 2 +-
+> >  drivers/media/usb/tm6000/Makefile             | 4 ++--
+> >  drivers/media/usb/ttusb-budget/Makefile       | 2 +-
+> >  drivers/media/usb/usbvision/Makefile          | 2 --
+> >  36 files changed, 50 insertions(+), 64 deletions(-)
+> >
+> > --
+> > 2.7.4
+> >
+>
+>
+> --
+> Best Regards
+> Masahiro Yamada
+
+
+
 -- 
-2.21.0.225.g810b269d1ac-goog
-
+Best Regards
+Masahiro Yamada
