@@ -6,34 +6,34 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B676BC43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 11:00:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A35EC43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 11:08:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 830D521916
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 11:00:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E3EE2075C
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 11:08:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728091AbfCVLAW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Mar 2019 07:00:22 -0400
-Received: from mga01.intel.com ([192.55.52.88]:53824 "EHLO mga01.intel.com"
+        id S1727762AbfCVLID (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Mar 2019 07:08:03 -0400
+Received: from mga03.intel.com ([134.134.136.65]:43344 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727786AbfCVLAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Mar 2019 07:00:22 -0400
+        id S1727794AbfCVLID (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Mar 2019 07:08:03 -0400
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Mar 2019 04:00:21 -0700
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Mar 2019 04:08:02 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.60,256,1549958400"; 
-   d="scan'208";a="144279690"
+   d="scan'208";a="309442254"
 Received: from ipu5-build.bj.intel.com ([10.238.232.171])
-  by orsmga002.jf.intel.com with ESMTP; 22 Mar 2019 04:00:20 -0700
+  by orsmga005.jf.intel.com with ESMTP; 22 Mar 2019 04:07:58 -0700
 From:   bingbu.cao@intel.com
 To:     linux-media@vger.kernel.org
 Cc:     sakari.ailus@linux.intel.com, tfiga@chromium.org,
         bingbu.cao@linux.intel.com, tian.shu.qiu@intel.com
-Subject: [PATCH v2] media:staging/intel-ipu3: parameter buffer refactoring
-Date:   Fri, 22 Mar 2019 19:07:06 +0800
-Message-Id: <1553252826-15830-1-git-send-email-bingbu.cao@intel.com>
+Subject: [PATCH resend v2] media:staging/intel-ipu3: parameter buffer refactoring
+Date:   Fri, 22 Mar 2019 19:14:45 +0800
+Message-Id: <1553253285-16023-1-git-send-email-bingbu.cao@intel.com>
 X-Mailer: git-send-email 1.9.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -56,16 +56,15 @@ frame processed and buffers consumed by css.
 Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
 Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
 ---
+changes since v1:
+- add payload check for parameter buffer
+- queue buffer only when previous buffer consumed
+---
  drivers/staging/media/ipu3/ipu3-css.c  |  5 ----
  drivers/staging/media/ipu3/ipu3-v4l2.c | 46 ++++++++++++----------------------
  drivers/staging/media/ipu3/ipu3.c      | 30 ++++++++++++++++++++++
  3 files changed, 46 insertions(+), 35 deletions(-)
 
----
-changes since v1:
-- add payload check for parameter buffer
-- queue buffer only when previous buffer consumed
----
 diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
 index 15ab77e4b766..018f5a266c42 100644
 --- a/drivers/staging/media/ipu3/ipu3-css.c
