@@ -2,278 +2,358 @@ Return-Path: <SRS0=TC89=RZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 824ACC43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 15:02:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1B30C43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 15:55:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F894218B0
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 15:02:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=joelfernandes.org header.i=@joelfernandes.org header.b="Yk8e6b8X"
+	by mail.kernel.org (Postfix) with ESMTP id 67CAB21900
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 15:55:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729450AbfCVPC6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Mar 2019 11:02:58 -0400
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:40016 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729293AbfCVPC6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Mar 2019 11:02:58 -0400
-Received: by mail-pg1-f196.google.com with SMTP id u9so1702902pgo.7
-        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2019 08:02:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=joelfernandes.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=zQZIX94KhgrzzQy0XH8WNm8hwMfg9eekiUa1F30FQEM=;
-        b=Yk8e6b8XfCtm+9DHP5b/vOx7ex9d6ShGqSZCYUVXZ3XqDM2SWe3qgyUCqBL9eSgI3l
-         qhjlH7Ao0E+2EF0AAbKu3aqIFqllORTbhGxrFpfgkFymEQyWFbWVciqPMmJGpvn3vnq3
-         otbXmPEk/Y1zh8jfbf5wz2SxA5opQRypw6q3Q=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=zQZIX94KhgrzzQy0XH8WNm8hwMfg9eekiUa1F30FQEM=;
-        b=Tlcex1VmYmHTLbNHDLVAyVpcFmKtcUeFt9cA+UhimYVLSpkrpreGu6gqWTOF0D0Vg9
-         4BAGaHTuQRuyQLna9KHh/VyL3slUOkGQTHPT0sHmYI7ep4vCBFtH05CwcLtCFJKh1fue
-         gKCPRRCxxZeB0DUtZw3zH/htRs0zN2NnRLnYMrDdH0EXXWHmU8gIcgcCZ2scAeJdhqTf
-         TmCybPxDGQ+nt7Q8xZhzVzdj05xYtI+pOBl+Pb76Id+IHHvTgcIiUX/VMjrE3WcMSmEa
-         IdsMHny/VGhhY2LHC2D8FsrA3QsMpXns2Mib6V0aaKSEXrcoUu03GvHamVtDr5DRlQi/
-         Vszw==
-X-Gm-Message-State: APjAAAXJSINZci6f77RL80NJogSJZs7A8KCyt0fjWdkaHCBYf9WirHgP
-        /d859cw/BBGcjNMxa2g41o5MbA==
-X-Google-Smtp-Source: APXvYqxVP5r5sGdws3sd/6gS3osqnlR5el+wi0N9nbxguzT0d6ob6bacu7wJNElIW7g29DtPtT3Jyg==
-X-Received: by 2002:a17:902:7e0f:: with SMTP id b15mr9500127plm.124.1553266977681;
-        Fri, 22 Mar 2019 08:02:57 -0700 (PDT)
-Received: from localhost ([2620:15c:6:12:9c46:e0da:efbf:69cc])
-        by smtp.gmail.com with ESMTPSA id b18sm9582893pff.25.2019.03.22.08.02.56
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 22 Mar 2019 08:02:56 -0700 (PDT)
-Date:   Fri, 22 Mar 2019 11:02:55 -0400
-From:   Joel Fernandes <joel@joelfernandes.org>
-To:     Chenbo Feng <fengc@google.com>
-Cc:     linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, kernel-team@android.com,
-        Sumit Semwal <sumit.semwal@linaro.org>, erickreyes@google.com,
-        Daniel Vetter <daniel@ffwll.ch>, john.stultz@linaro.org
-Subject: Re: [RFC v2 1/3] dma-buf: give each buffer a full-fledged inode
-Message-ID: <20190322150255.GA76423@google.com>
-References: <20190322025135.118201-1-fengc@google.com>
- <20190322025135.118201-2-fengc@google.com>
+        id S1727912AbfCVPzZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Mar 2019 11:55:25 -0400
+Received: from mga18.intel.com ([134.134.136.126]:58044 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727169AbfCVPzZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Mar 2019 11:55:25 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Mar 2019 08:55:24 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,256,1549958400"; 
+   d="scan'208";a="129285508"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga006.jf.intel.com with ESMTP; 22 Mar 2019 08:55:20 -0700
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id BF4CE205C1; Fri, 22 Mar 2019 17:55:19 +0200 (EET)
+Date:   Fri, 22 Mar 2019 17:55:19 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Vishal Sagar <vsagar@xilinx.com>
+Cc:     Vishal Sagar <vishal.sagar@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>,
+        "laurent.pinchart@ideasonboard.com" 
+        <laurent.pinchart@ideasonboard.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        Michal Simek <michals@xilinx.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Dinesh Kumar <dineshk@xilinx.com>,
+        Sandip Kothari <sandipk@xilinx.com>
+Subject: Re: [PATCH v6 1/2] media: dt-bindings: media: xilinx: Add Xilinx
+ MIPI CSI-2 Rx Subsystem
+Message-ID: <20190322155519.fi3ypbomdqgz3am4@paasikivi.fi.intel.com>
+References: <1552365330-21155-1-git-send-email-vishal.sagar@xilinx.com>
+ <1552365330-21155-2-git-send-email-vishal.sagar@xilinx.com>
+ <20190312102118.6ianedkzscr7gdba@kekkonen.localdomain>
+ <DM5PR02MB2713DB568A4AD713BE3B2621A7490@DM5PR02MB2713.namprd02.prod.outlook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190322025135.118201-2-fengc@google.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <DM5PR02MB2713DB568A4AD713BE3B2621A7490@DM5PR02MB2713.namprd02.prod.outlook.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Mar 21, 2019 at 07:51:33PM -0700, Chenbo Feng wrote:
-> From: Greg Hackmann <ghackmann@google.com>
+Hi Vishal,
+
+On Tue, Mar 12, 2019 at 02:45:06PM +0000, Vishal Sagar wrote:
 > 
-> By traversing /proc/*/fd and /proc/*/map_files, processes with CAP_ADMIN
-> can get a lot of fine-grained data about how shmem buffers are shared
-> among processes.  stat(2) on each entry gives the caller a unique
-> ID (st_ino), the buffer's size (st_size), and even the number of pages
-> currently charged to the buffer (st_blocks / 512).
+> Hi Sakari,
 > 
-> In contrast, all dma-bufs share the same anonymous inode.  So while we
-> can count how many dma-buf fds or mappings a process has, we can't get
-> the size of the backing buffers or tell if two entries point to the same
-> dma-buf.  On systems with debugfs, we can get a per-buffer breakdown of
-> size and reference count, but can't tell which processes are actually
-> holding the references to each buffer.
+> Thanks for reviewing this.
 > 
-> Replace the singleton inode with full-fledged inodes allocated by
-> alloc_anon_inode().  This involves creating and mounting a
-> mini-pseudo-filesystem for dma-buf, following the example in fs/aio.c.
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Sakari Ailus
+> > Sent: Tuesday, March 12, 2019 3:51 PM
+> > To: Vishal Sagar <vishal.sagar@xilinx.com>
+> > Cc: Hyun Kwon <hyunk@xilinx.com>; laurent.pinchart@ideasonboard.com;
+> > mchehab@kernel.org; robh+dt@kernel.org; mark.rutland@arm.com; Michal
+> > Simek <michals@xilinx.com>; linux-media@vger.kernel.org;
+> > devicetree@vger.kernel.org; hans.verkuil@cisco.com; linux-arm-
+> > kernel@lists.infradead.org; linux-kernel@vger.kernel.org; Dinesh Kumar
+> > <dineshk@xilinx.com>; Sandip Kothari <sandipk@xilinx.com>
+> > Subject: Re: [PATCH v6 1/2] media: dt-bindings: media: xilinx: Add Xilinx MIPI
+> > CSI-2 Rx Subsystem
+> > 
+> > EXTERNAL EMAIL
+> > 
+> > Hi Vishal,
+> > 
+> > Thanks for the update. This looks pretty good, please see a few comments
+> > below.
+> > 
+> > On Tue, Mar 12, 2019 at 10:05:29AM +0530, Vishal Sagar wrote:
+> > > Add bindings documentation for Xilinx MIPI CSI-2 Rx Subsystem.
+> > >
+> > > The Xilinx MIPI CSI-2 Rx Subsystem consists of a CSI-2 Rx controller, a
+> > > DPHY in Rx mode, an optional I2C controller and a Video Format Bridge.
+> > >
+> > > Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
+> > > Reviewed-by: Hyun Kwon <hyun.kwon@xilinx.com>
+> > > Reviewed-by: Rob Herring <robh@kernel.org>
+> > > ---
+> > > v6
+> > > - Added "control" after V4L2_CID_XILINX_MIPICSISS_ACT_LANES as suggested
+> > by Luca
+> > > - Added reviewed by Rob Herring
+> > >
+> > > v5
+> > > - Incorporated comments by Luca Cersoli
+> > > - Removed DPHY clock from description and example
+> > > - Removed bayer pattern from device tree MIPI CSI IP
+> > >   doesn't deal with bayer pattern.
+> > >
+> > > v4
+> > > - Added reviewed by Hyun Kwon
+> > >
+> > > v3
+> > > - removed interrupt parent as suggested by Rob
+> > > - removed dphy clock
+> > > - moved vfb to optional properties
+> > > - Added required and optional port properties section
+> > > - Added endpoint property section
+> > >
+> > > v2
+> > > - updated the compatible string to latest version supported
+> > > - removed DPHY related parameters
+> > > - added CSI v2.0 related property (including VCX for supporting upto 16
+> > >   virtual channels).
+> > > - modified csi-pxl-format from string to unsigned int type where the value
+> > >   is as per the CSI specification
+> > > - Defined port 0 and port 1 as sink and source ports.
+> > > - Removed max-lanes property as suggested by Rob and Sakari
+> > >
+> > >  .../bindings/media/xilinx/xlnx,csi2rxss.txt        | 118
+> > +++++++++++++++++++++
+> > >  1 file changed, 118 insertions(+)
+> > >  create mode 100644
+> > Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> > b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> > > new file mode 100644
+> > > index 0000000..5b8170f
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> > > @@ -0,0 +1,118 @@
+> > > +Xilinx MIPI CSI2 Receiver Subsystem Device Tree Bindings
+> > > +--------------------------------------------------------
+> > > +
+> > > +The Xilinx MIPI CSI2 Receiver Subsystem is used to capture MIPI CSI2 traffic
+> > > +from compliant camera sensors and send the output as AXI4 Stream video
+> > data
+> > > +for image processing.
+> > > +
+> > > +The subsystem consists of a MIPI DPHY in slave mode which captures the
+> > > +data packets. This is passed along the MIPI CSI2 Rx IP which extracts the
+> > > +packet data. The optional Video Format Bridge (VFB) converts this data to
+> > > +AXI4 Stream video data.
+> > > +
+> > > +For more details, please refer to PG232 Xilinx MIPI CSI-2 Receiver Subsystem.
+> > > +
+> > > +Required properties:
+> > > +--------------------
+> > > +- compatible: Must contain "xlnx,mipi-csi2-rx-subsystem-4.0".
+> > > +- reg: Physical base address and length of the registers set for the device.
+> > > +- interrupts: Property with a value describing the interrupt number.
+> > > +- clocks: List of phandles to AXI Lite and Video clocks.
+> > > +- clock-names: Must contain "lite_aclk" and "video_aclk" in the same order
+> > > +  as clocks listed in clocks property.
+> > > +- xlnx,csi-pxl-format: This denotes the CSI Data type selected in hw design.
+> > > +  Packets other than this data type (except for RAW8 and User defined data
+> > > +  types) will be filtered out. Possible values are as below -
+> > > +  0x1E - YUV4228B
+> > > +  0x1F - YUV42210B
+> > > +  0x20 - RGB444
+> > > +  0x21 - RGB555
+> > > +  0x22 - RGB565
+> > > +  0x23 - RGB666
+> > > +  0x24 - RGB888
+> > > +  0x28 - RAW6
+> > > +  0x29 - RAW7
+> > > +  0x2A - RAW8
+> > > +  0x2B - RAW10
+> > > +  0x2C - RAW12
+> > > +  0x2D - RAW14
+> > > +  0x2E - RAW16
+> > > +  0x2F - RAW20
+> > > +
+> > > +
+> > > +Optional properties:
+> > > +--------------------
+> > > +- xlnx,vfb: This is present when Video Format Bridge is enabled.
+> > > +  Without this property the driver won't be loaded as IP won't be able to
+> > generate
+> > > +  media bus format compliant stream output.
+> > 
+> > What's the use case for this? I read in an earlier thread that this is
+> > used to prevent the driver from loading.
+> > 
 > 
-> Signed-off-by: Greg Hackmann <ghackmann@google.com>
-
-I believe Greg's address needs to be updated on this patch otherwise the
-emails would just bounce, no? I removed it from the CC list. You can still
-keep the SOB I guess but remove it from the CC list when sending.
-
-Also about the minifs, just playing devil's advocate for why this is needed.
-
-Since you are already adding the size information to /proc/pid/fdinfo/<fd> ,
-can just that not be used to get the size of the buffer? What is the benefit
-of getting this from stat? The other way to get the size would be through
-another IOCTL and that can be used to return other unique-ness related metadata
-as well.  Neither of these need creation of a dedicated inode per dmabuf.
-Imagine 1000s of dmabuf created in a system with rich graphics, then you have
-inode allocated per dmabuf, sounds wasteful to me if not needed. You are also
-adding the name per buffer, which can also be used to distinguish between
-different buffers if that's the issue.
-
-Also what is the benefit of having st_blocks from stat? AFAIK, that is the
-same as the buffer's size which does not change for the lifetime of the
-buffer. In your patch you're doing this when 'struct file' is created which
-AIUI is what reflects in the st_blocks:
-+	inode_set_bytes(inode, dmabuf->size);
-
-Note that creating a new mount and allocating inode for each buf will consume
-more kernel memory than before. Has there been a study of how much this is in
-reality? Like by running a game? This is the point of using
-anon_inode_getfile in the first place is to not have this wastage.
-
-I am not against adding of inode per buffer, but I think we should have this
-debate and make the right design choice here for what we really need.
-
-thanks!
-
- - Joel
-
-
-> Signed-off-by: Chenbo Feng <fengc@google.com>
-> ---
->  drivers/dma-buf/dma-buf.c  | 63 ++++++++++++++++++++++++++++++++++----
->  include/uapi/linux/magic.h |  1 +
->  2 files changed, 58 insertions(+), 6 deletions(-)
+> This property ensures that the data being sent on the media bus complies with
+> existing formats. If Video Format Bridge (VFB) is disabled, then the data is sent on the bus in the
+> same way as it is received. For e.g. with RAW10 with bus width of 32 bits, the first clock
+> cycle will contain the MSB 8bits of 4 pixels.
+> The lower 2 bits of each pixel will be sent on the next clock.
 > 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 7c858020d14b..ffd5a2ad7d6f 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -34,8 +34,10 @@
->  #include <linux/poll.h>
->  #include <linux/reservation.h>
->  #include <linux/mm.h>
-> +#include <linux/mount.h>
->  
->  #include <uapi/linux/dma-buf.h>
-> +#include <uapi/linux/magic.h>
->  
->  static inline int is_dma_buf_file(struct file *);
->  
-> @@ -46,6 +48,25 @@ struct dma_buf_list {
->  
->  static struct dma_buf_list db_list;
->  
-> +static const struct dentry_operations dma_buf_dentry_ops = {
-> +	.d_dname = simple_dname,
+> When VFB is enabled, the input data stream is processed based on the CSI Data Type and
+> Pixels per clock selected in design and then sent out.
+> For e.g. for RAW10 with 2 pixels per clock and VFB enabled, the bus will have pixel 0 data 
+> on 9:0 and pixel 1 data on 19:10. Upper bits on the bus will be zeros.
+
+So... should I read this as if it determines whether the IP block unpacks
+the pixels? If so, the description is at least inaccurate: remember this
+isn't specific to Linux.
+
+There's nothing wrong in not unpacking it; it just means the formats will
+be different. The property name seems sensible IMO.
+
+Please wrap your lines at 76 or so characters.
+
+> 
+> > > +- xlnx,en-csi-v2-0: Present if CSI v2 is enabled in IP configuration.
+> > > +- xlnx,en-vcx: When present, there are maximum 16 virtual channels, else
+> > > +  only 4. This is present only if xlnx,en-csi-v2-0 is present.
+> > > +- xlnx,en-active-lanes: present if the number of active lanes can be
+> > > +  reconfigured at runtime in the Protocol Configuration Register.
+> > > +  If present, the V4L2_CID_XILINX_MIPICSISS_ACT_LANES control is added.
+> > > +  Otherwise all lanes, as set in IP configuration, are always active.
+> > 
+> > The bindings document hardware, therefore a V4L2 control name doesn't
+> > belong here.
+> > 
+> Ok. I will remove this and revert to original description as below -
+> 
+> xlnx,en-active-lanes: present if the number of active lanes can be
+> re-configured at runtime in the Protocol Configuration Register
+
+Seems good to me.
+
+> 
+> > If you want to set the number of lanes at runtime, the frame descriptors
+> > are probably the best way to do that. The patchset will be merged in the
+> > near future. Jacopo sent the last iteration of it recently. I'd leave that
+> > feature out for now though: few transmitter drivers support the feature
+> > (using an old API).
+> > 
+> 
+> I had a look at Jacopo's patch set
+> 
+> [PATCH v3 15/31] v4l: Add bus type to frame descriptors
+> [PATCH v3 16/31] v4l: Add CSI-2 bus configuration to frame descriptors
+> [PATCH v3 17/31] v4l: Add stream to frame descriptor
+> [PATCH v3 29/31] rcar-csi2: use frame description information to configure CSI-2 bus
+> 
+> +/**
+> + * struct v4l2_mbus_frame_desc_entry_csi2
+> + *
+> + * @channel: CSI-2 virtual channel
+> + * @data_type: CSI-2 data type ID
+> + */
+> +struct v4l2_mbus_frame_desc_entry_csi2 {
+> +       u8 channel;
+> +       u8 data_type;
 > +};
-> +
-> +static struct vfsmount *dma_buf_mnt;
-> +
-> +static struct dentry *dma_buf_fs_mount(struct file_system_type *fs_type,
-> +		int flags, const char *name, void *data)
-> +{
-> +	return mount_pseudo(fs_type, "dmabuf:", NULL, &dma_buf_dentry_ops,
-> +			DMA_BUF_MAGIC);
-> +}
-> +
-> +static struct file_system_type dma_buf_fs_type = {
-> +	.name = "dmabuf",
-> +	.mount = dma_buf_fs_mount,
-> +	.kill_sb = kill_anon_super,
-> +};
-> +
->  static int dma_buf_release(struct inode *inode, struct file *file)
->  {
->  	struct dma_buf *dmabuf;
-> @@ -338,6 +359,31 @@ static inline int is_dma_buf_file(struct file *file)
->  	return file->f_op == &dma_buf_fops;
->  }
->  
-> +static struct file *dma_buf_getfile(struct dma_buf *dmabuf, int flags)
-> +{
-> +	struct file *file;
-> +	struct inode *inode = alloc_anon_inode(dma_buf_mnt->mnt_sb);
-> +
-> +	if (IS_ERR(inode))
-> +		return ERR_CAST(inode);
-> +
-> +	inode->i_size = dmabuf->size;
-> +	inode_set_bytes(inode, dmabuf->size);
-> +
-> +	file = alloc_file_pseudo(inode, dma_buf_mnt, "dmabuf",
-> +				 flags, &dma_buf_fops);
-> +	if (IS_ERR(file))
-> +		goto err_alloc_file;
-> +	file->f_flags = flags & (O_ACCMODE | O_NONBLOCK);
-> +	file->private_data = dmabuf;
-> +
-> +	return file;
-> +
-> +err_alloc_file:
-> +	iput(inode);
-> +	return file;
-> +}
-> +
->  /**
->   * DOC: dma buf device access
->   *
-> @@ -433,8 +479,7 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
->  	}
->  	dmabuf->resv = resv;
->  
-> -	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf,
-> -					exp_info->flags);
-> +	file = dma_buf_getfile(dmabuf, exp_info->flags);
->  	if (IS_ERR(file)) {
->  		ret = PTR_ERR(file);
->  		goto err_dmabuf;
-> @@ -1025,8 +1070,8 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
->  		return ret;
->  
->  	seq_puts(s, "\nDma-buf Objects:\n");
-> -	seq_printf(s, "%-8s\t%-8s\t%-8s\t%-8s\texp_name\n",
-> -		   "size", "flags", "mode", "count");
-> +	seq_printf(s, "%-8s\t%-8s\t%-8s\t%-8s\texp_name\t%-8s\n",
-> +		   "size", "flags", "mode", "count", "ino");
->  
->  	list_for_each_entry(buf_obj, &db_list.head, list_node) {
->  		ret = mutex_lock_interruptible(&buf_obj->lock);
-> @@ -1037,11 +1082,12 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
->  			continue;
->  		}
->  
-> -		seq_printf(s, "%08zu\t%08x\t%08x\t%08ld\t%s\n",
-> +		seq_printf(s, "%08zu\t%08x\t%08x\t%08ld\t%s\t%08lu\n",
->  				buf_obj->size,
->  				buf_obj->file->f_flags, buf_obj->file->f_mode,
->  				file_count(buf_obj->file),
-> -				buf_obj->exp_name);
-> +				buf_obj->exp_name,
-> +				file_inode(buf_obj->file)->i_ino);
->  
->  		robj = buf_obj->resv;
->  		while (true) {
-> @@ -1136,6 +1182,10 @@ static inline void dma_buf_uninit_debugfs(void)
->  
->  static int __init dma_buf_init(void)
->  {
-> +	dma_buf_mnt = kern_mount(&dma_buf_fs_type);
-> +	if (IS_ERR(dma_buf_mnt))
-> +		return PTR_ERR(dma_buf_mnt);
-> +
->  	mutex_init(&db_list.lock);
->  	INIT_LIST_HEAD(&db_list.head);
->  	dma_buf_init_debugfs();
-> @@ -1146,5 +1196,6 @@ subsys_initcall(dma_buf_init);
->  static void __exit dma_buf_deinit(void)
->  {
->  	dma_buf_uninit_debugfs();
-> +	kern_unmount(dma_buf_mnt);
->  }
->  __exitcall(dma_buf_deinit);
-> diff --git a/include/uapi/linux/magic.h b/include/uapi/linux/magic.h
-> index f8c00045d537..665e18627f78 100644
-> --- a/include/uapi/linux/magic.h
-> +++ b/include/uapi/linux/magic.h
-> @@ -91,5 +91,6 @@
->  #define UDF_SUPER_MAGIC		0x15013346
->  #define BALLOON_KVM_MAGIC	0x13661366
->  #define ZSMALLOC_MAGIC		0x58295829
-> +#define DMA_BUF_MAGIC		0x444d4142	/* "DMAB" */
->  
->  #endif /* __LINUX_MAGIC_H__ */
-> -- 
-> 2.21.0.225.g810b269d1ac-goog
 > 
+> It looks like this patch set is trying to add support for virtual channel number and data type association.
+> This is different from controlling number of lanes on which CSI Rx will receive data.
+> Please correct my understanding if not right.
+
+So far I'm familiar with two cases. In the firstc case, the number of lanes
+is determined by what is connected on the board. This is naturally
+supported. The second one is that in some cases, a device is not able to
+use all the connected lanes. This can be supported using the frame
+descriptors through the receiver querying the transmitter device's frame
+descriptor.
+
+> 
+> > > +
+> > > +Ports
+> > > +-----
+> > > +The device node shall contain two 'port' child nodes as defined in
+> > > +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > > +
+> > > +The port@0 is a sink port and shall connect to CSI2 source like camera.
+> > > +It must have the data-lanes property.
+> > > +
+> > > +The port@1 is a source port and can be connected to any video processing IP
+> > > +which can work with AXI4 Stream data.
+> > > +
+> > > +Required port properties:
+> > > +--------------------
+> > > +- reg: 0 - for sink port.
+> > > +       1 - for source port.
+> > > +
+> > > +Optional endpoint property:
+> > > +---------------------------
+> > > +- data-lanes: specifies MIPI CSI-2 data lanes as covered in video-
+> > interfaces.txt.
+> > > +  This should be in the sink port endpoint which connects to MIPI CSI2 source
+> > > +  like sensor. The possible values are:
+> > > +  1       - For 1 lane enabled in IP.
+> > > +  1 2     - For 2 lanes enabled in IP.
+> > > +  1 2 3   - For 3 lanes enabled in IP.
+> > > +  1 2 3 4 - For 4 lanes enabled in IP.
+> > > +
+> > > +Example:
+> > > +
+> > > +     csiss_1: csiss@a0020000 {
+> > 
+> > The node name should be generic, a Cadence device uses csi2rx which seems
+> > like a good fit here, too.
+> > 
+> 
+> Ok. I will change it to xcsi2rxss_1:csi2rx@a0020000. 
+> 
+> > > +             compatible = "xlnx,mipi-csi2-rx-subsystem-4.0";
+> > > +             reg = <0x0 0xa0020000 0x0 0x10000>;
+> > > +             interrupt-parent = <&gic>;
+> > > +             interrupts = <0 95 4>;
+> > > +             xlnx,csi-pxl-format = <0x2a>;
+> > > +             xlnx,vfb;
+> > > +             xlnx,en-active-lanes;
+> > > +             xlnx,en-csi-v2-0;
+> > > +             xlnx,en-vcx;
+> > > +             clock-names = "lite_aclk", "video_aclk";
+> > > +             clocks = <&misc_clk_0>, <&misc_clk_1>;
+> > > +
+> > > +             ports {
+> > > +                     #address-cells = <1>;
+> > > +                     #size-cells = <0>;
+> > > +
+> > > +                     port@0 {
+> > > +                             /* Sink port */
+> > > +                             reg = <0>;
+> > > +                             csiss_in: endpoint {
+> > > +                                     data-lanes = <1 2 3 4>;
+> > > +                                     /* MIPI CSI2 Camera handle */
+> > > +                                     remote-endpoint = <&camera_out>;
+> > > +                             };
+> > > +                     };
+> > > +                     port@1 {
+> > > +                             /* Source port */
+> > > +                             reg = <1>;
+> > > +                             csiss_out: endpoint {
+> > > +                                     remote-endpoint = <&vproc_in>;
+> > > +                             };
+> > > +                     };
+> > > +             };
+> > > +     };
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
