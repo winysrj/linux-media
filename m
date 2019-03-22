@@ -2,124 +2,122 @@ Return-Path: <SRS0=TC89=RZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF9FC43381
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 14:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9890AC43381
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 14:42:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C82E621900
-	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 14:34:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 729332190A
+	for <linux-media@archiver.kernel.org>; Fri, 22 Mar 2019 14:42:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729123AbfCVOer (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Mar 2019 10:34:47 -0400
-Received: from mout.kundenserver.de ([212.227.17.13]:45333 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728991AbfCVOer (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Mar 2019 10:34:47 -0400
-Received: from wuerfel.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue109 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1MCKO4-1hGeds0802-009NoR; Fri, 22 Mar 2019 15:34:34 +0100
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     clang-built-linux@googlegroups.com,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Wenwen Wang <wang6495@umn.edu>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: davinci-isif: avoid uninitialized variable use
-Date:   Fri, 22 Mar 2019 15:34:22 +0100
-Message-Id: <20190322143431.1235295-1-arnd@arndb.de>
-X-Mailer: git-send-email 2.20.0
+        id S1728771AbfCVOmT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 22 Mar 2019 10:42:19 -0400
+Received: from mga02.intel.com ([134.134.136.20]:30471 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727719AbfCVOmT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Mar 2019 10:42:19 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Mar 2019 07:42:18 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,256,1549958400"; 
+   d="scan'208";a="216591125"
+Received: from stinkbox.fi.intel.com (HELO stinkbox) ([10.237.72.174])
+  by orsmga001.jf.intel.com with SMTP; 22 Mar 2019 07:42:11 -0700
+Received: by stinkbox (sSMTP sendmail emulation); Fri, 22 Mar 2019 16:42:10 +0200
+Date:   Fri, 22 Mar 2019 16:42:10 +0200
+From:   Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To:     Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-media@vger.kernel.org, Daniel Stone <daniels@collabora.com>
+Subject: Re: [RFC PATCH 18/20] lib: image-formats: Add v4l2 formats support
+Message-ID: <20190322144210.GB3888@intel.com>
+References: <20190320142739.GK3888@intel.com>
+ <a13f7fdeaf1a5e97f21a6048da765705b59d64c2.camel@ndufresne.ca>
+ <20190320160939.GR3888@intel.com>
+ <f3f8749e30aad81bc39ed9b60cd308ac5f3c6707.camel@ndufresne.ca>
+ <20190320164133.GT3888@intel.com>
+ <d46b30ca8962d3c31b1273cf010ca9fb7b145fe8.camel@ndufresne.ca>
+ <20190320183914.GV3888@intel.com>
+ <46df4fb13636b90c147839b0aa5ad1ac33030461.camel@bootlin.com>
+ <20190321163532.GG3888@intel.com>
+ <ac5329d77f83af2804c240ebe479ec323b60aec3.camel@ndufresne.ca>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:gWJLB09DU6mBS0YO7lWkZjIeBdL/QA0QBAycFVPj99/UjNQlJ2F
- JvaNabZuw522vpYWlISa17jvyfjzEZlkEYkIm6go6C9pyh84ond0U48+AREkoNULLrRH8YF
- YPL/Gu717BbllllXU9RjrLtgaFBV0/wTXZ2KM96SBH5I1rrJwkT4ficg4E/RdzsJETDUTXU
- cRzCSLgaCCUqygHhjHpWg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:0BRdmWIO31I=:jlkRu8gFJiDS6D+V9NjMeQ
- pqCagyf4GbdoakItMLgRcWcjObKfpMbKtGlMhF9S2UTwNU69SQcc/kJ3N3ovIqutQs2E6V1HW
- JBF1ut7l44t/wQkFW08jkc2hkh1/RhEHmDElgNzAG3w8kW4Gb94MeWX45s2GR0Dd7v8KDyiuk
- k1t5ZAtlpM2eZoaAmFfnayggT1QzrIRvx2BRZAfv9IrwU9KSgXSHoHq4O3b2+7wYlrx8jn6zY
- NrRxssle7LKGq75wqE5hkIwrvccVD4qpU3O02ZhqgTEaISfo+qQB6SqA7W/Chjq+EDP8Aq8FT
- AxeuXoJUe0LXS2UeFNlHTSKifrIQPUklcTGpvTAUEzUIPtkwBwmkayYjXWzcxE4itVuH5ZOba
- 6hUzqz92EspfUwEIeksfbM+FtKJeAsMSgZBw975jGYE7/NYs5gqsk+d2A5NFyhntEmx/fhfQ6
- KpWL+h4uoUSP9ahkHKNBCDMhdzhjhw4OMfOhVtziQBQVSyAU5/6hl5NiyhzmGovYFx4Cl/GiX
- dztouBecJRM+RFpFYyPFXq40AEn8B+ZEiPOxbRe6MacpowDY71mAsFq+PliQf1PJCYy3Cris1
- ghCwP2VbKnvp5HRCZmUObg+pDD6wpIYeoZBY2kjDULFdUvRyYWFFXAGIjQQ+HLf/JWLPkhc+m
- T52I9f/932kyzAMjbr8coqLQDQ8yHtzxURDt2PCTZgd7OpNhZeh55ET+QNGkq+iX/C6qaSi+j
- PloBjhMQfwlMuRUuPAclU0m8wP3lhzZofsDjDg==
+In-Reply-To: <ac5329d77f83af2804c240ebe479ec323b60aec3.camel@ndufresne.ca>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-clang warns about a possible variable use that gcc never
-complained about:
+On Thu, Mar 21, 2019 at 03:14:06PM -0400, Nicolas Dufresne wrote:
+> Le jeudi 21 mars 2019 à 18:35 +0200, Ville Syrjälä a écrit :
+> > > I'm not sure what it's worth, but there is a "pixel format guide"
+> > > project that is all about matching formats from one API to another: 
+> > > https://afrantzis.com/pixel-format-guide/ (and it has an associated
+> > > tool too).
+> > > 
+> > > On the page about DRM, it seems that they got the word that DRM formats
+> > > are the native pixel order in little-endian systems:
+> > > https://afrantzis.com/pixel-format-guide/drm.html
+> > 
+> > Looks consistent with the official word in drm_fourcc.h.
+> > 
+> > $ python3 -m pfg find-compatible V4L2_PIX_FMT_XBGR32 drm
+> > Format: V4L2_PIX_FMT_XBGR32
+> > Is compatible on all systems with:
+> >         DRM_FORMAT_XRGB8888
+> > Is compatible on little-endian systems with:
+> > Is compatible on big-endian systems with:
+> > 
+> > $ python3 -m pfg find-compatible DRM_FORMAT_XRGB8888 v4l2
+> > Format: DRM_FORMAT_XRGB8888
+> > Is compatible on all systems with:
+> >         V4L2_PIX_FMT_XBGR32
+> > Is compatible on little-endian systems with:
+> > Is compatible on big-endian systems with:
+> > 
+> > Even works both ways :)
+> > 
+> > > Perhaps some drivers have been abusing the format definitions, leading
+> > > to the inconsistencies that Nicolas could witness?
+> > 
+> > That is quite possible, perhaps even likely. No one really
+> > seems interested in making sure big endian systems actually
+> > work properly. I believe the usual approach is to hack
+> > around semi-rnadomly until the correct colors accidentally
+> > appear on the screen.
+> 
+> We did not hack around randomly.
 
-drivers/media/platform/davinci/isif.c:982:32: error: variable 'frame_size' is uninitialized when used here
-      [-Werror,-Wuninitialized]
-                dm365_vpss_set_pg_frame_size(frame_size);
-                                             ^~~~~~~~~~
-drivers/media/platform/davinci/isif.c:887:2: note: variable 'frame_size' is declared here
-        struct vpss_pg_frame_size frame_size;
-        ^
-1 error generated.
+BTW I didn't mean to imply it was you who hacked around randomly.
+Sorry if you got that impression.
 
-There is no initialization for this variable at all, and there
-has never been one in the mainline kernel, so we really should
-not put that stack data into an mmio register.
+What I was trying to convey is the following sequence of events:
+1. random person X gets their hand on a big endian machine for
+   a while
+2. colors are wrong
+3. they hack stuff until the colors are correct in their
+   current use case
+4. they move on to more interesting things
 
-On the other hand, I suspect that gcc checks the condition
-more closely and notices that the global
-isif_cfg.bayer.config_params.test_pat_gen flag is initialized
-to zero and never written to from any code path, so anything
-depending on it can be eliminated.
-
-To shut up the clang warning, just remove the dead code manually,
-it has probably never been used because any attempt to do so
-would have resulted in undefined behavior.
-
-Fixes: 63e3ab142fa3 ("V4L/DVB: V4L - vpfe capture - source for ISIF driver on DM365")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/davinci/isif.c | 9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
-index 47cecd10eb9f..2dee9af6d413 100644
---- a/drivers/media/platform/davinci/isif.c
-+++ b/drivers/media/platform/davinci/isif.c
-@@ -884,9 +884,7 @@ static int isif_set_hw_if_params(struct vpfe_hw_if_param *params)
- static int isif_config_ycbcr(void)
- {
- 	struct isif_ycbcr_config *params = &isif_cfg.ycbcr;
--	struct vpss_pg_frame_size frame_size;
- 	u32 modeset = 0, ccdcfg = 0;
--	struct vpss_sync_pol sync;
- 
- 	dev_dbg(isif_cfg.dev, "\nStarting isif_config_ycbcr...");
- 
-@@ -974,13 +972,6 @@ static int isif_config_ycbcr(void)
- 		/* two fields are interleaved in memory */
- 		regw(0x00000249, SDOFST);
- 
--	/* Setup test pattern if enabled */
--	if (isif_cfg.bayer.config_params.test_pat_gen) {
--		sync.ccdpg_hdpol = params->hd_pol;
--		sync.ccdpg_vdpol = params->vd_pol;
--		dm365_vpss_set_sync_pol(sync);
--		dm365_vpss_set_pg_frame_size(frame_size);
--	}
- 	return 0;
- }
- 
 -- 
-2.20.0
-
+Ville Syrjälä
+Intel
