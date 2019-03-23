@@ -2,131 +2,153 @@ Return-Path: <SRS0=n2cC=R2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0959AC43381
-	for <linux-media@archiver.kernel.org>; Sat, 23 Mar 2019 03:07:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A961C43381
+	for <linux-media@archiver.kernel.org>; Sat, 23 Mar 2019 04:49:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C835C20823
-	for <linux-media@archiver.kernel.org>; Sat, 23 Mar 2019 03:07:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="JEOKr4yK"
+	by mail.kernel.org (Postfix) with ESMTP id 1C72E20896
+	for <linux-media@archiver.kernel.org>; Sat, 23 Mar 2019 04:49:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728291AbfCWDHV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 22 Mar 2019 23:07:21 -0400
-Received: from mta-p7.oit.umn.edu ([134.84.196.207]:54162 "EHLO
-        mta-p7.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727678AbfCWDHU (ORCPT
+        id S1725982AbfCWEtW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 23 Mar 2019 00:49:22 -0400
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:60373 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725976AbfCWEtW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Mar 2019 23:07:20 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by mta-p7.oit.umn.edu (Postfix) with ESMTP id 3A853E0F
-        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2019 03:07:19 +0000 (UTC)
-X-Virus-Scanned: amavisd-new at umn.edu
-Received: from mta-p7.oit.umn.edu ([127.0.0.1])
-        by localhost (mta-p7.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id PUqmuNMlqrtD for <linux-media@vger.kernel.org>;
-        Fri, 22 Mar 2019 22:07:19 -0500 (CDT)
-Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
-        (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mta-p7.oit.umn.edu (Postfix) with ESMTPS id E2B7DE06
-        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2019 22:07:18 -0500 (CDT)
-Received: by mail-pg1-f197.google.com with SMTP id v3so3841128pgk.9
-        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2019 20:07:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=umn.edu; s=google;
-        h=mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=nMe4vSd8y1D2Frw/uclHZjXN3nL3ipIiHq1DzJ/Iimk=;
-        b=JEOKr4yKIOHcu0912kc5khBjZaI+SwGEub9Mj3jumQCNAYjCZODmuq3Xl7VdJOvkdq
-         xi0M3zrFPBFv43NfIqK9JAO4fgmo5VxGj2wjUB6gqIcPsm1vv4FuKEsHDiMjjAW72J+E
-         j4NTy0YHupMcMtsMax3FyN7o0+9Ci+C1c2NdTMJ5tlpIlcyjz5jSxKKfRygS4GrXlbW3
-         vODOUlK0Jl4e3XeP/KmOQDFdl1mAU0AAj9e1hDJQBeyZHeUeMUH10DZ3uLQV+yIkUucX
-         Ap49KEdrBJBkfgMeB/CnFlbtVm3PK4nDHHiJMwSYHRIv+uP2vtAq+Wmb+yCbVZOYv2l7
-         hSUg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=nMe4vSd8y1D2Frw/uclHZjXN3nL3ipIiHq1DzJ/Iimk=;
-        b=K8cBqaaPoWUmF1vtvryXyy6N7R59OZBH2d8ZLW/EaALSfqItgDgm1v+5nalWLPLvhv
-         l10thE/k9dYEegp5L367rWQvHqryK2fjIntjx+/B2hR2QI1COOt+COemAOzICcpqAZaT
-         aGCvUHjZHQtJmBBr1B6Xlf0jgRvQpFZWI6JoT49Jqhmb76jOLdgZhot+Kg4cYx8b4eM8
-         7VWogn1x7oVsjIWrHwo41Y46sX/cGfjajYxkPdK5upIp43gydCEXvxCSXvTtM4ixwo6Y
-         9S4Wvutd0Gav66FF1iiK6gLkfCQGef56U6Iu7CEn0Co7e7PzpdH+1rqhR3WwgTy+moKK
-         An+Q==
-X-Gm-Message-State: APjAAAVz26xzlVMEUZECmNivoJWE1SAUNlsyQ1Z+8xBxZ9eqSWSlh3fE
-        GE7ULjpIcz9FblHu3mmGPBgp0K1ga3T9XYyIE/nXaWPZTixM1nj/O/hUA904BWA4quHEDH4mDON
-        LxJdOEplSaZ4Ch/e1fq+5wheG7e4=
-X-Received: by 2002:a17:902:586:: with SMTP id f6mr12727620plf.68.1553310438358;
-        Fri, 22 Mar 2019 20:07:18 -0700 (PDT)
-X-Google-Smtp-Source: APXvYqxUHg8jVja02na+EMYIkcNn5LL1xQqVnh98k/qmJikUORRR3ymnBJI5J4D/jxOPXRcYzkgQqA==
-X-Received: by 2002:a17:902:586:: with SMTP id f6mr12727609plf.68.1553310438078;
-        Fri, 22 Mar 2019 20:07:18 -0700 (PDT)
-Received: from [10.184.4.71] (host-173-230-104-21.mnmigsc.mn.minneapolis.us.clients.pavlovmedia.net. [173.230.104.21])
-        by smtp.gmail.com with ESMTPSA id f3sm10710834pfn.100.2019.03.22.20.07.16
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 22 Mar 2019 20:07:17 -0700 (PDT)
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
-Subject: Re: [PATCH] media: usbvision: fix a potential NULL pointer
- dereference
-From:   Kangjie Lu <kjlu@umn.edu>
-In-Reply-To: <20190309074228.5723-1-kjlu@umn.edu>
-Date:   Fri, 22 Mar 2019 22:07:17 -0500
-Cc:     pakki001@umn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <EF54DB77-D052-4A81-8631-FDB0772F5C70@umn.edu>
-References: <20190309074228.5723-1-kjlu@umn.edu>
-To:     kjlu@umn.edu
-X-Mailer: Apple Mail (2.3445.102.3)
+        Sat, 23 Mar 2019 00:49:22 -0400
+Received: from localhost ([IPv6:2001:983:e9a7:1:a03d:2e6d:2ff:f561])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id 7YathlkZ1UjKf7Yauhcqzc; Sat, 23 Mar 2019 05:49:20 +0100
+Message-ID: <d7573d1e619f48f6775432ac1d170248@smtp-cloud8.xs4all.net>
+Date:   Sat, 23 Mar 2019 05:49:19 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+X-CMAE-Envelope: MS4wfAuQ01wsI7lx6/YnBGJP0pHo2Ki7TEB6z6CZfNu5BzYDAjJP+t+r75hNpZUXpKD9pC1KmOzkiMWC6FQ9+FH59Kb8BmmfCrkozSruwNRTbqDTQyWWE6Rc
+ OEukHMXjys+wgtna6XfciQu5XeSUNUhK5JteRCVUDQ4T0mBtn351346Hi7aL/Tn+xiLsuWMA27vx0rxij4cC4k3zNt36S9/dl9m1iZDNTwBvCLqMOyf6VZIz
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-> On Mar 9, 2019, at 1:42 AM, Kangjie Lu <kjlu@umn.edu> wrote:
->=20
-> In case usb_alloc_coherent fails, the fix returns -ENOMEM to
-> avoid a potential NULL pointer dereference.
->=20
-> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
-> ---
-> drivers/media/usb/usbvision/usbvision-core.c | 3 +++
-> 1 file changed, 3 insertions(+)
->=20
-> diff --git a/drivers/media/usb/usbvision/usbvision-core.c =
-b/drivers/media/usb/usbvision/usbvision-core.c
-> index 31e0e98d6daf..1b0d0a0f0e87 100644
-> --- a/drivers/media/usb/usbvision/usbvision-core.c
-> +++ b/drivers/media/usb/usbvision/usbvision-core.c
-> @@ -2302,6 +2302,9 @@ int usbvision_init_isoc(struct usb_usbvision =
-*usbvision)
-> 					   sb_size,
-> 					   GFP_KERNEL,
-> 					   &urb->transfer_dma);
-> +		if (!usbvision->sbuf[buf_idx].data)
-> +			return -ENOMEM;
-> +
+date:			Sat Mar 23 05:00:10 CET 2019
+media-tree git hash:	8a3946cad244e8453e26f3ded5fe40bf2627bb30
+media_build git hash:	7fb9ee4c605015dc0d4d983b9a3a8fd47d2290b6
+v4l-utils git hash:	40fd5611c5176137c80616f6ee93b36f0d88f2d5
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.3.0
+sparse repo:                   https://git.linuxtv.org/mchehab/sparse.git
+sparse version:		0.6.0
+smatch repo:                   https://git.linuxtv.org/mchehab/smatch.git
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-2-amd64
 
-Can someone review this patch?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.63-i686: OK
+linux-3.16.63-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.136-i686: OK
+linux-3.18.136-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.167-i686: OK
+linux-4.4.167-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.162-i686: OK
+linux-4.9.162-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.105-i686: OK
+linux-4.14.105-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.20-i686: OK
+linux-4.18.20-x86_64: OK
+linux-4.19.28-i686: OK
+linux-4.19.28-x86_64: OK
+linux-4.20.15-i686: OK
+linux-4.20.15-x86_64: OK
+linux-5.0.1-i686: OK
+linux-5.0.1-x86_64: OK
+linux-5.1-rc1-i686: OK
+linux-5.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 15
+sparse: OK
+smatch: ERRORS
 
-> 		urb->dev =3D dev;
-> 		urb->context =3D usbvision;
-> 		urb->pipe =3D usb_rcvisocpipe(dev, =
-usbvision->video_endp);
-> --=20
-> 2.17.1
->=20
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Detailed regression test results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media.log
+http://www.xs4all.nl/~hverkuil/logs/Saturday-test-media-dmesg.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
