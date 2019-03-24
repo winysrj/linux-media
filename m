@@ -2,153 +2,215 @@ Return-Path: <SRS0=Cdzf=R3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80073C43381
-	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 04:51:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD6BC43381
+	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 09:53:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 519E221741
-	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 04:51:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17399222BE
+	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 09:53:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=horus.com header.i=@horus.com header.b="VW3ROwrQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726139AbfCXEvI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Mar 2019 00:51:08 -0400
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:58177 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726121AbfCXEvI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Mar 2019 00:51:08 -0400
-Received: from localhost ([IPv6:2001:983:e9a7:1:d457:575f:c436:7022])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id 7v69hHWiHiLOm7v6Ah6tUI; Sun, 24 Mar 2019 05:51:06 +0100
-Message-ID: <4641d6cf74a2201c447d97e995017c8a@smtp-cloud9.xs4all.net>
-Date:   Sun, 24 Mar 2019 05:51:05 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-X-CMAE-Envelope: MS4wfCLcFyiZtDu7+jwoBG++Y6mE/oUindNdRPX4M/iJmyStJP7dRg1f8JRnwUC7gU1HpyoMfx7X0B9x8In19jAkyW4y/VkyztRnzNP1M45Bt0fgAMEUA1vq
- aQUAWSwBhQ2zvoE9TQhJaDttZz1hfkvnOJUS1IlX/CxjzG7lVc4m304SmOFJ+yJPcG4H0MEPPBRFIbUF32t8Ipo839lexEtWJ1RJL2t8kHaBIrQZ0Q1+5W9E
+        id S1726970AbfCXJw7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Mar 2019 05:52:59 -0400
+Received: from mail.horus.com ([78.46.148.228]:35543 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727221AbfCXJw7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Mar 2019 05:52:59 -0400
+X-Greylist: delayed 544 seconds by postgrey-1.27 at vger.kernel.org; Sun, 24 Mar 2019 05:52:57 EDT
+Received: from [192.168.1.20] (62-116-61-196.adsl.highway.telekom.at [62.116.61.196])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "E-Mail Matthias Reichl", Issuer "HiassofT CA 2014" (verified OK))
+        by mail.horus.com (Postfix) with ESMTPSA id 16B36641D2;
+        Sun, 24 Mar 2019 10:43:52 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=horus.com;
+        s=20180324; t=1553420632;
+        bh=NC0jAgRcu43/1DJcRaYJ/0ynx0WKJlSvrctvAbwi0WI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=VW3ROwrQKb16M74PX66SxVdpGke7GFT42wdQlecfTaPlhXcG9XEo9lfHpDuy+yKke
+         XejS5kragJryyoXxhCprwYTdmlBpvSx2XpQMFCGzf5krOYL5ttolMRgnJe9Fs0CF8g
+         iMjL81zfRS8Gwm5ccQ6vkjMIJn+veQ3ohnJpVFLg=
+Received: by camel2.lan (Postfix, from userid 1000)
+        id 6B0A81C72C8; Sun, 24 Mar 2019 10:43:51 +0100 (CET)
+From:   Matthias Reichl <hias@horus.com>
+To:     Benjamin Valentin <benpicco@googlemail.com>,
+        Sean Young <sean@mess.org>
+Cc:     linux-media@vger.kernel.org
+Subject: [PATCH] media: rc: xbox_remote: add protocol and set timeout
+Date:   Sun, 24 Mar 2019 10:43:51 +0100
+Message-Id: <20190324094351.5584-1-hias@horus.com>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The timestamps in ir-keytable -t output showed that the Xbox DVD
+IR dongle decodes scancodes every 64ms. The last scancode of a
+longer button press is decodes 64ms after the last-but-one which
+indicates the decoder doesn't use a timeout but decodes on the last
+edge of the signal.
 
-Results of the daily build of media_tree:
+267.042629: lirc protocol(unknown): scancode = 0xace
+267.042665: event type EV_MSC(0x04): scancode = 0xace
+267.042665: event type EV_KEY(0x01) key_down: KEY_1(0x0002)
+267.042665: event type EV_SYN(0x00).
+267.106625: lirc protocol(unknown): scancode = 0xace
+267.106643: event type EV_MSC(0x04): scancode = 0xace
+267.106643: event type EV_SYN(0x00).
+267.170623: lirc protocol(unknown): scancode = 0xace
+267.170638: event type EV_MSC(0x04): scancode = 0xace
+267.170638: event type EV_SYN(0x00).
+267.234621: lirc protocol(unknown): scancode = 0xace
+267.234636: event type EV_MSC(0x04): scancode = 0xace
+267.234636: event type EV_SYN(0x00).
+267.298623: lirc protocol(unknown): scancode = 0xace
+267.298638: event type EV_MSC(0x04): scancode = 0xace
+267.298638: event type EV_SYN(0x00).
+267.543345: event type EV_KEY(0x01) key_down: KEY_1(0x0002)
+267.543345: event type EV_SYN(0x00).
+267.570015: event type EV_KEY(0x01) key_up: KEY_1(0x0002)
+267.570015: event type EV_SYN(0x00).
 
-date:			Sun Mar 24 05:00:10 CET 2019
-media-tree git hash:	8a3946cad244e8453e26f3ded5fe40bf2627bb30
-media_build git hash:	7fb9ee4c605015dc0d4d983b9a3a8fd47d2290b6
-v4l-utils git hash:	40fd5611c5176137c80616f6ee93b36f0d88f2d5
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.3.0
-sparse repo:                   https://git.linuxtv.org/mchehab/sparse.git
-sparse version:		0.6.0
-smatch repo:                   https://git.linuxtv.org/mchehab/smatch.git
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-2-amd64
+Add a protocol with the repeat value and set the timeout in the
+driver to 10ms (to have a bit of headroom for delays) so the Xbox
+DVD remote performs more responsive.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.63-i686: OK
-linux-3.16.63-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.136-i686: OK
-linux-3.18.136-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.167-i686: OK
-linux-4.4.167-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.162-i686: OK
-linux-4.9.162-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.105-i686: OK
-linux-4.14.105-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.20-i686: OK
-linux-4.18.20-x86_64: OK
-linux-4.19.28-i686: OK
-linux-4.19.28-x86_64: OK
-linux-4.20.15-i686: OK
-linux-4.20.15-x86_64: OK
-linux-5.0.1-i686: OK
-linux-5.0.1-x86_64: OK
-linux-5.1-rc1-i686: OK
-linux-5.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-virtme: OK: Final Summary: 1981, Succeeded: 1981, Failed: 0, Warnings: 16
-sparse: OK
-smatch: ERRORS
+Signed-off-by: Matthias Reichl <hias@horus.com>
+---
+Bug report about sluggish response of the Xbox DVD remote and test
+results can be found in this thread:
+https://forum.libreelec.tv/thread/14861-the-adventures-of-libreelec-and-a-really-old-ir-remote/
 
-Detailed results are available here:
+We tried to capture some more protocol details with an mceusb receiver
+but this didn't work well - could be that the Xbox DVD remote uses a
+different carrier frequency and/or the IR receiver can't cope well with
+it's burst lengths.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Detailed regression test results are available here:
+ Documentation/media/lirc.h.rst.exceptions | 1 +
+ drivers/media/rc/keymaps/rc-xbox-dvd.c    | 2 +-
+ drivers/media/rc/rc-main.c                | 2 ++
+ drivers/media/rc/xbox_remote.c            | 4 +++-
+ include/media/rc-map.h                    | 4 +++-
+ include/uapi/linux/lirc.h                 | 2 ++
+ 6 files changed, 12 insertions(+), 3 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday-test-media.log
-http://www.xs4all.nl/~hverkuil/logs/Sunday-test-media-dmesg.log
+diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
+index 7a8b8ff4f076..ac768d769113 100644
+--- a/Documentation/media/lirc.h.rst.exceptions
++++ b/Documentation/media/lirc.h.rst.exceptions
+@@ -63,6 +63,7 @@ ignore symbol RC_PROTO_IMON
+ ignore symbol RC_PROTO_RCMM12
+ ignore symbol RC_PROTO_RCMM24
+ ignore symbol RC_PROTO_RCMM32
++ignore symbol RC_PROTO_XBOX_DVD
+ 
+ # Undocumented macros
+ 
+diff --git a/drivers/media/rc/keymaps/rc-xbox-dvd.c b/drivers/media/rc/keymaps/rc-xbox-dvd.c
+index af387244636b..42815ab57bff 100644
+--- a/drivers/media/rc/keymaps/rc-xbox-dvd.c
++++ b/drivers/media/rc/keymaps/rc-xbox-dvd.c
+@@ -42,7 +42,7 @@ static struct rc_map_list xbox_dvd_map = {
+ 	.map = {
+ 		.scan     = xbox_dvd,
+ 		.size     = ARRAY_SIZE(xbox_dvd),
+-		.rc_proto = RC_PROTO_UNKNOWN,
++		.rc_proto = RC_PROTO_XBOX_DVD,
+ 		.name     = RC_MAP_XBOX_DVD,
+ 	}
+ };
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index e8fa28e20192..be5fd129d728 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -76,6 +76,7 @@ static const struct {
+ 		.scancode_bits = 0x00ffffff, .repeat_period = 114 },
+ 	[RC_PROTO_RCMM32] = { .name = "rc-mm-32",
+ 		.scancode_bits = 0xffffffff, .repeat_period = 114 },
++	[RC_PROTO_XBOX_DVD] = { .name = "xbox-dvd", .repeat_period = 64 },
+ };
+ 
+ /* Used to keep track of known keymaps */
+@@ -1027,6 +1028,7 @@ static const struct {
+ 	{ RC_PROTO_BIT_RCMM12 |
+ 	  RC_PROTO_BIT_RCMM24 |
+ 	  RC_PROTO_BIT_RCMM32,	"rc-mm",	"ir-rcmm-decoder"	},
++	{ RC_PROTO_BIT_XBOX_DVD, "xbox-dvd",	NULL			},
+ };
+ 
+ /**
+diff --git a/drivers/media/rc/xbox_remote.c b/drivers/media/rc/xbox_remote.c
+index f959cbb94744..79470c09989e 100644
+--- a/drivers/media/rc/xbox_remote.c
++++ b/drivers/media/rc/xbox_remote.c
+@@ -148,7 +148,7 @@ static void xbox_remote_rc_init(struct xbox_remote *xbox_remote)
+ 	struct rc_dev *rdev = xbox_remote->rdev;
+ 
+ 	rdev->priv = xbox_remote;
+-	rdev->allowed_protocols = RC_PROTO_BIT_UNKNOWN;
++	rdev->allowed_protocols = RC_PROTO_BIT_XBOX_DVD;
+ 	rdev->driver_name = "xbox_remote";
+ 
+ 	rdev->open = xbox_remote_rc_open;
+@@ -157,6 +157,8 @@ static void xbox_remote_rc_init(struct xbox_remote *xbox_remote)
+ 	rdev->device_name = xbox_remote->rc_name;
+ 	rdev->input_phys = xbox_remote->rc_phys;
+ 
++	rdev->timeout = MS_TO_NS(10);
++
+ 	usb_to_input_id(xbox_remote->udev, &rdev->input_id);
+ 	rdev->dev.parent = &xbox_remote->interface->dev;
+ }
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 5e684bb0d64c..367d983188f7 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -40,6 +40,7 @@
+ #define RC_PROTO_BIT_RCMM12		BIT_ULL(RC_PROTO_RCMM12)
+ #define RC_PROTO_BIT_RCMM24		BIT_ULL(RC_PROTO_RCMM24)
+ #define RC_PROTO_BIT_RCMM32		BIT_ULL(RC_PROTO_RCMM32)
++#define RC_PROTO_BIT_XBOX_DVD		BIT_ULL(RC_PROTO_XBOX_DVD)
+ 
+ #define RC_PROTO_BIT_ALL \
+ 			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
+@@ -55,7 +56,8 @@
+ 			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+ 			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
+ 			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM12 | \
+-			 RC_PROTO_BIT_RCMM24 | RC_PROTO_BIT_RCMM32)
++			 RC_PROTO_BIT_RCMM24 | RC_PROTO_BIT_RCMM32 | \
++			 RC_PROTO_BIT_XBOX_DVD)
+ /* All rc protocols for which we have decoders */
+ #define RC_PROTO_BIT_ALL_IR_DECODER \
+ 			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+index 45fcbf99d72e..f99d9dcae667 100644
+--- a/include/uapi/linux/lirc.h
++++ b/include/uapi/linux/lirc.h
+@@ -195,6 +195,7 @@ struct lirc_scancode {
+  * @RC_PROTO_RCMM12: RC-MM protocol 12 bits
+  * @RC_PROTO_RCMM24: RC-MM protocol 24 bits
+  * @RC_PROTO_RCMM32: RC-MM protocol 32 bits
++ * @RC_PROTO_XBOX_DVD: Xbox DVD Movie Playback Kit protocol
+  */
+ enum rc_proto {
+ 	RC_PROTO_UNKNOWN	= 0,
+@@ -224,6 +225,7 @@ enum rc_proto {
+ 	RC_PROTO_RCMM12		= 24,
+ 	RC_PROTO_RCMM24		= 25,
+ 	RC_PROTO_RCMM32		= 26,
++	RC_PROTO_XBOX_DVD	= 27,
+ };
+ 
+ #endif
+-- 
+2.20.1
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
