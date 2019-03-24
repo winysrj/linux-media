@@ -2,215 +2,93 @@ Return-Path: <SRS0=Cdzf=R3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD6BC43381
-	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 09:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6023C43381
+	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 16:56:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 17399222BE
-	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 09:53:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=horus.com header.i=@horus.com header.b="VW3ROwrQ"
+	by mail.kernel.org (Postfix) with ESMTP id 689E420870
+	for <linux-media@archiver.kernel.org>; Sun, 24 Mar 2019 16:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726970AbfCXJw7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Mar 2019 05:52:59 -0400
-Received: from mail.horus.com ([78.46.148.228]:35543 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727221AbfCXJw7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Mar 2019 05:52:59 -0400
-X-Greylist: delayed 544 seconds by postgrey-1.27 at vger.kernel.org; Sun, 24 Mar 2019 05:52:57 EDT
-Received: from [192.168.1.20] (62-116-61-196.adsl.highway.telekom.at [62.116.61.196])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "E-Mail Matthias Reichl", Issuer "HiassofT CA 2014" (verified OK))
-        by mail.horus.com (Postfix) with ESMTPSA id 16B36641D2;
-        Sun, 24 Mar 2019 10:43:52 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=horus.com;
-        s=20180324; t=1553420632;
-        bh=NC0jAgRcu43/1DJcRaYJ/0ynx0WKJlSvrctvAbwi0WI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=VW3ROwrQKb16M74PX66SxVdpGke7GFT42wdQlecfTaPlhXcG9XEo9lfHpDuy+yKke
-         XejS5kragJryyoXxhCprwYTdmlBpvSx2XpQMFCGzf5krOYL5ttolMRgnJe9Fs0CF8g
-         iMjL81zfRS8Gwm5ccQ6vkjMIJn+veQ3ohnJpVFLg=
-Received: by camel2.lan (Postfix, from userid 1000)
-        id 6B0A81C72C8; Sun, 24 Mar 2019 10:43:51 +0100 (CET)
-From:   Matthias Reichl <hias@horus.com>
-To:     Benjamin Valentin <benpicco@googlemail.com>,
-        Sean Young <sean@mess.org>
-Cc:     linux-media@vger.kernel.org
-Subject: [PATCH] media: rc: xbox_remote: add protocol and set timeout
-Date:   Sun, 24 Mar 2019 10:43:51 +0100
-Message-Id: <20190324094351.5584-1-hias@horus.com>
-X-Mailer: git-send-email 2.20.1
+        id S1728797AbfCXQ4m (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Mar 2019 12:56:42 -0400
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33910 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727960AbfCXQ4m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Mar 2019 12:56:42 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: ezequiel)
+        with ESMTPSA id 9D401282268
+Message-ID: <81627ad40d3e7ee9e8f6bb037e572111d784fc31.camel@collabora.com>
+Subject: Re: [PATCH v2] gspca: Kill URBs on USB device disconnect
+From:   Ezequiel Garcia <ezequiel@collabora.com>
+To:     linux-media@vger.kernel.org
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        ccr@tnsp.org
+Date:   Sun, 24 Mar 2019 13:56:32 -0300
+In-Reply-To: <20190228152834.14308-1-ezequiel@collabora.com>
+References: <20190227165643.5571-1-ezequiel@collabora.com>
+         <20190228152834.14308-1-ezequiel@collabora.com>
+Organization: Collabora
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.5-1 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The timestamps in ir-keytable -t output showed that the Xbox DVD
-IR dongle decodes scancodes every 64ms. The last scancode of a
-longer button press is decodes 64ms after the last-but-one which
-indicates the decoder doesn't use a timeout but decodes on the last
-edge of the signal.
+On Thu, 2019-02-28 at 12:28 -0300, Ezequiel Garcia wrote:
+> In order to prevent ISOC URBs from being infinitely resubmitted,
+> the driver's USB disconnect handler must kill all the in-flight URBs.
+> 
+> While here, change the URB packet status message to a debug level,
+> to avoid spamming the console too much.
+> 
+> This commit fixes a lockup caused by an interrupt storm coming
+> from the URB completion handler.
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+> v2:
+>   * Also kill the int URB.
+> 
 
-267.042629: lirc protocol(unknown): scancode = 0xace
-267.042665: event type EV_MSC(0x04): scancode = 0xace
-267.042665: event type EV_KEY(0x01) key_down: KEY_1(0x0002)
-267.042665: event type EV_SYN(0x00).
-267.106625: lirc protocol(unknown): scancode = 0xace
-267.106643: event type EV_MSC(0x04): scancode = 0xace
-267.106643: event type EV_SYN(0x00).
-267.170623: lirc protocol(unknown): scancode = 0xace
-267.170638: event type EV_MSC(0x04): scancode = 0xace
-267.170638: event type EV_SYN(0x00).
-267.234621: lirc protocol(unknown): scancode = 0xace
-267.234636: event type EV_MSC(0x04): scancode = 0xace
-267.234636: event type EV_SYN(0x00).
-267.298623: lirc protocol(unknown): scancode = 0xace
-267.298638: event type EV_MSC(0x04): scancode = 0xace
-267.298638: event type EV_SYN(0x00).
-267.543345: event type EV_KEY(0x01) key_down: KEY_1(0x0002)
-267.543345: event type EV_SYN(0x00).
-267.570015: event type EV_KEY(0x01) key_up: KEY_1(0x0002)
-267.570015: event type EV_SYN(0x00).
+Hans,
 
-Add a protocol with the repeat value and set the timeout in the
-driver to 10ms (to have a bit of headroom for delays) so the Xbox
-DVD remote performs more responsive.
+We still have to solve another race in this driver,
+but I think this fix is good to go.
 
-Signed-off-by: Matthias Reichl <hias@horus.com>
----
-Bug report about sluggish response of the Xbox DVD remote and test
-results can be found in this thread:
-https://forum.libreelec.tv/thread/14861-the-adventures-of-libreelec-and-a-really-old-ir-remote/
+Thanks,
+Eze
 
-We tried to capture some more protocol details with an mceusb receiver
-but this didn't work well - could be that the Xbox DVD remote uses a
-different carrier frequency and/or the IR receiver can't cope well with
-it's burst lengths.
-
-
- Documentation/media/lirc.h.rst.exceptions | 1 +
- drivers/media/rc/keymaps/rc-xbox-dvd.c    | 2 +-
- drivers/media/rc/rc-main.c                | 2 ++
- drivers/media/rc/xbox_remote.c            | 4 +++-
- include/media/rc-map.h                    | 4 +++-
- include/uapi/linux/lirc.h                 | 2 ++
- 6 files changed, 12 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-index 7a8b8ff4f076..ac768d769113 100644
---- a/Documentation/media/lirc.h.rst.exceptions
-+++ b/Documentation/media/lirc.h.rst.exceptions
-@@ -63,6 +63,7 @@ ignore symbol RC_PROTO_IMON
- ignore symbol RC_PROTO_RCMM12
- ignore symbol RC_PROTO_RCMM24
- ignore symbol RC_PROTO_RCMM32
-+ignore symbol RC_PROTO_XBOX_DVD
- 
- # Undocumented macros
- 
-diff --git a/drivers/media/rc/keymaps/rc-xbox-dvd.c b/drivers/media/rc/keymaps/rc-xbox-dvd.c
-index af387244636b..42815ab57bff 100644
---- a/drivers/media/rc/keymaps/rc-xbox-dvd.c
-+++ b/drivers/media/rc/keymaps/rc-xbox-dvd.c
-@@ -42,7 +42,7 @@ static struct rc_map_list xbox_dvd_map = {
- 	.map = {
- 		.scan     = xbox_dvd,
- 		.size     = ARRAY_SIZE(xbox_dvd),
--		.rc_proto = RC_PROTO_UNKNOWN,
-+		.rc_proto = RC_PROTO_XBOX_DVD,
- 		.name     = RC_MAP_XBOX_DVD,
- 	}
- };
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index e8fa28e20192..be5fd129d728 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -76,6 +76,7 @@ static const struct {
- 		.scancode_bits = 0x00ffffff, .repeat_period = 114 },
- 	[RC_PROTO_RCMM32] = { .name = "rc-mm-32",
- 		.scancode_bits = 0xffffffff, .repeat_period = 114 },
-+	[RC_PROTO_XBOX_DVD] = { .name = "xbox-dvd", .repeat_period = 64 },
- };
- 
- /* Used to keep track of known keymaps */
-@@ -1027,6 +1028,7 @@ static const struct {
- 	{ RC_PROTO_BIT_RCMM12 |
- 	  RC_PROTO_BIT_RCMM24 |
- 	  RC_PROTO_BIT_RCMM32,	"rc-mm",	"ir-rcmm-decoder"	},
-+	{ RC_PROTO_BIT_XBOX_DVD, "xbox-dvd",	NULL			},
- };
- 
- /**
-diff --git a/drivers/media/rc/xbox_remote.c b/drivers/media/rc/xbox_remote.c
-index f959cbb94744..79470c09989e 100644
---- a/drivers/media/rc/xbox_remote.c
-+++ b/drivers/media/rc/xbox_remote.c
-@@ -148,7 +148,7 @@ static void xbox_remote_rc_init(struct xbox_remote *xbox_remote)
- 	struct rc_dev *rdev = xbox_remote->rdev;
- 
- 	rdev->priv = xbox_remote;
--	rdev->allowed_protocols = RC_PROTO_BIT_UNKNOWN;
-+	rdev->allowed_protocols = RC_PROTO_BIT_XBOX_DVD;
- 	rdev->driver_name = "xbox_remote";
- 
- 	rdev->open = xbox_remote_rc_open;
-@@ -157,6 +157,8 @@ static void xbox_remote_rc_init(struct xbox_remote *xbox_remote)
- 	rdev->device_name = xbox_remote->rc_name;
- 	rdev->input_phys = xbox_remote->rc_phys;
- 
-+	rdev->timeout = MS_TO_NS(10);
-+
- 	usb_to_input_id(xbox_remote->udev, &rdev->input_id);
- 	rdev->dev.parent = &xbox_remote->interface->dev;
- }
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 5e684bb0d64c..367d983188f7 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -40,6 +40,7 @@
- #define RC_PROTO_BIT_RCMM12		BIT_ULL(RC_PROTO_RCMM12)
- #define RC_PROTO_BIT_RCMM24		BIT_ULL(RC_PROTO_RCMM24)
- #define RC_PROTO_BIT_RCMM32		BIT_ULL(RC_PROTO_RCMM32)
-+#define RC_PROTO_BIT_XBOX_DVD		BIT_ULL(RC_PROTO_XBOX_DVD)
- 
- #define RC_PROTO_BIT_ALL \
- 			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
-@@ -55,7 +56,8 @@
- 			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
- 			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
- 			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM12 | \
--			 RC_PROTO_BIT_RCMM24 | RC_PROTO_BIT_RCMM32)
-+			 RC_PROTO_BIT_RCMM24 | RC_PROTO_BIT_RCMM32 | \
-+			 RC_PROTO_BIT_XBOX_DVD)
- /* All rc protocols for which we have decoders */
- #define RC_PROTO_BIT_ALL_IR_DECODER \
- 			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
-diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-index 45fcbf99d72e..f99d9dcae667 100644
---- a/include/uapi/linux/lirc.h
-+++ b/include/uapi/linux/lirc.h
-@@ -195,6 +195,7 @@ struct lirc_scancode {
-  * @RC_PROTO_RCMM12: RC-MM protocol 12 bits
-  * @RC_PROTO_RCMM24: RC-MM protocol 24 bits
-  * @RC_PROTO_RCMM32: RC-MM protocol 32 bits
-+ * @RC_PROTO_XBOX_DVD: Xbox DVD Movie Playback Kit protocol
-  */
- enum rc_proto {
- 	RC_PROTO_UNKNOWN	= 0,
-@@ -224,6 +225,7 @@ enum rc_proto {
- 	RC_PROTO_RCMM12		= 24,
- 	RC_PROTO_RCMM24		= 25,
- 	RC_PROTO_RCMM32		= 26,
-+	RC_PROTO_XBOX_DVD	= 27,
- };
- 
- #endif
--- 
-2.20.1
+>  drivers/media/usb/gspca/gspca.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+> index 9448ac0b8bc9..4d7517411cc2 100644
+> --- a/drivers/media/usb/gspca/gspca.c
+> +++ b/drivers/media/usb/gspca/gspca.c
+> @@ -294,7 +294,7 @@ static void fill_frame(struct gspca_dev *gspca_dev,
+>  		/* check the packet status and length */
+>  		st = urb->iso_frame_desc[i].status;
+>  		if (st) {
+> -			pr_err("ISOC data error: [%d] len=%d, status=%d\n",
+> +			gspca_dbg(gspca_dev, D_PACK, "ISOC data error: [%d] len=%d, status=%d\n",
+>  			       i, len, st);
+>  			gspca_dev->last_packet_type = DISCARD_PACKET;
+>  			continue;
+> @@ -1642,6 +1642,8 @@ void gspca_disconnect(struct usb_interface *intf)
+>  
+>  	mutex_lock(&gspca_dev->usb_lock);
+>  	gspca_dev->present = false;
+> +	destroy_urbs(gspca_dev);
+> +	gspca_input_destroy_urb(gspca_dev);
+>  
+>  	vb2_queue_error(&gspca_dev->queue);
+>  
 
