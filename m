@@ -2,243 +2,148 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08C17C43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 10:01:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17C81C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 10:06:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD4362087E
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 10:01:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D62402084D
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 10:06:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="KhLyHVdD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730470AbfCYKBN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 06:01:13 -0400
-Received: from mga12.intel.com ([192.55.52.136]:5657 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729912AbfCYKBN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Mar 2019 06:01:13 -0400
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Mar 2019 03:01:12 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.60,256,1549958400"; 
-   d="scan'208";a="155534668"
-Received: from ipu5-build.bj.intel.com (HELO [10.238.232.171]) ([10.238.232.171])
-  by fmsmga004.fm.intel.com with ESMTP; 25 Mar 2019 03:01:09 -0700
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-To:     Jacopo Mondi <jacopo@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Tomasz Figa <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        libcamera-devel@lists.libcamera.org
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1609628.n3aCoxV5Mp@avalon>
- <b7380656-13bd-884d-366f-87d690090be8@linux.intel.com>
- <4147983.Vfm2iTi9Nh@avalon>
- <c7578347-c1ac-664c-4407-40b968daf377@linux.intel.com>
- <20190323130221.xr4bvraqnfjdfezk@uno.localdomain>
- <ad0fa0d9-b89b-1c6e-9085-fe361832e9e1@linux.intel.com>
- <20190325040630.GE12029@pendragon.ideasonboard.com>
- <20190325081105.njjpvvlj6n5rxnsb@uno.localdomain>
-From:   Bingbu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <83e79e5a-6503-51a6-2c45-0fbd1cbfbdaa@linux.intel.com>
-Date:   Mon, 25 Mar 2019 18:07:58 +0800
+        id S1730469AbfCYKG0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 06:06:26 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:35664 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730354AbfCYKG0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Mar 2019 06:06:26 -0400
+Received: from [192.168.0.20] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 6E4582F3;
+        Mon, 25 Mar 2019 11:06:23 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1553508383;
+        bh=c1W8AgCvEVMYwG2HCHZK8FK//aqDO8OwwUnS13pYGiI=;
+        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=KhLyHVdDZl1/MPoToVCoPgmrlYpVOQ1+3rDwLr7NX4fKuhoSSuzblwS8UQd8dn88j
+         Q2+8FlU4B1hJkuI8VIgxPzVxofqi2kVjHOvP3vaL4ag6oYNXTjknfN2VQIU0viJIMB
+         b6cN6oleaE2SBuuncklpGrHDMR70DH+EtZAGNaog=
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH] drm: rcar-du: lvds: Fix post-DLL divider calculation
+To:     Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc:     linux-renesas-soc@vger.kernel.org
+References: <20190312231853.3150-1-laurent.pinchart+renesas@ideasonboard.com>
+From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
+ 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
+ sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
+Organization: Ideas on Board
+Message-ID: <3d362ca9-7a4b-e459-cb31-7cb17f1a46b9@ideasonboard.com>
+Date:   Mon, 25 Mar 2019 10:06:21 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
-In-Reply-To: <20190325081105.njjpvvlj6n5rxnsb@uno.localdomain>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
+In-Reply-To: <20190312231853.3150-1-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Laurent,
 
+Thank you for the patch,
 
-On 3/25/19 4:11 PM, Jacopo Mondi wrote:
-> Hi Laurent, Bingbu
+On 12/03/2019 23:18, Laurent Pinchart wrote:
+> The PLL parameters are computed by looping over the range of acceptable
+> M, N and E values, and selecting the combination that produces the
+> output frequency closest to the target. The internal frequency
+> constraints are taken into account by restricting the tested values for
+> the PLL parameters, reducing the search space. The target frequency,
+> however, is only taken into account when computing the post-PLL divider,
+> which can result in a 0 value for the divider when the PLL output
+> frequency being tested is lower than half of the target frequency.
+> Subsequent loops will produce a better set of PLL parameters, but for
+> some of the iterations this can result in a division by 0.
 > 
-> On Mon, Mar 25, 2019 at 06:06:30AM +0200, Laurent Pinchart wrote:
->> Hi Bingbu,
->>
-> [snip]
-> 
->>>>>>>>
->>>>>>>> Thank you for the information. This will need to be captured in the
->>>>>>>> documentation, along with information related to how each block in the
->>>>>>>> hardware pipeline interacts with the image size. It should be possible for
->>>>>>>> a developer to compute the output and viewfinder resolutions based on the
->>>>>>>> parameters of the image processing algorithms just with the information
->>>>>>>> contained in the driver documentation.
->>>>
->>>> In libcamera development we're now at the point of having to calculate
->>>> the sizes to apply to all intermediate pipeline stages based on the
->>>> following informations:
->>>>
->>>> 1) Main output resolution
->>>> 2) Secondary output resolution (optional)
->>>> 3) Image sensor's available resolutions
->>>>
->>>> Right now that informations are captured in the xml file you linked
->>>> here above, but we need a programmatic way to do the calculation,
->>>> without going through an XML file, that refers to two specific sensors
->>>> only.
->>>>
->>>> As Laurent said here, this should come as part of the documentation
->>>> for driver users and would unblock libcamera IPU3 support
->>>> development.
->>>>
->>>> Could you provide documentation on how to calculate each
->>>> intermediate step resolutions?
->>>
->>> All the intermediate step resolutions are generated by the specific tool
->>> with sensor input and outputs resolutions.
->>>
->>> The tool try to keep maximum fov and has the knowledge of all the
->>> limitations of each intermediate hardware components(mainly BDS and GDC).
->>
->> That's exactly what we want to do in software in libcamera :-) And
->> that's why we need more infirmation about the limitations of each
->> intermediate hardware component. Eventually those limitations should be
->> documented in the IPU3 driver documentation in the kernel sources, but
->> for now we can move forward if they're just communicated by e-mail (if
->> time permits we may be able to submit a kernel patch to integrate that
->> in the documentation).
->>
->>> Currently, there is not a very simple calculation to get the
->>> intermediate resolutions.
->>> Let's take some effort to try find a programmatic way to do calculation
->>> instead of the tool.
-> 
-> Thank you for your effort.
-> 
->>>
->>>> [snip]
->>>>
->>>>>>>>>>>> 3. The ImgU V4L2 subdev composing should be set by using the
->>>>>>>>>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
->>>>>>>>>>>> target, using the BDS height and width.
->>>>>>>>>>>>
->>>>>>>>>>>> Once these 2 steps are done, the raw bayer frames can be input to the
->>>>>>>>>>>> ImgU V4L2 subdev for processing.
->>>>>>>>>>> Do I need to capture from both the output and viewfinder nodes ? How
->>>>>>>>>>> are they related to the IF -> BDS -> GDC pipeline, are they both fed
->>>>>>>>>>> from the GDC output ? If so, how does the viewfinder scaler fit in that
->>>>>>>>>>> picture ?
->>>>>>>>> The output capture should be set, the viewfinder can be disabled.
->>>>>>>>> The IF and BDS are seen as crop and compose of the imgu input video
->>>>>>>>> device. The GDC is seen as the subdev sink pad and OUTPUT/VF are source
->>>>>>>>> pads.
->>>>
->>>> This is another point that we would like to have clarified:
->>>> 1) which outputs are mandatory and which one are not
->>>> 2) which operations are mandatory on un-used outputs
->>>> 3) does the 'ipu_pipe_mode' control impact this
->>>>
->>>> As you mentioned here, "output" seems to be mandatory, while
->>>> "viewfinder" and "stat" are optional. We have tried using the "output"
->>>> video node only but the system hangs to an un-recoverable state.
->>>
->>> Yes, main output is mandatory, 'vf' and 'stat' are optional.
->>
->> I will let Jacopo confirm this, but unless I'm mistaken, when he tried
->> to use the main output only (with the links between the ImgU subdev and
->> the vf and stat video nodes disabled), the driver would hang without
->> processing any frame. I believe this was a complete system hang,
->> requiring a hard reboot to recover.
->>
-> 
-> Yes, that's what I have noticed.
-> 
-> On the other hand, if I link, configure, prepare buffers and start the
-> 'vf' and 'stat' nodes, but never queue buffers there, I can capture
-> from output only.
-> 
->>>> What I have noticed is instead that the viewfinder and stat nodes
->>>> needs to be:
->>>> 1) Linked to the respective "ImgU" subdevice pads
->>>> 2) Format configured
->>>> 3) Memory reserved
->>>> 4) video device nodes started
->>>>
->>>> It it not required to queue/dequeue buffers from viewfinder and stat,
->>>> but steps 1-4 have to be performed.
->>>>
->>>> Can you confirm this is intended?
->>>
->>> viewfinder and stats are enabled when the link for respective subdev
->>> pads enabled, and then driver can use these input conditions to find the
->>> binary to run.
->>>
-> 
-> As Laurent reported above, if I leave the the 'vf' and 'stat' links
-> disabled, the system hangs.
-> 
->>>> Could you please list all the steps that have to be applied to the
->>>> ImgU's capture video nodes, and which ones are mandatory and which ones
->>>> are optional, for the following use cases:
->>>> 1) Main output capture only
->>>> 2) Main + secondary output capture
->>>> 3) Secondary capture only.
->>>
->>> I think the 3) is not supported.
->>>
->>> The steps are:
->>> 1). link necessary the respective subdevices
->>> input --> imgu -->output
->>>             |  -->vf
->>>             |  -->3a stats
-> 
-> For which use case, in the above reported list?
-> 
->  1) Main output capture only
->         Does 'vf' and 'stat' links needs to be enabled?
-> 
->  2) Main + secondary output capture
->         Does 'stat' link need to be enabled?
-> 
->  3) Secondary capture only.
->         not supported
+> Fix it by clamping the divider value. We could instead restrict the E
+> values being tested in the inner loop, but that would require additional
+> calculation that would likely be less efficient as the E parameter can
+> only take three different values.
+Sounds reasonable to me, and does prevent div/0, thus:
 
-The list above is a typical use, all outputs enabled, you can setup link
-for main output only.
-> 
->>>
->>> 2). set all the formats for input, output and intermediate resolutions.
->>> 3). start stream
->>>
->>> The ipu pipe_mode will not impact the whole pipe behavior. It just ask
->>> firmware to run different processing to generate same format outputs.
->>
-> 
-> I would apreciate to have a better description of the pipe_mode
-> control, in order to better understand when and if the library has to
-> modify its value and which mode to use (0=video, 1=still_capture).
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-In some application, it will request continuous viewfinder, that means
-you must keep preview continuous when take capture. That means you can
-not switch out pipeline (preview and still mode, back and force), so the
-driver need create 2 pipelines to satisfy this usage, 1 video mode pipe
-and another is still mode. Both 2 pipes are created at first, run the
-pipe as you command. It also can support still during video usage.
+> Fixes: c25c01361199 ("drm: rcar-du: lvds: D3/E3 support")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_lvds.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_lvds.c b/drivers/gpu/drm/rcar-du/rcar_lvds.c
+> index 7ef97b2a6eda..9f5ff1acab4e 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_lvds.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_lvds.c
+> @@ -283,7 +283,7 @@ static void rcar_lvds_d3_e3_pll_calc(struct rcar_lvds *lvds, struct clk *clk,
+>  				 * divider.
+>  				 */
+>  				fout = fvco / (1 << e) / div7;
+> -				div = DIV_ROUND_CLOSEST(fout, target);
+> +				div = max(1UL, DIV_ROUND_CLOSEST(fout, target));
+>  				diff = abs(fout / div - target);
+>  
+>  				if (diff < pll->diff) {
+> 
 
-> 
-> Thanks
->    j
-> 
->> --
->> Regards,
->>
->> Laurent Pinchart
+-- 
+Regards
+--
+Kieran
