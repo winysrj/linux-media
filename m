@@ -2,81 +2,75 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 118E6C43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 00:36:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76EE0C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 02:24:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D3CD420989
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 00:36:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40E2320830
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 02:24:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AUMz+FjM"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="pRGKAST9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729185AbfCYAfq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Mar 2019 20:35:46 -0400
-Received: from mail-lf1-f44.google.com ([209.85.167.44]:39508 "EHLO
-        mail-lf1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729146AbfCYAfq (ORCPT
+        id S1729285AbfCYCYp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Mar 2019 22:24:45 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33284 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729264AbfCYCYp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Mar 2019 20:35:46 -0400
-Received: by mail-lf1-f44.google.com with SMTP id m13so4750472lfb.6;
-        Sun, 24 Mar 2019 17:35:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=DwJZ5Bop6r1egQ8vzySSqZuV+GwSZPn5rseOtqa/qog=;
-        b=AUMz+FjM7fwI6o2UEKrsTaPSmQMTyQEpMEMu9DiwcSzEg6SnEC71Ee0CUxXP1h5iOD
-         XuHkdE3VovQhzsZY1SE2OD1CKIU04wlI8SgJzPlgRb+FNb1Rz1XSti6sVWvXl+fkBGZT
-         E9D2LW2vrc9usVjBLgn+asuPs2DSWVqXgUtE3sz51UTWKyJENAl0TH+NOaKrN808QfNk
-         Oo9gccAJZ09QUA5VJhmBE8bh89IJXc9wV76csrRcPVwhMdGlkiwYMAwXY9gxLIlih6lg
-         Enz7VY7efr7P2t7GYZBoXSzq9Q6p8bVsibl2W4pg7Y7ihWlsjf+33JQ5jSCzL/PNs1RU
-         mSxw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=DwJZ5Bop6r1egQ8vzySSqZuV+GwSZPn5rseOtqa/qog=;
-        b=lOsWUMy2qCBRe1cWlb1XthQDsyxTW+8/68/I0am2N2UsbGTG7CzM4MAmei9kJl3sQa
-         /mj0etEGpVt/1FAmyo/Eu9aYBCy9aMLjo9Vw4NhK9Yxuu5baBbxTxm6M/fCXYsXP3Sfr
-         FEo/fn5OKXszOswvWFEnUgjU1FSTv+7ty5EoSQZGYirMGsi2wO3R1nUQwH3qBZHtQDnd
-         WOgQlSuXiTeShnEqWkxH2KMgfWtWkjxGm9X9mcPPj0kMRkN3/rTQ8y0UqUkJEhY6tf29
-         McZuchHIVsWQAf8bJ/86SXVXACK+VKky0QXpfTvbWPKDXGXr+mQcKfa5TiIEFSO7v3U8
-         /rqg==
-X-Gm-Message-State: APjAAAU0sys6Ta/x2ZbUY1vmpqZccpjUFHYwTT6Ww7rtYYAkBNv1OaDm
-        w7Yb8j+oBo+Wt8+nb5N15fSkHoAe
-X-Google-Smtp-Source: APXvYqzM3eSXTf3zC+UP4PVwwEosBMPkElD0Vfi/tK2Drhq+Rg7xz3iJe/NppTu+5L6dnc+FpfWSyg==
-X-Received: by 2002:ac2:5961:: with SMTP id h1mr6397642lfp.167.1553474144530;
-        Sun, 24 Mar 2019 17:35:44 -0700 (PDT)
-Received: from z50.gdansk-morena.vectranet.pl (109241207190.gdansk.vectranet.pl. [109.241.207.190])
-        by smtp.gmail.com with ESMTPSA id y17sm1217993ljd.54.2019.03.24.17.35.43
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Mar 2019 17:35:43 -0700 (PDT)
-From:   Janusz Krzysztofik <jmkrzyszt@gmail.com>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 0/2] media: ov6650: Add V4L2 asynchronous subdevice support
-Date:   Mon, 25 Mar 2019 01:34:59 +0100
-Message-Id: <20190325003501.14687-1-jmkrzyszt@gmail.com>
-X-Mailer: git-send-email 2.19.2
+        Sun, 24 Mar 2019 22:24:45 -0400
+Received: from pendragon.ideasonboard.com (30.net042126252.t-com.ne.jp [42.126.252.30])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id C4CC7E2
+        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2019 03:24:42 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1553480683;
+        bh=elV2hwUu8nQsx6mK6+hLmapeVLS0B9nUvTfqQtp7y4w=;
+        h=Date:From:To:Subject:From;
+        b=pRGKAST9gmVHSmXU8BKtNNtV7Hc0roBaLVyFDct3KJg8vSkUJbKXdEbpZcVkOJ1r7
+         dZMfSY5ikOvCivPkd862qd5V/0hZzUPhKGs6YONtygg4/apgzY3V4thQVBJrc53dbK
+         LuVVRxXU0Gme3ErkHWk6rL4T88jWliZRyCWG32qo=
+Date:   Mon, 25 Mar 2019 04:24:31 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v5.2] R-Car FDP1 changes
+Message-ID: <20190325022431.GA12029@pendragon.ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Janusz Krzysztofik (2):
-      media: ov6650: Move v4l2_clk_get() to ov6650_video_probe() helper
-      media: ov6650: Register with asynchronous subdevice framework
+Hi Mauro,
 
- ov6650.c |   45 +++++++++++++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+The following changes since commit 8a3946cad244e8453e26f3ded5fe40bf2627bb30:
 
+  media: v4l2-fwnode: Add a deprecation note in the old ACPI parsing example (2019-03-20 06:37:55 -0400)
 
+are available in the Git repository at:
+
+  git://linuxtv.org/pinchartl/media.git tags/fdp1-next-20190325
+
+for you to fetch changes up to aed816dcfd685dde720f3bb97857bd7db2c8f6cf:
+
+  v4l: rcar_fdp1: Fix indentation oddities (2019-03-25 04:20:10 +0200)
+
+----------------------------------------------------------------
+FDP1 changes for v5.2
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      v4l: rcar_fdp1: Fix indentation oddities
+
+ drivers/media/platform/rcar_fdp1.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
