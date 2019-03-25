@@ -2,96 +2,92 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40EDBC4360F
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 22:03:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 508B8C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 23:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2E1D20857
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 22:03:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553551428;
-	bh=mzy2AzKbNNRhieMEorCnVP9lUq3eIUwrNHbSHijBR7A=;
-	h=From:Cc:Subject:Date:In-Reply-To:References:To:List-ID:From;
-	b=XM2Krfu4Fz9tVklGXu696LNs2244N9D1/IOZ1iZObwFh5+ULxORYVzDBJWZrDBigz
-	 lgJVR865MiIyvlB2UfKnBHU+EACZTFjgGS4k4GjiomwoOPG5M7RZlO71/HNZVsG4LR
-	 2RPUdT2OD0G3kgDY4N0P0yNEdrW4NE6gVoT/CYyA=
+	by mail.kernel.org (Postfix) with ESMTP id 1834A20828
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 23:07:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="OHDdBkkD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730285AbfCYWDq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 18:03:46 -0400
-Received: from bombadil.infradead.org ([198.137.202.133]:54910 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730599AbfCYWDm (ORCPT
+        id S1729250AbfCYXHL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 19:07:11 -0400
+Received: from mail-wm1-f52.google.com ([209.85.128.52]:40211 "EHLO
+        mail-wm1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726010AbfCYXHL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Mar 2019 18:03:42 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
-        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
-        Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=xjmBaASz+r+k0qOF+7TrxhfSvYpuLnSdwYZX2rjbPbY=; b=FGASW+R102EXsHavOWER5MfrO/
-        J81T45j4FVuQSmnf90k5ZxjWM7wUvClPKdzEuXhFMG7OeCfct5O8G2A21SgkixaP6vxcVtIxG97Wc
-        mWYbXwVgvNJPC0wC8/sUZGKt3pRXllNgPHz2vp+kbGl3DXtXlfas4/2HZjSIisTlLljUlxIzAxBWF
-        9TDIAEYVO9BGuRG6KoDq7y5+CaED8XcRk8TIJbC4DTIAp7CDcwWkUDMAVtxWRGrVRVLlObUx2JIxL
-        X3y598h8pOMBFw9C0vf58V2AoH/BuvUpfqyhMFuP+q+7Ls2WyIbZvPQ3iPMWNO5gvXDKpsR/+hUT9
-        YpWWfF9Q==;
-Received: from 177.41.113.24.dynamic.adsl.gvt.net.br ([177.41.113.24] helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h8Xh0-0001YG-Cl; Mon, 25 Mar 2019 22:03:42 +0000
-Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
-        (envelope-from <mchehab@bombadil.infradead.org>)
-        id 1h8Xgw-0001ap-Ip; Mon, 25 Mar 2019 18:03:38 -0400
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH 3/5] media: sti/delta: remove uneeded check
-Date:   Mon, 25 Mar 2019 18:03:35 -0400
-Message-Id: <1021cd56772b636ebccc3941c44094ef6b0fac4e.1553551369.git.mchehab+samsung@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <cover.1553551369.git.mchehab+samsung@kernel.org>
-References: <cover.1553551369.git.mchehab+samsung@kernel.org>
+        Mon, 25 Mar 2019 19:07:11 -0400
+Received: by mail-wm1-f52.google.com with SMTP id z24so7622920wmi.5
+        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2019 16:07:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=JRE83xaZU8v6LyWqyDFU0tkcp8ejlfKVtY/LNgz5x+A=;
+        b=OHDdBkkDsJYJUUJV52L8N51TKVmN99oPsFrIl2qGHji0KpffO4GlOFkZMfPE6DZmx0
+         njY3qdF4sotQLEBTZXss3mbmMBkEzMZpPFH8WppE0pM5GGzU4XlbjS9MVekUz0pD/TsD
+         gstIAwKCsgEK7PuHgqEtP57iipRCQDT2GFOLKSbgxJJ+cWtJQLjn85LOzI6D2mQ+ZN6A
+         eCaa1Ss4jbwFXO5tS6uiAI6wY28vOFexRl1u3N7S3TOBe+d2A19PLMcXwgW2HYccGfcN
+         Yugu1inPheMmhOD6hUqM1G43KZSYI6aXy4q+Qah8DD12aDXVpLcd0m3VjGjfbtlElp0T
+         UTiw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=JRE83xaZU8v6LyWqyDFU0tkcp8ejlfKVtY/LNgz5x+A=;
+        b=AmLVbTLZIFEiETkKkpXxg0OEaUuJvmK/Nexo0CS1XE0mkREu+fod5RzXIfWmKc3dQ/
+         omX/CCLdsPyNBD9hMv2GIldG4H74QUlLF9ltD4VrlQgcTJajkkF1ge5IpRaCQWGAlTXX
+         evZvBMqOtuXqXW8tI5ndKVrj6pWnQFJ2vCNF8t3OJBWAxM3hZNV4+T/Mg+lPQa3zdRp2
+         5kzxXgzJUUkabhGdRb47MtGsGPMhdkBU8Si6UA/3L22iU+nWbIQn3HMj+HQtLugZO943
+         bWW8/oT2DxJX6F9iTx+0u4AfsxUxRA2aVv/qwXJP44G2ZzbMj8OZT46oOQ+VtzO+d99Q
+         0ROQ==
+X-Gm-Message-State: APjAAAXx1CaZPwAv8LD4M6aT7vLv/kG/BpW6fxRIEphXrIs5zXwPmOO4
+        MUe1AmT5f/DoeYblWorl/YYDq9UO
+X-Google-Smtp-Source: APXvYqwNbLukMwztI/PlEaUjJ6WRjsHcqQOL+I4obriYNo3k5R67Bo6a2abna4Fi5N57LZSnP3sBSQ==
+X-Received: by 2002:a1c:5f06:: with SMTP id t6mr13952214wmb.7.1553555229582;
+        Mon, 25 Mar 2019 16:07:09 -0700 (PDT)
+Received: from rechenknecht2k11 (200116b840bba0002fb4a5b256d59598.dip.versatel-1u1.de. [2001:16b8:40bb:a000:2fb4:a5b2:56d5:9598])
+        by smtp.googlemail.com with ESMTPSA id 204sm25433850wmc.1.2019.03.25.16.07.08
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Mon, 25 Mar 2019 16:07:09 -0700 (PDT)
+Date:   Tue, 26 Mar 2019 00:07:04 +0100
+From:   Benjamin Valentin <benpicco@googlemail.com>
+To:     Matthias Reichl <hias@horus.com>
+Cc:     Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: rc: xbox_remote: add protocol and set timeout
+Message-ID: <20190326000704.33fbfac3@rechenknecht2k11>
+In-Reply-To: <20190324094351.5584-1-hias@horus.com>
+References: <20190324094351.5584-1-hias@horus.com>
+X-Mailer: Claws Mail 3.17.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-At the error logic, ipc_buf was already asigned to &ctx->ipc_buf_struct,
-with can't be null, as warned by smatch:
+Nice! With this applied the remote feels a lot more snugly.
 
-	drivers/media/platform/sti/delta/delta-ipc.c:223 delta_ipc_open() warn: variable dereferenced before check 'ctx->ipc_buf' (see line 183)
+In the forum thread you talked about a toggle bit to distiguish new
+button presses from held down buttons.
+The packet send by the Xbox Remote includes how much time has passed
+since the last packet was sent.
 
-So, remove the uneeded check.
+u16 last_press_ms = le16_to_cpup((__le16 *)(data + 4));
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/platform/sti/delta/delta-ipc.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+If the button was held down, this value will always be 64 or 65 ms, if
+the button was released in between, it will be higher than that.
+(If you leave the remote idle, it will count to 65535 and stop there)
 
-diff --git a/drivers/media/platform/sti/delta/delta-ipc.c b/drivers/media/platform/sti/delta/delta-ipc.c
-index a4603d573c34..186d88f02ecd 100644
---- a/drivers/media/platform/sti/delta/delta-ipc.c
-+++ b/drivers/media/platform/sti/delta/delta-ipc.c
-@@ -220,10 +220,8 @@ int delta_ipc_open(struct delta_ctx *pctx, const char *name,
- 
- err:
- 	pctx->sys_errors++;
--	if (ctx->ipc_buf) {
--		hw_free(pctx, ctx->ipc_buf);
--		ctx->ipc_buf = NULL;
--	}
-+	hw_free(pctx, ctx->ipc_buf);
-+	ctx->ipc_buf = NULL;
- 
- 	return ret;
- };
--- 
-2.20.1
+Maybe this is helpful, I'm not sure what's the right knob to turn with
+this information.
 
+Anyway, thank you a lot for the fix!
+
+Acked-by: Benjamin Valentin <benpicco@googlemail.com>
