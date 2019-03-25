@@ -2,86 +2,131 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D2EC43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 21:47:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33AC9C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 21:48:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 952AF20693
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 21:47:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E86A620693
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 21:48:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=joelfernandes.org header.i=@joelfernandes.org header.b="eHS0zK4A"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="fqSAIi0i"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730084AbfCYVrl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 17:47:41 -0400
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:39942 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730063AbfCYVrl (ORCPT
+        id S1730006AbfCYVsl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 17:48:41 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:42660 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729127AbfCYVsk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Mar 2019 17:47:41 -0400
-Received: by mail-pf1-f195.google.com with SMTP id c207so7060487pfc.7
-        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2019 14:47:41 -0700 (PDT)
+        Mon, 25 Mar 2019 17:48:40 -0400
+Received: by mail-wr1-f66.google.com with SMTP id g3so8482143wrx.9
+        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2019 14:48:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=joelfernandes.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=2Gg4xL4ScPNssnTqg8moxH66eUohXt4Ejl4Gc/tB5ek=;
-        b=eHS0zK4Adx8x/59ecitIEiElI1ln3WUssGpHFk63TAYzEShMhs5pzHhIleccTbKAj1
-         0fCt6U+QFPjxxXMtYSmIa8RotPRJ39Ej41YbWJxCfHNOEbxV1XXX0/nrp3HEDQQLjLDU
-         WtthA56iyt+eo5GV1LFMUhCRtIuIrqxsyoaYs=
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=onxJka+F9uKKMLVaiVQoxHthzGT9cz6YE6mr84qlisg=;
+        b=fqSAIi0iGWxsIYfKuzexyoNiBKxdxWgoQcuvanYMvd/ek5M2AP0LWrRWvJ1jW8RU+g
+         nd10w8YKF3lFE6g46g+4gwqWOJb2COFAVliDD2mnH/MNbXPZ4UZ5PkSiomhkexnUaPz2
+         gcw4RhxU1rgZSPcYezydl84LvIyhiuwxkkOx3hSpctp3saiIwUsSt9xFv6BzF8Y5El5x
+         pwYvVbhDmKbKdmVQp23yYFJ8SwZTct65ThbymV+voI8jNOZJp7MeQ9dzEFNq+e3IEOHI
+         hMHdI6LcI9R+P0BuzL+2YzgpcffIlsLYTFOWkKG3MOpMiqdJZamR7uP8kPi6PfvglTsf
+         8JNQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=2Gg4xL4ScPNssnTqg8moxH66eUohXt4Ejl4Gc/tB5ek=;
-        b=VIzvxZIleFJdeOX34J9mQBXdqtXQNtpXbg+zEBgFljA2nRWpOp0/S59nihFA5V0YrK
-         YCIo4540fObaiGwvGcukUt/wSqQ4pBy0gLANwaFmq1RdcOBveeXiR8o/AxPjT2GRXPjT
-         TbqMC+v84Qby8x+cZJKucbfuojrOusHmp49mLbC4hdXYzxrULctkaOZd37qexn+6oHte
-         1UZxI33lyfvQbOh671PpcaalByXKe+VT0/G00ag53IugQowC71HnbR5FCC6Cq55wwXoL
-         WieS2U18lSMgP2V2S0o3XSpmwcPR3WjGWBB5wwh71XyzoXpgHOeR6H10mMzEqfuEqdGu
-         KK1w==
-X-Gm-Message-State: APjAAAUycw9v+CECrqSj7ONWHvhOfJT3m279SF9n0rSDfjZ0iYHGtRum
-        NL3CkRU1tfX3TEyTO8+C/Box7g==
-X-Google-Smtp-Source: APXvYqxB/oJKwSh7Cdv/C4pYO/etfLPkQ4Yn5f2dIGIS+2Bn4X0IfdJpL14tzfn2Hwak106n9/LYhg==
-X-Received: by 2002:a62:b61a:: with SMTP id j26mr25924312pff.151.1553550460844;
-        Mon, 25 Mar 2019 14:47:40 -0700 (PDT)
-Received: from localhost ([2620:15c:6:12:9c46:e0da:efbf:69cc])
-        by smtp.gmail.com with ESMTPSA id v19sm29523577pfa.138.2019.03.25.14.47.39
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 25 Mar 2019 14:47:39 -0700 (PDT)
-Date:   Mon, 25 Mar 2019 17:47:38 -0400
-From:   Joel Fernandes <joel@joelfernandes.org>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=onxJka+F9uKKMLVaiVQoxHthzGT9cz6YE6mr84qlisg=;
+        b=TJfiHXq9w/qkwzOldWz6EtWDR5jMI5N4OwVYXVnYm954lOtEZdzXcBLN6adKnWBmXZ
+         1FV+T5184sahENbNahdiwLa46kT8LjT+WdvyMj1HKggR/0iCZP2vv7N2P/Jj0GnyO9/Y
+         D7CeyRsim39YwEP0h+bXwMyIeJyvnqmEzTNtqJDscJgBZCRdSXuSceDrUzFPofLhc105
+         C6uW0n6tb/RukJIT6CQfoVSX99GaMmQxK0Gnk+plqc/KLnhG9TKRKhJ1R6Am9PhePscc
+         xGXjjIbg6I3XmT0GwbfoE1OEpAgL9R4dml8VtPLbljk0hWpQaZ/hewtAq/Oogv+Fwq5B
+         4/UQ==
+X-Gm-Message-State: APjAAAWcIUgjIHk6/X3UAgRXYMaZNw3io3Ry1FfGEugiz+hwM2Vefyp+
+        WnxUJlsgSmFvQ0Bp4tnMV8T5p4G40maONzbq2nd1CQ==
+X-Google-Smtp-Source: APXvYqyWCN8NiZ6LDpJYsdTnvEytIDAaEpxbxhyUURMf9f2uqVLiCpC48E/9igFxpJ3aptnRfZoAXFP3rr2Qb45Oms0=
+X-Received: by 2002:a5d:6b05:: with SMTP id v5mr10999257wrw.314.1553550518425;
+ Mon, 25 Mar 2019 14:48:38 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190322025135.118201-1-fengc@google.com> <20190322025135.118201-2-fengc@google.com>
+ <20190322150255.GA76423@google.com> <20190324175633.GA5826@google.com>
+ <20190324204454.GA102207@google.com> <CAMOXUJmB50ChULNFYQuamzyw1iiLaQ7GTL-fukom82p=VFgngg@mail.gmail.com>
+In-Reply-To: <CAMOXUJmB50ChULNFYQuamzyw1iiLaQ7GTL-fukom82p=VFgngg@mail.gmail.com>
+From:   Erick Reyes <erickreyes@google.com>
+Date:   Mon, 25 Mar 2019 14:48:27 -0700
+Message-ID: <CAFt2AZWtHBfBV2w_Qm1Noa2-=F60ruE2fN2+Yg+taJdZ4y4Y8w@mail.gmail.com>
+Subject: Re: [RFC v2 1/3] dma-buf: give each buffer a full-fledged inode
 To:     Chenbo Feng <fengc@google.com>
-Cc:     Sandeep Patil <sspatil@android.com>,
+Cc:     Joel Fernandes <joel@joelfernandes.org>,
+        Sandeep Patil <sspatil@android.com>,
         LKML <linux-kernel@vger.kernel.org>,
         DRI mailing list <dri-devel@lists.freedesktop.org>,
         linux-media@vger.kernel.org, kernel-team@android.com,
         Sumit Semwal <sumit.semwal@linaro.org>,
-        Erick Reyes <erickreyes@google.com>,
         Daniel Vetter <daniel@ffwll.ch>,
         John Stultz <john.stultz@linaro.org>
-Subject: Re: [RFC v2 1/3] dma-buf: give each buffer a full-fledged inode
-Message-ID: <20190325214738.GB16969@google.com>
-References: <20190322025135.118201-1-fengc@google.com>
- <20190322025135.118201-2-fengc@google.com>
- <20190322150255.GA76423@google.com>
- <20190324175633.GA5826@google.com>
- <20190324204454.GA102207@google.com>
- <CAMOXUJmB50ChULNFYQuamzyw1iiLaQ7GTL-fukom82p=VFgngg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMOXUJmB50ChULNFYQuamzyw1iiLaQ7GTL-fukom82p=VFgngg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Mar 25, 2019 at 12:34:59PM -0700, Chenbo Feng wrote:
-[snip]
+In the original userspace implementation Greg wrote, he was iterating
+the directory entries in proc/<pid>/map_files, doing readlink() on
+each to find out whether the entry was a dmabuf. This turned out to be
+very slow so we reworked it to parse proc/<pid>/maps instead.
+
+
+On Mon, Mar 25, 2019 at 12:35 PM Chenbo Feng <fengc@google.com> wrote:
+>
+> On Sun, Mar 24, 2019 at 1:45 PM Joel Fernandes <joel@joelfernandes.org> wrote:
+> >
+> > Hi Sandeep,
+> >
+> > On Sun, Mar 24, 2019 at 10:56:33AM -0700, Sandeep Patil wrote:
+> > > On Fri, Mar 22, 2019 at 11:02:55AM -0400, Joel Fernandes wrote:
+> > > > On Thu, Mar 21, 2019 at 07:51:33PM -0700, Chenbo Feng wrote:
+> > > > > From: Greg Hackmann <ghackmann@google.com>
+> > > > >
+> > > > > By traversing /proc/*/fd and /proc/*/map_files, processes with CAP_ADMIN
+> > > > > can get a lot of fine-grained data about how shmem buffers are shared
+> > > > > among processes.  stat(2) on each entry gives the caller a unique
+> > > > > ID (st_ino), the buffer's size (st_size), and even the number of pages
+> > > > > currently charged to the buffer (st_blocks / 512).
+> > > > >
+> > > > > In contrast, all dma-bufs share the same anonymous inode.  So while we
+> > > > > can count how many dma-buf fds or mappings a process has, we can't get
+> > > > > the size of the backing buffers or tell if two entries point to the same
+> > > > > dma-buf.  On systems with debugfs, we can get a per-buffer breakdown of
+> > > > > size and reference count, but can't tell which processes are actually
+> > > > > holding the references to each buffer.
+> > > > >
+> > > > > Replace the singleton inode with full-fledged inodes allocated by
+> > > > > alloc_anon_inode().  This involves creating and mounting a
+> > > > > mini-pseudo-filesystem for dma-buf, following the example in fs/aio.c.
+> > > > >
+> > > > > Signed-off-by: Greg Hackmann <ghackmann@google.com>
+> > > >
+> > > > I believe Greg's address needs to be updated on this patch otherwise the
+> > > > emails would just bounce, no? I removed it from the CC list. You can still
+> > > > keep the SOB I guess but remove it from the CC list when sending.
+> > > >
+> > > > Also about the minifs, just playing devil's advocate for why this is needed.
+> > > >
+> > > > Since you are already adding the size information to /proc/pid/fdinfo/<fd> ,
+> > > > can just that not be used to get the size of the buffer? What is the benefit
+> > > > of getting this from stat? The other way to get the size would be through
+> > > > another IOCTL and that can be used to return other unique-ness related metadata
+> > > > as well.  Neither of these need creation of a dedicated inode per dmabuf.
+> > >
+> > > Can you give an example of "unique-ness related data" here? The inode seems
+> > > like the best fit cause its already unique, no?
+> >
+> > I was thinking dma_buf file pointer, but I agree we need the per-inode now (see below).
+> >
 > > > > Also what is the benefit of having st_blocks from stat? AFAIK, that is the
 > > > > same as the buffer's size which does not change for the lifetime of the
 > > > > buffer. In your patch you're doing this when 'struct file' is created which
@@ -113,9 +158,31 @@ On Mon, Mar 25, 2019 at 12:34:59PM -0700, Chenbo Feng wrote:
 > properly populate the size information in the file object. And we
 > didn't use proc/pid/map_files at all in the android implementation
 > indeed.
-
-You are right.
-
+> >
+> > Which makes me think both maps and map_files can be made more useful if we can
+> > also make DMA_BUF_SET_NAME in the patch change the underlying dentry's name
+> > from the default "dmabuf" to "dmabuf:<name>" ?
+> >
+> > That would be useful because:
+> > 1. It should make /proc/pid/maps also have the name than always showing
+> > "dmabuf".
+> > 2. It should make map_files also point to the name of the buffer than just
+> > "dmabuf". Note that memfd_create(2) already takes a name and the maps_file
+> > for this points to the name of the buffer created and showing it in both maps
+> > and map_files.
+> >
+> > I think this also removes the need for DMA_BUF_GET_NAME ioctl since the
+> > dentry's name already has the information. I can try to look into that...
+> > BTW any case we should not need GET_NAME ioctl since fdinfo already has the
+> > name after SET_NAME is called. So let us drop that API?
+> >
+> > > May be, to make it generic, we make the tracking part optional somehow to
+> > > avoid the apparent wastage on other systems.
+> >
+> > Yes, that's also fine. But I think if we can bake tracking into existing
+> > mechanism and keep it always On, then that's also good for all other dmabuf
+> > users as well and simplifies the kernel configuration for vendors.
+> >
 > > > > I am not against adding of inode per buffer, but I think we should have this
 > > > > debate and make the right design choice here for what we really need.
 > > >
@@ -137,8 +204,21 @@ You are right.
 > Thanks for summarize it, I will look into the GET_NAME/SET_NAME ioctl
 > to make it more useful as you suggested above. Also, I will try to add
 > some test to verify the behavior.
-
-Sounds great, thanks!
-
- - Joel
-
+> >
+> > Just to lay it out, there is a cost to unique inode. Each struct inode is 560
+> > bytes on mainline with x86_64_defconfig. With 1000 buffers, we're looking at
+> > ~ 0.5MB of allocation. However I think I am convinced we need to do it
+> > considering the advantages, and the size is trivial considering advantages.
+> > Arguably large number dmabuf allocations are more likely to succeed with
+> > devices with larger memory resources anyway :)
+> >
+> > It is good to have this discussion.
+> >
+> > thanks,
+> >
+> >  - Joel
+> >
+> > --
+> > You received this message because you are subscribed to the Google Groups "kernel-team" group.
+> > To unsubscribe from this group and stop receiving emails from it, send an email to kernel-team+unsubscribe@android.com.
+> >
