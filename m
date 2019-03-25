@@ -2,196 +2,226 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB43FC43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 03:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE949C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 03:39:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2E9020828
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 03:16:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="jTcIPceX"
+	by mail.kernel.org (Postfix) with ESMTP id 9C8B62082C
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 03:39:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729407AbfCYDQY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 24 Mar 2019 23:16:24 -0400
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:35777 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729298AbfCYDQY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Mar 2019 23:16:24 -0400
-Received: by mail-ot1-f67.google.com with SMTP id m10so6749126otp.2
-        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2019 20:16:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=94YwN85QnedJ3vwLt8fwFdHasxUqo8RcEpdMeNldCWE=;
-        b=jTcIPceXGuqP5O8HijeoUIbOA2HjpoKQkM/Xp/pmeOtGlBq77D//fSpogEVAUH+VFD
-         V1FmE5MyAZYnNtmE7x7zempAPhFXnyr63OAa1L9jE/XZLe16wC/AQgOTwDXZBmAQD30N
-         hTzMNKNDC1d8J2mNvtsIKcCa2M1VzxEcABiY0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=94YwN85QnedJ3vwLt8fwFdHasxUqo8RcEpdMeNldCWE=;
-        b=cSTujFThNrgD0yzYuwB5oiGSulOU7TkDwwjC5+VkD7dkXt8jxYxdtVgxoMOGeHg2Z8
-         I3FI7pm4dcxe7PIp4epiasAAb6GgAV2Wnrc4cwCdwKvSAjsawoJJ8oCXupZM3AkfBFSC
-         4PRJOifOor90EXyamJ56+3jni4+odRhwlrjRWx0d0QRYtWRkzxYMXBhCQzxyPR5E5j9r
-         i9wmUpllWnjCfGzXwYQQZPHqOlSwmlhBIFEB4sng30nBARKg3aTVwRk4/0krV2+z29a4
-         e504dnxCe5pSPdgUPa27f6QOH26pvDPizagox5Oyz59zT5p24uRN7ozKcjVBr3dQuHmf
-         D42w==
-X-Gm-Message-State: APjAAAX6kxMQDVAaf5UbXnWmHKBEAiSFnajqkAv3dKLR0p+Gzf6VOSv7
-        wCY77kRNCuIRez+PAgD7tPqM7ut+ZGs=
-X-Google-Smtp-Source: APXvYqxlmp69i53VPgZ+XnCsTeQH0imIt0iMvRAuy/LL+H0pXTWdkfg6qmjFD8mibngHA2NctKkelA==
-X-Received: by 2002:a9d:754a:: with SMTP id b10mr17024746otl.44.1553483782905;
-        Sun, 24 Mar 2019 20:16:22 -0700 (PDT)
-Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com. [209.85.167.179])
-        by smtp.gmail.com with ESMTPSA id l5sm864654otr.53.2019.03.24.20.16.21
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Mar 2019 20:16:21 -0700 (PDT)
-Received: by mail-oi1-f179.google.com with SMTP id j132so5843771oib.2
-        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2019 20:16:21 -0700 (PDT)
-X-Received: by 2002:aca:b7c4:: with SMTP id h187mr10453933oif.112.1553483780690;
- Sun, 24 Mar 2019 20:16:20 -0700 (PDT)
-MIME-Version: 1.0
-References: <1550221729-29240-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5BOJmE51nrbK+3KGeQWN88iOt--xervThtxrRx3AohFPw@mail.gmail.com>
- <bc3117f8-fd74-2b61-07c0-926fba898d5d@linux.intel.com> <CAAFQd5DQwBZFOzH6oztHhPR1MLQaAWS0MXDOWt8p5E3vibLFBg@mail.gmail.com>
- <2b90b4b3-a844-b3fb-5158-6818cf84f43d@linux.intel.com> <CAAFQd5AOrYukx=+5Hk9Qw8yWZ=PgjESYNcBv3iR_vUcQn74_zg@mail.gmail.com>
- <1b666a30-689e-d46c-f564-ae0848f92d54@linux.intel.com>
-In-Reply-To: <1b666a30-689e-d46c-f564-ae0848f92d54@linux.intel.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Mon, 25 Mar 2019 12:16:10 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5DgYmikHkxkGQhz=oV=h=CPuo03iJ80LZ5LXThiJFbR8A@mail.gmail.com>
-Message-ID: <CAAFQd5DgYmikHkxkGQhz=oV=h=CPuo03iJ80LZ5LXThiJFbR8A@mail.gmail.com>
-Subject: Re: [PATCH] media:staging/intel-ipu3: parameter buffer refactoring
-To:     Bingbu Cao <bingbu.cao@linux.intel.com>
-Cc:     Cao Bing Bu <bingbu.cao@intel.com>,
+        id S1729429AbfCYDjO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 24 Mar 2019 23:39:14 -0400
+Received: from mga04.intel.com ([192.55.52.120]:40072 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729298AbfCYDjN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Mar 2019 23:39:13 -0400
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Mar 2019 20:39:13 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,256,1549958400"; 
+   d="scan'208";a="155455638"
+Received: from ipu5-build.bj.intel.com (HELO [10.238.232.171]) ([10.238.232.171])
+  by fmsmga004.fm.intel.com with ESMTP; 24 Mar 2019 20:39:09 -0700
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+To:     Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>
+Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Yeh, Andy" <andy.yeh@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        libcamera-devel@lists.libcamera.org
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1609628.n3aCoxV5Mp@avalon>
+ <b7380656-13bd-884d-366f-87d690090be8@linux.intel.com>
+ <4147983.Vfm2iTi9Nh@avalon>
+ <c7578347-c1ac-664c-4407-40b968daf377@linux.intel.com>
+ <20190323130221.xr4bvraqnfjdfezk@uno.localdomain>
+From:   Bingbu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <ad0fa0d9-b89b-1c6e-9085-fe361832e9e1@linux.intel.com>
+Date:   Mon, 25 Mar 2019 11:45:58 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
+MIME-Version: 1.0
+In-Reply-To: <20190323130221.xr4bvraqnfjdfezk@uno.localdomain>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Bingbu,
 
-On Wed, Mar 13, 2019 at 1:25 PM Bingbu Cao <bingbu.cao@linux.intel.com> wrote:
->
->
->
-> On 03/12/2019 04:54 PM, Tomasz Figa wrote:
-> > On Tue, Mar 12, 2019 at 5:48 PM Bingbu Cao <bingbu.cao@linux.intel.com> wrote:
-> >>
-> >>
-> >> On 03/12/2019 03:43 PM, Tomasz Figa wrote:
-> >>> On Tue, Mar 12, 2019 at 3:48 PM Bingbu Cao <bingbu.cao@linux.intel.com> wrote:
-> >>>>
-> >>>> On 03/12/2019 01:33 PM, Tomasz Figa wrote:
-> >>>>> Hi Bingbu,
-> >>>>>
-> >>>>> On Fri, Feb 15, 2019 at 6:02 PM <bingbu.cao@intel.com> wrote:
-> >>>>>> From: Bingbu Cao <bingbu.cao@intel.com>
-> >>>>>>
-> >>>>>> Current ImgU driver processes and releases the parameter buffer
-> >>>>>> immediately after queued from user. This does not align with other
-> >>>>>> image buffers which are grouped in sets and used for the same frame.
-> >>>>>> If user queues multiple parameter buffers continuously, only the last
-> >>>>>> one will take effect.
-> >>>>>> To make consistent buffers usage, this patch changes the parameter
-> >>>>>> buffer handling and group parameter buffer with other image buffers
-> >>>>>> for each frame.
-> >>>>> Thanks for the patch. Please see my comments inline.
-> >>>>>
-> >>>>>> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> >>>>>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> >>>>>> ---
-> >>>>>>     drivers/staging/media/ipu3/ipu3-css.c  |  5 -----
-> >>>>>>     drivers/staging/media/ipu3/ipu3-v4l2.c | 41 ++++++++--------------------------
-> >>>>>>     drivers/staging/media/ipu3/ipu3.c      | 24 ++++++++++++++++++++
-> >>>>>>     3 files changed, 33 insertions(+), 37 deletions(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
-> >>>>>> index b9354d2bb692..bcb1d436bc98 100644
-> >>>>>> --- a/drivers/staging/media/ipu3/ipu3-css.c
-> >>>>>> +++ b/drivers/staging/media/ipu3/ipu3-css.c
-> >>>>>> @@ -2160,11 +2160,6 @@ int ipu3_css_set_parameters(struct ipu3_css *css, unsigned int pipe,
-> >>>>>>            obgrid_size = ipu3_css_fw_obgrid_size(bi);
-> >>>>>>            stripes = bi->info.isp.sp.iterator.num_stripes ? : 1;
-> >>>>>>
-> >>>>>> -       /*
-> >>>>>> -        * TODO(b/118782861): If userspace queues more than 4 buffers, the
-> >>>>>> -        * parameters from previous buffers will be overwritten. Fix the driver
-> >>>>>> -        * not to allow this.
-> >>>>>> -        */
-> >>>>> Wouldn't this still happen even with current patch?
-> >>>>> imgu_queue_buffers() supposedly queues "as many buffers to CSS as
-> >>>>> possible". This means that if the userspace queues more than 4
-> >>>>> complete frames, we still end up overwriting the parameter buffers in
-> >>>>> the pool. Please correct me if I'm wrong.
-> >>>> The parameter buffers are queued to CSS sequentially and queue one
-> >>>> parameter along with one input buffer once ready, all the data and
-> >>>> parameter buffers are tied together to queue to the CSS. If userspace
-> >>>> queue more parameter buffers then input buffer, they are pending on the
-> >>>> buffer list.
-> >>> It doesn't seem to be what the code does. I'm talking about the
-> >>> following example:
-> >>>
-> >>> Queue OUT buffer 1
-> >>> Queue PARAM buffer 1
-> >>> Queue IN buffer 1
-> >>> Queue OUT buffer 2
-> >>> Queue PARAM buffer 2
-> >>> Queue IN buffer 2
-> >>> Queue OUT buffer 3
-> >>> Queue PARAM buffer 3
-> >>> Queue IN buffer 3
-> >>> Queue OUT buffer 4
-> >>> Queue PARAM buffer 4
-> >>> Queue IN buffer 4
-> >>> Queue OUT buffer 5
-> >>> Queue PARAM buffer 5
-> >>> Queue IN buffer 5
-> >>>
-> >>> All the operations happening exactly one after each other. How would
-> >>> the code prevent the 5th PARAM buffer to be queued to the IMGU, after
-> >>> the 5th IN buffer is queued? As I said, imgu_queue_buffers() just
-> >>> queues as many buffers of each type as there are IN buffers available.
-> >> So the parameter pool now is only used as record last valid parameter not
-> >> used as a list or cached, all the parameters will be queued to CSS as soon as
-> >> possible(if queue for CSS is not full).
-> >> As the size of pool now is a bit confusing, I think we can shrink the its value
-> >> for each pipe to 2.
-> > I don't follow. Don't we take one buffer from the pool, fill in the
-> > parameters in hardware format there and then queue that buffer from
-> > the pool to the ISP? The ISP wouldn't read those parameters from the
-> > buffer until the previous frame is processed, would it?
-> Hi, Tomasz,
->
-> Currently, driver did not take the buffer from pool to queue to ISP,
-> it just queue the parameter buffer along with input frame buffer depends
-> on each user queue request.
->
-> You are right, if user queue massive buffers one time, it will cause
-> the firmware queue full. Driver should keep the buffer in its list
-> instead of returning back to user irresponsibly.
->
-> We are thinking about queue one group of buffers(input, output and params)
-> to ISP one time and wait the pipeline finished and then queue next group
-> of buffers. All the buffers are pending on the buffer list.
-> What do you think about this behavior?
 
-Sorry, I was sure I replied to your email, but apparently I didn't.
+On 3/23/19 9:02 PM, Jacopo Mondi wrote:
+> Hello,
+>    sorry for resurrecting the thread.
+> 
+> The development of libcamera has IPU3 devices as first target, and
+> we're now at the point where some clarifications are required.
+> I'll re-use this email, as some of points were already stated here
+> and, as they've become pressing for libcamera development, I would like
+> to have them clarified here on the list.
+> 
+> On Wed, Jan 02, 2019 at 10:38:33AM +0800, Bingbu Cao wrote:
+>>
+>> On 12/26/2018 07:03 PM, Laurent Pinchart wrote:
+>>> Hello Bingbu,
+>>>
+> 
+> [snip]
+> 
+>>>>>>>>> 2. ImgU pipeline needs to be configured for image processing as below.
+>>>>>>>>>
+>>>>>>>>> RAW bayer frames go through the following ISP pipeline HW blocks to
+>>>>>>>>> have the processed image output to the DDR memory.
+>>>>>>>>>
+>>>>>>>>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
+>>>>>>>>> Geometric Distortion Correction (GDC) -> DDR
+>>>>>>>>>
+>>>>>>>>> The ImgU V4L2 subdev has to be configured with the supported
+>>>>>>>>> resolutions in all the above HW blocks, for a given input resolution.
+>>>>>>>>>
+>>>>>>>>> For a given supported resolution for an input frame, the Input Feeder,
+>>>>>>>>> Bayer Down Scaling and GDC blocks should be configured with the
+>>>>>>>>> supported resolutions. This information can be obtained by looking at
+>>>>>>>>> the following IPU3 ISP configuration table for ov5670 sensor.
+>>>>>>>>>
+>>>>>>>>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+
+>>>>>>>>> /master/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/
+>>>>>>>>> files/gcss/graph_settings_ov5670.xml
+>>>>>>>>>
+>>>>>>>>> For the ov5670 example, for an input frame with a resolution of
+>>>>>>>>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
+>>>>>>>>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
+>>>>>>>>> 2560x1920 respectively.
+>>>>>>>> How is the GDC output resolution computed from the input resolution ?
+>>>>>>>> Does the GDC always consume 32 columns and 22 lines ?
+>>>>>> All the intermediate resolutions in the pipeline are determined by the
+>>>>>> actual use case, in other word determined by the IMGU input
+>>>>>> resolution(sensor output) and the final output and viewfinder resolution.
+>>>>>> BDS mainly do Bayer downscaling, it has limitation that the downscaling
+>>>>>> factor must be a value a integer multiple of 1/32.
+>>>>>> GDC output depends on the input and width should be x8 and height x4
+>>>>>> alignment.
+>>>>> Thank you for the information. This will need to be captured in the
+>>>>> documentation, along with information related to how each block in the
+>>>>> hardware pipeline interacts with the image size. It should be possible for
+>>>>> a developer to compute the output and viewfinder resolutions based on the
+>>>>> parameters of the image processing algorithms just with the information
+>>>>> contained in the driver documentation.
+> 
+> In libcamera development we're now at the point of having to calculate
+> the sizes to apply to all intermediate pipeline stages based on the
+> following informations:
+> 
+> 1) Main output resolution
+> 2) Secondary output resolution (optional)
+> 3) Image sensor's available resolutions
+> 
+> Right now that informations are captured in the xml file you linked
+> here above, but we need a programmatic way to do the calculation,
+> without going through an XML file, that refers to two specific sensors
+> only.
+> 
+> As Laurent said here, this should come as part of the documentation
+> for driver users and would unblock libcamera IPU3 support
+> development.
+> 
+> Could you provide documentation on how to calculate each
+> intermediate step resolutions?
+All the intermediate step resolutions are generated by the specific tool
+with sensor input and outputs resolutions.
 
-Yes, that would certainly work, but wouldn't it introduce pipeline
-bubbles, potentially affecting the performance?
+The tool try to keep maximum fov and has the knowledge of all the
+limitations of each intermediate hardware components(mainly BDS and GDC).
 
-Best regards,
-Tomasz
+Currently, there is not a very simple calculation to get the
+intermediate resolutions.
+Let's take some effort to try find a programmatic way to do calculation
+instead of the tool.
+
+> 
+>>>>>
+> 
+> [snip]
+> 
+>>>>>>>>> 3. The ImgU V4L2 subdev composing should be set by using the
+>>>>>>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
+>>>>>>>>> target, using the BDS height and width.
+>>>>>>>>>
+>>>>>>>>> Once these 2 steps are done, the raw bayer frames can be input to the
+>>>>>>>>> ImgU V4L2 subdev for processing.
+>>>>>>>> Do I need to capture from both the output and viewfinder nodes ? How
+>>>>>>>> are they related to the IF -> BDS -> GDC pipeline, are they both fed
+>>>>>>>> from the GDC output ? If so, how does the viewfinder scaler fit in that
+>>>>>>>> picture ?
+>>>>>> The output capture should be set, the viewfinder can be disabled.
+>>>>>> The IF and BDS are seen as crop and compose of the imgu input video
+>>>>>> device. The GDC is seen as the subdev sink pad and OUTPUT/VF are source
+>>>>>> pads.
+> 
+> This is another point that we would like to have clarified:
+> 1) which outputs are mandatory and which one are not
+> 2) which operations are mandatory on un-used outputs
+> 3) does the 'ipu_pipe_mode' control impact this
+> 
+> As you mentioned here, "output" seems to be mandatory, while
+> "viewfinder" and "stat" are optional. We have tried using the "output"
+> video node only but the system hangs to an un-recoverable state.
+Yes, main output is mandatory, 'vf' and 'stat' are optional.
+
+> 
+> What I have noticed is instead that the viewfinder and stat nodes
+> needs to be:
+> 1) Linked to the respective "ImgU" subdevice pads
+> 2) Format configured
+> 3) Memory reserved
+> 4) video device nodes started
+> 
+> It it not required to queue/dequeue buffers from viewfinder and stat,
+> but steps 1-4 have to be performed.
+> 
+> Can you confirm this is intended?
+
+viewfinder and stats are enabled when the link for respective subdev
+pads enabled, and then driver can use these input conditions to find the
+binary to run.
+
+> Could you please list all the steps that have to be applied to the
+> ImgU's capture video nodes, and which ones are mandatory and which ones
+> are optional, for the following use cases:
+> 1) Main output capture only
+> 2) Main + secondary output capture
+> 3) Secondary capture only.
+I think the 3) is not supported.
+
+The steps are:
+1). link necessary the respective subdevices
+input --> imgu -->output
+            |  -->vf
+            |  -->3a stats
+
+2). set all the formats for input, output and intermediate resolutions.
+3). start stream
+
+The ipu pipe_mode will not impact the whole pipe behavior. It just ask
+firmware to run different processing to generate same format outputs.
+
+> 
+> Thanks
+>    j
+> 
