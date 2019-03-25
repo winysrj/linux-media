@@ -6,24 +6,24 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61515C43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 22:03:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1ACBC43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 22:03:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32E3920857
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 22:03:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D5AB20857
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 22:03:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553551425;
-	bh=+GPqgvndcKe29NOOKlw1ZLd/qmeExxVHalIDi3XNkDk=;
+	s=default; t=1553551427;
+	bh=rj89IS6NBqMCtG0tgj9705zTQNwGHNaeKbQlFGjUaZA=;
 	h=From:Cc:Subject:Date:In-Reply-To:References:To:List-ID:From;
-	b=JVP6oUvQsDdZ8YgYl2TYsNsfofc4p8SYhBZERW9dq/cloLCwZmnb5HmgecHVlZCQd
-	 Nig44JaQMpAQBAcyxKNr5nmeB5hjTh2QIjCNHAy7hTUk6vYIJWUGXvBeN+yCHuXSa5
-	 MUOp8CS06Y/ZHiFhEV3P6i1Fx7u2bUGTqSFY5B6g=
+	b=qPCjVhHR2ENW/Xdy5jC/U6eRMd9wKVmqbcSTYLeN1uqxtTSJOJ8Rrc06BnwGndogM
+	 V9PXiEAd6ZpL2qyC+5eK563SBZXxyauvRVLIAOzwCIVB8uVWbzAGCf2OS76nX4OdTo
+	 YwnpYvxD4YCvn8JRu0Y7QSUoQRHdDWgYQpQ6KgxU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730616AbfCYWDo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 18:03:44 -0400
-Received: from bombadil.infradead.org ([198.137.202.133]:54914 "EHLO
+        id S1730599AbfCYWDq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 18:03:46 -0400
+Received: from bombadil.infradead.org ([198.137.202.133]:54904 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730006AbfCYWDm (ORCPT
+        with ESMTP id S1730239AbfCYWDm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 25 Mar 2019 18:03:42 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
@@ -32,26 +32,29 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=JMuLDl4OtgdYsBvKKL7DpQ6Euc4wIOaih+OS0AYRBto=; b=SB3YPrzVGnrNVTIe84RRkTwENh
-        eZHhemB7AGSaNRL6v1jijNWfSQmnMisi1o8Tp/X68rfogNUyJt7N9+hOD/qMD2VBTnCdJ2AXpS5gL
-        f6YKMz7vmJgmZMi0gXbWNKI8aSTwQ1XzTAvI+Z5i+akPccM0LxBHskjoGgSExuSQVr5THzODB2L5f
-        ogH3zxGdCrmQGWO4aUYTn6tH+OBWrfbU1aGsEBg4OQdFKKPZv7EAPwQu2LL5dG49udPPvHnae7Ca3
-        cxJMg5l+xTpMVWj2cbn19IYMuKQkZKhO8/WmhqMqv6vaWxjdA1KAhQokbcIh1xyakNoJf/UtOFUMB
-        mJXjC0IA==;
+        bh=8VVRBoSZaHcx+Icp5Vi++XQ8nBFddv1snNBVIo4konU=; b=Iz4j6C2sVemHUewI0E5Aw94XJV
+        cQGpZtcJ9Fw+TN9qySMhsdetqPnjMbPZBZn+CGREaMH2gC0ItGvg7f3obBgan0IoAS1YYaOpTs2cQ
+        sNijvnSRKht/NrJ0NfmFCbZ27RQlhZrrXr0iDmT9GgrySNdL949PliWkMqvvLZbygteJK1yN9/MRW
+        ECW7ONLquSNWw8+ZTw7kClJItd3B5AxMKsVMIfksrZ/S/juVotghRgTDQ5a+no2WcYNI9Xp6sQV1m
+        zup8hYoogEJvslVsYH9IblRZ7oWtMd1LoTb5JITXUYqW2QEWi+rVPsIBmg3RD+xpzTCKn5km8s1nQ
+        KkRWeDDA==;
 Received: from 177.41.113.24.dynamic.adsl.gvt.net.br ([177.41.113.24] helo=bombadil.infradead.org)
         by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h8Xh0-0001YD-E0; Mon, 25 Mar 2019 22:03:42 +0000
+        id 1h8Xh0-0001YH-AV; Mon, 25 Mar 2019 22:03:42 +0000
 Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
         (envelope-from <mchehab@bombadil.infradead.org>)
-        id 1h8Xgw-0001al-Hq; Mon, 25 Mar 2019 18:03:38 -0400
+        id 1h8Xgw-0001ax-KH; Mon, 25 Mar 2019 18:03:38 -0400
 From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/5] media: pwc-ctl: pChoose can't be NULL
-Date:   Mon, 25 Mar 2019 18:03:34 -0400
-Message-Id: <4f777d011bdd9e78fcf02701e89c8be457504a6c.1553551369.git.mchehab+samsung@kernel.org>
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Andy Gross <andy.gross@linaro.org>,
+        David Brown <david.brown@linaro.org>,
+        linux-arm-msm@vger.kernel.org
+Subject: [PATCH 5/5] media: hfi_parser: don't trick gcc with a wrong expected size
+Date:   Mon, 25 Mar 2019 18:03:37 -0400
+Message-Id: <ded716267196862809e5926072adc962a611a1e3.1553551369.git.mchehab+samsung@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.1553551369.git.mchehab+samsung@kernel.org>
 References: <cover.1553551369.git.mchehab+samsung@kernel.org>
@@ -63,73 +66,45 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The way the code works, compression will be a valid value (less or equal to 3)
-on both set_video_mode_foo() calls at the beginning of the while() loop.
+Smatch warns about small size on two structs:
 
-So, the value for pChoose can't be NULL.
+	drivers/media/platform/qcom/venus/hfi_parser.c:103 parse_profile_level() error: memcpy() 'proflevel' too small (8 vs 128)
+	drivers/media/platform/qcom/venus/hfi_parser.c: drivers/media/platform/qcom/venus/hfi_parser.c:129 parse_caps() error: memcpy() 'cap' too small (16 vs 512)
 
-Solves those smatch warnings:
+The reason is that the hfi_parser actually expects:
+    - multiple data entries on hfi_capabilities
+    - multiple profile_level on hfi_profile_level_supported
 
-	drivers/media/usb/pwc/pwc-ctrl.c: drivers/media/usb/pwc/pwc-ctrl.c:252 set_video_mode_Timon() warn: variable dereferenced before check 'pChoose' (see line 248)
-	drivers/media/usb/pwc/pwc-ctrl.c: drivers/media/usb/pwc/pwc-ctrl.c:302 set_video_mode_Kiara() warn: variable dereferenced before check 'pChoose' (see line 298)
-
-and simplifies the code a little bit.
+However, the structs trick gcc, making it to believe that
+there's just one value for each.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/usb/pwc/pwc-ctrl.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/media/platform/qcom/venus/hfi_helper.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/pwc/pwc-ctrl.c b/drivers/media/usb/pwc/pwc-ctrl.c
-index 655cef39eb3d..b681a184ef87 100644
---- a/drivers/media/usb/pwc/pwc-ctrl.c
-+++ b/drivers/media/usb/pwc/pwc-ctrl.c
-@@ -242,14 +242,14 @@ static int set_video_mode_Timon(struct pwc_device *pdev, int size, int pixfmt,
- 	fps = (frames / 5) - 1;
+diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h b/drivers/media/platform/qcom/venus/hfi_helper.h
+index 15804ad7e65d..34ea503a9842 100644
+--- a/drivers/media/platform/qcom/venus/hfi_helper.h
++++ b/drivers/media/platform/qcom/venus/hfi_helper.h
+@@ -569,7 +569,7 @@ struct hfi_capability {
  
- 	/* Find a supported framerate with progressively higher compression */
--	pChoose = NULL;
--	while (*compression <= 3) {
-+	do {
- 		pChoose = &Timon_table[size][fps][*compression];
- 		if (pChoose->alternate != 0)
- 			break;
- 		(*compression)++;
--	}
--	if (pChoose == NULL || pChoose->alternate == 0)
-+	} while (*compression <= 3);
-+
-+	if (pChoose->alternate == 0)
- 		return -ENOENT; /* Not supported. */
+ struct hfi_capabilities {
+ 	u32 num_capabilities;
+-	struct hfi_capability data[1];
++	struct hfi_capability *data;
+ };
  
- 	if (send_to_cam)
-@@ -279,7 +279,7 @@ static int set_video_mode_Timon(struct pwc_device *pdev, int size, int pixfmt,
- static int set_video_mode_Kiara(struct pwc_device *pdev, int size, int pixfmt,
- 				int frames, int *compression, int send_to_cam)
- {
--	const struct Kiara_table_entry *pChoose = NULL;
-+	const struct Kiara_table_entry *pChoose;
- 	int fps, ret = 0;
+ #define HFI_DEBUG_MSG_LOW	0x01
+@@ -726,7 +726,7 @@ struct hfi_profile_level {
  
- 	if (size >= PSZ_MAX || *compression < 0 || *compression > 3)
-@@ -293,13 +293,14 @@ static int set_video_mode_Kiara(struct pwc_device *pdev, int size, int pixfmt,
- 	fps = (frames / 5) - 1;
+ struct hfi_profile_level_supported {
+ 	u32 profile_count;
+-	struct hfi_profile_level profile_level[1];
++	struct hfi_profile_level *profile_level;
+ };
  
- 	/* Find a supported framerate with progressively higher compression */
--	while (*compression <= 3) {
-+	do {
- 		pChoose = &Kiara_table[size][fps][*compression];
- 		if (pChoose->alternate != 0)
- 			break;
- 		(*compression)++;
--	}
--	if (pChoose == NULL || pChoose->alternate == 0)
-+	} while (*compression <= 3);
-+
-+	if (pChoose->alternate == 0)
- 		return -ENOENT; /* Not supported. */
- 
- 	/* Firmware bug: video endpoint is 5, but commands are sent to endpoint 4 */
+ struct hfi_quality_vs_speed {
 -- 
 2.20.1
 
