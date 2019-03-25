@@ -6,78 +6,51 @@ X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95EBAC43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 14:37:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4952C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 15:33:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F6ED20879
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 14:37:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C3F12083D
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 15:33:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729039AbfCYOhj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 10:37:39 -0400
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:38068 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725355AbfCYOhj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Mar 2019 10:37:39 -0400
-Received: from arch-x1c3 (unknown [IPv6:2a00:5f00:102:0:9665:9cff:feee:aa4d])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: evelikov)
-        by bhuna.collabora.co.uk (Postfix) with ESMTPSA id D4AF1281568;
-        Mon, 25 Mar 2019 14:37:37 +0000 (GMT)
-Date:   Mon, 25 Mar 2019 14:32:08 +0000
-From:   Emil Velikov <emil.velikov@collabora.com>
-To:     Ezequiel Garcia <ezequiel@collabora.com>
-Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        linux-rockchip@lists.infradead.org,
-        Heiko Stuebner <heiko@sntech.de>,
-        Jonas Karlman <jonas@kwiboo.se>
-Subject: Re: [PATCH v2 02/11] media: Introduce helpers to fill pixel format
- structs
-Message-ID: <20190325143207.GA24966@arch-x1c3>
-References: <20190304192529.14200-1-ezequiel@collabora.com>
- <20190304192529.14200-3-ezequiel@collabora.com>
+        id S1729046AbfCYPdC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 11:33:02 -0400
+Received: from muru.com ([72.249.23.125]:42432 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725747AbfCYPdC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Mar 2019 11:33:02 -0400
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id ABF4080CC;
+        Mon, 25 Mar 2019 15:33:15 +0000 (UTC)
+Date:   Mon, 25 Mar 2019 08:32:58 -0700
+From:   Tony Lindgren <tony@atomide.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-omap@vger.kernel.org
+Subject: CEC blocks idle on omap4
+Message-ID: <20190325153258.GU5717@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190304192529.14200-3-ezequiel@collabora.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+User-Agent: Mutt/1.11.2 (2019-01-07)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Ezequiel,
+Hi Hans,
 
-On 2019/03/04, Ezequiel Garcia wrote:
+Looks like CONFIG_OMAP4_DSS_HDMI_CEC=y blocks SoC core retention
+idle on omap4 if selected.
 
-> +
-> +/* Pixel format and FourCC helpers */
-> +
-> +/**
-> + * struct v4l2_format_info - information about a V4L2 format
-> + * @format: 4CC format identifier (V4L2_PIX_FMT_*)
-> + * @mem_planes: Number of memory planes, which includes the alpha plane (1 to 4).
-> + * @comp_planes: Number of component planes, which includes the alpha plane (1 to 4).
-> + * @bpp: Array of per-plane bytes per pixel
-> + * @hdiv: Horizontal chroma subsampling factor
-> + * @vdiv: Vertical chroma subsampling factor
-> + */
-> +struct v4l2_format_info {
-> +	u32 format;
-> +	u8 mem_planes;
-> +	u8 comp_planes;
-> +	u8 bpp[4];
-> +	u8 hdiv;
-> +	u8 vdiv;
-> +	u8 block_w[4];
-> +	u8 block_h[4];
+Should we maybe move hdmi4_cec_init() to hdmi_display_enable()
+and hdmi4_cec_uninit() to hdmi_display_disable()?
 
-Please don't forget to document block_[wh]. Plus you can draw some extra
-inspiration from drm_format_info in include/drm/drm_fourcc.h ;-)
+Or add some enable/disable calls in addtion to the init and
+uninit calls that can be called from hdmi_display_enable()
+and hdmi_display_disable()?
 
-HTH
-Emil
+Cheers,
+
+Tony
