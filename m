@@ -2,117 +2,96 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E63FC43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 17:09:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48615C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 17:35:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4EE632087C
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 17:09:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553533783;
-	bh=uibXXmgBYELjgOG0VY+mpQzazdrOespDLyLqF/PteHc=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=lE00cRZwDmqDhaBYkkwgNF3JLRjrEw3cHo/RYl8Ho8+RSTzn9iAZwO9Ljl0w3LY2k
-	 xJ7Jgvod6H39H5tyPmHsdvApP8hEUNL9ZvmcwcTex8dIQ+YpKmtA6QqkwHpQ+9wZl8
-	 LgZIay3Vcx0+eUYv9nnSkRB9kcZ0zWRQe2yBkjiM=
+	by mail.kernel.org (Postfix) with ESMTP id 1A0F021473
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 17:35:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=baylibre-com.20150623.gappssmtp.com header.i=@baylibre-com.20150623.gappssmtp.com header.b="sQMq7KvH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729748AbfCYRJg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 13:09:36 -0400
-Received: from casper.infradead.org ([85.118.1.10]:48358 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730326AbfCYRIs (ORCPT
+        id S1730030AbfCYRfK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 13:35:10 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:38995 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730012AbfCYRfK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Mar 2019 13:08:48 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=uibXXmgBYELjgOG0VY+mpQzazdrOespDLyLqF/PteHc=; b=dyZcC5wIW3ZQPfaUGbXuF4ywO8
-        zhMO5odI9W5k73xUNUedJ7ezBhRPVuYZSZN7VlGOw6AgTqAlv+PMBLF3TALpkDg20kbVvrDQvoiHF
-        Z1CWOABuC/trsrhjLEIe6PNhhSUTXhIIE/oqlBCmnqC3lTj3+05RMCCKp/RMU0rzhkF7rhjrK+Ii0
-        uTgfN/YXhXMic4RLzSYUGPrOyCxm9gOob3ki0oKTRHYpBls7hSkW1ySP78u1ugS1JUX+idWE2bdUw
-        QuQfNP2ZwqehjBkIwEtKB9qs6BAanv3ZHAm7vQH16pS3ZOR6yjv+M1jlfQ7VRK58aP0wzeqR1q+Rb
-        IKqqsggw==;
-Received: from 177.41.113.24.dynamic.adsl.gvt.net.br ([177.41.113.24] helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h8T5Z-0000KO-O1; Mon, 25 Mar 2019 17:08:46 +0000
-Date:   Mon, 25 Mar 2019 14:08:38 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Samuel CHEMLA <chemla.samuel@gmail.com>
-Cc:     Gregor Jasny <gjasny@googlemail.com>, Sean Young <sean@mess.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [Bug report] dvbv5-zap crash dvb-tool ARMHF builds
-Message-ID: <20190325140838.71f88eac@coco.lan>
-In-Reply-To: <CANJnhGfRtEwAony5Z4rFMPcu58aF2k0G+9NSkMKsq_PhfmSNqw@mail.gmail.com>
-References: <f4b69417-06c3-f9ab-2973-ae23d76088b8@gmail.com>
-        <29bad771-843c-1dee-906c-6e9475aed7d8@gmail.com>
-        <d291e164-993f-232a-f01b-0f8c17087004@googlemail.com>
-        <20190315223425.hiq3qcjhjnirsizh@gofer.mess.org>
-        <20190317065242.137cb095@coco.lan>
-        <20190319164507.7f95af89@coco.lan>
-        <a1f296ba-3c27-ed2c-3912-4edbeeb21eba@googlemail.com>
-        <20190321094127.ysurm4u26zugmnmv@gofer.mess.org>
-        <20190321083044.621f1922@coco.lan>
-        <35ba4e81-fc2a-87ed-8da7-43cc4543de51@googlemail.com>
-        <CANJnhGfRtEwAony5Z4rFMPcu58aF2k0G+9NSkMKsq_PhfmSNqw@mail.gmail.com>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Mon, 25 Mar 2019 13:35:10 -0400
+Received: by mail-wm1-f67.google.com with SMTP id t124so10005111wma.4
+        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2019 10:35:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=RNAd7GNGVbL6BOuK6iIVW4N9neq3YiGA4nYoCz6Ftyo=;
+        b=sQMq7KvHn3sMMcaQxOtmi2qTduUxd1RA57Va8ms9P59Ij4z2j7vv9tojf5j5J7fwq5
+         MWeR9J/qyEsPkHOC2+Z585l5+F0Zh4fnjif2CkIHbojMWXQqNzPEabUXw5+MAMTmZ4lo
+         PphuzAZFa1rj5FmA61v0O1zDJksjcDbYmzGIuzFA/F0Yqbls7t8GIQpGs9BdlgJc5oLU
+         nNPo4FK7+aUEmKw0HcSTcB7CnE96kLiRMa4LpcfIihVO90vMbURwXCxnlSv4JLXw2t+2
+         b1CP4WjVH0z7g3uG7gXzlG/FrPKwSZZTM43OYREd7tpx2RbNW/6dRmPknA6K1UI8MjMM
+         7tLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=RNAd7GNGVbL6BOuK6iIVW4N9neq3YiGA4nYoCz6Ftyo=;
+        b=sYNqVrCL9g9IdquDdr0NRFHHYupNZIIAZg/8cBDi1I/+ukP5GbXVBkJk6/7EU2aWEy
+         PTWQ0Qpjm9gRybA3Kvb4Fp7Zhl5pOBMaD+98yjNM1+XMmY0TNl+HX3YNQ8Df51sYZPNr
+         9Y/EK1k6OyHxZ4mhBIKc2A0UCrzfqP+tkKZuGtUA/9p/zzneGzj8Q916gbifqs3B1SwK
+         WsNZmwInyRZ2+oB+f89KEeizOvh0hMawZ3kXSLA9jWmLBe2e/ptkxBCYKk85nZUO+vXM
+         nDcdbSBFmVGxBCTgyKL7Ba7K+pZR52Mzsh1JbSH4NiKIASRu+TF5rg1v8jjPOqLEUCtX
+         9QgA==
+X-Gm-Message-State: APjAAAXT7uojkYJCID578TXpLLMAe4IOAZftYFf0IlSwjcHGZP0wnET/
+        lufzOlgFLGz7WPGdCQfM1xoaHg==
+X-Google-Smtp-Source: APXvYqydrU9CNZBNoLuQ6RGOoM2DitzwKBc12fZmJ92ZUTM0/6LOx3lDvo2mrQWVye2ijcj3pbT5Nw==
+X-Received: by 2002:a1c:6c08:: with SMTP id h8mr6169561wmc.146.1553535308427;
+        Mon, 25 Mar 2019 10:35:08 -0700 (PDT)
+Received: from localhost.localdomain (176-150-251-154.abo.bbox.fr. [176.150.251.154])
+        by smtp.gmail.com with ESMTPSA id o15sm16003227wrj.59.2019.03.25.10.35.06
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Mon, 25 Mar 2019 10:35:06 -0700 (PDT)
+From:   Neil Armstrong <narmstrong@baylibre.com>
+To:     hverkuil@xs4all.nl, mchehab@kernel.org
+Cc:     Neil Armstrong <narmstrong@baylibre.com>,
+        linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] MAINTAINERS: Update AO CEC with ao-cec-g12a driver
+Date:   Mon, 25 Mar 2019 18:35:01 +0100
+Message-Id: <20190325173501.22863-4-narmstrong@baylibre.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190325173501.22863-1-narmstrong@baylibre.com>
+References: <20190325173501.22863-1-narmstrong@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Mon, 25 Mar 2019 17:33:30 +0100
-Samuel CHEMLA <chemla.samuel@gmail.com> escreveu:
+Update the MAINTAINERS entry with the new AO-CEC driver for G12A.
 
-> Hi guys,
->=20
-> I'm afraid I'm coming with sad news.
-> I just tried both stable-1.12 and stable-1.16 on a raspberry pi 2, and
-> random hangs are back (see https://bugs.launchpad.net/raspbian/+bug/18196=
-50
-> ).
-> I previously test both branches on a raspberry zero and issues were gone
-> (same raspbian version).
-> There may be more memory issues somewhere...
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-Could you test it with valgrind?=20
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e17ebf70b548..bbad8f3ee3e8 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10046,6 +10046,7 @@ L:	linux-amlogic@lists.infradead.org
+ W:	http://linux-meson.com/
+ S:	Supported
+ F:	drivers/media/platform/meson/ao-cec.c
++F:	drivers/media/platform/meson/ao-cec-g12a.c
+ F:	Documentation/devicetree/bindings/media/meson-ao-cec.txt
+ T:	git git://linuxtv.org/media_tree.git
+ 
+-- 
+2.21.0
 
->=20
-> Sam
->=20
-> Le jeu. 21 mars 2019 =C3=A0 20:59, Gregor Jasny <gjasny@googlemail.com> a=
- =C3=A9crit :
->=20
-> > Hello,
-> >
-> > On 21.03.19 12:30, Mauro Carvalho Chehab wrote: =20
-> > > I went ahead and cherry-picked the relevant patches to -1.12, -1.14 a=
-nd
-> > > -1.16, and tested both dvbv5-zap and dvbv5-scan with all versions. So=
-, =20
-> > we can =20
-> > > release a new minor version for all those stable branches.
-> > >
-> > > After the patches, on my tests, I didn't get any memory leaks or
-> > > double-free issues. =20
-> >
-> > I issues a new 1.12, 1.14, and 1.16 release.
-> >
-> > Thanks,
-> > Gregor
-> >
-> > =20
-
-
-
-Thanks,
-Mauro
