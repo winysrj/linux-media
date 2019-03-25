@@ -2,84 +2,98 @@ Return-Path: <SRS0=dbhF=R4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B226AC43381
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 15:52:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45977C43381
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 15:55:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8AE4920896
-	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 15:52:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0131120896
+	for <linux-media@archiver.kernel.org>; Mon, 25 Mar 2019 15:55:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="Rw+KsPaz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729591AbfCYPwF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 25 Mar 2019 11:52:05 -0400
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44163 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729106AbfCYPwF (ORCPT
+        id S1729723AbfCYPzs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 25 Mar 2019 11:55:48 -0400
+Received: from perceval.ideasonboard.com ([213.167.242.64]:39156 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726182AbfCYPzq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Mar 2019 11:52:05 -0400
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id 8RtFhh8G0NG8z8RtIhQE8D; Mon, 25 Mar 2019 16:52:03 +0100
-Subject: Re: CEC blocks idle on omap4
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mon, 25 Mar 2019 11:55:46 -0400
+Received: from pendragon.ideasonboard.com (p5269001-ipngn11702marunouchi.tokyo.ocn.ne.jp [114.158.195.1])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 015BB2F3;
+        Mon, 25 Mar 2019 16:55:43 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1553529344;
+        bh=JrmJ+tGU9QZ7eKP3WIFBlQlZFt+zyCVxd09QnxDWwDg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Rw+KsPazVjZlovPDgGVfvaro2H1jW435aDOuKtY2BV3WTXL3u+0s+TUl4CnbBPi8i
+         N35BE9Gf9RFAQMhY0D9ZxCbRxMZ/gdDoRawA1AAaQ3bnwNitLeX/775JlOmngn2hAM
+         l8ga16KwgByEjWfX/j4/0DnZ1GHSQXZffAjbuttY=
+Date:   Mon, 25 Mar 2019 17:55:32 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
         linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-omap@vger.kernel.org
+Subject: Re: CEC blocks idle on omap4
+Message-ID: <20190325155532.GB8280@pendragon.ideasonboard.com>
 References: <20190325153258.GU5717@atomide.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
-Date:   Mon, 25 Mar 2019 16:51:57 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+ <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20190325153258.GU5717@atomide.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfAftd1gqS9cUGx32QGh8lt+3RkLuoBNCNTZq0d4ux+oflnUOJojffyyz+GawIu96Q2lNy9Mmjm/HqSu7dr+3U7BbhqqU2XO36nL4KxH/kA4QT4+pVSOv
- nFFJ/68SluKSVuC0BRcqBSawZW9IEp2x1qJAZlmQGzJwDdtxp0AiOckRAbkrFRov1lz6Tkx9NFSSBpBXWngx3BerxrkW0vHoD7x+KZ2kI2gAXjXXudPVuTGY
- RCJmu+v+0SW6iTD4WfSy/VSTM2r6I3si28ZvTWk4/snXdhlcUOxXVrdxVatVXYjLDggf7JpDmp5J2yyqjbxFKXTiG+x/qFOIK/oKu4Ic19Llt2zzywhyt5e+
- 4HD2FW3WzlasE//IHO1ii2Votl43pQ==
+Content-Disposition: inline
+In-Reply-To: <dc7e900c-52e2-3268-6c08-6a5b0049135a@xs4all.nl>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Tony,
+Hi Hans,
 
-On 3/25/19 4:32 PM, Tony Lindgren wrote:
-> Hi Hans,
+On Mon, Mar 25, 2019 at 04:51:57PM +0100, Hans Verkuil wrote:
+> On 3/25/19 4:32 PM, Tony Lindgren wrote:
+> > Hi Hans,
+> > 
+> > Looks like CONFIG_OMAP4_DSS_HDMI_CEC=y blocks SoC core retention
+> > idle on omap4 if selected.
+> > 
+> > Should we maybe move hdmi4_cec_init() to hdmi_display_enable()
+> > and hdmi4_cec_uninit() to hdmi_display_disable()?
+> > 
+> > Or add some enable/disable calls in addtion to the init and
+> > uninit calls that can be called from hdmi_display_enable()
+> > and hdmi_display_disable()?
 > 
-> Looks like CONFIG_OMAP4_DSS_HDMI_CEC=y blocks SoC core retention
-> idle on omap4 if selected.
+> For proper HDMI CEC behavior the CEC adapter has to remain active
+> even if the HPD of the display is low. Some displays pull down the
+> HPD when in standby, but CEC can still be used to wake them up.
 > 
-> Should we maybe move hdmi4_cec_init() to hdmi_display_enable()
-> and hdmi4_cec_uninit() to hdmi_display_disable()?
+> And we see this more often as regulations for the maximum power
+> consumption of displays are getting more and more strict.
 > 
-> Or add some enable/disable calls in addtion to the init and
-> uninit calls that can be called from hdmi_display_enable()
-> and hdmi_display_disable()?
+> So disabling CEC when the display is disabled is not an option.
+> 
+> Disabling CEC if the source is no longer transmitting isn't a good
+> idea either since the display will typically still send periodic
+> CEC commands to the source that it expects to reply to.
 
-For proper HDMI CEC behavior the CEC adapter has to remain active
-even if the HPD of the display is low. Some displays pull down the
-HPD when in standby, but CEC can still be used to wake them up.
+What's the periodicity of those commands ? Can the system be put to
+sleep and get woken up when there's CEC activity ?
 
-And we see this more often as regulations for the maximum power
-consumption of displays are getting more and more strict.
+> The reality is that HDMI CEC and HDMI video are really independent of
+> one another. So I wonder if it isn't better to explain the downsides
+> of enabling CEC for the omap4 in the CONFIG_OMAP4_DSS_HDMI_CEC
+> description. And perhaps disable it by default?
 
-So disabling CEC when the display is disabled is not an option.
+This should be controllable by userspace. From a product point of view,
+it should be possible to put the system in a deep sleep state where CEC
+isn't available, or in a low sleep state where CEC works as expected.
 
-Disabling CEC if the source is no longer transmitting isn't a good
-idea either since the display will typically still send periodic
-CEC commands to the source that it expects to reply to.
-
-The reality is that HDMI CEC and HDMI video are really independent of
-one another. So I wonder if it isn't better to explain the downsides
-of enabling CEC for the omap4 in the CONFIG_OMAP4_DSS_HDMI_CEC
-description. And perhaps disable it by default?
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
