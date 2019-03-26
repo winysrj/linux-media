@@ -2,203 +2,88 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83291C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 12:17:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF272C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 12:18:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53A212075E
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 12:17:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE80920823
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 12:18:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="cbqxX8QM";
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="cbqxX8QM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731435AbfCZMRj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 08:17:39 -0400
-Received: from retiisi.org.uk ([95.216.213.190]:42202 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725776AbfCZMRj (ORCPT
+        id S1731510AbfCZMSE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 08:18:04 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:58268 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725776AbfCZMSE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 08:17:39 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Tue, 26 Mar 2019 08:18:04 -0400
+Received: by smtp.codeaurora.org (Postfix, from userid 1000)
+        id DE31460159; Tue, 26 Mar 2019 12:18:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
+        s=default; t=1553602683;
+        bh=Mb/6oPEIT5zA9Lgdp3iSOIRwt/HImMYg4LWOdIGiPy8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=cbqxX8QM7F07zgZCVhg4h7GhkA3tud+eJwfnmfQhiJtMMTmO21rloevH1N22RDM+1
+         T31BvZjMGOYQWHMlq5Wo6XAjR6/RqvFd80ELtw0DWhQLlOeQ4DHTWgQyQnqxM1gn8i
+         x1ZO8l0Dm3ZQGdVELEAcDMCB9KnH7z6UKhKftAkk=
+Received: from mojha-linux.qualcomm.com (blr-c-bdr-fw-01_globalnat_allzones-outside.qualcomm.com [103.229.19.19])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
         (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 301F7634C7B;
-        Tue, 26 Mar 2019 14:17:31 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1h8l1H-0000Jz-U0; Tue, 26 Mar 2019 14:17:31 +0200
-Date:   Tue, 26 Mar 2019 14:17:31 +0200
-From:   Sakari Ailus <sakari.ailus@iki.fi>
-To:     Mickael Guene <mickael.guene@st.com>
-Cc:     linux-media@vger.kernel.org, hugues.fruchet@st.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 1/2] dt-bindings: Document MIPID02 bindings
-Message-ID: <20190326121731.m7z5o2jbzlfxalu6@valkosipuli.retiisi.org.uk>
-References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
- <1553594620-88280-1-git-send-email-mickael.guene@st.com>
- <1553594620-88280-2-git-send-email-mickael.guene@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1553594620-88280-2-git-send-email-mickael.guene@st.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        (Authenticated sender: mojha@smtp.codeaurora.org)
+        by smtp.codeaurora.org (Postfix) with ESMTPSA id 38972602BA;
+        Tue, 26 Mar 2019 12:18:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
+        s=default; t=1553602683;
+        bh=Mb/6oPEIT5zA9Lgdp3iSOIRwt/HImMYg4LWOdIGiPy8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=cbqxX8QM7F07zgZCVhg4h7GhkA3tud+eJwfnmfQhiJtMMTmO21rloevH1N22RDM+1
+         T31BvZjMGOYQWHMlq5Wo6XAjR6/RqvFd80ELtw0DWhQLlOeQ4DHTWgQyQnqxM1gn8i
+         x1ZO8l0Dm3ZQGdVELEAcDMCB9KnH7z6UKhKftAkk=
+DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 38972602BA
+Authentication-Results: pdx-caf-mail.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
+Authentication-Results: pdx-caf-mail.web.codeaurora.org; spf=none smtp.mailfrom=mojha@codeaurora.org
+From:   Mukesh Ojha <mojha@codeaurora.org>
+To:     prabhakar.csengg@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Mukesh Ojha <mojha@codeaurora.org>
+Subject: [PATCH] media: vpss: fix the order of resource clean up
+Date:   Tue, 26 Mar 2019 17:47:54 +0530
+Message-Id: <1553602674-531-1-git-send-email-mojha@codeaurora.org>
+X-Mailer: git-send-email 1.9.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mickael,
+Clean up of resources should be in reverse order of vpss_init().
+Fix this inside vpss_exit().
 
-On Tue, Mar 26, 2019 at 11:03:39AM +0100, Mickael Guene wrote:
-> This adds documentation of device tree for MIPID02 CSI-2 to PARALLEL
-> bridge.
-> 
-> Signed-off-by: Mickael Guene <mickael.guene@st.com>
-> ---
-> 
-> Changes in v3: None
-> Changes in v2:
-> - Add precision about first CSI-2 port data rate
-> - Document endpoints supported properties
-> - Rename 'mipid02@14' into generic 'csi2rx@14' in example
-> 
->  .../bindings/media/i2c/st,st-mipid02.txt           | 83 ++++++++++++++++++++++
->  MAINTAINERS                                        |  7 ++
->  2 files changed, 90 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> new file mode 100644
-> index 0000000..dfeab45
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> @@ -0,0 +1,83 @@
-> +STMicroelectronics MIPID02 CSI-2 to PARALLEL bridge
-> +
-> +MIPID02 has two CSI-2 input ports, only one of those ports can be active at a
-> +time. Active port input stream will be de-serialized and its content outputted
-> +through PARALLEL output port.
-> +CSI-2 first input port is a dual lane 800Mbps per lane whereas CSI-2 second
-> +input port is a single lane 800Mbps. Both ports support clock and data lane
-> +polarity swap. First port also supports data lane swap.
-> +PARALLEL output port has a maximum width of 12 bits.
-> +Supported formats are RAW6, RAW7, RAW8, RAW10, RAW12, RGB565, RGB888, RGB444,
-> +YUV420 8-bit, YUV422 8-bit and YUV420 10-bit.
-> +
-> +Required Properties:
-> +- compatible: should be "st,st-mipid02"
-> +- clocks: reference to the xclk input clock.
-> +- clock-names: should be "xclk".
-> +- VDDE-supply: sensor digital IO supply. Must be 1.8 volts.
-> +- VDDIN-supply: sensor internal regulator supply. Must be 1.8 volts.
-> +
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the xsdn pin, if any.
-> +	       This is an active low signal to the mipid02.
-> +
-> +Required subnodes:
-> +  - ports: A ports node with one port child node per device input and output
-> +	   port, in accordance with the video interface bindings defined in
-> +	   Documentation/devicetree/bindings/media/video-interfaces.txt. The
-> +	   port nodes are numbered as follows:
-> +
-> +	   Port Description
-> +	   -----------------------------
-> +	   0    CSI-2 first input port
-> +	   1    CSI-2 second input port
-> +	   2    PARALLEL output
-> +
-> +Endpoint node optional properties for CSI-2 connection are:
-> +- bus-type: if present should be 4 - MIPI CSI-2 D-PHY.
+Signed-off-by: Mukesh Ojha <mojha@codeaurora.org>
+---
+ drivers/media/platform/davinci/vpss.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-You can drop this IMO --- there's just a single valid value so the driver
-may know that.
-
-> +- clock-lanes: should be set to <0> if present (clock lane on hardware lane 0).
-
-And please omit this, too, if the clock lane is always 0. Please update the
-example, too. The driver doesn't need to check that either IMO, but up to
-you.
-
-> +- data-lanes: if present should be <1> for Port 1. for Port 0 dual-lane
-> +operation should be <1 2> or <2 1>. For Port 0 single-lane operation should be
-> +<1> or <2>.
-> +- lane-polarities: any lane can be inverted.
-> +
-> +Endpoint node optional properties for PARALLEL connection are:
-> +- bus-type: if present should be 5 - Parallel.
-
-This, too, can be omitted.
-
-> +- bus-width: shall be set to <6>, <7>, <8>, <10> or <12>.
-> +- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-> +- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-
-If these are optional, what are the defaults? IMO you could make them
-mandatory as well.
-
-> +
-> +Example:
-> +
-> +mipid02: csi2rx@14 {
-> +	compatible = "st,st-mipid02";
-> +	reg = <0x14>;
-> +	status = "okay";
-> +	clocks = <&clk_ext_camera_12>;
-> +	clock-names = "xclk";
-> +	VDDE-supply = <&vdd>;
-> +	VDDIN-supply = <&vdd>;
-> +	ports {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		port@0 {
-> +			reg = <0>;
-> +
-> +			ep0: endpoint {
-> +				clock-lanes = <0>;
-> +				data-lanes = <1 2>;
-> +				remote-endpoint = <&mipi_csi2_in>;
-> +			};
-> +		};
-> +		port@2 {
-> +			reg = <2>;
-> +
-> +			ep2: endpoint {
-> +				bus-width = <8>;
-> +				hsync-active = <0>;
-> +				vsync-active = <0>;
-> +				remote-endpoint = <&parallel_out>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index e17ebf7..74da99d 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -14668,6 +14668,13 @@ S:	Maintained
->  F:	drivers/iio/imu/st_lsm6dsx/
->  F:	Documentation/devicetree/bindings/iio/imu/st_lsm6dsx.txt
->  
-> +ST MIPID02 CSI-2 TO PARALLEL BRIDGE DRIVER
-> +M:	Mickael Guene <mickael.guene@st.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> +
->  ST STM32 I2C/SMBUS DRIVER
->  M:	Pierre-Yves MORDRET <pierre-yves.mordret@st.com>
->  L:	linux-i2c@vger.kernel.org
-
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index 19cf685..e380fd3 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -507,9 +507,9 @@ static int vpss_resume(struct device *dev)
+ 
+ static void vpss_exit(void)
+ {
++	platform_driver_unregister(&vpss_driver);
+ 	iounmap(oper_cfg.vpss_regs_base2);
+ 	release_mem_region(VPSS_CLK_CTRL, 4);
+-	platform_driver_unregister(&vpss_driver);
+ }
+ 
+ static int __init vpss_init(void)
 -- 
-Kind regards,
+Qualcomm India Private Limited, on behalf of Qualcomm Innovation Center,
+Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project
 
-Sakari Ailus
