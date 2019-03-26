@@ -2,248 +2,139 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B17C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 15:31:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69F7BC43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 16:12:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DF9520811
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 15:31:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553614283;
-	bh=lQMOqh+hlgw0S72UVHMR16JQw6kaBOzjAj0JPKR2Qvw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=oQtff1HH0mIm8MovpfgHq9AJZ/7ZyDW+eyTGKpyOZ5Vx4RoT7oaFRD3iJQSmGfd57
-	 xVFEQibWaggmfq6J3eqRuAe6rejoNvt/83JwmBzbf/tMPIi6+1pDA0Ul3XmkR8e9MG
-	 tZ3xVxSpMX8+deKdYWG1rIlntKVIH+RXHc76dwhM=
+	by mail.kernel.org (Postfix) with ESMTP id 3A35E20811
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 16:12:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=cogentembedded-com.20150623.gappssmtp.com header.i=@cogentembedded-com.20150623.gappssmtp.com header.b="iDD4LFB7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732213AbfCZPbX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 11:31:23 -0400
-Received: from casper.infradead.org ([85.118.1.10]:42538 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731599AbfCZPbW (ORCPT
+        id S1732363AbfCZQMX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 12:12:23 -0400
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:44928 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732237AbfCZQMW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 11:31:22 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=Zl9TLIBDigLqQ3WxbGnrp7CcC0iG6j6LTLuwijtuDiQ=; b=HKMUEk83X4Eux2/1MFUA12ssn2
-        hZEVjcodB/40lmPQ6VcIbUjEQFUnhI124kg0evdVhet18NflTEtvL9c1mCdsgcK2QRDEGbeBKeUuu
-        FmIMzfYOmNAZBDB0+dTCDIQ3taXNSVYwCg0ruWk982AKHZZjq4X2kOxIcXh85Og2vjggsAm+VeAxN
-        Hxr5pivUzJiFbaQFPCw7y3NLic4j6K80+O1B+qrfIVhpfH6OWBx2Lo8vxwd8pnVA2nm4wA5OlwBcy
-        9irvK71skUE+vQVzqclHkWOYRbp/2rVL5kRkIj8JUPM/GZROONieERygBTz74JrI8Rlu3zRuy30s9
-        X0giG1kg==;
-Received: from 177.41.113.24.dynamic.adsl.gvt.net.br ([177.41.113.24] helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1h8o2p-0008Oq-Re; Tue, 26 Mar 2019 15:31:20 +0000
-Date:   Tue, 26 Mar 2019 12:31:15 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Samuel CHEMLA <chemla.samuel@gmail.com>
-Cc:     Sean Young <sean@mess.org>, Gregor Jasny <gjasny@googlemail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [Bug report] dvbv5-zap crash dvb-tool ARMHF builds
-Message-ID: <20190326123115.5d83f450@coco.lan>
-In-Reply-To: <CANJnhGfgzrLZedeoCOq3L-MaEgjtHm1Bwn1cRPr54LvwZ=RBMQ@mail.gmail.com>
-References: <20190315223425.hiq3qcjhjnirsizh@gofer.mess.org>
-        <20190317065242.137cb095@coco.lan>
-        <20190319164507.7f95af89@coco.lan>
-        <a1f296ba-3c27-ed2c-3912-4edbeeb21eba@googlemail.com>
-        <20190321094127.ysurm4u26zugmnmv@gofer.mess.org>
-        <20190321083044.621f1922@coco.lan>
-        <35ba4e81-fc2a-87ed-8da7-43cc4543de51@googlemail.com>
-        <CANJnhGfRtEwAony5Z4rFMPcu58aF2k0G+9NSkMKsq_PhfmSNqw@mail.gmail.com>
-        <20190325140838.71f88eac@coco.lan>
-        <CANJnhGc_qx32nm7yZheC2ioHOij8QELbnwyJkZ83G9uYTxqwtA@mail.gmail.com>
-        <20190326132643.r3svehoa764xagje@gofer.mess.org>
-        <CANJnhGfgzrLZedeoCOq3L-MaEgjtHm1Bwn1cRPr54LvwZ=RBMQ@mail.gmail.com>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Tue, 26 Mar 2019 12:12:22 -0400
+Received: by mail-lj1-f196.google.com with SMTP id h16so7176006ljg.11
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2019 09:12:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cogentembedded-com.20150623.gappssmtp.com; s=20150623;
+        h=from:subject:to:cc:organization:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=bChSgXhToRyrcHoAnFOWbKcmw6ZhKZxwegO2zNkAVEA=;
+        b=iDD4LFB7uoC7J9uWSH2vWju/puvUAztHl0bJVwXPvfTRFHISovy/O4lw3zCTKh+dm6
+         OxAmCu7WuRTCcrSjDbXrxyJRtnaBHDfwGDbLfsU5O8vA4cjSr9/zM9DxyLJzLE2flku5
+         P7bDVkSDpdB78G96G/4/A5IeDiSW/+GWdh5EFbgeHO4yFCPj57qJJx21dkh8UslJveN3
+         Ba4m3r4RQUllUn/ObSj+agFGYLaM/SKpmulGJQbihb9E2rd+JpVjNn8XZ4NE7YuT9cHv
+         N8jMdQfWGZX72UBvjh48XWanfEoWRDnc4L48N1dQu+xsysoZ09R66ki19iFzGvGlIyKX
+         qdrA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:subject:to:cc:organization:message-id:date
+         :user-agent:mime-version:content-language:content-transfer-encoding;
+        bh=bChSgXhToRyrcHoAnFOWbKcmw6ZhKZxwegO2zNkAVEA=;
+        b=O0g+TMPocIvHTLI6VvV9q3x51mk29V21O+NpgQ99K5vAKze+Y6jNj4sKFzTTqawZlm
+         AH+KC31xRnONWTH/o3EtFpHWe54rGoaBH7vyqqqjIg0HyitKPFfJCO+soZQgulbUOqV8
+         KoncgZrpTJUkIVy9kUpk9ulxRBQwXgKZJHh6j8NQ/FivhDIzjzYmK1TrefdCBO60aSqn
+         c3iDy94JaY8n1fRW3nrwOL7HpKMwX+mZam/eWZ4crE7u4Utg9S8hIX2qxl9OPIgz+tZH
+         RYM52TXEL0zN6c9hd8+GDIB3KbLBmdc/vcKG7rEgv54lhwtCO6woQpOPd+n6dwv6gome
+         Zrrg==
+X-Gm-Message-State: APjAAAUnBPhSoRYoIN3n6dFh68uFg22edkplAyYJETTF9TnPZ4i5G0Md
+        hvyK4SqQO7LKuppBB10HxQdaqg==
+X-Google-Smtp-Source: APXvYqyz+WocA2YU3Az1ROAkS/smKaJk4eYK1cVgXzK8nKsaybTUZP+5oqR4V4Ya9hHxSGfHF2YEkw==
+X-Received: by 2002:a2e:288:: with SMTP id y8mr2759361lje.62.1553616740831;
+        Tue, 26 Mar 2019 09:12:20 -0700 (PDT)
+Received: from wasted.cogentembedded.com ([31.173.80.251])
+        by smtp.gmail.com with ESMTPSA id k21sm1527696ljk.21.2019.03.26.09.12.19
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 26 Mar 2019 09:12:20 -0700 (PDT)
+From:   Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH v2] dt-bindings: media: Renesas R-Car IMR bindings
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc:     Mark Rutland <mark.rutland@arm.com>,
+        linux-renesas-soc@vger.kernel.org, Rob Herring <robh@kernel.org>
+Organization: Cogent Embedded
+Message-ID: <55c5fca2-3ead-17da-e42f-04bdc1fbf1bf@cogentembedded.com>
+Date:   Tue, 26 Mar 2019 19:12:19 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-MW
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Tue, 26 Mar 2019 16:10:33 +0100
-Samuel CHEMLA <chemla.samuel@gmail.com> escreveu:
+The image renderer (IMR), or the distortion correction engine, is a
+drawing processor with a simple instruction system capable of referencing
+video capture data or data in an external memory as the 2D texture data
+and performing texture mapping and drawing with respect to any shape that
+is split into triangular objects.
 
-> Hi,
->=20
->=20
-> > Earlier you said "random hangs are back". When this happens, does the w=
-hole
-> > device become unresponsive or just dvbv5-zap? =20
-> The device completely freeze, you can't even switch numlock on/off.
+Document  the device tree bindings for the image renderer light extended 4
+(IMR-LX4) found in the R-Car gen3 SoCs...
 
-dvbv5-tools can't hang the machine. this is very likely happening due to
-a Kernel crash.
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Acked-by: Rob Herring <robh@kernel.org>
 
-> I said "the issue is back", it is because I **thought** it was gone.
-> To be more precise:
-> - on raspberry zero W, the issue is gone since Mauro's patch
-> (https://git.linuxtv.org/v4l-utils.git/commit/?id=3D22b06353227e04695b1b0=
-a9622b896b948adba89)
-> - on raspberry 2, the issue, it is still there and the patch has no
-> effect (the issue was and is still there)
+---
+This patch is against the 'master' branch of the 'media_tree.git' repo.
 
-RPi2 has a serious issue with their USB ports: on devices that require
-more than a few mW to work, it causes several device disconnection and
-re-connection, as it cannot sustain the required 5V.
+This patch has been split from the large IMR driver patch (which would need
+much more work), it fixes checkpatch.pl's warnings on the SoC .dtsi files
+which have been already merged (the bindings didn't change since v1 of the
+driver patch).
 
-Depending on how fast this happens, it could be triggering some Kernel
-bug.
+Changes in version 2:
+- documented the required "power-domains" and "resets" props, adding them to
+  the example as well.
 
-That affects most V4L and DVB devices. You should either use a powered
-USB 2.0 hub (with may be problematic, as the USB host driver on RPi
-has issues - and may cause data loss on high sustained ISOC traffic,
-specially when used with hubs) or a device that has its own power
-supply, like DVBSky T680C or S960.=20
+ Documentation/devicetree/bindings/media/rcar_imr.txt |   31 +++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-> > Since this issue is "back",
-> > I wouldn't be surprised this is unrelated to the fixes in 1.12.7 and 1.=
-16.4. =20
-> The issue doesn't appear anymore on raspberry zero W since Mauro's commit.
-> So it did improve on that platform.
->=20
-> > It would be useful to see the output from dmesg (best thing would be af=
-ter
-> > the issue occurs). =20
-> You can't, device is frozen.
-> Logs are not flushed to disk, and journalctl -f freeze before showing any=
-thing
-
-You can use a serial port in order to get the logs. On a serial console,
-use something like:
-
-	# dmesg -n 8
-
-In order to make sure it will display all Kernel messages at console.
-
->=20
-> > Also what dvb hardware are you using? =20
-> I reproduced it with different two tuners: rtl2832U from RTL-SDR.COM
-> and a TerraTec Cinergy T Stick+
-
-None of them supports an external power supply.
-
-> You can found all the details here:
-> https://bugs.launchpad.net/raspbian/+bug/1819650
->=20
->=20
-> Sam
->=20
->=20
-> Le mar. 26 mars 2019 =C3=A0 14:26, Sean Young <sean@mess.org> a =C3=A9cri=
-t :
-> >
-> > Hi Sam,
-> >
-> > On Tue, Mar 26, 2019 at 08:35:44AM +0100, Samuel CHEMLA wrote: =20
-> > > Hi,
-> > >
-> > >
-> > > I am struggling with valgrind because it always complain with either :
-> > >     ASan runtime does not come first in initial library list; you
-> > > should either link runtime to your application or manually preload it
-> > > with LD_PRELOAD =20
-> > >     -> When I LD_PRELOAD, I'm getting a segfault, but I couldn't find=
- =20
-> > > any core dump
-> > >
-> > > or, if I link statically libasan with -static-libasan:
-> > >     Shadow memory range interleaves with an existing memory mapping.
-> > > ASan cannot proceed correctly. ABORTING.
-> > >     ASan shadow was supposed to be located in the
-> > > [0x00007fff7000-0x10007fff7fff] range.
-> > >
-> > >
-> > > I retested again on my raspberry zero W, and I confirm i cannot
-> > > reproduce the hang.
-> > > Your fix did work on that device.
-> > > I am testing with same OS (raspbian with latest updates, same kernel),
-> > > same configure options, same USB dongle... :-(
-> > > The only differences are CPU architecture (armv6 vs armv7), memory
-> > > constraints, and I was not using the same channels.conf, I'll fix that
-> > > today and re-check =20
-> >
-> > Earlier you said "random hangs are back". When this happens, does the w=
-hole
-> > device become unresponsive or just dvbv5-zap? Since this issue is "back=
-",
-> > I wouldn't be surprised this is unrelated to the fixes in 1.12.7 and 1.=
-16.4.
-> >
-> > It would be useful to see the output from dmesg (best thing would be af=
-ter
-> > the issue occurs).
-> >
-> > Also what dvb hardware are you using?
-> >
-> > Thanks,
-> >
-> > san
-> > =20
-> > >
-> > >
-> > > Sam
-> > >
-> > > On 25/03/2019 18:08, Mauro Carvalho Chehab wrote:
-> > >
-> > > Em Mon, 25 Mar 2019 17:33:30 +0100
-> > > Samuel CHEMLA <chemla.samuel@gmail.com> escreveu:
-> > >
-> > > Hi guys,
-> > >
-> > > I'm afraid I'm coming with sad news.
-> > > I just tried both stable-1.12 and stable-1.16 on a raspberry pi 2, and
-> > > random hangs are back (see https://bugs.launchpad.net/raspbian/+bug/1=
-819650
-> > > ).
-> > > I previously test both branches on a raspberry zero and issues were g=
-one
-> > > (same raspbian version).
-> > > There may be more memory issues somewhere...
-> > >
-> > > Could you test it with valgrind?
-> > >
-> > > Sam
-> > >
-> > > Le jeu. 21 mars 2019 =C5=95 20:59, Gregor Jasny <gjasny@googlemail.co=
-m> a =C3=A9crit :
-> > >
-> > > Hello,
-> > >
-> > > On 21.03.19 12:30, Mauro Carvalho Chehab wrote:
-> > >
-> > > I went ahead and cherry-picked the relevant patches to -1.12, -1.14 a=
-nd
-> > > -1.16, and tested both dvbv5-zap and dvbv5-scan with all versions. So,
-> > >
-> > > we can
-> > >
-> > > release a new minor version for all those stable branches.
-> > >
-> > > After the patches, on my tests, I didn't get any memory leaks or
-> > > double-free issues.
-> > >
-> > > I issues a new 1.12, 1.14, and 1.16 release.
-> > >
-> > > Thanks,
-> > > Gregor
-> > >
-> > >
-> > >
-> > > Thanks,
-> > > Mauro =20
-
-
-
-Thanks,
-Mauro
+Index: media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+===================================================================
+--- /dev/null
++++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+@@ -0,0 +1,31 @@
++Renesas R-Car Image Renderer (Distortion Correction Engine)
++-----------------------------------------------------------
++
++The image renderer, or the distortion correction engine, is a drawing processor
++with a simple instruction system capable of referencing video capture data or
++data in an external memory as 2D texture data and performing texture mapping
++and drawing with respect to any shape that is split into triangular objects.
++
++Required properties:
++
++- compatible: "renesas,<soctype>-imr-lx4", "renesas,imr-lx4" as a fallback for
++  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
++  where the examples with <soctype> are:
++  - "renesas,r8a7795-imr-lx4" for R-Car H3,
++  - "renesas,r8a7796-imr-lx4" for R-Car M3-W.
++- reg: offset and length of the register block;
++- interrupts: single interrupt specifier;
++- clocks: single clock phandle/specifier pair;
++- power-domains: power domain phandle/specifier pair;
++- resets: reset phandle/specifier pair.
++
++Example:
++
++	imr-lx4@fe860000 {
++		compatible = "renesas,r8a7795-imr-lx4", "renesas,imr-lx4";
++		reg = <0 0xfe860000 0 0x2000>;
++		interrupts = <GIC_SPI 192 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 823>;
++		power-domains = <&sysc R8A7795_PD_A3VC>;
++		resets = <&cpg 823>;
++	};
