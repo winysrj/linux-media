@@ -2,139 +2,79 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69F7BC43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 16:12:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 485C6C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 17:14:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3A35E20811
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 16:12:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cogentembedded-com.20150623.gappssmtp.com header.i=@cogentembedded-com.20150623.gappssmtp.com header.b="iDD4LFB7"
+	by mail.kernel.org (Postfix) with ESMTP id 1764F20823
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 17:14:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732363AbfCZQMX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 12:12:23 -0400
-Received: from mail-lj1-f196.google.com ([209.85.208.196]:44928 "EHLO
-        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732237AbfCZQMW (ORCPT
+        id S1727492AbfCZROG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 13:14:06 -0400
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:40411 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726266AbfCZROG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 12:12:22 -0400
-Received: by mail-lj1-f196.google.com with SMTP id h16so7176006ljg.11
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2019 09:12:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cogentembedded-com.20150623.gappssmtp.com; s=20150623;
-        h=from:subject:to:cc:organization:message-id:date:user-agent
-         :mime-version:content-language:content-transfer-encoding;
-        bh=bChSgXhToRyrcHoAnFOWbKcmw6ZhKZxwegO2zNkAVEA=;
-        b=iDD4LFB7uoC7J9uWSH2vWju/puvUAztHl0bJVwXPvfTRFHISovy/O4lw3zCTKh+dm6
-         OxAmCu7WuRTCcrSjDbXrxyJRtnaBHDfwGDbLfsU5O8vA4cjSr9/zM9DxyLJzLE2flku5
-         P7bDVkSDpdB78G96G/4/A5IeDiSW/+GWdh5EFbgeHO4yFCPj57qJJx21dkh8UslJveN3
-         Ba4m3r4RQUllUn/ObSj+agFGYLaM/SKpmulGJQbihb9E2rd+JpVjNn8XZ4NE7YuT9cHv
-         N8jMdQfWGZX72UBvjh48XWanfEoWRDnc4L48N1dQu+xsysoZ09R66ki19iFzGvGlIyKX
-         qdrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:subject:to:cc:organization:message-id:date
-         :user-agent:mime-version:content-language:content-transfer-encoding;
-        bh=bChSgXhToRyrcHoAnFOWbKcmw6ZhKZxwegO2zNkAVEA=;
-        b=O0g+TMPocIvHTLI6VvV9q3x51mk29V21O+NpgQ99K5vAKze+Y6jNj4sKFzTTqawZlm
-         AH+KC31xRnONWTH/o3EtFpHWe54rGoaBH7vyqqqjIg0HyitKPFfJCO+soZQgulbUOqV8
-         KoncgZrpTJUkIVy9kUpk9ulxRBQwXgKZJHh6j8NQ/FivhDIzjzYmK1TrefdCBO60aSqn
-         c3iDy94JaY8n1fRW3nrwOL7HpKMwX+mZam/eWZ4crE7u4Utg9S8hIX2qxl9OPIgz+tZH
-         RYM52TXEL0zN6c9hd8+GDIB3KbLBmdc/vcKG7rEgv54lhwtCO6woQpOPd+n6dwv6gome
-         Zrrg==
-X-Gm-Message-State: APjAAAUnBPhSoRYoIN3n6dFh68uFg22edkplAyYJETTF9TnPZ4i5G0Md
-        hvyK4SqQO7LKuppBB10HxQdaqg==
-X-Google-Smtp-Source: APXvYqyz+WocA2YU3Az1ROAkS/smKaJk4eYK1cVgXzK8nKsaybTUZP+5oqR4V4Ya9hHxSGfHF2YEkw==
-X-Received: by 2002:a2e:288:: with SMTP id y8mr2759361lje.62.1553616740831;
-        Tue, 26 Mar 2019 09:12:20 -0700 (PDT)
-Received: from wasted.cogentembedded.com ([31.173.80.251])
-        by smtp.gmail.com with ESMTPSA id k21sm1527696ljk.21.2019.03.26.09.12.19
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 26 Mar 2019 09:12:20 -0700 (PDT)
-From:   Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCH v2] dt-bindings: media: Renesas R-Car IMR bindings
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc:     Mark Rutland <mark.rutland@arm.com>,
-        linux-renesas-soc@vger.kernel.org, Rob Herring <robh@kernel.org>
-Organization: Cogent Embedded
-Message-ID: <55c5fca2-3ead-17da-e42f-04bdc1fbf1bf@cogentembedded.com>
-Date:   Tue, 26 Mar 2019 19:12:19 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        Tue, 26 Mar 2019 13:14:06 -0400
+Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1h8peH-00088a-4D; Tue, 26 Mar 2019 18:14:05 +0100
+Received: from ukl by pty.hi.pengutronix.de with local (Exim 4.89)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1h8peG-0005UD-10; Tue, 26 Mar 2019 18:14:04 +0100
+Date:   Tue, 26 Mar 2019 18:14:04 +0100
+From:   Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Michael Tretter <m.tretter@pengutronix.de>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dshah@xilinx.com, mchehab@kernel.org, robh+dt@kernel.org,
+        kernel@pengutronix.de, tfiga@chromium.org
+Subject: Re: [PATCH v4 0/3] Add ZynqMP VCU/Allegro DVT H.264 encoder driver
+Message-ID: <20190326171403.aj7wp5yn6gugkdky@pengutronix.de>
+References: <20190301152718.23134-1-m.tretter@pengutronix.de>
+ <20190326084613.405e7ed4@litschi.hi.pengutronix.de>
+ <484d66c6-a2c0-6c18-6cdf-81ef647295e3@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <484d66c6-a2c0-6c18-6cdf-81ef647295e3@xs4all.nl>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The image renderer (IMR), or the distortion correction engine, is a
-drawing processor with a simple instruction system capable of referencing
-video capture data or data in an external memory as the 2D texture data
-and performing texture mapping and drawing with respect to any shape that
-is split into triangular objects.
+Hello,
 
-Document  the device tree bindings for the image renderer light extended 4
-(IMR-LX4) found in the R-Car gen3 SoCs...
+On Tue, Mar 26, 2019 at 12:47:38PM +0100, Hans Verkuil wrote:
+> On 3/26/19 8:46 AM, Michael Tretter wrote:
+> > On Fri, 01 Mar 2019 16:27:15 +0100, Michael Tretter wrote:
+> >> This is v4 of the series to add support for the Allegro DVT H.264 encoder
+> >> found in the EV family of the Xilinx ZynqMP platform.
+> > 
+> > Ping.
+> 
+> It's delegated to me in patchwork, so I'll get to it in a few days.
+> 
+> We were waiting for the 5.1-rc1 release.
 
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Acked-by: Rob Herring <robh@kernel.org>
+There is a misunderstanding somewhere here. We have 5.1-rc2 since
+Sunday and 5.1-rc1 since Sunday the week before. What am I missing?
 
----
-This patch is against the 'master' branch of the 'media_tree.git' repo.
+Best regards
+Uwe
 
-This patch has been split from the large IMR driver patch (which would need
-much more work), it fixes checkpatch.pl's warnings on the SoC .dtsi files
-which have been already merged (the bindings didn't change since v1 of the
-driver patch).
-
-Changes in version 2:
-- documented the required "power-domains" and "resets" props, adding them to
-  the example as well.
-
- Documentation/devicetree/bindings/media/rcar_imr.txt |   31 +++++++++++++++++++
- 1 file changed, 31 insertions(+)
-
-Index: media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
-===================================================================
---- /dev/null
-+++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
-@@ -0,0 +1,31 @@
-+Renesas R-Car Image Renderer (Distortion Correction Engine)
-+-----------------------------------------------------------
-+
-+The image renderer, or the distortion correction engine, is a drawing processor
-+with a simple instruction system capable of referencing video capture data or
-+data in an external memory as 2D texture data and performing texture mapping
-+and drawing with respect to any shape that is split into triangular objects.
-+
-+Required properties:
-+
-+- compatible: "renesas,<soctype>-imr-lx4", "renesas,imr-lx4" as a fallback for
-+  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
-+  where the examples with <soctype> are:
-+  - "renesas,r8a7795-imr-lx4" for R-Car H3,
-+  - "renesas,r8a7796-imr-lx4" for R-Car M3-W.
-+- reg: offset and length of the register block;
-+- interrupts: single interrupt specifier;
-+- clocks: single clock phandle/specifier pair;
-+- power-domains: power domain phandle/specifier pair;
-+- resets: reset phandle/specifier pair.
-+
-+Example:
-+
-+	imr-lx4@fe860000 {
-+		compatible = "renesas,r8a7795-imr-lx4", "renesas,imr-lx4";
-+		reg = <0 0xfe860000 0 0x2000>;
-+		interrupts = <GIC_SPI 192 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 823>;
-+		power-domains = <&sysc R8A7795_PD_A3VC>;
-+		resets = <&cpg 823>;
-+	};
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
