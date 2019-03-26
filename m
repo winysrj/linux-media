@@ -2,124 +2,216 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E0E4C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 14:37:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD267C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 15:10:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC57E2075E
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 14:37:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C64D20879
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 15:10:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="e07X++ET"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731762AbfCZOh0 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 10:37:26 -0400
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:28869 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731491AbfCZOh0 (ORCPT
+        id S1731810AbfCZPKr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 11:10:47 -0400
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:33158 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728314AbfCZPKr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 10:37:26 -0400
-Received: from pps.filterd (m0046037.ppops.net [127.0.0.1])
-        by mx07-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x2QEaqHK025210;
-        Tue, 26 Mar 2019 15:36:52 +0100
-Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
-        by mx07-00178001.pphosted.com with ESMTP id 2rddh7j3dp-1
-        (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT);
-        Tue, 26 Mar 2019 15:36:52 +0100
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id F386938;
-        Tue, 26 Mar 2019 14:36:42 +0000 (GMT)
-Received: from Webmail-eu.st.com (sfhdag5node2.st.com [10.75.127.14])
-        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 611D4A574;
-        Tue, 26 Mar 2019 14:36:42 +0000 (GMT)
-Received: from SFHDAG5NODE3.st.com (10.75.127.15) by SFHDAG5NODE2.st.com
- (10.75.127.14) with Microsoft SMTP Server (TLS) id 15.0.1347.2; Tue, 26 Mar
- 2019 15:36:41 +0100
-Received: from SFHDAG5NODE3.st.com ([fe80::7c09:5d6b:d2c7:5f47]) by
- SFHDAG5NODE3.st.com ([fe80::7c09:5d6b:d2c7:5f47%20]) with mapi id
- 15.00.1347.000; Tue, 26 Mar 2019 15:36:42 +0100
-From:   Mickael GUENE <mickael.guene@st.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Hugues FRUCHET" <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Petr Cvek <petrcvekcz@gmail.com>,
-        Akinobu Mita <akinobu.mita@gmail.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Ben Kao" <ben.kao@intel.com>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        "Todor Tomov" <todor.tomov@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ricardo Ribalda Delgado <ricardo@ribalda.com>,
-        "Jacopo Mondi" <jacopo+renesas@jmondi.org>,
-        Tianshu Qiu <tian.shu.qiu@intel.com>,
-        Bingbu Cao <bingbu.cao@intel.com>
-Subject: Re: [PATCH v3 2/2] media:st-mipid02: MIPID02 CSI-2 to PARALLEL bridge
- driver
-Thread-Topic: [PATCH v3 2/2] media:st-mipid02: MIPID02 CSI-2 to PARALLEL
- bridge driver
-Thread-Index: AQHU47s4T23daefrHk6Z36vjlaOK2qYdtyWAgAAzRAA=
-Date:   Tue, 26 Mar 2019 14:36:41 +0000
-Message-ID: <fb8bf371-6158-a9b8-0822-65bc5d6db536@st.com>
-References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
- <1553594620-88280-1-git-send-email-mickael.guene@st.com>
- <1553594620-88280-3-git-send-email-mickael.guene@st.com>
- <20190326113308.mp5hqdw3ktbpcawu@paasikivi.fi.intel.com>
-In-Reply-To: <20190326113308.mp5hqdw3ktbpcawu@paasikivi.fi.intel.com>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.75.127.49]
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <BCAF9CBA39871E478212AD357F7F4B89@st.com>
-Content-Transfer-Encoding: 8BIT
+        Tue, 26 Mar 2019 11:10:47 -0400
+Received: by mail-ed1-f65.google.com with SMTP id q3so11099467edg.0
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2019 08:10:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=N4Vd9BN2j932WxyWytszRjBw49iBm5N6JyEwBXF6F1o=;
+        b=e07X++ETAhgPi0fwJDPG+04isJLrYPzVEo6tBff/ko7Bd0a5S+LLSFzRJZgElkmSmQ
+         zWoFbZ3kek/VZeONWnGtmycDATI9oWg4w/KFIcSziwjacDTsyFXvBn8A9ssk8HUiblFR
+         3QcOTKQTtxmYsronDa9e84J4yUYB4nFsJkjXw806I0wN2sIj8IuEyuwHSx46hgEzxqSC
+         HVOo/Ai7K7T88Pazc7mRzqVsBpjRkOOhe1L19pUxSL0nm96QXtkn4Tjo/Vi+HEsFRLPM
+         10GE+sxR7rmTCZfwHOV+Qjog+cl9t8NaZ2fAwmtzHSZlwxEGDKCk2enGid5sU4X1zcPC
+         Y5RA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=N4Vd9BN2j932WxyWytszRjBw49iBm5N6JyEwBXF6F1o=;
+        b=LCmvvaorIlfDF2PMb0STRS83HdZuiFT6nfdE8ku4HhYYvWa1veN2GNVyYO3SbFVlOi
+         Q6KZnB7z8sMuBaNcJXqbnERVdx46jl0wl1f7oCEM1zput0QsiAXc8L5UmUDXxY51AAZM
+         tA1lnk1n/bC6u122TiAtGh4XjWtY5yexFDMqBnrOI28h5eu+rWRHmiZHc8HxY694zDqI
+         vVLPpKbwUy6sqNJAZQfJHEns9/S3QJNg07Xq8EujfIaCcnMpeYcIIaCD5goSDQu86YEP
+         Aidwm2TWTxUSxoUODIm/ZRHMZw/F2ddxKjvCsfljx6aKKgkP1t7ps7NYi8t+BpVjM80u
+         jUDg==
+X-Gm-Message-State: APjAAAXiOZ4umFTxV6D/3z8SXSRgO8QZlrwMx5rF0Y02HF2u+rNsNjiR
+        I0MUarJstFqXXg5xVcryqxNYweKOSPnocrZ7AHY=
+X-Google-Smtp-Source: APXvYqxQ+oYL1GEEIZMirGkqalT/4V3iMF2WvOvzlumZVdTMdNZadIe9wtQB65hhfwZGkw4fPSIJE//QcIPSwMUU8FU=
+X-Received: by 2002:a50:9271:: with SMTP id j46mr20703132eda.184.1553613045616;
+ Tue, 26 Mar 2019 08:10:45 -0700 (PDT)
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-03-26_10:,,
- signatures=0
+References: <20190315223425.hiq3qcjhjnirsizh@gofer.mess.org>
+ <20190317065242.137cb095@coco.lan> <20190319164507.7f95af89@coco.lan>
+ <a1f296ba-3c27-ed2c-3912-4edbeeb21eba@googlemail.com> <20190321094127.ysurm4u26zugmnmv@gofer.mess.org>
+ <20190321083044.621f1922@coco.lan> <35ba4e81-fc2a-87ed-8da7-43cc4543de51@googlemail.com>
+ <CANJnhGfRtEwAony5Z4rFMPcu58aF2k0G+9NSkMKsq_PhfmSNqw@mail.gmail.com>
+ <20190325140838.71f88eac@coco.lan> <CANJnhGc_qx32nm7yZheC2ioHOij8QELbnwyJkZ83G9uYTxqwtA@mail.gmail.com>
+ <20190326132643.r3svehoa764xagje@gofer.mess.org>
+In-Reply-To: <20190326132643.r3svehoa764xagje@gofer.mess.org>
+From:   Samuel CHEMLA <chemla.samuel@gmail.com>
+Date:   Tue, 26 Mar 2019 16:10:33 +0100
+Message-ID: <CANJnhGfgzrLZedeoCOq3L-MaEgjtHm1Bwn1cRPr54LvwZ=RBMQ@mail.gmail.com>
+Subject: Re: [Bug report] dvbv5-zap crash dvb-tool ARMHF builds
+To:     Sean Young <sean@mess.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Gregor Jasny <gjasny@googlemail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Sakari,
+Hi,
 
->> +static int bpp_from_code(__u32 code)
->> +{
->> +	switch (code) {
->> +	case MEDIA_BUS_FMT_SBGGR8_1X8:
->> +	case MEDIA_BUS_FMT_SGBRG8_1X8:
->> +	case MEDIA_BUS_FMT_SGRBG8_1X8:
->> +	case MEDIA_BUS_FMT_SRGGB8_1X8:
->> +		return 8;
->> +	case MEDIA_BUS_FMT_SBGGR10_1X10:
->> +	case MEDIA_BUS_FMT_SGBRG10_1X10:
->> +	case MEDIA_BUS_FMT_SGRBG10_1X10:
->> +	case MEDIA_BUS_FMT_SRGGB10_1X10:
->> +		return 10;
->> +	case MEDIA_BUS_FMT_SBGGR12_1X12:
->> +	case MEDIA_BUS_FMT_SGBRG12_1X12:
->> +	case MEDIA_BUS_FMT_SGRBG12_1X12:
->> +	case MEDIA_BUS_FMT_SRGGB12_1X12:
->> +		return 12;
->> +	case MEDIA_BUS_FMT_UYVY8_2X8:
-> 
-> This is good for the parallel bus, but on CSI-2 side you should have
-> MEDIA_BUS_FMT_UYVY8_1X16 instead. This isn't technically correct for a
-> serial bus, but the custom is to use the one sample / pixel formats on the
-> serial busses.
-> 
- Should MEDIA_BUS_FMT_BGR888_1X24 be something like
-MEDIA_BUS_FMT_BGR888_3X8 for parallel output bus ?
 
-Rgs
-Mickael
+> Earlier you said "random hangs are back". When this happens, does the who=
+le
+> device become unresponsive or just dvbv5-zap?
+The device completely freeze, you can't even switch numlock on/off.
+I said "the issue is back", it is because I **thought** it was gone.
+To be more precise:
+- on raspberry zero W, the issue is gone since Mauro's patch
+(https://git.linuxtv.org/v4l-utils.git/commit/?id=3D22b06353227e04695b1b0a9=
+622b896b948adba89)
+- on raspberry 2, the issue, it is still there and the patch has no
+effect (the issue was and is still there)
+
+> Since this issue is "back",
+> I wouldn't be surprised this is unrelated to the fixes in 1.12.7 and 1.16=
+.4.
+The issue doesn't appear anymore on raspberry zero W since Mauro's commit.
+So it did improve on that platform.
+
+> It would be useful to see the output from dmesg (best thing would be afte=
+r
+> the issue occurs).
+You can't, device is frozen.
+Logs are not flushed to disk, and journalctl -f freeze before showing anyth=
+ing
+
+> Also what dvb hardware are you using?
+I reproduced it with different two tuners: rtl2832U from RTL-SDR.COM
+and a TerraTec Cinergy T Stick+
+
+
+You can found all the details here:
+https://bugs.launchpad.net/raspbian/+bug/1819650
+
+
+Sam
+
+
+Le mar. 26 mars 2019 =C3=A0 14:26, Sean Young <sean@mess.org> a =C3=A9crit =
+:
+>
+> Hi Sam,
+>
+> On Tue, Mar 26, 2019 at 08:35:44AM +0100, Samuel CHEMLA wrote:
+> > Hi,
+> >
+> >
+> > I am struggling with valgrind because it always complain with either :
+> >     ASan runtime does not come first in initial library list; you
+> > should either link runtime to your application or manually preload it
+> > with LD_PRELOAD
+> >     -> When I LD_PRELOAD, I'm getting a segfault, but I couldn't find
+> > any core dump
+> >
+> > or, if I link statically libasan with -static-libasan:
+> >     Shadow memory range interleaves with an existing memory mapping.
+> > ASan cannot proceed correctly. ABORTING.
+> >     ASan shadow was supposed to be located in the
+> > [0x00007fff7000-0x10007fff7fff] range.
+> >
+> >
+> > I retested again on my raspberry zero W, and I confirm i cannot
+> > reproduce the hang.
+> > Your fix did work on that device.
+> > I am testing with same OS (raspbian with latest updates, same kernel),
+> > same configure options, same USB dongle... :-(
+> > The only differences are CPU architecture (armv6 vs armv7), memory
+> > constraints, and I was not using the same channels.conf, I'll fix that
+> > today and re-check
+>
+> Earlier you said "random hangs are back". When this happens, does the who=
+le
+> device become unresponsive or just dvbv5-zap? Since this issue is "back",
+> I wouldn't be surprised this is unrelated to the fixes in 1.12.7 and 1.16=
+.4.
+>
+> It would be useful to see the output from dmesg (best thing would be afte=
+r
+> the issue occurs).
+>
+> Also what dvb hardware are you using?
+>
+> Thanks,
+>
+> san
+>
+> >
+> >
+> > Sam
+> >
+> > On 25/03/2019 18:08, Mauro Carvalho Chehab wrote:
+> >
+> > Em Mon, 25 Mar 2019 17:33:30 +0100
+> > Samuel CHEMLA <chemla.samuel@gmail.com> escreveu:
+> >
+> > Hi guys,
+> >
+> > I'm afraid I'm coming with sad news.
+> > I just tried both stable-1.12 and stable-1.16 on a raspberry pi 2, and
+> > random hangs are back (see https://bugs.launchpad.net/raspbian/+bug/181=
+9650
+> > ).
+> > I previously test both branches on a raspberry zero and issues were gon=
+e
+> > (same raspbian version).
+> > There may be more memory issues somewhere...
+> >
+> > Could you test it with valgrind?
+> >
+> > Sam
+> >
+> > Le jeu. 21 mars 2019 =C5=95 20:59, Gregor Jasny <gjasny@googlemail.com>=
+ a =C3=A9crit :
+> >
+> > Hello,
+> >
+> > On 21.03.19 12:30, Mauro Carvalho Chehab wrote:
+> >
+> > I went ahead and cherry-picked the relevant patches to -1.12, -1.14 and
+> > -1.16, and tested both dvbv5-zap and dvbv5-scan with all versions. So,
+> >
+> > we can
+> >
+> > release a new minor version for all those stable branches.
+> >
+> > After the patches, on my tests, I didn't get any memory leaks or
+> > double-free issues.
+> >
+> > I issues a new 1.12, 1.14, and 1.16 release.
+> >
+> > Thanks,
+> > Gregor
+> >
+> >
+> >
+> > Thanks,
+> > Mauro
