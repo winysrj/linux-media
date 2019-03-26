@@ -2,135 +2,245 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 175BFC43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 07:44:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8C5C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 07:46:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D36BD2084B
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 07:44:58 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="UFOAt6sy"
+	by mail.kernel.org (Postfix) with ESMTP id 49D7620863
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 07:46:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731077AbfCZHoy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 03:44:54 -0400
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:42201 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725535AbfCZHox (ORCPT
+        id S1726307AbfCZHqQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 03:46:16 -0400
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:49389 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726175AbfCZHqQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 03:44:53 -0400
-Received: by mail-pl1-f195.google.com with SMTP id cv12so1246425plb.9
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2019 00:44:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=WN5U6KXN7zp8x4sdlZnFG53yaxOCJgECjRiQIMNvhe4=;
-        b=UFOAt6syz/ZSn9uIr/iXNruJy5QF6TB7LHi1oriFBi4EylajNF97/WfREzpHKa82YZ
-         7AK4IEuXOymOKLSon2OhbPSj+oAjSuIzk2YCUfnkcaWaDoCeiIkLbJwSQ7fRF5u/WnM4
-         FxE0o4fhSyaKX0O3Mw2JwLkmxLvnSXdMAGBqc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=WN5U6KXN7zp8x4sdlZnFG53yaxOCJgECjRiQIMNvhe4=;
-        b=KETQxpteiegY3WmsNmVSsMxi5OXqWXCJ9b3ilcUcx3AUi52qXpd14vFyKAboktQI9B
-         92Sq2vFK13b7IsK1Sk6yOrA6KWiqEak7eADRkiJqdMZuJ1tEzNZ/HzOD+7WRy70eqZlW
-         lmTjPDQTevYcru/7xoT/x9PyXev10EeZTSyl/f7cJBdEDbMnDTMYQDvTGJr9wB41T3nB
-         kF+tKqjpMWuWWC1/rIqU5z84GDO0AnzJeciRLw4ALDEPQ5PDuxAUa5ydxfxks+KdWMy7
-         3u4XLoRrTcZH1X1j4BvDNPcnSqmNdqVjUrc+csQsbzwXT8hX08YYsyTdHH19Kjx8Epyi
-         liJQ==
-X-Gm-Message-State: APjAAAUjn2qSH8A77nbSefFrT+y0X3e2HIhtzngN6LBV7JPgIb/VJNSb
-        hq/Q+W9lKi2hahSRltRdXP9zu1cYqFk=
-X-Google-Smtp-Source: APXvYqwqCuWrtEbTSXcTCIzjkhkrreh05C7B3xpiMWN2Bew7wwyKI1ojX0PNg+zVbEG7jYLBc9RpFA==
-X-Received: by 2002:a17:902:e20e:: with SMTP id ce14mr16000701plb.193.1553586293140;
-        Tue, 26 Mar 2019 00:44:53 -0700 (PDT)
-Received: from acourbot.tok.corp.google.com ([2401:fa00:4:4:9712:8cf1:d0f:7d33])
-        by smtp.gmail.com with ESMTPSA id p14sm35710708pgn.34.2019.03.26.00.44.51
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 26 Mar 2019 00:44:52 -0700 (PDT)
-From:   Alexandre Courbot <acourbot@chromium.org>
-To:     Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [PATCH] media: mtk-vcodec: remove ready_to_display
-Date:   Tue, 26 Mar 2019 16:44:46 +0900
-Message-Id: <20190326074446.123945-1-acourbot@chromium.org>
-X-Mailer: git-send-email 2.21.0.392.gf8f6787159e-goog
+        Tue, 26 Mar 2019 03:46:16 -0400
+Received: from litschi.hi.pengutronix.de ([2001:67c:670:100:feaa:14ff:fe6a:8db5])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <m.tretter@pengutronix.de>)
+        id 1h8gmk-0003Xh-HT; Tue, 26 Mar 2019 08:46:14 +0100
+Date:   Tue, 26 Mar 2019 08:46:13 +0100
+From:   Michael Tretter <m.tretter@pengutronix.de>
+To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc:     kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
+        tfiga@chromium.org, dshah@xilinx.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH v4 0/3] Add ZynqMP VCU/Allegro DVT H.264 encoder driver
+Message-ID: <20190326084613.405e7ed4@litschi.hi.pengutronix.de>
+In-Reply-To: <20190301152718.23134-1-m.tretter@pengutronix.de>
+References: <20190301152718.23134-1-m.tretter@pengutronix.de>
+Organization: Pengutronix
+X-Mailer: Claws Mail 3.14.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:feaa:14ff:fe6a:8db5
+X-SA-Exim-Mail-From: m.tretter@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This member is never read throughout the code, so remove it.
+On Fri, 01 Mar 2019 16:27:15 +0100, Michael Tretter wrote:
+> This is v4 of the series to add support for the Allegro DVT H.264 encoder
+> found in the EV family of the Xilinx ZynqMP platform.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 5 -----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h | 2 --
- 2 files changed, 7 deletions(-)
+Ping.
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-index e20b340855e7..710dcebb42b3 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-@@ -133,8 +133,6 @@ static struct vb2_buffer *get_display_buffer(struct mtk_vcodec_ctx *ctx)
- 		vb2_set_plane_payload(&dstbuf->vb.vb2_buf, 1,
- 					ctx->picinfo.c_bs_sz);
- 
--		dstbuf->ready_to_display = true;
--
- 		mtk_v4l2_debug(2,
- 				"[%d]status=%x queue id=%d to done_list %d",
- 				ctx->id, disp_frame_buffer->status,
-@@ -1122,11 +1120,9 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
- 			v4l2_m2m_buf_queue(ctx->m2m_ctx, vb2_v4l2);
- 			buf->queued_in_vb2 = true;
- 			buf->queued_in_v4l2 = true;
--			buf->ready_to_display = false;
- 		} else {
- 			buf->queued_in_vb2 = false;
- 			buf->queued_in_v4l2 = true;
--			buf->ready_to_display = false;
- 		}
- 		mutex_unlock(&ctx->lock);
- 		return;
-@@ -1253,7 +1249,6 @@ static int vb2ops_vdec_buf_init(struct vb2_buffer *vb)
- 
- 	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
- 		buf->used = false;
--		buf->ready_to_display = false;
- 		buf->queued_in_v4l2 = false;
- 	} else {
- 		buf->lastframe = false;
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-index dc4fc1df63c5..e4984edec4f8 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-@@ -45,7 +45,6 @@ struct vdec_fb {
-  * @list:	link list
-  * @used:	Capture buffer contain decoded frame data and keep in
-  *			codec data structure
-- * @ready_to_display:	Capture buffer not display yet
-  * @queued_in_vb2:	Capture buffer is queue in vb2
-  * @queued_in_v4l2:	Capture buffer is in v4l2 driver, but not in vb2
-  *			queue yet
-@@ -60,7 +59,6 @@ struct mtk_video_dec_buf {
- 	struct list_head	list;
- 
- 	bool	used;
--	bool	ready_to_display;
- 	bool	queued_in_vb2;
- 	bool	queued_in_v4l2;
- 	bool	lastframe;
--- 
-2.21.0.392.gf8f6787159e-goog
+Michael
 
+> 
+> The most prominent change is the added documentation in the nal_h264.h header.
+> The structs for the SPS and PPS NAL units and the function prototypes to
+> convert between RBSP and the C structs are now accompanied by kernel-doc.
+> 
+> Furthermore, I went through all TODOs and FIXMEs in the driver. This resulted
+> in a cleaner handling of messages that are exchanged with the encoder
+> firmware, better documentation of the limits that are imposed by the encoder
+> firmware on the driver, fixed handling of failures during channel creation,
+> and support for 4k video.
+> 
+> v4l2-compliance also seems to be happy with the new version:
+> 
+> v4l2-compliance SHA: 410942e345b889d09456f5f862ee6cd415d8ae59, 64 bits
+> 
+> Compliance test for allegro device /dev/video4:
+> 
+> Driver Info:
+>         Driver name      : allegro
+>         Card type        : Allegro DVT Video Encoder
+>         Bus info         : platform:a0009000.video-codec
+>         Driver version   : 5.0.0
+>         Capabilities     : 0x84208000
+>                 Video Memory-to-Memory
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps      : 0x04208000
+>                 Video Memory-to-Memory
+>                 Streaming
+>                 Extended Pix Format
+>         Detected Stateful Encoder
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second /dev/video4 open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+>         test for unlimited opens: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Control ioctls:
+>         test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>         test VIDIOC_QUERYCTRL: OK
+>         test VIDIOC_G/S_CTRL: OK
+>         test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>         test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>         Standard Controls: 8 Private Controls: 0
+> 
+> Format ioctls:
+>         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>         test VIDIOC_G/S_PARM: OK (Not Supported)
+>         test VIDIOC_G_FBUF: OK (Not Supported)
+>         test VIDIOC_G_FMT: OK
+>         test VIDIOC_TRY_FMT: OK
+>         test VIDIOC_S_FMT: OK
+>         test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>         test Cropping: OK (Not Supported)
+>         test Composing: OK (Not Supported)
+>         test Scaling: OK
+> 
+> Codec ioctls:
+>         test VIDIOC_(TRY_)ENCODER_CMD: OK
+>         test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>         test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+>         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>         test VIDIOC_EXPBUF: OK
+>         test Requests: OK (Not Supported)
+> 
+> Test input 0:
+> 
+> Streaming ioctls:
+>         test read/write: OK (Not Supported)
+>         test blocking wait: OK
+>         Video Capture: Captured 10 buffers                
+>         test MMAP (no poll): OK
+>         Video Capture: Captured 10 buffers                
+>         test MMAP (select): OK
+>         Video Capture: Captured 10 buffers                
+>         test MMAP (epoll): OK
+>         test USERPTR (no poll): OK (Not Supported)
+>         test USERPTR (select): OK (Not Supported)
+>         test DMABUF: Cannot test, specify --expbuf-device
+> 
+> Total for allegro device /dev/video4: 51, Succeeded: 51, Failed: 0, Warnings: 0
+> 
+> Apart from that, there are a few cleanups to resolve checkpatch or compiler
+> warnings. A more detailed changelog is attached to each patch.
+> 
+> Michael
+> 
+> v3 -> v4:
+> - fix checkpatch and compiler warnings
+> - use v4l2_m2m_buf_copy_metadata to copy buffer metadata
+> - resolve FIXME regarding channel creation and streamon
+> - resolve various TODOs
+> - add mailbox format to firmware info
+> - add suballocator_size to firmware info
+> - use struct_size to allocate mcu_msg_push_buffers_internal
+> - handle *_response messages in a union
+> - cleanup mcu_send_msg functions
+> - increase maximum video resolution to 4k
+> - handle errors when creating a channel
+> - do not update ctrls after channel is created
+> - add documentation for nal_h264.h
+> 
+> v2 -> v3:
+> - add clocks to devicetree bindings
+> - fix devicetree binding according to review comments on v2
+> - add missing v4l2 callbacks
+> - drop unnecessary v4l2 callbacks
+> - drop debug module parameter poison_capture_buffers
+> - check firmware size before loading firmware
+> - rework error handling
+> 
+> v1 -> v2:
+> - clean up debug log levels
+> - fix unused variable in allegro_mbox_init
+> - fix uninitialized variable in allegro_mbox_write
+> - fix global module parameters
+> - fix Kconfig dependencies
+> - return h264 as default codec for mcu
+> - implement device reset as documented
+> - document why irq does not wait for clear
+> - rename ENCODE_ONE_FRM to ENCODE_FRAME
+> - allow error codes for mcu_channel_id
+> - move control handler to channel
+> - add fw version check
+> - add support for colorspaces
+> - enable configuration of H.264 levels
+> - enable configuration of frame size
+> - enable configuration of bit rate and CPB size
+> - enable configuration of GOP size
+> - rework response handling
+> - fix missing error handling in allegro_h264_write_sps
+> 
+> 
+> Michael Tretter (3):
+>   media: dt-bindings: media: document allegro-dvt bindings
+>   [media] allegro: add Allegro DVT video IP core driver
+>   [media] allegro: add SPS/PPS nal unit writer
+> 
+>  .../devicetree/bindings/media/allegro.txt     |   43 +
+>  MAINTAINERS                                   |    6 +
+>  drivers/staging/media/Kconfig                 |    2 +
+>  drivers/staging/media/Makefile                |    1 +
+>  drivers/staging/media/allegro-dvt/Kconfig     |   16 +
+>  drivers/staging/media/allegro-dvt/Makefile    |    6 +
+>  .../staging/media/allegro-dvt/allegro-core.c  | 2835 +++++++++++++++++
+>  drivers/staging/media/allegro-dvt/nal-h264.c  | 1278 ++++++++
+>  drivers/staging/media/allegro-dvt/nal-h264.h  |  330 ++
+>  9 files changed, 4517 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/allegro.txt
+>  create mode 100644 drivers/staging/media/allegro-dvt/Kconfig
+>  create mode 100644 drivers/staging/media/allegro-dvt/Makefile
+>  create mode 100644 drivers/staging/media/allegro-dvt/allegro-core.c
+>  create mode 100644 drivers/staging/media/allegro-dvt/nal-h264.c
+>  create mode 100644 drivers/staging/media/allegro-dvt/nal-h264.h
+> 
