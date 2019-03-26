@@ -2,107 +2,194 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4A7C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 09:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC076C43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 10:04:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D3EC20863
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 09:46:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OKhqcOJL"
+	by mail.kernel.org (Postfix) with ESMTP id 8C886206C0
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 10:04:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726270AbfCZJqo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 05:46:44 -0400
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:39616 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726248AbfCZJqo (ORCPT
+        id S1726287AbfCZKEF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 06:04:05 -0400
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:65482 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725948AbfCZKEE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 05:46:44 -0400
-Received: by mail-ot1-f65.google.com with SMTP id f10so10847158otb.6;
-        Tue, 26 Mar 2019 02:46:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ExQZt6khEROpA+UJnSeDW8GgVSZjdIx0gAHlWkmYf08=;
-        b=OKhqcOJL6irW2bP84OwfnGGWb21pFdJp/i77Fp+vFCI6wAxJf4PnL3375r/sl+i9t4
-         IlcAlhRF2Q6rnf0DaX7n9Ya3Epvw/MvSUG1/y0MDVk3fGbr0en0iaTzmdk8NRZ3n9WVS
-         MrHG59isWowzhbQXx+gvzVwK0XkspMGom5jmyM6L37MmyK6IEsAnRpohJ4mXgm+siIPJ
-         WeugeOVzAtbgUoXlBpP3OBsKSkdLfkviTk0fXDBCF3OUju1gihchPtx6p9saBatqcuqF
-         wV7HNpQ04tChfQBB9hAm7GRo7dINTREZ4eqR6FEy+k1Tbt5OqwWRKBwEVe7ZEznoZto6
-         ooRQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ExQZt6khEROpA+UJnSeDW8GgVSZjdIx0gAHlWkmYf08=;
-        b=OQU8W05Cn0TAxvdCTMhRuR9tHbxj+fZhhc2SDr6GHqmgxK/x9/UR2u8YMSLPXWD9Rs
-         IPrSm9eDSeWVyylW/z/Op13bZOkq6kkn83iJd4s4qOc3Gs8P1r2oYA4VPXjeK9HqxPji
-         SuIBcAdkpGRiM3hYzUwj7iIEU0bfilP40Fz0v4cQ+ilMGTeCydiwt2kCu4+vyeGr5Tak
-         tidtUrgN33Q2YxQJN8Gl0X0qdvQeSJZZWMMP54BOrOS+Wb+OJZ3hGOmvq6qgkx1waKta
-         5HWX4cd9bw6TDx//tkuqEhSVpOlJuDr1xKg8OgXtaYN7FFtItGGomvw4BSVyj1X6VcAS
-         BfEw==
-X-Gm-Message-State: APjAAAU1tFFDQOeJMYVnFUvvPbqsiieh/qO8+obR96vspbZ/UQa1+VZI
-        XurH0YCBERtGi0d1cfA4yovI1u1YtVyOiGBOdRPlT2QB
-X-Google-Smtp-Source: APXvYqz1hv0r09HYO3MpV9+1n+7htW0wQLJTj3BaGXyfmryo6gpzv/MqEX1lXdJSjYDy0Q9p9JJP4RyANJZe7HFWhrE=
-X-Received: by 2002:a9d:ef4:: with SMTP id 107mr21749842otj.152.1553593603332;
- Tue, 26 Mar 2019 02:46:43 -0700 (PDT)
+        Tue, 26 Mar 2019 06:04:04 -0400
+Received: from pps.filterd (m0046668.ppops.net [127.0.0.1])
+        by mx07-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x2Q9ugbw026877;
+        Tue, 26 Mar 2019 11:03:54 +0100
+Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
+        by mx07-00178001.pphosted.com with ESMTP id 2rddhbgpqe-1
+        (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT);
+        Tue, 26 Mar 2019 11:03:54 +0100
+Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
+        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 476E63A;
+        Tue, 26 Mar 2019 10:03:50 +0000 (GMT)
+Received: from Webmail-eu.st.com (Safex1hubcas23.st.com [10.75.90.46])
+        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 1A4CA516B;
+        Tue, 26 Mar 2019 10:03:50 +0000 (GMT)
+Received: from SAFEX1HUBCAS21.st.com (10.75.90.45) by SAFEX1HUBCAS23.st.com
+ (10.75.90.46) with Microsoft SMTP Server (TLS) id 14.3.435.0; Tue, 26 Mar
+ 2019 11:03:50 +0100
+Received: from localhost (10.129.172.100) by Webmail-ga.st.com (10.75.90.48)
+ with Microsoft SMTP Server (TLS) id 14.3.361.1; Tue, 26 Mar 2019 11:03:49
+ +0100
+From:   Mickael Guene <mickael.guene@st.com>
+To:     <linux-media@vger.kernel.org>
+CC:     <hugues.fruchet@st.com>, Mickael Guene <mickael.guene@st.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Mark Rutland" <mark.rutland@arm.com>
+Subject: [PATCH v3 1/2] dt-bindings: Document MIPID02 bindings
+Date:   Tue, 26 Mar 2019 11:03:39 +0100
+Message-ID: <1553594620-88280-2-git-send-email-mickael.guene@st.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1553594620-88280-1-git-send-email-mickael.guene@st.com>
+References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
+ <1553594620-88280-1-git-send-email-mickael.guene@st.com>
 MIME-Version: 1.0
-References: <20190323025106.15865-1-kjlu@umn.edu>
-In-Reply-To: <20190323025106.15865-1-kjlu@umn.edu>
-From:   "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date:   Tue, 26 Mar 2019 09:46:16 +0000
-Message-ID: <CA+V-a8tQMOjoWeBr==KW_7waQHMqG7x4FCVqMkVr3Hjy9cZe5A@mail.gmail.com>
-Subject: Re: [PATCH] media: vpss: fix a potential NULL pointer dereference
-To:     Kangjie Lu <kjlu@umn.edu>
-Cc:     pakki001@umn.edu, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Originating-IP: [10.129.172.100]
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-03-26_05:,,
+ signatures=0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Kangjie,
+This adds documentation of device tree for MIPID02 CSI-2 to PARALLEL
+bridge.
 
-Thanks for the patch.
+Signed-off-by: Mickael Guene <mickael.guene@st.com>
+---
 
-On Sat, Mar 23, 2019 at 2:51 AM Kangjie Lu <kjlu@umn.edu> wrote:
->
-> In case ioremap fails, the fix returns -ENOMEM to avoid NULL
-> pointer dereference.
->
-> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
-> ---
->  drivers/media/platform/davinci/vpss.c | 5 +++++
->  1 file changed, 5 insertions(+)
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Changes in v3: None
+Changes in v2:
+- Add precision about first CSI-2 port data rate
+- Document endpoints supported properties
+- Rename 'mipid02@14' into generic 'csi2rx@14' in example
 
-Cheers,
---Prabhakar Lad
+ .../bindings/media/i2c/st,st-mipid02.txt           | 83 ++++++++++++++++++++++
+ MAINTAINERS                                        |  7 ++
+ 2 files changed, 90 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
 
-> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-> index 19cf6853411e..89a86c19579b 100644
-> --- a/drivers/media/platform/davinci/vpss.c
-> +++ b/drivers/media/platform/davinci/vpss.c
-> @@ -518,6 +518,11 @@ static int __init vpss_init(void)
->                 return -EBUSY;
->
->         oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
-> +       if (unlikely(!oper_cfg.vpss_regs_base2)) {
-> +               release_mem_region(VPSS_CLK_CTRL, 4);
-> +               return -ENOMEM;
-> +       }
-> +
->         writel(VPSS_CLK_CTRL_VENCCLKEN |
->                      VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
->
-> --
-> 2.17.1
->
+diff --git a/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+new file mode 100644
+index 0000000..dfeab45
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
+@@ -0,0 +1,83 @@
++STMicroelectronics MIPID02 CSI-2 to PARALLEL bridge
++
++MIPID02 has two CSI-2 input ports, only one of those ports can be active at a
++time. Active port input stream will be de-serialized and its content outputted
++through PARALLEL output port.
++CSI-2 first input port is a dual lane 800Mbps per lane whereas CSI-2 second
++input port is a single lane 800Mbps. Both ports support clock and data lane
++polarity swap. First port also supports data lane swap.
++PARALLEL output port has a maximum width of 12 bits.
++Supported formats are RAW6, RAW7, RAW8, RAW10, RAW12, RGB565, RGB888, RGB444,
++YUV420 8-bit, YUV422 8-bit and YUV420 10-bit.
++
++Required Properties:
++- compatible: should be "st,st-mipid02"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++- VDDE-supply: sensor digital IO supply. Must be 1.8 volts.
++- VDDIN-supply: sensor internal regulator supply. Must be 1.8 volts.
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the xsdn pin, if any.
++	       This is an active low signal to the mipid02.
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++	   port, in accordance with the video interface bindings defined in
++	   Documentation/devicetree/bindings/media/video-interfaces.txt. The
++	   port nodes are numbered as follows:
++
++	   Port Description
++	   -----------------------------
++	   0    CSI-2 first input port
++	   1    CSI-2 second input port
++	   2    PARALLEL output
++
++Endpoint node optional properties for CSI-2 connection are:
++- bus-type: if present should be 4 - MIPI CSI-2 D-PHY.
++- clock-lanes: should be set to <0> if present (clock lane on hardware lane 0).
++- data-lanes: if present should be <1> for Port 1. for Port 0 dual-lane
++operation should be <1 2> or <2 1>. For Port 0 single-lane operation should be
++<1> or <2>.
++- lane-polarities: any lane can be inverted.
++
++Endpoint node optional properties for PARALLEL connection are:
++- bus-type: if present should be 5 - Parallel.
++- bus-width: shall be set to <6>, <7>, <8>, <10> or <12>.
++- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++
++Example:
++
++mipid02: csi2rx@14 {
++	compatible = "st,st-mipid02";
++	reg = <0x14>;
++	status = "okay";
++	clocks = <&clk_ext_camera_12>;
++	clock-names = "xclk";
++	VDDE-supply = <&vdd>;
++	VDDIN-supply = <&vdd>;
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		port@0 {
++			reg = <0>;
++
++			ep0: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&mipi_csi2_in>;
++			};
++		};
++		port@2 {
++			reg = <2>;
++
++			ep2: endpoint {
++				bus-width = <8>;
++				hsync-active = <0>;
++				vsync-active = <0>;
++				remote-endpoint = <&parallel_out>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e17ebf7..74da99d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -14668,6 +14668,13 @@ S:	Maintained
+ F:	drivers/iio/imu/st_lsm6dsx/
+ F:	Documentation/devicetree/bindings/iio/imu/st_lsm6dsx.txt
+ 
++ST MIPID02 CSI-2 TO PARALLEL BRIDGE DRIVER
++M:	Mickael Guene <mickael.guene@st.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
++
+ ST STM32 I2C/SMBUS DRIVER
+ M:	Pierre-Yves MORDRET <pierre-yves.mordret@st.com>
+ L:	linux-i2c@vger.kernel.org
+-- 
+2.7.4
+
