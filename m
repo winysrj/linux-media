@@ -2,55 +2,67 @@ Return-Path: <SRS0=7BPv=R5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E1B1C43381
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 13:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 082ECC43381
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 13:54:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F27620856
-	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 13:44:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C770620823
+	for <linux-media@archiver.kernel.org>; Tue, 26 Mar 2019 13:54:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729440AbfCZNoM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 26 Mar 2019 09:44:12 -0400
-Received: from retiisi.org.uk ([95.216.213.190]:43012 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726140AbfCZNoL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Mar 2019 09:44:11 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2a01:4f9:c010:4572::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 1EC8C634C7B;
-        Tue, 26 Mar 2019 15:44:05 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1h8mN3-0000Kn-Ph; Tue, 26 Mar 2019 15:44:05 +0200
-Date:   Tue, 26 Mar 2019 15:44:05 +0200
-From:   Sakari Ailus <sakari.ailus@iki.fi>
+        id S1731501AbfCZNyq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 26 Mar 2019 09:54:46 -0400
+Received: from mga12.intel.com ([192.55.52.136]:49562 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726175AbfCZNyq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Mar 2019 09:54:46 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 26 Mar 2019 06:54:45 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.60,271,1549958400"; 
+   d="scan'208";a="286006541"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga004.jf.intel.com with ESMTP; 26 Mar 2019 06:54:40 -0700
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id C828A205E7; Tue, 26 Mar 2019 15:54:39 +0200 (EET)
+Date:   Tue, 26 Mar 2019 15:54:39 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Mickael GUENE <mickael.guene@st.com>
 Cc:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
         Hugues FRUCHET <hugues.fruchet@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Petr Cvek <petrcvekcz@gmail.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
+        Ben Kao <ben.kao@intel.com>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Rob Herring <robh+dt@kernel.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 1/2] dt-bindings: Document MIPID02 bindings
-Message-ID: <20190326134405.v6ipjsl35ql67qil@valkosipuli.retiisi.org.uk>
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ricardo Ribalda Delgado <ricardo@ribalda.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Tianshu Qiu <tian.shu.qiu@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>
+Subject: Re: [PATCH v3 2/2] media:st-mipid02: MIPID02 CSI-2 to PARALLEL
+ bridge driver
+Message-ID: <20190326135439.oju2k6idndjaulfj@paasikivi.fi.intel.com>
 References: <1552373045-134493-1-git-send-email-mickael.guene@st.com>
  <1553594620-88280-1-git-send-email-mickael.guene@st.com>
- <1553594620-88280-2-git-send-email-mickael.guene@st.com>
- <20190326121731.m7z5o2jbzlfxalu6@valkosipuli.retiisi.org.uk>
- <7a62fee6-5792-0390-fd6f-f34aca0dc759@st.com>
+ <1553594620-88280-3-git-send-email-mickael.guene@st.com>
+ <20190326113308.mp5hqdw3ktbpcawu@paasikivi.fi.intel.com>
+ <9c8fb935-5c67-d4aa-d0ba-2aae0edd2b55@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7a62fee6-5792-0390-fd6f-f34aca0dc759@st.com>
+In-Reply-To: <9c8fb935-5c67-d4aa-d0ba-2aae0edd2b55@st.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -59,108 +71,63 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi Mickael,
 
-On Tue, Mar 26, 2019 at 01:40:18PM +0000, Mickael GUENE wrote:
-> Hi Sakari,
-> 
-> On 3/26/19 13:17, Sakari Ailus wrote:
-> > Hi Mickael,
-> > 
-> > On Tue, Mar 26, 2019 at 11:03:39AM +0100, Mickael Guene wrote:
-> >> This adds documentation of device tree for MIPID02 CSI-2 to PARALLEL
-> >> bridge.
-> >>
-> >> Signed-off-by: Mickael Guene <mickael.guene@st.com>
-> >> ---
-> >>
-> >> Changes in v3: None
-> >> Changes in v2:
-> >> - Add precision about first CSI-2 port data rate
-> >> - Document endpoints supported properties
-> >> - Rename 'mipid02@14' into generic 'csi2rx@14' in example
-> >>
-> >>  .../bindings/media/i2c/st,st-mipid02.txt           | 83 ++++++++++++++++++++++
-> >>  MAINTAINERS                                        |  7 ++
-> >>  2 files changed, 90 insertions(+)
-> >>  create mode 100644 Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> >> new file mode 100644
-> >> index 0000000..dfeab45
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/i2c/st,st-mipid02.txt
-> >> @@ -0,0 +1,83 @@
-> >> +STMicroelectronics MIPID02 CSI-2 to PARALLEL bridge
+On Tue, Mar 26, 2019 at 12:57:03PM +0000, Mickael GUENE wrote:
+...
+> >> +static int mipid02_set_fmt(struct v4l2_subdev *sd,
+> >> +			   struct v4l2_subdev_pad_config *cfg,
+> >> +			   struct v4l2_subdev_format *format)
+> >> +{
+> >> +	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
+> >> +	struct mipid02_dev *bridge = to_mipid02_dev(sd);
+> >> +	struct i2c_client *client = bridge->i2c_client;
+> >> +	struct v4l2_mbus_framefmt *fmt;
+> >> +	int ret;
 > >> +
-> >> +MIPID02 has two CSI-2 input ports, only one of those ports can be active at a
-> >> +time. Active port input stream will be de-serialized and its content outputted
-> >> +through PARALLEL output port.
-> >> +CSI-2 first input port is a dual lane 800Mbps per lane whereas CSI-2 second
-> >> +input port is a single lane 800Mbps. Both ports support clock and data lane
-> >> +polarity swap. First port also supports data lane swap.
-> >> +PARALLEL output port has a maximum width of 12 bits.
-> >> +Supported formats are RAW6, RAW7, RAW8, RAW10, RAW12, RGB565, RGB888, RGB444,
-> >> +YUV420 8-bit, YUV422 8-bit and YUV420 10-bit.
+> >> +	dev_dbg(&client->dev, "%s for %d", __func__, format->pad);
 > >> +
-> >> +Required Properties:
-> >> +- compatible: should be "st,st-mipid02"
-> >> +- clocks: reference to the xclk input clock.
-> >> +- clock-names: should be "xclk".
-> >> +- VDDE-supply: sensor digital IO supply. Must be 1.8 volts.
-> >> +- VDDIN-supply: sensor internal regulator supply. Must be 1.8 volts.
+> >> +	if (format->pad >= MIPID02_PAD_NB)
+> >> +		return -EINVAL;
+> >> +	/* second CSI-2 pad not yet supported */
+> >> +	if (format->pad == 1)
+> >> +		return -EINVAL;
 > >> +
-> >> +Optional Properties:
-> >> +- reset-gpios: reference to the GPIO connected to the xsdn pin, if any.
-> >> +	       This is an active low signal to the mipid02.
+> >> +	mutex_lock(&bridge->lock);
 > >> +
-> >> +Required subnodes:
-> >> +  - ports: A ports node with one port child node per device input and output
-> >> +	   port, in accordance with the video interface bindings defined in
-> >> +	   Documentation/devicetree/bindings/media/video-interfaces.txt. The
-> >> +	   port nodes are numbered as follows:
+> >> +	if (bridge->streaming) {
+> >> +		ret = -EBUSY;
+> >> +		goto error;
+> >> +	}
 > >> +
-> >> +	   Port Description
-> >> +	   -----------------------------
-> >> +	   0    CSI-2 first input port
-> >> +	   1    CSI-2 second input port
-> >> +	   2    PARALLEL output
+> >> +	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+> >> +		fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
+> >> +	else
+> >> +		fmt = &bridge->fmt;
 > >> +
-> >> +Endpoint node optional properties for CSI-2 connection are:
-> >> +- bus-type: if present should be 4 - MIPI CSI-2 D-PHY.
+> >> +	*fmt = *mbus_fmt;
 > > 
-> > You can drop this IMO --- there's just a single valid value so the driver
-> > may know that.
+> > What are the limits of the hardware regarding the size of the image? Aren't
+> > there any?
 > > 
-> ok
-> >> +- clock-lanes: should be set to <0> if present (clock lane on hardware lane 0).
-> > 
-> > And please omit this, too, if the clock lane is always 0. Please update the
-> > example, too. The driver doesn't need to check that either IMO, but up to
-> > you.
-> > 
-> ok I will drop it from device tree documentation but I will keep driver check.
-> I will also make data-lanes mandatory.
-> >> +- data-lanes: if present should be <1> for Port 1. for Port 0 dual-lane
-> >> +operation should be <1 2> or <2 1>. For Port 0 single-lane operation should be
-> >> +<1> or <2>.
-> >> +- lane-polarities: any lane can be inverted.
-> >> +
-> >> +Endpoint node optional properties for PARALLEL connection are:
-> >> +- bus-type: if present should be 5 - Parallel.
-> > 
-> > This, too, can be omitted.
-> > 
-> ok
-> >> +- bus-width: shall be set to <6>, <7>, <8>, <10> or <12>.
-> >> +- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-> >> +- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-> > 
-> > If these are optional, what are the defaults? IMO you could make them
-> > mandatory as well.
-> > 
-> I will make bus-width mandatory
-> hsync-active and vsync-active will stay optional with LOW being the default.
+> There are no limits for image size.
+> > The format on the sink pad needs to be propagated to the source pad as
+> > well. I presume there's nothing to set on the sink pad for this device, is
+> > there?
+>  User only need to set format code so the driver can configure hardware.
+>  In the mipid02 we have always the same format for sink and source. So I
+>  only store one configuration during set_fmt when called from either pad0
+> (sink) or pad2 (source). Is it the correct way to implement it ? or
+> should I only accept set_fmt on pad0 ?
+>  For get_fmt I return stored configuration for pad0 and pad2.
 
-The above seems good to me. Thanks!
+Only 76 or so characters per line, please.
+
+For pad 0 (sink) the format must be settable freely (as you don't have any
+hardware restrictions) and on the pad 2 (source) the driver converts the
+format set on the pad 0 according to the hardware functionality. This is
+what the link validation from the source pad onwards is based on.
 
 -- 
+Regards,
+
 Sakari Ailus
+sakari.ailus@linux.intel.com
