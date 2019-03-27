@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D488DC43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:12:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 845A4C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:23:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A60642147C
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:12:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56C2A21855
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553710374;
-	bh=uZX2f7PJwn5YpLpG3IYUmtDdOY89VpbLiidtA1GJjps=;
+	s=default; t=1553710991;
+	bh=eZsqNRtN7AcSby9VLPWL4CoNCTpAnqwEXDqEMG50gLg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ujKCU49NdYX3q1aiIypBlmO34Uoi+skZXPhfeJ/RLNU8Il0LhVuwxf8RjJYVltlza
-	 eVzl/3Xl6e7a0Unu2uthsrSIys5sjtAHy0rnWybrgCkL9HLF/vFzBaiRKY/cRe3gBY
-	 iv4PZg1gChny5W788bBc50YHGPXCJAHrbi2aQ3vE=
+	b=iQU9Ls/90kjxT+wvIG3g/odjMNhXG9hier4mJUcWDGrV4tkE/z1/zAzYTtkqskGHp
+	 nCM0ig7ABgcaS0+6XQ4kxNeyKOlwwkIlWnt6yVkhOlMrfiz14Q0l56bt35vZsdVsAk
+	 jz/4FXfpe9JdTfEgXektqozMPqH898hJuBTDLn4c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388775AbfC0SMx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:12:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55314 "EHLO mail.kernel.org"
+        id S2391414AbfC0SXG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 14:23:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387881AbfC0SMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:12:52 -0400
+        id S2391407AbfC0SXF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:23:05 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 22D332054F;
-        Wed, 27 Mar 2019 18:12:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AF8072147C;
+        Wed, 27 Mar 2019 18:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553710371;
-        bh=uZX2f7PJwn5YpLpG3IYUmtDdOY89VpbLiidtA1GJjps=;
+        s=default; t=1553710984;
+        bh=eZsqNRtN7AcSby9VLPWL4CoNCTpAnqwEXDqEMG50gLg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=m4up72BkyVI9Ze+vFdTRXaBmw1pmN57fO2Z0fKZM2P/+LH9kitkFB8SuKZdCHWz9S
-         HoboF0/mzyDkGj97KGC1HQzJ/VtQ1svmQYdYwD+MUMWxD0waQJWLEuztu4+wZXUybl
-         NIGPWM4DS1Irgbh8qdqoHzpYfEb4PEmupxkRzptE=
+        b=orfspIClEptIN4qQvx78xLCX1ss07gokJlj5ojPxcWnODemwzARFfuz1D6+RIf8EV
+         gs2u1ZthJu0RelugC2Ixmjgs6YfjEIih1v4p/7l7sftZjCgpixx56GPRVQGMplfFZp
+         9jOaqNRUhwVIn4TZd2TbvKJgd8BJgxzLOrStDfZs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Cc:     Pawe? Chmiel <pawel.mikolaj.chmiel@gmail.com>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 084/192] media: ov7740: fix runtime pm initialization
-Date:   Wed, 27 Mar 2019 14:08:36 -0400
-Message-Id: <20190327181025.13507-84-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.9 78/87] media: s5p-jpeg: Check for fmt_ver_flag when doing fmt enumeration
+Date:   Wed, 27 Mar 2019 14:20:31 -0400
+Message-Id: <20190327182040.17444-78-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
-References: <20190327181025.13507-1-sashal@kernel.org>
+In-Reply-To: <20190327182040.17444-1-sashal@kernel.org>
+References: <20190327182040.17444-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -58,81 +58,86 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Akinobu Mita <akinobu.mita@gmail.com>
+From: Pawe? Chmiel <pawel.mikolaj.chmiel@gmail.com>
 
-[ Upstream commit 12aceee1f412c3ddc7750155fec06c906f14ab51 ]
+[ Upstream commit 49710c32cd9d6626a77c9f5f978a5f58cb536b35 ]
 
-The runtime PM of this device is enabled after v4l2_ctrl_handler_setup(),
-and this makes this device's runtime PM usage count a negative value.
+Previously when doing format enumeration, it was returning all
+ formats supported by driver, even if they're not supported by hw.
+Add missing check for fmt_ver_flag, so it'll be fixed and only those
+ supported by hw will be returned. Similar thing is already done
+ in s5p_jpeg_find_format.
 
-The ov7740_set_ctrl() tries to do something only if the device's runtime
-PM usage counter is nonzero.
+It was found by using v4l2-compliance tool and checking result
+ of VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS test
+and using v4l2-ctl to get list of all supported formats.
 
-ov7740_set_ctrl()
-{
-	if (!pm_runtime_get_if_in_use(&client->dev))
-		return 0;
+Tested on s5pv210-galaxys (Samsung i9000 phone).
 
-	<do something>;
+Fixes: bb677f3ac434 ("[media] Exynos4 JPEG codec v4l2 driver")
 
-	pm_runtime_put(&client->dev);
-
-	return ret;
-}
-
-However, the ov7740_set_ctrl() is called by v4l2_ctrl_handler_setup()
-while the runtime PM of this device is not yet enabled.  In this case,
-the pm_runtime_get_if_in_use() returns -EINVAL (!= 0).
-
-Therefore we can't bail out of this function and the usage count is
-decreased by pm_runtime_put() without increment.
-
-This fixes this problem by enabling the runtime PM of this device before
-v4l2_ctrl_handler_setup() so that the ov7740_set_ctrl() is always called
-when the runtime PM is enabled.
-
-Cc: Wenyou Yang <wenyou.yang@microchip.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Tested-by: Eugen Hristev <eugen.hristev@microchip.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Pawe? Chmiel <pawel.mikolaj.chmiel@gmail.com>
+Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+[hverkuil-cisco@xs4all.nl: fix a few alignment issues]
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/i2c/ov7740.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
-index 605f3e25ad82..f5a1ee90a6c5 100644
---- a/drivers/media/i2c/ov7740.c
-+++ b/drivers/media/i2c/ov7740.c
-@@ -1101,6 +1101,9 @@ static int ov7740_probe(struct i2c_client *client,
- 	if (ret)
- 		return ret;
- 
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+
- 	ret = ov7740_detect(ov7740);
- 	if (ret)
- 		goto error_detect;
-@@ -1123,8 +1126,6 @@ static int ov7740_probe(struct i2c_client *client,
- 	if (ret)
- 		goto error_async_register;
- 
--	pm_runtime_set_active(&client->dev);
--	pm_runtime_enable(&client->dev);
- 	pm_runtime_idle(&client->dev);
- 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 06e2b72d07ca..c89922fb42ce 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1264,13 +1264,16 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
  	return 0;
-@@ -1134,6 +1135,8 @@ static int ov7740_probe(struct i2c_client *client,
- error_init_controls:
- 	ov7740_free_controls(ov7740);
- error_detect:
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
- 	ov7740_set_power(ov7740, 0);
- 	media_entity_cleanup(&ov7740->subdev.entity);
+ }
  
+-static int enum_fmt(struct s5p_jpeg_fmt *sjpeg_formats, int n,
++static int enum_fmt(struct s5p_jpeg_ctx *ctx,
++		    struct s5p_jpeg_fmt *sjpeg_formats, int n,
+ 		    struct v4l2_fmtdesc *f, u32 type)
+ {
+ 	int i, num = 0;
++	unsigned int fmt_ver_flag = ctx->jpeg->variant->fmt_ver_flag;
+ 
+ 	for (i = 0; i < n; ++i) {
+-		if (sjpeg_formats[i].flags & type) {
++		if (sjpeg_formats[i].flags & type &&
++		    sjpeg_formats[i].flags & fmt_ver_flag) {
+ 			/* index-th format of type type found ? */
+ 			if (num == f->index)
+ 				break;
+@@ -1297,11 +1300,11 @@ static int s5p_jpeg_enum_fmt_vid_cap(struct file *file, void *priv,
+ 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	if (ctx->mode == S5P_JPEG_ENCODE)
+-		return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
++		return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
+ 				SJPEG_FMT_FLAG_ENC_CAPTURE);
+ 
+-	return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
+-					SJPEG_FMT_FLAG_DEC_CAPTURE);
++	return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
++			SJPEG_FMT_FLAG_DEC_CAPTURE);
+ }
+ 
+ static int s5p_jpeg_enum_fmt_vid_out(struct file *file, void *priv,
+@@ -1310,11 +1313,11 @@ static int s5p_jpeg_enum_fmt_vid_out(struct file *file, void *priv,
+ 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	if (ctx->mode == S5P_JPEG_ENCODE)
+-		return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
++		return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
+ 				SJPEG_FMT_FLAG_ENC_OUTPUT);
+ 
+-	return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
+-					SJPEG_FMT_FLAG_DEC_OUTPUT);
++	return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
++			SJPEG_FMT_FLAG_DEC_OUTPUT);
+ }
+ 
+ static struct s5p_jpeg_q_data *get_q_data(struct s5p_jpeg_ctx *ctx,
 -- 
 2.19.1
 
