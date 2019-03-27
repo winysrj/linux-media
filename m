@@ -6,50 +6,50 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 055E4C43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:05:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D488DC43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:12:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C82BF2063F
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:05:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A60642147C
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:12:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553709944;
-	bh=rEeIU3O2MmD4cJ+H6PgyiC7UbtR4wImXCiT1Gxl3xik=;
+	s=default; t=1553710374;
+	bh=uZX2f7PJwn5YpLpG3IYUmtDdOY89VpbLiidtA1GJjps=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=h4Y8cAZK44dvzhaumpiQN+ZI0295d/4BKN5CI3YZ/uVqiYcWaK7ZbD/UPrWEjuH6H
-	 3F8zppn5QNjY18unDuH303UUf2j16t72/c/uJG5515f87Mk70QKdWt/+oLWc7m1Qhl
-	 PasuzTTv+mW2gj6bks2st4FgANMBMd0iWqq1oJ8w=
+	b=ujKCU49NdYX3q1aiIypBlmO34Uoi+skZXPhfeJ/RLNU8Il0LhVuwxf8RjJYVltlza
+	 eVzl/3Xl6e7a0Unu2uthsrSIys5sjtAHy0rnWybrgCkL9HLF/vFzBaiRKY/cRe3gBY
+	 iv4PZg1gChny5W788bBc50YHGPXCJAHrbi2aQ3vE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387766AbfC0SFn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:05:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46920 "EHLO mail.kernel.org"
+        id S2388775AbfC0SMx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 14:12:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732806AbfC0SFj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:05:39 -0400
+        id S2387881AbfC0SMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:12:52 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 27FE02063F;
-        Wed, 27 Mar 2019 18:05:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22D332054F;
+        Wed, 27 Mar 2019 18:12:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553709939;
-        bh=rEeIU3O2MmD4cJ+H6PgyiC7UbtR4wImXCiT1Gxl3xik=;
+        s=default; t=1553710371;
+        bh=uZX2f7PJwn5YpLpG3IYUmtDdOY89VpbLiidtA1GJjps=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AXWFvlubbQBDID5+o4iDg6Gqjc7PecSBLXMJY7TjxDmFd2iEHnDnAZSYtsalnThmW
-         Q229Bi+lYqSSofH3WeJJSzjD79xgeYDszWDFZu4Hd4EnRBAnFT3apV3o50YGK5LokL
-         c6REdJER73mPH8+0MxN0eRwWiBaR+m/tgpKu63z4=
+        b=m4up72BkyVI9Ze+vFdTRXaBmw1pmN57fO2Z0fKZM2P/+LH9kitkFB8SuKZdCHWz9S
+         HoboF0/mzyDkGj97KGC1HQzJ/VtQ1svmQYdYwD+MUMWxD0waQJWLEuztu4+wZXUybl
+         NIGPWM4DS1Irgbh8qdqoHzpYfEb4PEmupxkRzptE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.0 123/262] media: s5p-g2d: Correct return type for mem2mem buffer helpers
-Date:   Wed, 27 Mar 2019 13:59:38 -0400
-Message-Id: <20190327180158.10245-123-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 084/192] media: ov7740: fix runtime pm initialization
+Date:   Wed, 27 Mar 2019 14:08:36 -0400
+Message-Id: <20190327181025.13507-84-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
-References: <20190327180158.10245-1-sashal@kernel.org>
+In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
+References: <20190327181025.13507-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -58,63 +58,81 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Ezequiel Garcia <ezequiel@collabora.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-[ Upstream commit 30fa627b32230737bc3f678067e2adfecf956987 ]
+[ Upstream commit 12aceee1f412c3ddc7750155fec06c906f14ab51 ]
 
-Fix the assigned type of mem2mem buffer handling API.
-Namely, these functions:
+The runtime PM of this device is enabled after v4l2_ctrl_handler_setup(),
+and this makes this device's runtime PM usage count a negative value.
 
- v4l2_m2m_next_buf
- v4l2_m2m_last_buf
- v4l2_m2m_buf_remove
- v4l2_m2m_next_src_buf
- v4l2_m2m_next_dst_buf
- v4l2_m2m_last_src_buf
- v4l2_m2m_last_dst_buf
- v4l2_m2m_src_buf_remove
- v4l2_m2m_dst_buf_remove
+The ov7740_set_ctrl() tries to do something only if the device's runtime
+PM usage counter is nonzero.
 
-return a struct vb2_v4l2_buffer, and not a struct vb2_buffer.
+ov7740_set_ctrl()
+{
+	if (!pm_runtime_get_if_in_use(&client->dev))
+		return 0;
 
-Fixing this is necessary to fix the mem2mem buffer handling API,
-changing the return to the correct struct vb2_v4l2_buffer instead
-of a void pointer.
+	<do something>;
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+	pm_runtime_put(&client->dev);
+
+	return ret;
+}
+
+However, the ov7740_set_ctrl() is called by v4l2_ctrl_handler_setup()
+while the runtime PM of this device is not yet enabled.  In this case,
+the pm_runtime_get_if_in_use() returns -EINVAL (!= 0).
+
+Therefore we can't bail out of this function and the usage count is
+decreased by pm_runtime_put() without increment.
+
+This fixes this problem by enabling the runtime PM of this device before
+v4l2_ctrl_handler_setup() so that the ov7740_set_ctrl() is always called
+when the runtime PM is enabled.
+
+Cc: Wenyou Yang <wenyou.yang@microchip.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Tested-by: Eugen Hristev <eugen.hristev@microchip.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/platform/s5p-g2d/g2d.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/i2c/ov7740.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 57ab1d1085d1..971c47165010 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -513,7 +513,7 @@ static void device_run(void *prv)
- {
- 	struct g2d_ctx *ctx = prv;
- 	struct g2d_dev *dev = ctx->dev;
--	struct vb2_buffer *src, *dst;
-+	struct vb2_v4l2_buffer *src, *dst;
- 	unsigned long flags;
- 	u32 cmd = 0;
+diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+index 605f3e25ad82..f5a1ee90a6c5 100644
+--- a/drivers/media/i2c/ov7740.c
++++ b/drivers/media/i2c/ov7740.c
+@@ -1101,6 +1101,9 @@ static int ov7740_probe(struct i2c_client *client,
+ 	if (ret)
+ 		return ret;
  
-@@ -528,10 +528,10 @@ static void device_run(void *prv)
- 	spin_lock_irqsave(&dev->ctrl_lock, flags);
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++
+ 	ret = ov7740_detect(ov7740);
+ 	if (ret)
+ 		goto error_detect;
+@@ -1123,8 +1126,6 @@ static int ov7740_probe(struct i2c_client *client,
+ 	if (ret)
+ 		goto error_async_register;
  
- 	g2d_set_src_size(dev, &ctx->in);
--	g2d_set_src_addr(dev, vb2_dma_contig_plane_dma_addr(src, 0));
-+	g2d_set_src_addr(dev, vb2_dma_contig_plane_dma_addr(&src->vb2_buf, 0));
+-	pm_runtime_set_active(&client->dev);
+-	pm_runtime_enable(&client->dev);
+ 	pm_runtime_idle(&client->dev);
  
- 	g2d_set_dst_size(dev, &ctx->out);
--	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(dst, 0));
-+	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(&dst->vb2_buf, 0));
+ 	return 0;
+@@ -1134,6 +1135,8 @@ static int ov7740_probe(struct i2c_client *client,
+ error_init_controls:
+ 	ov7740_free_controls(ov7740);
+ error_detect:
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
+ 	ov7740_set_power(ov7740, 0);
+ 	media_entity_cleanup(&ov7740->subdev.entity);
  
- 	g2d_set_rop4(dev, ctx->rop);
- 	g2d_set_flip(dev, ctx->flip);
 -- 
 2.19.1
 
