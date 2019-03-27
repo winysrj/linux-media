@@ -7,52 +7,53 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78324C4360F
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:57:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1575C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:58:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48C9A205C9
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:57:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 991D12075C
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:58:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553713055;
-	bh=SeuXXXEJshdCjxNBfiXdPj39+UBW8JBgmx3N6Jlwr0I=;
+	s=default; t=1553713137;
+	bh=ZCpGmlUiyQlnIU/YuoOeiYZlF1lxYMG3ZSe4OFVu0mI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rkR7FNmdyBhITVIITAeLbnPEwmW4HcHpPNTV/TyZJxG/LNvrujsCwnvbOFDD8MJGI
-	 GqxFqoKMLGvXlCfm9ADLt0nuqPrx7rbqsn64RcQVnzGFFjD4/6xY//5/kznY2qQgdX
-	 VHi1qL5Q7WeOSEqmupB/l1GtyanbqFMS3/LBEdG8=
+	b=rPohTsGnBRkjKmGsoIPSviDQ1HhrIwShtzLibYO2nUBE5ZGZrwps9AnkpOc4gFqNA
+	 QfWMIrIdQqRRyTK7pGVO7jR9p5rfJDzumHU3OxWF6kH9jDu5SrVzsxoQXYfe0a9J+s
+	 gNYWjd3mXi69O5KzynKsnHr/9xLVQoza9bqc+7GQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389915AbfC0SPw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:15:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59562 "EHLO mail.kernel.org"
+        id S2389598AbfC0SPa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 14:15:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388942AbfC0SPw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:15:52 -0400
+        id S2389551AbfC0SP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:15:29 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EEA9A217D9;
-        Wed, 27 Mar 2019 18:15:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E13ED2087C;
+        Wed, 27 Mar 2019 18:15:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553710550;
-        bh=SeuXXXEJshdCjxNBfiXdPj39+UBW8JBgmx3N6Jlwr0I=;
+        s=default; t=1553710529;
+        bh=ZCpGmlUiyQlnIU/YuoOeiYZlF1lxYMG3ZSe4OFVu0mI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hFXHPKK+2c9xJA+7+8PB2R4GjtTCGWrMxh7iFVclwSVNKvD5WadNTcooNTRqwamcU
-         jC5yo48kCJP3O5+jb6d8A9umyQ4A+51yzsjj997JJH3ZvLWzLrvUf6PiwxEPjz6IID
-         k29BybciNqkcLKfM3l0ik82X4FxtEezUOBTRSn+M=
+        b=PyfNFsYtX1ZzvKxDhTvOeG4swyhIA0k+XAf/CpVr7y5ax6oVgq+A+uFqk2/Wwp2An
+         17kdlYpDuWgPOMo2W62DA73nY8f4oFcE18WLcNBY4uMUpu8YO433nR74soV8iX4+Ul
+         Qf7o74QGVyFRLCFIm9XIMcvFvrn3T34HQXJAdFXc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 172/192] media: rcar-vin: Allow independent VIN link enablement
-Date:   Wed, 27 Mar 2019 14:10:04 -0400
-Message-Id: <20190327181025.13507-172-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 159/192] media: mt9m111: set initial frame size other than 0x0
+Date:   Wed, 27 Mar 2019 14:09:51 -0400
+Message-Id: <20190327181025.13507-159-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
 References: <20190327181025.13507-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
@@ -60,67 +61,39 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Steve Longerbeam <slongerbeam@gmail.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-[ Upstream commit c5ff0edb8e2270a75935c73217fb0de1abd2d910 ]
+[ Upstream commit 29856308137de1c21eda89411695f4fc6e9780ff ]
 
-There is a block of code in rvin_group_link_notify() that prevents
-enabling a link to a VIN node if any entity in the media graph is
-in use. This prevents enabling a VIN link even if there is an in-use
-entity somewhere in the graph that is independent of the link's
-pipeline.
+This driver sets initial frame width and height to 0x0, which is invalid.
+So set it to selection rectangle bounds instead.
 
-For example, the code block will prevent enabling a link from
-the first rcar-csi2 receiver to a VIN node even if there is an
-enabled link somewhere far upstream on the second independent
-rcar-csi2 receiver pipeline.
+This is detected by v4l2-compliance detected.
 
-If this code block is meant to prevent modifying a link if any entity
-in the graph is actively involved in streaming (because modifying
-the CHSEL register fields can disrupt any/all running streams), then
-the entities stream counts should be checked rather than the use counts.
-
-(There is already such a check in __media_entity_setup_link() that verifies
-the stream_count of the link's source and sink entities are both zero,
-but that is insufficient, since there should be no running streams in
-the entire graph).
-
-Modify the code block to check the entity stream_count instead of the
-use_count (and elaborate on the comment). VIN node links can now be
-enabled even if there are other independent in-use entities that are
-not streaming.
-
-Fixes: c0cc5aef31 ("media: rcar-vin: add link notify for Gen3")
-
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Cc: Marco Felsch <m.felsch@pengutronix.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/media/i2c/mt9m111.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index ce09799976ef..e1085e3ab3cc 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -131,9 +131,13 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
- 	    !is_media_entity_v4l2_video_device(link->sink->entity))
- 		return 0;
- 
--	/* If any entity is in use don't allow link changes. */
-+	/*
-+	 * Don't allow link changes if any entity in the graph is
-+	 * streaming, modifying the CHSEL register fields can disrupt
-+	 * running streams.
-+	 */
- 	media_device_for_each_entity(entity, &group->mdev)
--		if (entity->use_count)
-+		if (entity->stream_count)
- 			return -EBUSY;
- 
- 	mutex_lock(&group->lock);
+diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+index efda1aa95ca0..7a7d3969af20 100644
+--- a/drivers/media/i2c/mt9m111.c
++++ b/drivers/media/i2c/mt9m111.c
+@@ -1014,6 +1014,8 @@ static int mt9m111_probe(struct i2c_client *client,
+ 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+ 	mt9m111->rect.width	= MT9M111_MAX_WIDTH;
+ 	mt9m111->rect.height	= MT9M111_MAX_HEIGHT;
++	mt9m111->width		= mt9m111->rect.width;
++	mt9m111->height		= mt9m111->rect.height;
+ 	mt9m111->fmt		= &mt9m111_colour_fmts[0];
+ 	mt9m111->lastpage	= -1;
+ 	mutex_init(&mt9m111->power_lock);
 -- 
 2.19.1
 
