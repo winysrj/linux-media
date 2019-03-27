@@ -4,48 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4692C10F00
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:27:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEAEEC43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:29:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7AF120449
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:27:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8796D20651
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553711268;
-	bh=wumdO0su/Z2Md4GVykijzEP6DfeH5JNliSCdM+aLOeA=;
+	s=default; t=1553711378;
+	bh=zgF9y1tCoypZ14Izrz5omj96l3Gbnl0d2io8qPD82bs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ejbx8DN70IS5z9o1u405SNw1392Vt1r95zbJ0U/aTfsFHkF+6c+ipuN92pwGm08MF
-	 mIslXU92suh9FbJBiUk7XnyVoiiYlD/hI9cm2kX2ZQMuPKJEbGswn+kFqIIbCmM3sN
-	 4tXptU2t/ZD5NclOX927AqR8cDQcTf4ar+5m6yDA=
+	b=jFX+vK1nc9JwjgvrXdQqRRIA1pTboKub68esvoZ3VUPYbeheDy6+uMHqML36VwP2C
+	 3YAK3MgUhs7eAVtfePRVAEGBsqrwU7JLHdWBVultZXQQcRwGjY45XpydGFx5OXcQWF
+	 ZYYfrgAhLXFLFZszOrcJs9WXGrdxluLWrHKI8/w4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391749AbfC0S1g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:27:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46226 "EHLO mail.kernel.org"
+        id S2391801AbfC0S3P (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 14:29:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391691AbfC0S03 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:26:29 -0400
+        id S2404291AbfC0S0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:26:20 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BC00D21734;
-        Wed, 27 Mar 2019 18:26:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B45492063F;
+        Wed, 27 Mar 2019 18:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553711186;
-        bh=wumdO0su/Z2Md4GVykijzEP6DfeH5JNliSCdM+aLOeA=;
+        s=default; t=1553711179;
+        bh=zgF9y1tCoypZ14Izrz5omj96l3Gbnl0d2io8qPD82bs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hSQpjDm/I++XYROZtG5JtL/Nm24P4KS+0VldHIQIur7N6O5H6DWS39ebfmNMmPJcz
-         DEYXyQByI0vnWx9AInJR5Rxy55oVGSmV6QP5xwRpxaATRH0WNsoDbMEyphc9io4OQg
-         7/9URXhrKSsWQLmDwwVSogC3WM7LXFBpF+P6c3mI=
+        b=nb38B1AxNjdLCDPiTAX+iuO+7HgjB9lIqEPIuc+iI2MfOSHDE4jg9DzbtouKHxSlQ
+         NC9kNvJ/QZx/O6/ULTWFEBhLrOyO0sLXhBfLJGKm97CcWY1DRpdIRmWVN+8/eXSFrq
+         MG6zBnviETA+DDIb6ypV1wKhjDZlqmpKkcsQJwlo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pawe? Chmiel <pawel.mikolaj.chmiel@gmail.com>,
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 3.18 37/41] media: s5p-jpeg: Check for fmt_ver_flag when doing fmt enumeration
-Date:   Wed, 27 Mar 2019 14:25:14 -0400
-Message-Id: <20190327182518.19394-37-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 3.18 32/41] media: mt9m111: set initial frame size other than 0x0
+Date:   Wed, 27 Mar 2019 14:25:09 -0400
+Message-Id: <20190327182518.19394-32-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190327182518.19394-1-sashal@kernel.org>
 References: <20190327182518.19394-1-sashal@kernel.org>
@@ -57,86 +61,39 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Pawe? Chmiel <pawel.mikolaj.chmiel@gmail.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-[ Upstream commit 49710c32cd9d6626a77c9f5f978a5f58cb536b35 ]
+[ Upstream commit 29856308137de1c21eda89411695f4fc6e9780ff ]
 
-Previously when doing format enumeration, it was returning all
- formats supported by driver, even if they're not supported by hw.
-Add missing check for fmt_ver_flag, so it'll be fixed and only those
- supported by hw will be returned. Similar thing is already done
- in s5p_jpeg_find_format.
+This driver sets initial frame width and height to 0x0, which is invalid.
+So set it to selection rectangle bounds instead.
 
-It was found by using v4l2-compliance tool and checking result
- of VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS test
-and using v4l2-ctl to get list of all supported formats.
+This is detected by v4l2-compliance detected.
 
-Tested on s5pv210-galaxys (Samsung i9000 phone).
-
-Fixes: bb677f3ac434 ("[media] Exynos4 JPEG codec v4l2 driver")
-
-Signed-off-by: Pawe? Chmiel <pawel.mikolaj.chmiel@gmail.com>
-Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-[hverkuil-cisco@xs4all.nl: fix a few alignment issues]
+Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Cc: Marco Felsch <m.felsch@pengutronix.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ drivers/media/i2c/soc_camera/mt9m111.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 6fcc7f072ace..480266e01037 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1011,13 +1011,16 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int enum_fmt(struct s5p_jpeg_fmt *sjpeg_formats, int n,
-+static int enum_fmt(struct s5p_jpeg_ctx *ctx,
-+		    struct s5p_jpeg_fmt *sjpeg_formats, int n,
- 		    struct v4l2_fmtdesc *f, u32 type)
- {
- 	int i, num = 0;
-+	unsigned int fmt_ver_flag = ctx->jpeg->variant->fmt_ver_flag;
- 
- 	for (i = 0; i < n; ++i) {
--		if (sjpeg_formats[i].flags & type) {
-+		if (sjpeg_formats[i].flags & type &&
-+		    sjpeg_formats[i].flags & fmt_ver_flag) {
- 			/* index-th format of type type found ? */
- 			if (num == f->index)
- 				break;
-@@ -1043,11 +1046,11 @@ static int s5p_jpeg_enum_fmt_vid_cap(struct file *file, void *priv,
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (ctx->mode == S5P_JPEG_ENCODE)
--		return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
-+		return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
- 				SJPEG_FMT_FLAG_ENC_CAPTURE);
- 
--	return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
--					SJPEG_FMT_FLAG_DEC_CAPTURE);
-+	return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
-+			SJPEG_FMT_FLAG_DEC_CAPTURE);
- }
- 
- static int s5p_jpeg_enum_fmt_vid_out(struct file *file, void *priv,
-@@ -1056,11 +1059,11 @@ static int s5p_jpeg_enum_fmt_vid_out(struct file *file, void *priv,
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (ctx->mode == S5P_JPEG_ENCODE)
--		return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
-+		return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
- 				SJPEG_FMT_FLAG_ENC_OUTPUT);
- 
--	return enum_fmt(sjpeg_formats, SJPEG_NUM_FORMATS, f,
--					SJPEG_FMT_FLAG_DEC_OUTPUT);
-+	return enum_fmt(ctx, sjpeg_formats, SJPEG_NUM_FORMATS, f,
-+			SJPEG_FMT_FLAG_DEC_OUTPUT);
- }
- 
- static struct s5p_jpeg_q_data *get_q_data(struct s5p_jpeg_ctx *ctx,
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index b51e8562e775..1ee437e9cfcb 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -983,6 +983,8 @@ static int mt9m111_probe(struct i2c_client *client,
+ 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+ 	mt9m111->rect.width	= MT9M111_MAX_WIDTH;
+ 	mt9m111->rect.height	= MT9M111_MAX_HEIGHT;
++	mt9m111->width		= mt9m111->rect.width;
++	mt9m111->height		= mt9m111->rect.height;
+ 	mt9m111->fmt		= &mt9m111_colour_fmts[0];
+ 	mt9m111->lastpage	= -1;
+ 	mutex_init(&mt9m111->power_lock);
 -- 
 2.19.1
 
