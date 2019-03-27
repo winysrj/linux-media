@@ -2,107 +2,118 @@ Return-Path: <SRS0=UobA=R6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 974CBC43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 11:55:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23688C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 12:39:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 675912070D
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 11:55:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=verge.net.au header.i=@verge.net.au header.b="i04s8tvh"
+	by mail.kernel.org (Postfix) with ESMTP id EC24D2087C
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 12:39:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728141AbfC0Lzw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 07:55:52 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:56101 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726598AbfC0Lzw (ORCPT
+        id S1729766AbfC0MjM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 08:39:12 -0400
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36719 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726233AbfC0MjL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 07:55:52 -0400
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id B846225BF16;
-        Wed, 27 Mar 2019 22:55:49 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=verge.net.au; s=mail;
-        t=1553687750; bh=4J8Cz7OwcswXIgEOYLCzCa7IN5HplLTtPIHjJ8sLS40=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=i04s8tvhEt7gTqLEpLU5Piqqp4LU1/jnGNktzKFZhAwwQ3A46sCnB5jGQPx6JIaGb
-         U8x6r6Vqm7jw0VideAQu1TpIzItOAy2HwnkFS4yZrYbb9IheSGWSPu4xPKbEg7K6FS
-         1gsNKk+22fph4NfbatYM0uTjh4vUkrPpps66NNXk=
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id EF310940376; Wed, 27 Mar 2019 12:55:47 +0100 (CET)
-Date:   Wed, 27 Mar 2019 12:55:47 +0100
-From:   Simon Horman <horms@verge.net.au>
-To:     Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc:     linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 1/1] staging: media: imx: imx7-mipi-csis: simplify
- getting .driver_data
-Message-ID: <20190327115547.k57rynzsajbjo5sz@verge.net.au>
-References: <20190319163622.30607-1-wsa+renesas@sang-engineering.com>
+        Wed, 27 Mar 2019 08:39:11 -0400
+Received: from [IPv6:2001:420:44c1:2579:f45d:db5a:3412:ff5f] ([IPv6:2001:420:44c1:2579:f45d:db5a:3412:ff5f])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id 97pfhBF1xUjKf97pihotlY; Wed, 27 Mar 2019 13:39:09 +0100
+Subject: Re: [PATCH 1/3] media: dt-bindings: media: meson-ao-cec: Add G12A
+ AO-CEC-B Compatible
+To:     Neil Armstrong <narmstrong@baylibre.com>, mchehab@kernel.org,
+        devicetree@vger.kernel.org
+Cc:     linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20190325173501.22863-1-narmstrong@baylibre.com>
+ <20190325173501.22863-2-narmstrong@baylibre.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <518678c1-2e1d-ca27-55bd-0dd10965354f@xs4all.nl>
+Date:   Wed, 27 Mar 2019 13:39:03 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190319163622.30607-1-wsa+renesas@sang-engineering.com>
-Organisation: Horms Solutions BV
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190325173501.22863-2-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfBTTQbqkqOt2i3TAvKHYs0YrBgPt519lwHiUdXbVmreDq4Rkx0w29c7WAOi5zTfES1EftX1R5wYa88rpAwb602bMMCFdacP6S8JPzom+nRkUhqYhOKh6
+ fO2eY2mwqE9jFHfxPeSCmAX52b3U/GwJEiD1S4Q8XbnFa55OV7mBZ8wlBkBH1O8/BwyaHJmL1fxnqGqVH7B2w8q8k6POz6qQuZqfUaC8IiJ3PJeg3vIhVSww
+ yxd83kDUaowiBR4qCkq6MmFe+pahnn9IwI7HtqbPiiqv1+zCCbDHUEJWTPqUVm8oYNtBcYD/Igb0dw048IkcDd7pvDSu6avV8m3JFYbddlxZDs7ZpwonVpiI
+ KN0AO5iizbQV4Odw+g4S+jJVu04ewh4PqkRxCMlYhjtbqxglkkkHLqvE2YmwiTfujIPBPgLQ0bqI5uoOuexahSSWGmaFFasBZovKnwYx1cNVzudDCEiWLw8o
+ SvnybT4sF5wcmLIjjWvEaZYS4nbLQ3oKmtZty9haJtQpGy7H23L5fkjaJXIpfUDqISx/6p+gR1uQbs6+
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Mar 19, 2019 at 05:36:22PM +0100, Wolfram Sang wrote:
-> We should get 'driver_data' from 'struct device' directly. Going via
-> platform_device is an unneeded step back and forth.
+On 3/25/19 6:34 PM, Neil Armstrong wrote:
+> The Amlogic G12A embeds a second CEC controller named AO-CEC-B, and
+> the other one is AO-CEC-A described by the current bindings.
 > 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> The registers interface is very close but the internal architecture
 
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+registers -> register
 
+> is totally different.
+> 
+> The other difference is the closk source, the AO-CEC-B takes the
+
+closk -> clock
+
+> "oscin", the Always-On Oscillator clock, as input and embeds a
+> dual-divider clock divider to provide the precise 32768Hz base
+> clock for CEC communication.
+> 
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 > ---
+>  .../devicetree/bindings/media/meson-ao-cec.txt    | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
 > 
-> Build tested only. buildbot is happy.
+> diff --git a/Documentation/devicetree/bindings/media/meson-ao-cec.txt b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+> index 8671bdb08080..d6e2f9cf0aaf 100644
+> --- a/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+> +++ b/Documentation/devicetree/bindings/media/meson-ao-cec.txt
+> @@ -4,16 +4,23 @@ The Amlogic Meson AO-CEC module is present is Amlogic SoCs and its purpose is
+>  to handle communication between HDMI connected devices over the CEC bus.
+>  
+>  Required properties:
+> -  - compatible : value should be following
+> -	"amlogic,meson-gx-ao-cec"
+> +  - compatible : value should be following depending on the SoC :
+> +  	For GXBB, GXL, GXM and G12A (AO_CEC_A module) :
+> +  	"amlogic,meson-gx-ao-cec"
+> +	For G12A (AO_CEC_B module) :
+> +	"amlogic,meson-g12a-ao-cec"
+
+The driver uses "amlogic,meson-g12a-ao-cec-b", so there is a mismatch between
+the bindings and the driver.
+
+Please repost since it is important that the two correspond.
+
+Thanks!
+
+	Hans
+
+>  
+>    - reg : Physical base address of the IP registers and length of memory
+>  	  mapped region.
+>  
+>    - interrupts : AO-CEC interrupt number to the CPU.
+>    - clocks : from common clock binding: handle to AO-CEC clock.
+> -  - clock-names : from common clock binding: must contain "core",
+> -		  corresponding to entry in the clocks property.
+> +  - clock-names : from common clock binding, must contain :
+> +		For GXBB, GXL, GXM and G12A (AO_CEC_A module) :
+> +		- "core"
+> +		For G12A (AO_CEC_B module) :
+> +		- "oscin"
+> +		corresponding to entry in the clocks property.
+>    - hdmi-phandle: phandle to the HDMI controller
+>  
+>  Example:
 > 
->  drivers/staging/media/imx/imx7-mipi-csis.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c b/drivers/staging/media/imx/imx7-mipi-csis.c
-> index 2ddcc42ab8ff..44569c63e4de 100644
-> --- a/drivers/staging/media/imx/imx7-mipi-csis.c
-> +++ b/drivers/staging/media/imx/imx7-mipi-csis.c
-> @@ -1039,8 +1039,7 @@ static int mipi_csis_probe(struct platform_device *pdev)
->  
->  static int mipi_csis_pm_suspend(struct device *dev, bool runtime)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
-> +	struct v4l2_subdev *mipi_sd = dev_get_drvdata(dev);
->  	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
->  	int ret = 0;
->  
-> @@ -1064,8 +1063,7 @@ static int mipi_csis_pm_suspend(struct device *dev, bool runtime)
->  
->  static int mipi_csis_pm_resume(struct device *dev, bool runtime)
->  {
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
-> +	struct v4l2_subdev *mipi_sd = dev_get_drvdata(dev);
->  	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
->  	int ret = 0;
->  
-> -- 
-> 2.11.0
-> 
+
