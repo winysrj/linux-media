@@ -4,50 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB92C43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 19:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4362EC43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 19:24:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5DBED206C0
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 19:24:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C2CF2082F
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 19:24:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553714662;
-	bh=hKjVv6VHntGbB4pdgikxy5NK6H7Oij6CRbuX/3IyRt0=;
+	s=default; t=1553714665;
+	bh=noN8CU8ZXLNqR3EFWdAk9AisetoVyOwzL0YZhfRmSVg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=gK3yaWFwBK0bO4zexH/e8I2rBSXL1DK+zgdb7HQ5e6Ykp4cWUGLvNqHG4V+MVF7Yh
-	 562V9W3p1az/Xj3kTug2VO3xl5IM0pgAJ5IG7A7Z1nei1OWD8jkdH2SYdC8vbghtbw
-	 78UJZPNk7glcyQM0LI7J/WttWV0Suu4f3q4NwqI0=
+	b=thKPsnQDs27pnsM3zngyuPbphHdHNAEg9USVK278GlEQpE1T3xUL6ytq3OBnOe75v
+	 gtjPymLmjmVtvmJ5piuVcdx9V/Zw1esluzZ8ViBWkjdpSsmtQYJtY7uqUSWToK/yUN
+	 Z8FeyVFoGwmc6PWc5KIrN9kk9RZ6c31hGY8kJFhg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387785AbfC0SFw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:05:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47146 "EHLO mail.kernel.org"
+        id S2387580AbfC0TYY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 15:24:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731498AbfC0SFv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:05:51 -0400
+        id S1731515AbfC0SFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:05:44 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 67A852063F;
-        Wed, 27 Mar 2019 18:05:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EB9652075C;
+        Wed, 27 Mar 2019 18:05:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553709950;
-        bh=hKjVv6VHntGbB4pdgikxy5NK6H7Oij6CRbuX/3IyRt0=;
+        s=default; t=1553709942;
+        bh=noN8CU8ZXLNqR3EFWdAk9AisetoVyOwzL0YZhfRmSVg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DsmZa/lK1C5h5NnCH3p9ssK+QGSKp7EKJ0Bw4dKZOHQoFR7WXMYegKEqot/tm8v+W
-         yMoiFpj/qjipBKB+JQxhl/IVmZruIKzvmI3SNmxmAl5WXwXYy0zLGGWSA3H75gVRQz
-         uHjvJ4L/jBHVXvZ0m3+n68Ji2KMtpb2tJIM/u/Hg=
+        b=RajsjObItmtXpuC1ioe/OoJkdLdCKraLfOqj4HGXzcthQVyo4zzYhEWPptN4qDLjz
+         xBRpUOmvaGSOxneSyml95yggjMQL9GVH3dpr+c1mrJCaJpL6HvaR6ctXhPAypeHgfu
+         ZR11sjwfzBIkJzo14uXxnZmhJ1KWU10pRBV0C4eg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-rockchip@lists.infradead.org
-Subject: [PATCH AUTOSEL 5.0 126/262] media: rockchip/vpu: Correct return type for mem2mem buffer helpers
-Date:   Wed, 27 Mar 2019 13:59:41 -0400
-Message-Id: <20190327180158.10245-126-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.0 125/262] media: mtk-jpeg: Correct return type for mem2mem buffer helpers
+Date:   Wed, 27 Mar 2019 13:59:40 -0400
+Message-Id: <20190327180158.10245-125-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
 References: <20190327180158.10245-1-sashal@kernel.org>
@@ -61,7 +59,7 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Ezequiel Garcia <ezequiel@collabora.com>
 
-[ Upstream commit 29701c3612fa025d5e8dc64c7a4ae8dc4763912e ]
+[ Upstream commit 1b275e4e8b70dbff9850874b30831c1bd8d3c504 ]
 
 Fix the assigned type of mem2mem buffer handling API.
 Namely, these functions:
@@ -87,72 +85,150 @@ Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c | 6 +++---
- drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c | 6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ .../media/platform/mtk-jpeg/mtk_jpeg_core.c   | 40 +++++++++----------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c b/drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
-index 5282236d1bb1..06daea66fb49 100644
---- a/drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
-+++ b/drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
-@@ -80,7 +80,7 @@ rk3288_vpu_jpeg_enc_set_qtable(struct rockchip_vpu_dev *vpu,
- void rk3288_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
+diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+index 2a5d5002c27e..f761e4d8bf2a 100644
+--- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
++++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+@@ -702,7 +702,7 @@ static void mtk_jpeg_buf_queue(struct vb2_buffer *vb)
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, to_vb2_v4l2_buffer(vb));
+ }
+ 
+-static void *mtk_jpeg_buf_remove(struct mtk_jpeg_ctx *ctx,
++static struct vb2_v4l2_buffer *mtk_jpeg_buf_remove(struct mtk_jpeg_ctx *ctx,
+ 				 enum v4l2_buf_type type)
  {
- 	struct rockchip_vpu_dev *vpu = ctx->dev;
+ 	if (V4L2_TYPE_IS_OUTPUT(type))
+@@ -714,7 +714,7 @@ static void *mtk_jpeg_buf_remove(struct mtk_jpeg_ctx *ctx,
+ static int mtk_jpeg_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct mtk_jpeg_ctx *ctx = vb2_get_drv_priv(q);
+-	struct vb2_buffer *vb;
++	struct vb2_v4l2_buffer *vb;
+ 	int ret = 0;
+ 
+ 	ret = pm_runtime_get_sync(ctx->jpeg->dev);
+@@ -724,14 +724,14 @@ static int mtk_jpeg_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	return 0;
+ err:
+ 	while ((vb = mtk_jpeg_buf_remove(ctx, q->type)))
+-		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(vb), VB2_BUF_STATE_QUEUED);
++		v4l2_m2m_buf_done(vb, VB2_BUF_STATE_QUEUED);
+ 	return ret;
+ }
+ 
+ static void mtk_jpeg_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct mtk_jpeg_ctx *ctx = vb2_get_drv_priv(q);
+-	struct vb2_buffer *vb;
++	struct vb2_v4l2_buffer *vb;
+ 
+ 	/*
+ 	 * STREAMOFF is an acknowledgment for source change event.
+@@ -743,7 +743,7 @@ static void mtk_jpeg_stop_streaming(struct vb2_queue *q)
+ 		struct mtk_jpeg_src_buf *src_buf;
+ 
+ 		vb = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+-		src_buf = mtk_jpeg_vb2_to_srcbuf(vb);
++		src_buf = mtk_jpeg_vb2_to_srcbuf(&vb->vb2_buf);
+ 		mtk_jpeg_set_queue_data(ctx, &src_buf->dec_param);
+ 		ctx->state = MTK_JPEG_RUNNING;
+ 	} else if (V4L2_TYPE_IS_OUTPUT(q->type)) {
+@@ -751,7 +751,7 @@ static void mtk_jpeg_stop_streaming(struct vb2_queue *q)
+ 	}
+ 
+ 	while ((vb = mtk_jpeg_buf_remove(ctx, q->type)))
+-		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(vb), VB2_BUF_STATE_ERROR);
++		v4l2_m2m_buf_done(vb, VB2_BUF_STATE_ERROR);
+ 
+ 	pm_runtime_put_sync(ctx->jpeg->dev);
+ }
+@@ -807,7 +807,7 @@ static void mtk_jpeg_device_run(void *priv)
+ {
+ 	struct mtk_jpeg_ctx *ctx = priv;
+ 	struct mtk_jpeg_dev *jpeg = ctx->jpeg;
 -	struct vb2_buffer *src_buf, *dst_buf;
 +	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	struct rockchip_vpu_jpeg_ctx jpeg_ctx;
- 	u32 reg;
+ 	enum vb2_buffer_state buf_state = VB2_BUF_STATE_ERROR;
+ 	unsigned long flags;
+ 	struct mtk_jpeg_src_buf *jpeg_src_buf;
+@@ -817,11 +817,11 @@ static void mtk_jpeg_device_run(void *priv)
  
-@@ -88,7 +88,7 @@ void rk3288_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
  	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+-	jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(src_buf);
++	jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(&src_buf->vb2_buf);
  
- 	memset(&jpeg_ctx, 0, sizeof(jpeg_ctx));
--	jpeg_ctx.buffer = vb2_plane_vaddr(dst_buf, 0);
-+	jpeg_ctx.buffer = vb2_plane_vaddr(&dst_buf->vb2_buf, 0);
- 	jpeg_ctx.width = ctx->dst_fmt.width;
- 	jpeg_ctx.height = ctx->dst_fmt.height;
- 	jpeg_ctx.quality = ctx->jpeg_quality;
-@@ -99,7 +99,7 @@ void rk3288_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
- 			   VEPU_REG_ENC_CTRL);
+ 	if (jpeg_src_buf->flags & MTK_JPEG_BUF_FLAGS_LAST_FRAME) {
+-		for (i = 0; i < dst_buf->num_planes; i++)
+-			vb2_set_plane_payload(dst_buf, i, 0);
++		for (i = 0; i < dst_buf->vb2_buf.num_planes; i++)
++			vb2_set_plane_payload(&dst_buf->vb2_buf, i, 0);
+ 		buf_state = VB2_BUF_STATE_DONE;
+ 		goto dec_end;
+ 	}
+@@ -833,8 +833,8 @@ static void mtk_jpeg_device_run(void *priv)
+ 		return;
+ 	}
  
- 	rk3288_vpu_set_src_img_ctrl(vpu, ctx);
--	rk3288_vpu_jpeg_enc_set_buffers(vpu, ctx, src_buf);
-+	rk3288_vpu_jpeg_enc_set_buffers(vpu, ctx, &src_buf->vb2_buf);
- 	rk3288_vpu_jpeg_enc_set_qtable(vpu,
- 				       rockchip_vpu_jpeg_get_qtable(&jpeg_ctx, 0),
- 				       rockchip_vpu_jpeg_get_qtable(&jpeg_ctx, 1));
-diff --git a/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c b/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
-index dbc86d95fe3b..3d438797692e 100644
---- a/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
-+++ b/drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
-@@ -111,7 +111,7 @@ rk3399_vpu_jpeg_enc_set_qtable(struct rockchip_vpu_dev *vpu,
- void rk3399_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
+-	mtk_jpeg_set_dec_src(ctx, src_buf, &bs);
+-	if (mtk_jpeg_set_dec_dst(ctx, &jpeg_src_buf->dec_param, dst_buf, &fb))
++	mtk_jpeg_set_dec_src(ctx, &src_buf->vb2_buf, &bs);
++	if (mtk_jpeg_set_dec_dst(ctx, &jpeg_src_buf->dec_param, &dst_buf->vb2_buf, &fb))
+ 		goto dec_end;
+ 
+ 	spin_lock_irqsave(&jpeg->hw_lock, flags);
+@@ -849,8 +849,8 @@ static void mtk_jpeg_device_run(void *priv)
+ dec_end:
+ 	v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 	v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), buf_state);
+-	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), buf_state);
++	v4l2_m2m_buf_done(src_buf, buf_state);
++	v4l2_m2m_buf_done(dst_buf, buf_state);
+ 	v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+ }
+ 
+@@ -921,7 +921,7 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
  {
- 	struct rockchip_vpu_dev *vpu = ctx->dev;
+ 	struct mtk_jpeg_dev *jpeg = priv;
+ 	struct mtk_jpeg_ctx *ctx;
 -	struct vb2_buffer *src_buf, *dst_buf;
 +	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	struct rockchip_vpu_jpeg_ctx jpeg_ctx;
- 	u32 reg;
+ 	struct mtk_jpeg_src_buf *jpeg_src_buf;
+ 	enum vb2_buffer_state buf_state = VB2_BUF_STATE_ERROR;
+ 	u32	dec_irq_ret;
+@@ -938,7 +938,7 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
  
-@@ -119,7 +119,7 @@ void rk3399_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-	jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(src_buf);
++	jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(&src_buf->vb2_buf);
  
- 	memset(&jpeg_ctx, 0, sizeof(jpeg_ctx));
--	jpeg_ctx.buffer = vb2_plane_vaddr(dst_buf, 0);
-+	jpeg_ctx.buffer = vb2_plane_vaddr(&dst_buf->vb2_buf, 0);
- 	jpeg_ctx.width = ctx->dst_fmt.width;
- 	jpeg_ctx.height = ctx->dst_fmt.height;
- 	jpeg_ctx.quality = ctx->jpeg_quality;
-@@ -130,7 +130,7 @@ void rk3399_vpu_jpeg_enc_run(struct rockchip_vpu_ctx *ctx)
- 			   VEPU_REG_ENCODE_START);
+ 	if (dec_irq_ret >= MTK_JPEG_DEC_RESULT_UNDERFLOW)
+ 		mtk_jpeg_dec_reset(jpeg->dec_reg_base);
+@@ -948,15 +948,15 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
+ 		goto dec_end;
+ 	}
  
- 	rk3399_vpu_set_src_img_ctrl(vpu, ctx);
--	rk3399_vpu_jpeg_enc_set_buffers(vpu, ctx, src_buf);
-+	rk3399_vpu_jpeg_enc_set_buffers(vpu, ctx, &src_buf->vb2_buf);
- 	rk3399_vpu_jpeg_enc_set_qtable(vpu,
- 				       rockchip_vpu_jpeg_get_qtable(&jpeg_ctx, 0),
- 				       rockchip_vpu_jpeg_get_qtable(&jpeg_ctx, 1));
+-	for (i = 0; i < dst_buf->num_planes; i++)
+-		vb2_set_plane_payload(dst_buf, i,
++	for (i = 0; i < dst_buf->vb2_buf.num_planes; i++)
++		vb2_set_plane_payload(&dst_buf->vb2_buf, i,
+ 				      jpeg_src_buf->dec_param.comp_size[i]);
+ 
+ 	buf_state = VB2_BUF_STATE_DONE;
+ 
+ dec_end:
+-	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), buf_state);
+-	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), buf_state);
++	v4l2_m2m_buf_done(src_buf, buf_state);
++	v4l2_m2m_buf_done(dst_buf, buf_state);
+ 	v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+ 	return IRQ_HANDLED;
+ }
 -- 
 2.19.1
 
