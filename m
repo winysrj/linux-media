@@ -7,49 +7,46 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1575C43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB0A5C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 19:04:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 991D12075C
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 18:58:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E583206BA
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 19:04:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553713137;
-	bh=ZCpGmlUiyQlnIU/YuoOeiYZlF1lxYMG3ZSe4OFVu0mI=;
+	s=default; t=1553713493;
+	bh=x4e4cF0VITjO1a3FbU9MH97lCyyNWGdK/WbgZgsWYEQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rPohTsGnBRkjKmGsoIPSviDQ1HhrIwShtzLibYO2nUBE5ZGZrwps9AnkpOc4gFqNA
-	 QfWMIrIdQqRRyTK7pGVO7jR9p5rfJDzumHU3OxWF6kH9jDu5SrVzsxoQXYfe0a9J+s
-	 gNYWjd3mXi69O5KzynKsnHr/9xLVQoza9bqc+7GQ=
+	b=Jn5eX6gRDPP1S4T9MtFAC4Sql/P6oYjZwfKTEn6L9jcAvzaeEAIGe1BVH6fbQeZ7Q
+	 vxydiBjQz9hX7m5JeHpstVzqw0x/Ax1nfvVSzUgnixymzogOR/Er255kP+QP2B4mKM
+	 h7f8iDv2xExrRHhRZ9Ng2noRwY/6REpqXQpirvVs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389598AbfC0SPa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:15:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59088 "EHLO mail.kernel.org"
+        id S2389313AbfC0SNC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 14:13:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389551AbfC0SP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:15:29 -0400
+        id S2389298AbfC0SNA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:13:00 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E13ED2087C;
-        Wed, 27 Mar 2019 18:15:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5EF0121741;
+        Wed, 27 Mar 2019 18:12:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553710529;
-        bh=ZCpGmlUiyQlnIU/YuoOeiYZlF1lxYMG3ZSe4OFVu0mI=;
+        s=default; t=1553710380;
+        bh=x4e4cF0VITjO1a3FbU9MH97lCyyNWGdK/WbgZgsWYEQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PyfNFsYtX1ZzvKxDhTvOeG4swyhIA0k+XAf/CpVr7y5ax6oVgq+A+uFqk2/Wwp2An
-         17kdlYpDuWgPOMo2W62DA73nY8f4oFcE18WLcNBY4uMUpu8YO433nR74soV8iX4+Ul
-         Qf7o74QGVyFRLCFIm9XIMcvFvrn3T34HQXJAdFXc=
+        b=INxD3tylWaP0jqHTsHBspfLe8sNrXe0GGhp1CGpDRqbQHQC4qbBTbj20DQ8bgtQlG
+         bacevnFG1jCXL53MD/OcgVsX2ndeJpdgMVVoad0BFSvGL+duN1jkzirCOSFx1Zui1c
+         +RXILd6GsEzTGwuqplfYYEYGBL7590Fz39okJ824=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
-        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        Marco Felsch <m.felsch@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 159/192] media: mt9m111: set initial frame size other than 0x0
-Date:   Wed, 27 Mar 2019 14:09:51 -0400
-Message-Id: <20190327181025.13507-159-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 089/192] media: mx2_emmaprp: Correct return type for mem2mem buffer helpers
+Date:   Wed, 27 Mar 2019 14:08:41 -0400
+Message-Id: <20190327181025.13507-89-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
 References: <20190327181025.13507-1-sashal@kernel.org>
@@ -61,39 +58,61 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Akinobu Mita <akinobu.mita@gmail.com>
+From: Ezequiel Garcia <ezequiel@collabora.com>
 
-[ Upstream commit 29856308137de1c21eda89411695f4fc6e9780ff ]
+[ Upstream commit 8d20dcefe471763f23ad538369ec65b51993ffff ]
 
-This driver sets initial frame width and height to 0x0, which is invalid.
-So set it to selection rectangle bounds instead.
+Fix the assigned type of mem2mem buffer handling API.
+Namely, these functions:
 
-This is detected by v4l2-compliance detected.
+ v4l2_m2m_next_buf
+ v4l2_m2m_last_buf
+ v4l2_m2m_buf_remove
+ v4l2_m2m_next_src_buf
+ v4l2_m2m_next_dst_buf
+ v4l2_m2m_last_src_buf
+ v4l2_m2m_last_dst_buf
+ v4l2_m2m_src_buf_remove
+ v4l2_m2m_dst_buf_remove
 
-Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
-Cc: Marco Felsch <m.felsch@pengutronix.de>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+return a struct vb2_v4l2_buffer, and not a struct vb2_buffer.
+
+Fixing this is necessary to fix the mem2mem buffer handling API,
+changing the return to the correct struct vb2_v4l2_buffer instead
+of a void pointer.
+
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/i2c/mt9m111.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/mx2_emmaprp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
-index efda1aa95ca0..7a7d3969af20 100644
---- a/drivers/media/i2c/mt9m111.c
-+++ b/drivers/media/i2c/mt9m111.c
-@@ -1014,6 +1014,8 @@ static int mt9m111_probe(struct i2c_client *client,
- 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
- 	mt9m111->rect.width	= MT9M111_MAX_WIDTH;
- 	mt9m111->rect.height	= MT9M111_MAX_HEIGHT;
-+	mt9m111->width		= mt9m111->rect.width;
-+	mt9m111->height		= mt9m111->rect.height;
- 	mt9m111->fmt		= &mt9m111_colour_fmts[0];
- 	mt9m111->lastpage	= -1;
- 	mutex_init(&mt9m111->power_lock);
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 64195c4ddeaf..419e1cb10dc6 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -274,7 +274,7 @@ static void emmaprp_device_run(void *priv)
+ {
+ 	struct emmaprp_ctx *ctx = priv;
+ 	struct emmaprp_q_data *s_q_data, *d_q_data;
+-	struct vb2_buffer *src_buf, *dst_buf;
++	struct vb2_v4l2_buffer *src_buf, *dst_buf;
+ 	struct emmaprp_dev *pcdev = ctx->dev;
+ 	unsigned int s_width, s_height;
+ 	unsigned int d_width, d_height;
+@@ -294,8 +294,8 @@ static void emmaprp_device_run(void *priv)
+ 	d_height = d_q_data->height;
+ 	d_size = d_width * d_height;
+ 
+-	p_in = vb2_dma_contig_plane_dma_addr(src_buf, 0);
+-	p_out = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
++	p_in = vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
++	p_out = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
+ 	if (!p_in || !p_out) {
+ 		v4l2_err(&pcdev->v4l2_dev,
+ 			 "Acquiring kernel pointers to buffers failed\n");
 -- 
 2.19.1
 
