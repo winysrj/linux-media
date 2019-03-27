@@ -2,138 +2,101 @@ Return-Path: <SRS0=UobA=R6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13926C43381
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 12:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 667A3C43381
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 12:58:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E1FAF20449
-	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 12:57:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 357362147C
+	for <linux-media@archiver.kernel.org>; Wed, 27 Mar 2019 12:58:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="AViqVceg";
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="pP15t0rx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726319AbfC0M5Q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 27 Mar 2019 08:57:16 -0400
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52386 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725797AbfC0M5Q (ORCPT
+        id S1729104AbfC0M63 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 27 Mar 2019 08:58:29 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:49236 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725829AbfC0M6Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Mar 2019 08:57:16 -0400
-Received: from [IPv6:2001:420:44c1:2579:f45d:db5a:3412:ff5f] ([IPv6:2001:420:44c1:2579:f45d:db5a:3412:ff5f])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id 987ChBLfsUjKf987FhoyBK; Wed, 27 Mar 2019 13:57:14 +0100
-Subject: Re: [PATCH v4 1/3] media: dt-bindings: media: document allegro-dvt
- bindings
-To:     Michael Tretter <m.tretter@pengutronix.de>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc:     kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
-        tfiga@chromium.org, dshah@xilinx.com, Rob Herring <robh@kernel.org>
-References: <20190301152718.23134-1-m.tretter@pengutronix.de>
- <20190301152718.23134-2-m.tretter@pengutronix.de>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e61aebce-8be4-7f6a-6d9b-69c5e4db14d2@xs4all.nl>
-Date:   Wed, 27 Mar 2019 13:57:10 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Wed, 27 Mar 2019 08:58:25 -0400
+Received: by smtp.codeaurora.org (Postfix, from userid 1000)
+        id 2527960A44; Wed, 27 Mar 2019 12:58:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
+        s=default; t=1553691504;
+        bh=d78/h/tHRsNnx9gRlWBavJP4nZRXWlNrGu1vdw/qw4U=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=AViqVceghdeotuDtBHCrcOAziTsjPD0aVxU5FqO1MMMbCEtNIFmWib+IWPfdTkL2K
+         hyKFwAggv7CzsFufdFCqXN0GfcaxNvphBE/YjfzQRKBOOVi22bE2k7cy/Xm/tMPN5P
+         2akZWv9WYiNbH5EijL+UWupIGRP1U15bdsTclDlw=
+Received: from [10.204.79.83] (blr-c-bdr-fw-01_globalnat_allzones-outside.qualcomm.com [103.229.19.19])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: mojha@smtp.codeaurora.org)
+        by smtp.codeaurora.org (Postfix) with ESMTPSA id C86DF60736;
+        Wed, 27 Mar 2019 12:58:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
+        s=default; t=1553691503;
+        bh=d78/h/tHRsNnx9gRlWBavJP4nZRXWlNrGu1vdw/qw4U=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=pP15t0rxOoP+i9OBkxAS2voMB7k1V2OwumxniZ+bUxIBnBUkx/7OfOS7kiq1GZ1q0
+         f8R6S8jw/ZbYdl3QBisTxyBFq5hDgBj1kSJc+SQyXJFHJTxkVvlILtyUSWWGaF2pxp
+         jbURJOeWXz2/qf/tfHDlnpCaC80jPiZ28r4B18Lo=
+DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org C86DF60736
+Authentication-Results: pdx-caf-mail.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
+Authentication-Results: pdx-caf-mail.web.codeaurora.org; spf=none smtp.mailfrom=mojha@codeaurora.org
+Subject: Re: [PATCH] media: vpss: fix a potential NULL pointer dereference
+To:     Kangjie Lu <kjlu@umn.edu>
+Cc:     pakki001@umn.edu, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20190323025106.15865-1-kjlu@umn.edu>
+From:   Mukesh Ojha <mojha@codeaurora.org>
+Message-ID: <f54947a6-8b9c-18d5-4e9b-d33d504131c6@codeaurora.org>
+Date:   Wed, 27 Mar 2019 18:28:17 +0530
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.0
 MIME-Version: 1.0
-In-Reply-To: <20190301152718.23134-2-m.tretter@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20190323025106.15865-1-kjlu@umn.edu>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfCymeItseZN7BRDUM7iu44Y6whZe5b92EZf2OSUb+4S0T+joZTyCXQeCKVO7iU5tWH7KWFY1L//AbVrZ8hy+A6TsRYvUonXMoLKWf3Z03Dpuo1dPfTYC
- mKSfEXirH15e0RAfAA9NBmE3xaxKG/jQr/4VhH/u6CNOfQ8EMibu0OaSf1pUjmCjVcfltwBHoxr5CZ65+0c2TEuoLpR4ybJuj6rp+MshmMwtsKnQbGDOIDd5
- c5ss5FGWmEn1CL3264WROT0hZMXeMNCWoF6FTOhXg5FoyN8bbr/S6H/0L7uiEWyT+vnmfeVBDgeZsQNVmQNw89cLw6nkgUgKmPVT4hHtE5kTBEjk5B8WZBYo
- fRxaMssTgadXLN0dKaA0bJDXAaka7DoQaEw7kB6VO38J695kcrxvQLxKeyv2rAfTA0+v5K1Hl9OiEjpo/BD83Nro7KaO4+6g7hBS0pY/EBw+C6dunPSiJDr5
- SSAwTlPjo5BYDN6UNGs5f26UdjuAu9TJ+8ZE9mQouH5UAoK1SfJRABomLqot0bisUtY+nPK1L6MXPgej
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 3/1/19 4:27 PM, Michael Tretter wrote:
-> Add device-tree bindings for the Allegro DVT video IP core found on the
-> Xilinx ZynqMP EV family.
-> 
-> Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
-> Reviewed-by: Rob Herring <robh@kernel.org>
+
+On 3/23/2019 8:21 AM, Kangjie Lu wrote:
+> In case ioremap fails, the fix returns -ENOMEM to avoid NULL
+> pointer dereference.
+>
+> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+
+
+Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
+
+-Mukesh
+
 > ---
-> v3 -> v4:
-> none
-> 
-> v2 -> v3:
-> - rename node to video-codec
-> - drop interrupt-names
-> - fix compatible in example
-> - add clocks to required properties
-> 
-> v1 -> v2:
-> none
-> ---
->  .../devicetree/bindings/media/allegro.txt     | 43 +++++++++++++++++++
->  1 file changed, 43 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/allegro.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/allegro.txt b/Documentation/devicetree/bindings/media/allegro.txt
-> new file mode 100644
-> index 000000000000..a92e2fbf26c9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/allegro.txt
-> @@ -0,0 +1,43 @@
-> +Device-tree bindings for the Allegro DVT video IP codecs present in the Xilinx
-> +ZynqMP SoC. The IP core may either be a H.264/H.265 encoder or H.264/H.265
-> +decoder ip core.
+>   drivers/media/platform/davinci/vpss.c | 5 +++++
+>   1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+> index 19cf6853411e..89a86c19579b 100644
+> --- a/drivers/media/platform/davinci/vpss.c
+> +++ b/drivers/media/platform/davinci/vpss.c
+> @@ -518,6 +518,11 @@ static int __init vpss_init(void)
+>   		return -EBUSY;
+>   
+>   	oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
+> +	if (unlikely(!oper_cfg.vpss_regs_base2)) {
+> +		release_mem_region(VPSS_CLK_CTRL, 4);
+> +		return -ENOMEM;
+> +	}
 > +
-> +Each actual codec engines is controlled by a microcontroller (MCU). Host
-> +software uses a provided mailbox interface to communicate with the MCU. The
-> +MCU share an interrupt.
-> +
-> +Required properties:
-> +  - compatible: value should be one of the following
-> +    "allegro,al5e-1.1", "allegro,al5e": encoder IP core
-> +    "allegro,al5d-1.1", "allegro,al5d": decoder IP core
-
-checkpatch give me:
-
-WARNING: DT compatible string vendor "allegro" appears un-documented -- check ./Documentation/devicetree/bindings/vendor-prefixes.txt
-#2714: FILE: drivers/staging/media/allegro-dvt/allegro-core.c:2636:
-+       { .compatible = "allegro,al5e-1.1" },
-
-I think you should probably replace allegro by xlnx.
-
-Regards,
-
-	Hans
-
-> +  - reg: base and length of the memory mapped register region and base and
-> +    length of the memory mapped sram
-> +  - reg-names: must include "regs" and "sram"
-> +  - interrupts: shared interrupt from the MCUs to the processing system
-> +  - clocks: must contain an entry for each entry in clock-names
-> +  - clock-names: must include "core_clk", "mcu_clk", "m_axi_core_aclk",
-> +    "m_axi_mcu_aclk", "s_axi_lite_aclk"
-> +
-> +Example:
-> +	al5e: video-codec@a0009000 {
-> +		compatible = "allegro,al5e-1.1", "allegro,al5e";
-> +		reg = <0 0xa0009000 0 0x1000>,
-> +		      <0 0xa0000000 0 0x8000>;
-> +		reg-names = "regs", "sram";
-> +		interrupts = <0 96 4>;
-> +		clocks = <&xlnx_vcu 0>, <&xlnx_vcu 1>,
-> +			 <&clkc 71>, <&clkc 71>, <&clkc 71>;
-> +		clock-names = "core_clk", "mcu_clk", "m_axi_core_aclk",
-> +			      "m_axi_mcu_aclk", "s_axi_lite_aclk"
-> +	};
-> +	al5d: video-codec@a0029000 {
-> +		compatible = "allegro,al5d-1.1", "allegro,al5d";
-> +		reg = <0 0xa0029000 0 0x1000>,
-> +		      <0 0xa0020000 0 0x8000>;
-> +		reg-names = "regs", "sram";
-> +		interrupts = <0 96 4>;
-> +		clocks = <&xlnx_vcu 2>, <&xlnx_vcu 3>,
-> +			 <&clkc 71>, <&clkc 71>, <&clkc 71>;
-> +		clock-names = "core_clk", "mcu_clk", "m_axi_core_aclk",
-> +			      "m_axi_mcu_aclk", "s_axi_lite_aclk"
-> +	};
-> 
-
+>   	writel(VPSS_CLK_CTRL_VENCCLKEN |
+>   		     VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
+>   
